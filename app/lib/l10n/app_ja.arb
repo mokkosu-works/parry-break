@@ -20,16 +20,16 @@
   "helpMoveZones": "画面の左半分をドラッグ",
   "helpMoveRail": "左のレールをドラッグ",
   "helpParryTitle": "発射・パリィ",
-  "helpParryZones": "画面の右半分を、当たる瞬間にタップ",
-  "helpParryRail": "当たる瞬間に PARRY ボタン",
+  "helpParryZones": "ボールや弾が当たる瞬間に画面の右半分をタップ",
+  "helpParryRail": "ボールや弾が当たる瞬間に PARRY ボタンを押す",
   "helpTimingTitle": "タイミング",
   "helpTimingBody": "PERFECT → 貫通弾\nJUST → 衝撃波",
   "helpChainTitle": "連鎖",
-  "helpChainBody": "白い要石を壊すと崩落\nオレンジの爆薬で誘爆",
-  "helpOverTitle": "ゲーム終了",
-  "helpOverBody": "ボールを落とすと終了\nブロックが警告線に届いても終了",
+  "helpChainBody": "白い要石を壊す → 崩落\nオレンジの爆薬 → 誘爆",
+  "helpOverTitle": "ゲームオーバー",
+  "helpOverBody": "ボールを落とすと終わり\nブロックが警告線まで下りてきても終わり",
   "helpPauseTitle": "一時停止",
-  "helpPauseBody": "右上の Ⅱ で停止",
+  "helpPauseBody": "右上の Ⅱ をタップ",
   "paused": "一時停止中",
   "resume": "再開",
   "retry": "リトライ",
@@ -40,9 +40,9 @@
   "stageClear": "STAGE CLEAR",
   "stageFailed": "STAGE FAILED",
   "newRecord": "NEW RECORD",
-  "locked": "ロック中",
+  "locked": "未解放",
   "starClear": "クリア",
-  "starNoHit": "被弾なしでクリア",
+  "starNoHit": "一度も被弾せずにクリア",
   "starTime": "{seconds}秒以内にクリア",
   "@starTime": {
     "placeholders": {
@@ -59,7 +59,7 @@
       }
     }
   },
-  "starJust": "JUST を {value} 回",
+  "starJust": "JUST を {value} 回出す",
   "@starJust": {
     "placeholders": {
       "value": {
@@ -67,7 +67,7 @@
       }
     }
   },
-  "starPerfect": "PERFECT 以上を {value} 回",
+  "starPerfect": "PERFECT 以上を {value} 回出す",
   "@starPerfect": {
     "placeholders": {
       "value": {
@@ -75,7 +75,7 @@
       }
     }
   },
-  "starCollapse": "COLLAPSE ×{value} 以上",
+  "starCollapse": "COLLAPSE ×{value} 以上を決める",
   "@starCollapse": {
     "placeholders": {
       "value": {
@@ -83,7 +83,7 @@
       }
     }
   },
-  "starChainBlast": "CHAIN BLAST ×{value} 以上",
+  "starChainBlast": "CHAIN BLAST ×{value} 以上を決める",
   "@starChainBlast": {
     "placeholders": {
       "value": {
@@ -91,7 +91,7 @@
       }
     }
   },
-  "starReturnKills": "撃ち返しで {value} 個破壊",
+  "starReturnKills": "撃ち返した弾でブロックを {value} 個壊す",
   "@starReturnKills": {
     "placeholders": {
       "value": {
@@ -99,7 +99,7 @@
       }
     }
   },
-  "starGraze": "GRAZE を {value} 回",
+  "starGraze": "GRAZE を {value} 回決める",
   "@starGraze": {
     "placeholders": {
       "value": {
@@ -107,7 +107,7 @@
       }
     }
   },
-  "starRicochet": "RICOCHET ×{value} 以上",
+  "starRicochet": "RICOCHET ×{value} 以上を決める",
   "@starRicochet": {
     "placeholders": {
       "value": {
@@ -115,8 +115,8 @@
       }
     }
   },
-  "clearAnnihilate": "目標: 全消し",
-  "clearScore": "目標: スコア {value}",
+  "clearAnnihilate": "目標: ブロックをすべて壊す",
+  "clearScore": "目標: スコア {value} に到達",
   "@clearScore": {
     "placeholders": {
       "value": {
@@ -124,7 +124,7 @@
       }
     }
   },
-  "clearSurvive": "目標: {seconds}秒耐える",
+  "clearSurvive": "目標: {seconds}秒間耐え抜く",
   "@clearSurvive": {
     "placeholders": {
       "seconds": {
@@ -134,27 +134,27 @@
   },
   "clearBoss": "目標: コアをすべて破壊",
   "settingsControls": "操作方法",
-  "controlsZones": "画面の左右で操作",
+  "controlsZones": "画面の左右",
   "controlsRailH": "レール（横）",
   "controlsRailV": "レール（縦）",
   "settingsSensitivity": "移動感度",
   "settingsTiming": "判定タイミング補正",
-  "settingsTimingHelp": "画面とタッチの遅れを打ち消すため、入力をこの時間だけ早めて扱います",
+  "settingsTimingHelp": "画面表示やタッチの遅れを補正するため、入力をこの時間だけ早く受け付けたものとして扱います",
   "calibrate": "測定する",
-  "settingsBgm": "BGM 音量",
-  "settingsSfx": "効果音 音量",
+  "settingsBgm": "BGM の音量",
+  "settingsSfx": "効果音の音量",
   "settingsHaptics": "振動",
   "settingsQuality": "画質",
   "qualityHigh": "高",
   "qualityLow": "低（省電力）",
-  "settingsReduceEffects": "刺激を弱める",
-  "settingsReduceEffectsHelp": "フラッシュ・画面反転・画面の揺れを弱めます",
+  "settingsReduceEffects": "演出を控えめにする",
+  "settingsReduceEffectsHelp": "フラッシュ・画面の反転・揺れを抑えます",
   "settingsLanguage": "言語",
   "settingsDebugMode": "デバッグモード",
-  "settingsDebugModeHelp": "全ステージを遊べます。記録とランキングには残りません",
+  "settingsDebugModeHelp": "すべてのステージを遊べます。スコアは記録されず、ランキングにも登録されません",
   "debugModeOn": "デバッグモード ON",
   "debugModeOff": "デバッグモード OFF",
-  "languageSystem": "端末の設定",
+  "languageSystem": "端末の設定に合わせる",
   "calibrationTitle": "判定タイミングの測定",
   "calibrationBody": "リングが線に重なる瞬間にタップしてください（{count}回）",
   "@calibrationBody": {
@@ -173,20 +173,20 @@
     }
   },
   "calibrationApply": "この値を使う",
-  "calibrationRetry": "もう一度",
+  "calibrationRetry": "測り直す",
   "tapToStart": "タップで開始",
   "rankingUnavailable": "ランキングは現在利用できません",
   "rankingEndlessScore": "エンドレス: スコア",
   "rankingEndlessWave": "エンドレス: 到達ウェーブ",
   "rankingStages": "ステージ: 合計スコア",
-  "introKeystone": "NEW: 要石 — 壊すと支えていたブロックが崩落",
+  "introKeystone": "NEW: 要石 — 壊すと、支えていたブロックが崩れ落ちる",
   "introTurret": "NEW: 砲台 — 弾をパリィで撃ち返せ",
-  "introExplosive": "NEW: 爆薬 — 誘爆させろ。破片も撃ち返せる",
-  "introReflector": "NEW: 反射 — ボールの軌道が変わる",
-  "introMagnet": "NEW: 磁力 — ボールを引き寄せる",
-  "introSplitter": "NEW: 分裂 — 小さなブロックを散らす",
-  "introMirror": "NEW: 鏡面 — 撃ち返した弾を跳ね返す",
-  "introLoop": "周回 {loop} — スピードアップ",
+  "introExplosive": "NEW: 爆薬 — 周りを巻き込んで誘爆する。破片も撃ち返せる",
+  "introReflector": "NEW: 反射板 — 当たるとボールの向きが変わる",
+  "introMagnet": "NEW: 磁石 — 近くのボールを引き寄せる",
+  "introSplitter": "NEW: 分裂 — 壊すと小さなブロックが飛び散る",
+  "introMirror": "NEW: 鏡 — 撃ち返した弾をさらに跳ね返す",
+  "introLoop": "{loop}周目 — スピードアップ",
   "@introLoop": {
     "placeholders": {
       "loop": {
@@ -195,13 +195,13 @@
     }
   },
   "introParry": "ボールが当たる瞬間にタップしてパリィ",
-  "introPierce": "PERFECT パリィで貫通弾。まとめて貫け",
-  "introSurvive": "ブロックが警告線に届かないよう耐えろ",
-  "introScore": "目標スコアに届けばクリア",
-  "bannerBoss": "パリィした赤い弾と貫通弾でコアを撃て",
-  "bannerOverdrive": "全貫通 ×16 — PERFECT で分身弾",
-  "bannerPhase2": "鏡面シールド — ロックオンレーザー",
-  "bannerPhase3": "要塞展開 — 弾幕",
-  "bannerTimeOver": "要塞が急降下",
-  "endingSub": "次の周回 — さらに加速"
+  "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
+  "introSurvive": "ブロックを警告線まで下ろさずに耐え抜け",
+  "introScore": "目標スコアに到達すればクリア",
+  "bannerBoss": "赤い弾をパリィで撃ち返し、貫通弾でコアを狙え",
+  "bannerOverdrive": "全弾貫通 ×16 — PERFECT で分身弾",
+  "bannerPhase2": "鏡のシールド展開 — ロックオンレーザーに注意",
+  "bannerPhase3": "要塞が変形 — 弾幕に備えろ",
+  "bannerTimeOver": "要塞が急降下してくる",
+  "endingSub": "次の周回へ — さらに加速する"
 }

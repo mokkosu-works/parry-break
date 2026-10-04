@@ -51,10 +51,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpParryTitle => '発射・パリィ';
 
   @override
-  String get helpParryZones => '画面の右半分を、当たる瞬間にタップ';
+  String get helpParryZones => 'ボールや弾が当たる瞬間に画面の右半分をタップ';
 
   @override
-  String get helpParryRail => '当たる瞬間に PARRY ボタン';
+  String get helpParryRail => 'ボールや弾が当たる瞬間に PARRY ボタンを押す';
 
   @override
   String get helpTimingTitle => 'タイミング';
@@ -66,19 +66,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpChainTitle => '連鎖';
 
   @override
-  String get helpChainBody => '白い要石を壊すと崩落\nオレンジの爆薬で誘爆';
+  String get helpChainBody => '白い要石を壊す → 崩落\nオレンジの爆薬 → 誘爆';
 
   @override
-  String get helpOverTitle => 'ゲーム終了';
+  String get helpOverTitle => 'ゲームオーバー';
 
   @override
-  String get helpOverBody => 'ボールを落とすと終了\nブロックが警告線に届いても終了';
+  String get helpOverBody => 'ボールを落とすと終わり\nブロックが警告線まで下りてきても終わり';
 
   @override
   String get helpPauseTitle => '一時停止';
 
   @override
-  String get helpPauseBody => '右上の Ⅱ で停止';
+  String get helpPauseBody => '右上の Ⅱ をタップ';
 
   @override
   String get paused => '一時停止中';
@@ -111,13 +111,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newRecord => 'NEW RECORD';
 
   @override
-  String get locked => 'ロック中';
+  String get locked => '未解放';
 
   @override
   String get starClear => 'クリア';
 
   @override
-  String get starNoHit => '被弾なしでクリア';
+  String get starNoHit => '一度も被弾せずにクリア';
 
   @override
   String starTime(String seconds) {
@@ -131,50 +131,50 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String starJust(String value) {
-    return 'JUST を $value 回';
+    return 'JUST を $value 回出す';
   }
 
   @override
   String starPerfect(String value) {
-    return 'PERFECT 以上を $value 回';
+    return 'PERFECT 以上を $value 回出す';
   }
 
   @override
   String starCollapse(String value) {
-    return 'COLLAPSE ×$value 以上';
+    return 'COLLAPSE ×$value 以上を決める';
   }
 
   @override
   String starChainBlast(String value) {
-    return 'CHAIN BLAST ×$value 以上';
+    return 'CHAIN BLAST ×$value 以上を決める';
   }
 
   @override
   String starReturnKills(String value) {
-    return '撃ち返しで $value 個破壊';
+    return '撃ち返した弾でブロックを $value 個壊す';
   }
 
   @override
   String starGraze(String value) {
-    return 'GRAZE を $value 回';
+    return 'GRAZE を $value 回決める';
   }
 
   @override
   String starRicochet(String value) {
-    return 'RICOCHET ×$value 以上';
+    return 'RICOCHET ×$value 以上を決める';
   }
 
   @override
-  String get clearAnnihilate => '目標: 全消し';
+  String get clearAnnihilate => '目標: ブロックをすべて壊す';
 
   @override
   String clearScore(String value) {
-    return '目標: スコア $value';
+    return '目標: スコア $value に到達';
   }
 
   @override
   String clearSurvive(String seconds) {
-    return '目標: $seconds秒耐える';
+    return '目標: $seconds秒間耐え抜く';
   }
 
   @override
@@ -184,7 +184,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsControls => '操作方法';
 
   @override
-  String get controlsZones => '画面の左右で操作';
+  String get controlsZones => '画面の左右';
 
   @override
   String get controlsRailH => 'レール（横）';
@@ -199,16 +199,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsTiming => '判定タイミング補正';
 
   @override
-  String get settingsTimingHelp => '画面とタッチの遅れを打ち消すため、入力をこの時間だけ早めて扱います';
+  String get settingsTimingHelp =>
+      '画面表示やタッチの遅れを補正するため、入力をこの時間だけ早く受け付けたものとして扱います';
 
   @override
   String get calibrate => '測定する';
 
   @override
-  String get settingsBgm => 'BGM 音量';
+  String get settingsBgm => 'BGM の音量';
 
   @override
-  String get settingsSfx => '効果音 音量';
+  String get settingsSfx => '効果音の音量';
 
   @override
   String get settingsHaptics => '振動';
@@ -223,10 +224,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get qualityLow => '低（省電力）';
 
   @override
-  String get settingsReduceEffects => '刺激を弱める';
+  String get settingsReduceEffects => '演出を控えめにする';
 
   @override
-  String get settingsReduceEffectsHelp => 'フラッシュ・画面反転・画面の揺れを弱めます';
+  String get settingsReduceEffectsHelp => 'フラッシュ・画面の反転・揺れを抑えます';
 
   @override
   String get settingsLanguage => '言語';
@@ -235,7 +236,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsDebugMode => 'デバッグモード';
 
   @override
-  String get settingsDebugModeHelp => '全ステージを遊べます。記録とランキングには残りません';
+  String get settingsDebugModeHelp => 'すべてのステージを遊べます。スコアは記録されず、ランキングにも登録されません';
 
   @override
   String get debugModeOn => 'デバッグモード ON';
@@ -244,7 +245,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get debugModeOff => 'デバッグモード OFF';
 
   @override
-  String get languageSystem => '端末の設定';
+  String get languageSystem => '端末の設定に合わせる';
 
   @override
   String get calibrationTitle => '判定タイミングの測定';
@@ -263,7 +264,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get calibrationApply => 'この値を使う';
 
   @override
-  String get calibrationRetry => 'もう一度';
+  String get calibrationRetry => '測り直す';
 
   @override
   String get tapToStart => 'タップで開始';
@@ -281,58 +282,58 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rankingStages => 'ステージ: 合計スコア';
 
   @override
-  String get introKeystone => 'NEW: 要石 — 壊すと支えていたブロックが崩落';
+  String get introKeystone => 'NEW: 要石 — 壊すと、支えていたブロックが崩れ落ちる';
 
   @override
   String get introTurret => 'NEW: 砲台 — 弾をパリィで撃ち返せ';
 
   @override
-  String get introExplosive => 'NEW: 爆薬 — 誘爆させろ。破片も撃ち返せる';
+  String get introExplosive => 'NEW: 爆薬 — 周りを巻き込んで誘爆する。破片も撃ち返せる';
 
   @override
-  String get introReflector => 'NEW: 反射 — ボールの軌道が変わる';
+  String get introReflector => 'NEW: 反射板 — 当たるとボールの向きが変わる';
 
   @override
-  String get introMagnet => 'NEW: 磁力 — ボールを引き寄せる';
+  String get introMagnet => 'NEW: 磁石 — 近くのボールを引き寄せる';
 
   @override
-  String get introSplitter => 'NEW: 分裂 — 小さなブロックを散らす';
+  String get introSplitter => 'NEW: 分裂 — 壊すと小さなブロックが飛び散る';
 
   @override
-  String get introMirror => 'NEW: 鏡面 — 撃ち返した弾を跳ね返す';
+  String get introMirror => 'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す';
 
   @override
   String introLoop(String loop) {
-    return '周回 $loop — スピードアップ';
+    return '$loop周目 — スピードアップ';
   }
 
   @override
   String get introParry => 'ボールが当たる瞬間にタップしてパリィ';
 
   @override
-  String get introPierce => 'PERFECT パリィで貫通弾。まとめて貫け';
+  String get introPierce => 'PERFECT でパリィすると貫通弾。まとめて撃ち抜け';
 
   @override
-  String get introSurvive => 'ブロックが警告線に届かないよう耐えろ';
+  String get introSurvive => 'ブロックを警告線まで下ろさずに耐え抜け';
 
   @override
-  String get introScore => '目標スコアに届けばクリア';
+  String get introScore => '目標スコアに到達すればクリア';
 
   @override
-  String get bannerBoss => 'パリィした赤い弾と貫通弾でコアを撃て';
+  String get bannerBoss => '赤い弾をパリィで撃ち返し、貫通弾でコアを狙え';
 
   @override
-  String get bannerOverdrive => '全貫通 ×16 — PERFECT で分身弾';
+  String get bannerOverdrive => '全弾貫通 ×16 — PERFECT で分身弾';
 
   @override
-  String get bannerPhase2 => '鏡面シールド — ロックオンレーザー';
+  String get bannerPhase2 => '鏡のシールド展開 — ロックオンレーザーに注意';
 
   @override
-  String get bannerPhase3 => '要塞展開 — 弾幕';
+  String get bannerPhase3 => '要塞が変形 — 弾幕に備えろ';
 
   @override
-  String get bannerTimeOver => '要塞が急降下';
+  String get bannerTimeOver => '要塞が急降下してくる';
 
   @override
-  String get endingSub => '次の周回 — さらに加速';
+  String get endingSub => '次の周回へ — さらに加速する';
 }
