@@ -124,9 +124,23 @@ extension _ParrySystem on World {
   }
 
   /// 敵弾・レーザーに当たった: ヒート 0、パドルがスタン。
+  /// ボス戦は弾が多くヒートが貯まらないため、ヒートを 1 段階下げるだけにする。
+  /// OVERDRIVE 中なら終わらせず、残り時間を減らす (尽きたら段階 4 に戻る)。
   void _hurt() {
-    if (od) _endOverdrive(byHit: true);
-    heat = 0;
+    if (boss != null) {
+      if (od) {
+        odTime -= tuning.bossOdHurtPenalty;
+        if (odTime <= 0) {
+          _endOverdrive(byHit: true);
+          heat = tuning.stageMin[3];
+        }
+      } else {
+        heat = stage >= 1 ? tuning.stageMin[stage - 1] : 0;
+      }
+    } else {
+      if (od) _endOverdrive(byHit: true);
+      heat = 0;
+    }
     paddle
       ..stun = tuning.stunTime
       ..invuln = tuning.hurtInvuln;

@@ -26,6 +26,7 @@ extension _BlockSystem on World {
 
   void _damageCore(Block core, int n) {
     if (core.removed) return;
+    if (od) n *= tuning.odCoreDamageMul;
     core.hp -= n;
     core.flash = 0.15;
     final c = blockCenter(core);
