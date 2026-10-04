@@ -203,10 +203,4 @@ extension _WaveSystem on World {
     _finishBlastChain();
     emit(GameOver(reason: reason, score: score, wave: wave.number, stats: stats));
   }
-
-  void _syncPaddleWidth() {
-    final w = paddleWidth;
-    paddle.x = clampD(paddle.x, w / 2, Field.width - w / 2);
-    if (input.useTarget) input.targetX = clampD(input.targetX, w / 2, Field.width - w / 2);
-  }
 }

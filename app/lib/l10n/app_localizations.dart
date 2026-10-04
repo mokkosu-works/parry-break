@@ -197,7 +197,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpTimingBody.
   ///
   /// In ja, this message translates to:
-  /// **'PERFECT → 貫通弾\nJUST → 衝撃波\nヒートでパドルが伸びる（最大1.5倍）'**
+  /// **'PERFECT → 貫通弾\nJUST → 衝撃波'**
   String get helpTimingBody;
 
   /// No description provided for @helpChainTitle.

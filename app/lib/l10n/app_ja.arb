@@ -23,7 +23,7 @@
   "helpParryZones": "画面の右半分を、当たる瞬間にタップ",
   "helpParryRail": "当たる瞬間に PARRY ボタン",
   "helpTimingTitle": "タイミング",
-  "helpTimingBody": "PERFECT → 貫通弾\nJUST → 衝撃波\nヒートでパドルが伸びる（最大1.5倍）",
+  "helpTimingBody": "PERFECT → 貫通弾\nJUST → 衝撃波",
   "helpChainTitle": "連鎖",
   "helpChainBody": "白い要石を壊すと崩落\nオレンジの爆薬で誘爆",
   "helpOverTitle": "ゲーム終了",
