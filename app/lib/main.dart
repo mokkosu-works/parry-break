@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app/providers.dart';
 import 'audio/audio_service.dart';
 import 'l10n/app_localizations.dart';
+import 'services/ads.dart';
 import 'services/content.dart';
 import 'services/leaderboard.dart';
 import 'services/settings.dart';
@@ -26,6 +27,7 @@ Future<void> main() async {
       sharedPrefsProvider.overrideWithValue(prefs),
       contentProvider.overrideWithValue(content),
       audioProvider.overrideWithValue(audio),
+      adsProvider.overrideWithValue(createAdsService(prefs)),
     ],
     child: ParryBreakApp(audioInit: audio.init()),
   ));
@@ -53,6 +55,8 @@ class _ParryBreakAppState extends ConsumerState<ParryBreakApp> {
       ref.read(audioProvider).setVolumes(bgm: s.bgmVolume, sfx: s.sfxVolume);
     }));
     unawaited(ref.read(leaderboardProvider).signIn());
+    // 同意の画面を出すことがあるので、最初の画面が出てから始める
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(ref.read(adsProvider).init()));
   }
 
   @override

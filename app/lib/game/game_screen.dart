@@ -12,6 +12,7 @@ import '../render/field_painter.dart';
 import '../render/glow.dart';
 import '../render/palette.dart';
 import '../render/text_cache.dart';
+import '../services/ads.dart';
 import '../services/content.dart';
 import '../services/leaderboard.dart';
 import '../services/records.dart';
@@ -179,6 +180,22 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
 
   void _toTitle() => Navigator.of(context).popUntil((r) => r.isFirst);
 
+  bool _leaving = false;
+
+  /// 結果画面からタイトルやステージ選択へ戻る。広告を出してよければ出してから戻る
+  /// (すぐ次を遊ぶリトライ・次のステージでは出さない)。
+  Future<void> _leaveResult(VoidCallback go) async {
+    if (_leaving) return;
+    _leaving = true;
+    // デバッグモードのプレイでは出さない (開発者が本番の広告を表示・クリックしないように)
+    if (!ref.read(debugModeProvider)) {
+      _ctl.audio.setPaused(true);
+      await ref.read(adsProvider).showInterstitialIfDue();
+      _ctl.audio.setPaused(false);
+    }
+    if (mounted) go();
+  }
+
   StageDef? get _nextStage {
     final stage = widget.stage;
     if (stage == null) return null;
@@ -335,9 +352,9 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       reduceMotion: ref.read(settingsProvider).reduceEffects || MediaQuery.disableAnimationsOf(context),
       onNewRecord: () => _ctl.audio.play('ricochet'),
       onRetry: _retry,
-      onTitle: _toTitle,
+      onTitle: () => _leaveResult(_toTitle),
       onNext: next == null ? null : () => Navigator.of(context).pushReplacement(fadeRoute(GameScreen(stage: next))),
-      onStageSelect: stage == null ? null : () => Navigator.of(context).pop(),
+      onStageSelect: stage == null ? null : () => _leaveResult(() => Navigator.of(context).pop()),
     );
   }
 }

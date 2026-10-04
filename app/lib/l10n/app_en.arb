@@ -66,6 +66,7 @@
   "settingsReduceEffects": "Reduce flashing",
   "settingsReduceEffectsHelp": "Tones down flashes, screen inversion and shake",
   "settingsLanguage": "Language",
+  "settingsAdPrivacy": "Ad privacy settings",
   "settingsDebugMode": "Debug mode",
   "settingsDebugModeHelp": "All stages are playable. Results are not recorded or ranked",
   "debugModeOn": "Debug mode ON",

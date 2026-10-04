@@ -9,6 +9,7 @@ import 'package:parry_break/app/providers.dart';
 import 'package:parry_break/core/core.dart';
 import 'package:parry_break/game/game_screen.dart';
 import 'package:parry_break/main.dart';
+import 'package:parry_break/services/ads.dart';
 import 'package:parry_break/services/content.dart';
 import 'package:parry_break/services/records.dart';
 import 'package:parry_break/services/settings.dart';
@@ -43,7 +44,11 @@ Future<void> _loadFonts() async {
 }
 
 Future<void> _pumpApp(WidgetTester tester,
-    {Widget? home, Map<String, Object> prefs = const {}, Size size = const Size(1600, 740), double dpr = 1}) async {
+    {Widget? home,
+    Map<String, Object> prefs = const {},
+    Size size = const Size(1600, 740),
+    double dpr = 1,
+    AdsService? ads}) async {
   tester.view
     ..physicalSize = size * dpr
     ..devicePixelRatio = dpr;
@@ -59,6 +64,7 @@ Future<void> _pumpApp(WidgetTester tester,
       sharedPrefsProvider.overrideWithValue(sp),
       contentProvider.overrideWithValue(GameContent(endless: endlessContent, campaign: _campaign)),
       timeSourceProvider.overrideWithValue(() => binding.clock.now().microsecondsSinceEpoch / 1e6),
+      if (ads != null) adsProvider.overrideWithValue(ads),
     ],
     child: ParryBreakApp(home: home),
   ));
@@ -69,6 +75,23 @@ Future<void> _frames(WidgetTester tester, double seconds) async {
   for (var i = 0; i < (seconds * 60).round(); i++) {
     await tester.pump(const Duration(microseconds: 16667));
   }
+}
+
+/// ボールを落としてゲームオーバーにし、結果画面が出るまで進める。
+Future<void> _gameOver(WidgetTester tester) async {
+  await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
+  await _frames(tester, 0.3);
+  GameScreen.debugLastController!.world.ball
+    ..y = Field.height - 4
+    ..vy = 600;
+  await _frames(tester, 3.2);
+}
+
+/// 広告を出す代わりに回数を数える。
+class _FakeAds extends DisabledAds {
+  int shown = 0;
+  @override
+  Future<void> showInterstitialIfDue() async => shown++;
 }
 
 Future<void> _shot(WidgetTester tester, String name) async {
@@ -138,7 +161,8 @@ void main() {
   });
 
   testWidgets('結果画面: エンドレスのゲームオーバー (記録更新)', (tester) async {
-    await _pumpApp(tester, home: const GameScreen());
+    final ads = _FakeAds();
+    await _pumpApp(tester, home: const GameScreen(), ads: ads);
     await _frames(tester, 1.2);
     final w = GameScreen.debugLastController!.world;
     await tester.sendKeyEvent(LogicalKeyboardKey.space);
@@ -161,6 +185,30 @@ void main() {
     await tester.tap(find.text('RETRY'));
     await _frames(tester, 0.5);
     expect(find.text('RETRY'), findsNothing);
+    expect(ads.shown, 0); // すぐ次を遊ぶときは広告を出さない
+  });
+
+  testWidgets('結果画面: TITLE で戻るときは広告を出す', (tester) async {
+    final ads = _FakeAds();
+    await _pumpApp(tester, home: const GameScreen(), ads: ads);
+    await _frames(tester, 1.2);
+    await _gameOver(tester);
+    await tester.tap(find.text('TITLE'));
+    await _frames(tester, 0.1);
+    expect(ads.shown, 1);
+  });
+
+  testWidgets('結果画面: デバッグモードのプレイでは広告を出さない', (tester) async {
+    final debugAds = _FakeAds();
+    await _pumpApp(tester,
+        home: const GameScreen(),
+        ads: debugAds,
+        prefs: {'settings.v1': jsonEncode(const Settings(language: 'en', debugMode: true).toJson())});
+    await _frames(tester, 1.2);
+    await _gameOver(tester);
+    await tester.tap(find.text('TITLE'));
+    await _frames(tester, 0.1);
+    expect(debugAds.shown, 0);
   });
 
   testWidgets('結果画面: ステージクリア (星 3 つ)', (tester) async {
