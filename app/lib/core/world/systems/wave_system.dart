@@ -20,14 +20,14 @@ extension _WaveSystem on World {
     boss = null;
     blocks = [];
     switch (spec.content) {
-      case LayoutContent c:
+      case final LayoutContent c:
         for (var r = 0; r < c.rows.length; r++) {
           for (var col = 0; col < Field.cols; col++) {
             if (c.rows[r][col] == '.') continue;
             addBlock(c.blockIdAt(r, col), Field.gridX0 + col * Field.cellW, Field.gridY0 + r * Field.cellH);
           }
         }
-      case BossContent c:
+      case final BossContent c:
         _buildBoss(c.boss);
     }
     for (final b in List.of(blocks)) {

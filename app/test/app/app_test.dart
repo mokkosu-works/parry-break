@@ -217,4 +217,20 @@ void main() {
     await _shot(tester, '12_help');
     expect(tester.takeException(), isNull);
   });
+
+  // 小さい横画面のスマホでも、どの画面もはみ出さない
+  for (final (name, size) in [('小さいスマホ', Size(568, 320)), ('一般的なスマホ', Size(844, 390)), ('タブレット', Size(1180, 820))]) {
+    testWidgets('メニューの各画面がはみ出さない: $name', (tester) async {
+      await _pumpApp(tester, size: size);
+      await _frames(tester, 0.6);
+      expect(tester.takeException(), isNull, reason: 'タイトル');
+      for (final label in ['STAGES', 'HOW TO PLAY', 'SETTINGS']) {
+        await tester.tap(find.text(label));
+        await _frames(tester, 0.5);
+        expect(tester.takeException(), isNull, reason: label);
+        await tester.tap(find.byIcon(Icons.arrow_back));
+        await _frames(tester, 0.5);
+      }
+    });
+  }
 }

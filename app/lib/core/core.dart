@@ -14,6 +14,7 @@ export 'sim/session.dart';
 export 'sim/time_sync.dart';
 export 'stages/boss_def.dart';
 export 'stages/content.dart';
+export 'stages/json_object.dart';
 export 'stages/procedural_generator.dart';
 export 'stages/wave_spec.dart';
 export 'world/world.dart';

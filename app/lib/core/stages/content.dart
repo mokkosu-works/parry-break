@@ -1,5 +1,6 @@
 import '../entities/entities.dart';
 import 'boss_def.dart';
+import 'json_object.dart';
 import 'procedural_generator.dart';
 import 'wave_spec.dart';
 
@@ -30,23 +31,25 @@ class EndlessContent {
   final Map<int, String> intros;
   final List<BossDef> bosses;
 
+  /// [j] は `endless.json` の中身。書き間違いは [FormatException] になる。
   factory EndlessContent.fromJson(Map<String, Object?> j) {
+    final r = JsonObject(j, 'endless.json');
     final hand = <int, List<String>>{}, intros = <int, String>{};
-    for (final e in (j['handcrafted'] as Map<String, Object?>).entries) {
-      final w = int.parse(e.key), v = e.value as Map<String, Object?>;
-      if (v['rows'] != null) hand[w] = List<String>.from(v['rows'] as List);
-      if (v['intro'] != null) intros[w] = v['intro'] as String;
+    for (final e in r.mapOf('handcrafted').keys) {
+      final v = r.obj('handcrafted').obj(e);
+      final wave = int.tryParse(e) ?? (throw FormatException('endless.json: handcrafted.$e: ウェーブ番号が必要'));
+      final rows = v.stringsOpt('rows');
+      if (rows != null) hand[wave] = rows;
+      final intro = v.strOpt('intro');
+      if (intro != null) intros[wave] = intro;
     }
-    final bosses = (j['bosses'] as List).cast<Map<String, Object?>>();
+    final bosses = r.objects('bosses');
     return EndlessContent(
-      wavesPerLoop: (j['wavesPerLoop'] as num).toInt(),
-      bossEvery: (j['bossEvery'] as num).toInt(),
-      loopSpeedup: (j['loopSpeedup'] as num).toDouble(),
-      loopIntro: j['loopIntro'] as String?,
-      unlock: {
-        for (final e in ((j['generator'] as Map)['unlock'] as Map<String, Object?>).entries)
-          e.key: (e.value as num).toInt(),
-      },
+      wavesPerLoop: r.integer('wavesPerLoop'),
+      bossEvery: r.integer('bossEvery'),
+      loopSpeedup: r.number('loopSpeedup'),
+      loopIntro: r.strOpt('loopIntro'),
+      unlock: r.obj('generator').intMap('unlock'),
       handcrafted: hand,
       intros: intros,
       bosses: [for (var i = 0; i < bosses.length; i++) BossDef.fromJson(i, bosses[i])],
@@ -83,15 +86,17 @@ class EndlessContent {
 sealed class StarCondition {
   const StarCondition();
 
-  static StarCondition fromJson(Map<String, Object?> j) {
-    final type = j['type'] as String;
-    if (type == 'clear') return const ClearStar();
-    if (type == 'noHit') return const NoHitStar();
-    final v = j['value'] as num;
+  static StarCondition fromJson(JsonObject j) {
+    final type = j.str('type');
     return switch (type) {
-      'time' => TimeStar(v.toDouble()),
-      'score' => StatStar(StatKind.score, v.toInt()),
-      _ => StatStar(StatKind.values.byName(type), v.toInt()),
+      'clear' => const ClearStar(),
+      'noHit' => const NoHitStar(),
+      'time' => TimeStar(j.number('value')),
+      'score' => StatStar(StatKind.score, j.integer('value')),
+      _ => StatStar(
+          StatKind.values.asNameMap()[type] ?? (throw FormatException('${j.path}.type: 不明な星の条件 "$type"')),
+          j.integer('value'),
+        ),
     };
   }
 
@@ -204,52 +209,52 @@ class Campaign {
     return null;
   }
 
+  /// [j] は `campaign.json` の中身。書き間違いは [FormatException] になる。
   factory Campaign.fromJson(Map<String, Object?> j, EndlessContent endless) {
+    final r = JsonObject(j, 'campaign.json');
     return Campaign([
-      for (final c in (j['chapters'] as List).cast<Map<String, Object?>>())
-        ChapterDef(id: c['id'] as String, title: LocalizedText.fromJson(c['title']), stages: [
-          for (final s in (c['stages'] as List).cast<Map<String, Object?>>())
+      for (final c in r.objects('chapters'))
+        ChapterDef(id: c.str('id'), title: LocalizedText.fromJson(c.map['title']), stages: [
+          for (final s in c.objects('stages'))
             StageDef(
-              id: s['id'] as String,
-              chapterId: c['id'] as String,
-              title: LocalizedText.fromJson(s['title']),
+              id: s.str('id'),
+              chapterId: c.str('id'),
+              title: LocalizedText.fromJson(s.map['title']),
               waves: [
-                for (final (i, w) in (s['waves'] as List).cast<Map<String, Object?>>().indexed)
-                  _wave(i + 1, w, endless),
+                for (final (i, w) in s.objects('waves').indexed) _wave(i + 1, w, endless),
               ],
-              stars: [
-                for (final st in (s['stars'] as List? ?? const [{'type': 'clear'}]).cast<Map<String, Object?>>())
-                  StarCondition.fromJson(st),
-              ],
+              stars: s.has('stars') ? [for (final st in s.objects('stars')) StarCondition.fromJson(st)] : const [ClearStar()],
             ),
         ]),
     ]);
   }
 
-  static WaveSpec _wave(int number, Map<String, Object?> w, EndlessContent endless) {
+  static WaveSpec _wave(int number, JsonObject w, EndlessContent endless) {
     final WaveContent content;
-    var difficulty = (w['difficulty'] as num?)?.toInt();
-    if (w['rows'] != null) {
-      content = LayoutContent(List<String>.from(w['rows'] as List),
-          legend: Map<String, String>.from((w['legend'] as Map?) ?? const {}));
-    } else if (w['endless'] != null) {
-      final n = (w['endless'] as num).toInt();
+    var difficulty = w.integerOpt('difficulty');
+    if (w.has('rows')) {
+      content = LayoutContent(w.strings('rows'), legend: w.stringMapOpt('legend'));
+    } else if (w.has('endless')) {
+      final n = w.integer('endless');
       content = endless.contentFor(n);
       difficulty ??= n;
-    } else if (w['boss'] != null) {
-      final i = (w['boss'] as num).toInt();
+    } else if (w.has('boss')) {
+      final i = w.integer('boss');
+      if (i < 0 || i >= endless.bosses.length) {
+        throw FormatException('${w.path}.boss: 0〜${endless.bosses.length - 1} が必要 (実際: $i)');
+      }
       content = BossContent(endless.bosses[i]);
       difficulty ??= (i + 1) * endless.bossEvery;
     } else {
-      throw const FormatException('wave needs rows, endless or boss');
+      throw FormatException('${w.path}: rows, endless, boss のどれかが必要');
     }
     return WaveSpec(
       number: number,
       difficulty: difficulty ?? 1,
       content: content,
-      clear: ClearCondition.fromJson(w['clear'] as Map<String, Object?>?),
-      introKey: w['intro'] as String?,
-      tuning: Map<String, Object?>.from((w['tuning'] as Map?) ?? const {}),
+      clear: ClearCondition.fromJson(w.objOpt('clear')),
+      introKey: w.strOpt('intro'),
+      tuning: Map<String, Object?>.from(w.objOpt('tuning')?.map ?? const {}),
     );
   }
 }

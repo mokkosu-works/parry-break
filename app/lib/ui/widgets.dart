@@ -221,7 +221,7 @@ class ScreenFrame extends StatelessWidget {
   }
 }
 
-Route<T> fadeRoute<T>(Widget page) => PageRouteBuilder<T>(
+Route<void> fadeRoute(Widget page) => PageRouteBuilder<void>(
       pageBuilder: (_, _, _) => page,
       transitionDuration: const Duration(milliseconds: 220),
       transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),

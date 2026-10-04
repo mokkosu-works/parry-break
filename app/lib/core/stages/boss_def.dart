@@ -5,6 +5,7 @@ import '../entities/entities.dart';
 import '../events/game_event.dart';
 import '../sim/geom.dart';
 import '../world/world.dart';
+import 'json_object.dart';
 
 /// ボスのコアのブロック ID。
 const bossCoreId = 'C';
@@ -42,18 +43,16 @@ class BossDef {
   /// コアの残り HP の割合がこれ以下になるとフェーズが進む。
   final List<double> phaseThresholds;
 
-  factory BossDef.fromJson(int index, Map<String, Object?> j) => BossDef(
+  factory BossDef.fromJson(int index, JsonObject j) => BossDef(
         index: index,
-        template: List<String>.from(j['template'] as List),
-        coreHp: (j['coreHp'] as num).toInt(),
-        timeLimit: (j['timeLimit'] as num).toDouble(),
+        template: j.strings('template'),
+        coreHp: j.integer('coreHp'),
+        timeLimit: j.number('timeLimit'),
         patterns: [
-          for (final p in (j['patterns'] as List).cast<Map<String, Object?>>())
-            PatternSpec(p['type'] as String, fromPhase: (p['from'] as num?)?.toInt() ?? 1, params: p),
+          for (final p in j.objects('patterns'))
+            PatternSpec(p.str('type'), fromPhase: p.integerOpt('from') ?? 1, params: p.map),
         ],
-        phaseThresholds: [
-          for (final v in (j['phases'] as List?) ?? const [0.66, 0.33]) (v as num).toDouble(),
-        ],
+        phaseThresholds: j.numbersOpt('phases') ?? const [0.66, 0.33],
       );
 }
 

@@ -1,4 +1,5 @@
 import 'boss_def.dart';
+import 'json_object.dart';
 
 /// 1 ウェーブの中身。配置 ([LayoutContent]) かボス ([BossContent]) のどちらか。
 sealed class WaveContent {
@@ -29,11 +30,11 @@ final class BossContent extends WaveContent {
 sealed class ClearCondition {
   const ClearCondition();
 
-  static ClearCondition fromJson(Map<String, Object?>? j) => switch (j?['type']) {
+  static ClearCondition fromJson(JsonObject? j) => switch (j?.strOpt('type')) {
         null || 'annihilate' => const AnnihilateClear(),
-        'score' => ScoreClear((j!['value'] as num).toInt()),
-        'survive' => SurviveClear((j!['value'] as num).toDouble()),
-        final t => throw FormatException('unknown clear type: $t'),
+        'score' => ScoreClear(j!.integer('value')),
+        'survive' => SurviveClear(j!.number('value')),
+        final t => throw FormatException('${j!.path}.type: 不明なクリア条件 "$t"'),
       };
 }
 
