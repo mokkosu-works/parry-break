@@ -275,7 +275,8 @@
        "type": "clear"
       },
       {
-       "type": "noHit"
+       "type": "perfect",
+       "value": 5
       },
       {
        "type": "time",
@@ -444,7 +445,8 @@
        "type": "clear"
       },
       {
-       "type": "noHit"
+       "type": "perfect",
+       "value": 8
       },
       {
        "type": "time",
