@@ -238,6 +238,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguage => 'Language';
 
   @override
+  String get settingsDebugMode => 'Debug mode';
+
+  @override
+  String get settingsDebugModeHelp =>
+      'All stages are playable. Results are not recorded or ranked';
+
+  @override
+  String get debugModeOn => 'Debug mode ON';
+
+  @override
+  String get debugModeOff => 'Debug mode OFF';
+
+  @override
   String get languageSystem => 'System';
 
   @override

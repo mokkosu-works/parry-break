@@ -209,6 +209,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('デバッグモード: 版番号を 3 回タップで入り、未クリアのステージを遊べ、記録は残さない', (tester) async {
+    await _pumpApp(tester);
+    await _frames(tester, 2.4);
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text('VER 1.0.0'));
+      await _frames(tester, 0.1);
+    }
+    expect(find.text('Debug mode ON'), findsOneWidget);
+    await _frames(tester, 5); // SnackBar が消えるまで待つ
+    await tester.tap(find.text('STAGES'));
+    await _frames(tester, 0.5);
+    await tester.tap(find.text('1-6'));
+    await _frames(tester, 0.5);
+    await tester.tap(find.text('START'));
+    await _frames(tester, 1.2);
+    final w = GameScreen.debugLastController!.world;
+    for (final b in w.blocks.where((b) => b.behavior.clearable).toList()) {
+      w.destroyBlock(b, DestroyCause.pierce);
+    }
+    await _frames(tester, 6.5);
+    expect(find.text('NEXT STAGE'), findsOneWidget); // 1-7 も未クリアのまま開いている
+    final sp = await SharedPreferences.getInstance();
+    expect(sp.getString('records'), isNull);
+  });
+
   testWidgets('遊び方の画面', (tester) async {
     await _pumpApp(tester);
     await tester.tap(find.text('HOW TO PLAY'));

@@ -43,6 +43,10 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
   int _selected = 0;
   int? _firing;
 
+  /// 版番号を続けてタップした回数と、最後のタップの時刻 (デバッグモードの切り替え用)。
+  int _verTaps = 0;
+  DateTime _lastVerTap = DateTime(0);
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +102,21 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
     if (!mounted) return;
     setState(() => _firing = null);
     entries[i].action();
+  }
+
+  void _tapVersion() {
+    final now = DateTime.now();
+    _verTaps = now.difference(_lastVerTap) < const Duration(milliseconds: 600) ? _verTaps + 1 : 1;
+    _lastVerTap = now;
+    if (_verTaps < 3) return;
+    _verTaps = 0;
+    final on = !ref.read(settingsProvider).debugMode;
+    ref.read(settingsProvider.notifier).update((s) => s.copyWith(debugMode: on));
+    ref.read(hapticsProvider).selection();
+    final l = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(on ? l.debugModeOn : l.debugModeOff)));
   }
 
   void _select(int i) {
@@ -211,10 +230,17 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
             }),
           ),
           Positioned(
-            right: 16,
-            bottom: 8,
+            right: 0,
+            bottom: 0,
             child: SafeArea(
-              child: Text('VER 1.0.0', style: orbitron(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _tapVersion,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Text('VER 1.0.0', style: orbitron(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
+                ),
+              ),
             ),
           ),
         ]),

@@ -115,7 +115,12 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     final records = ref.read(recordsProvider.notifier);
     final lb = ref.read(leaderboardProvider);
     final stage = widget.stage;
-    if (stage == null) {
+    if (ref.read(debugModeProvider)) {
+      // デバッグモードのプレイは記録にもランキングにも残さない
+      final cleared = stage != null && w.phase == WorldPhase.completed;
+      final stars = stage?.evaluate(StageResult(cleared: cleared, score: w.score, stats: w.stats));
+      _outcome = _Outcome(newBest: false, stars: stars, cleared: cleared);
+    } else if (stage == null) {
       final newBest = records.submitEndless(score: w.score, wave: w.wave.number, stats: w.stats);
       lb.submit(Board.endlessScore, w.score);
       lb.submit(Board.endlessWave, w.wave.number);
@@ -182,7 +187,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     final i = all.indexOf(stage);
     if (i < 0 || i + 1 >= all.length) return null;
     final next = all[i + 1];
-    return ref.read(recordsProvider).isUnlocked(c, next) ? next : null;
+    return ref.read(debugModeProvider) || ref.read(recordsProvider).isUnlocked(c, next) ? next : null;
   }
 
   Future<void> _openSettings() async {

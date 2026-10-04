@@ -232,6 +232,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsLanguage => '言語';
 
   @override
+  String get settingsDebugMode => 'デバッグモード';
+
+  @override
+  String get settingsDebugModeHelp => '全ステージを遊べます。記録とランキングには残りません';
+
+  @override
+  String get debugModeOn => 'デバッグモード ON';
+
+  @override
+  String get debugModeOff => 'デバッグモード OFF';
+
+  @override
   String get languageSystem => '端末の設定';
 
   @override

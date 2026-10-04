@@ -28,6 +28,7 @@ class Settings {
     this.quality = GraphicsQuality.high,
     this.reduceEffects = false,
     this.language,
+    this.debugMode = false,
   });
 
   final ControlScheme controls;
@@ -48,6 +49,9 @@ class Settings {
   /// 'ja' / 'en'。null なら端末の言語。
   final String? language;
 
+  /// 開発者向け: 全ステージを開け、結果を記録・ランキングに残さない。タイトルの版番号を 3 回タップで切り替える。
+  final bool debugMode;
+
   Settings copyWith({
     ControlScheme? controls,
     double? sensitivity,
@@ -58,6 +62,7 @@ class Settings {
     GraphicsQuality? quality,
     bool? reduceEffects,
     String? Function()? language,
+    bool? debugMode,
   }) =>
       Settings(
         controls: controls ?? this.controls,
@@ -69,6 +74,7 @@ class Settings {
         quality: quality ?? this.quality,
         reduceEffects: reduceEffects ?? this.reduceEffects,
         language: language != null ? language() : this.language,
+        debugMode: debugMode ?? this.debugMode,
       );
 
   Map<String, Object?> toJson() => {
@@ -81,6 +87,7 @@ class Settings {
         'quality': quality.name,
         'reduceEffects': reduceEffects,
         'language': language,
+        'debugMode': debugMode,
       };
 
   factory Settings.fromJson(Map<String, Object?> j) {
@@ -99,6 +106,7 @@ class Settings {
       quality: pick(GraphicsQuality.values, j['quality'], d.quality),
       reduceEffects: j['reduceEffects'] as bool? ?? d.reduceEffects,
       language: switch (j['language']) { 'ja' => 'ja', 'en' => 'en', _ => null },
+      debugMode: j['debugMode'] as bool? ?? d.debugMode,
     );
   }
 }
