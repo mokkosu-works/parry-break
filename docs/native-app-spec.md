@@ -340,7 +340,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 **リリース前の作業**
 
 1. AdMob でアプリ(iOS / Android)とインタースティシャルの広告ユニットを作る。
-2. テスト用の ID を本番の ID に置き換える: `AdsConfig` の広告ユニット ID、`ios/Runner/Info.plist` の `GADApplicationIdentifier`、`android/app/src/main/AndroidManifest.xml` の `com.google.android.gms.ads.APPLICATION_ID`。
+2. テスト用の ID を本番の ID に置き換える: `AdsConfig` の広告ユニット ID、`ios/Runner/Info.plist` の `GADApplicationIdentifier`、`android/app/src/main/AndroidManifest.xml` の `com.google.android.gms.ads.APPLICATION_ID`。**iOS は置き換え済み**(アプリ `ca-app-pub-4435922675604695~8150605646`、インタースティシャル `ca-app-pub-4435922675604695/2281923603`)。Android は未登録でテスト用のまま。デバッグビルドでは、本番の ID があってもテスト用の広告ユニットを使う。
 3. AdMob の「プライバシーとメッセージ」で、EU 向けの同意メッセージと、iOS の IDFA の説明メッセージを作る(起動時の同意の流れの中で ATT の許可ダイアログが出る)。
 4. `Info.plist` の `SKAdNetworkItems` に、Google が公開している一覧を入れる(いまは Google のものだけ)。`NSUserTrackingUsageDescription` は英語だけなので、必要なら日本語化する。
 5. App Store Connect の「App のプライバシー」と、Google Play の「データ セーフティ」に広告の利用を書く。
