@@ -155,7 +155,7 @@
   // ---- 定数 -----------------------------------------------------------
   const H = 720, W = 1200, DT = 1 / 60, DEG = Math.PI / 180;
   const TOP_Y = 56;                       // 上壁 (HUD 下端)
-  const PADDLE_Y = 670, PADDLE_H = 14, PADDLE_W = 120, PADDLE_SPEED = 900;
+  const PADDLE_Y = 670, PADDLE_H = 14, PADDLE_BASE_W = 120, PADDLE_SPEED = 900;
   const WARN_Y = PADDLE_Y - 120;          // 警告ライン: パドルの上 120px
   const BR = 8;                           // ボール半径
   const GX0 = (W - 840) / 2, CW = 60, CH = 24, GY0 = 84;  // 14 列グリッド, 60x24 ブロック
@@ -166,6 +166,7 @@
   const STAGE_SPD = [1, 495 / 420, 585 / 420, 690 / 420];
   const DECAY = [0, 8, 14, 22];           // ヒート減衰/秒 (段階が高いほど維持が難しい)
   const OD_HEAT = 700, OD_TIME = 10, OD_MAX = 20, MAX_SPEED = 1400;
+  const OD_MAX_SPEED = 1000;
   const MIN_ANGLE = 15 * DEG;
   const GRAZE_DIST = 22;
   const BLAST_R = 84, BREAKER_R = 120, PHANTOM_MAX = 6;
@@ -511,8 +512,8 @@
   function targetSpeed() {
     const s = baseSpeed();
     if (G.od) {
-      const s4 = s * STAGE_SPD[3];
-      return Math.min(MAX_SPEED, s4 + (MAX_SPEED - s4) * Math.min(1, G.odElapsed / OD_TIME));
+      const s4 = Math.min(900, s * STAGE_SPD[3]);
+      return s4 + (OD_MAX_SPEED - s4) * Math.min(1, G.odElapsed / OD_TIME);
     }
     return Math.min(MAX_SPEED, s * STAGE_SPD[stage()]);
   }
@@ -899,7 +900,10 @@
       const ad = Math.abs(dl);
       G.lastContact.used = true;
       p.hits = 0;
-      applyParry(ad <= JUST_WIN ? 'JUST' : ad <= PERFECT_WIN ? 'PERFECT' : 'GOOD', 'ball', b.x, PADDLE_Y);
+      const activeBall = G.ball;
+      G.ball = G.lastContact.ball && !G.lastContact.ball.lost ? G.lastContact.ball : activeBall;
+      applyParry(ad <= JUST_WIN ? 'JUST' : ad <= PERFECT_WIN ? 'PERFECT' : 'GOOD', 'ball', G.ball.x, PADDLE_Y);
+      G.ball = activeBall;
       return;
     }
     p.active = true; p.press = pt; p.success = false; p.hits = 0;
@@ -915,9 +919,20 @@
     SFX.launch();
   }
 
+
+  const PADDLE_MAX_W = 180;
+  const PADDLE_HEAT_WIDTHS = [120, 135, 150, 165, PADDLE_MAX_W];
+  function paddleWidth() { return PADDLE_HEAT_WIDTHS[G.od ? 4 : stage()]; }
+  function syncPaddleWidth() {
+    const width = paddleWidth();
+    G.paddle.x = clamp(G.paddle.x, width / 2, W - width / 2);
+    if (IN.useMouse) IN.mouseX = clamp(IN.mouseX, width / 2, W - width / 2);
+  }
+
   function applyParry(grade, kind, x, y) {
     const p = G.parry, P = G.paddle;
     const just = grade === 'JUST', perfect = just || grade === 'PERFECT';
+
     const wasOD = G.od;
     p.success = true; p.cd = 0; p.hits = (p.hits || 0) + 1;
     G.streak++; G.maxStreak = Math.max(G.maxStreak, G.streak);
@@ -965,12 +980,12 @@
   function endOD() {
     G.od = false; G.heat = STAGE_MIN[2];
     if (G.phantoms.length) callout('OVERDRIVE FINISH', '', '#ff4dd8', 30);
-    popPhantoms();
     SFX.odEnd();
   }
   function hurt() {
+
     G.heat = 0;
-    if (G.od) { G.od = false; popPhantoms(); }
+    if (G.od) G.od = false;
     G.paddle.stun = STUN;
     G.shake = 12; G.flash = 0.25; G.flashColor = '#ff2040';
     G.parry.active = false;
@@ -984,8 +999,8 @@
     const b = G.ball;
     for (let k = 0; k < n && G.phantoms.length < PHANTOM_MAX; k++) {
       const a = (k - (n - 1) / 2) * 26 * DEG + (k === (n - 1) / 2 ? 12 * DEG : 0) + rand(-0.06, 0.06);
-      const sp = Math.max(800, b.speed * 0.85);
-      G.phantoms.push({ x: b.x, y: PADDLE_Y - BR - 2, vx: Math.sin(a) * sp, vy: -Math.cos(a) * sp, speed: sp, life: 5, trail: [], pierce: 0, phantom: true });
+      const sp = b.speed;
+      G.phantoms.push({ x: b.x, y: PADDLE_Y - BR - 2, vx: Math.sin(a) * sp, vy: -Math.cos(a) * sp, speed: sp, attached: false, trail: [], pierce: 0, breaker: false, flight: 0 });
     }
     SFX.phantom();
   }
@@ -993,29 +1008,23 @@
     for (const f of G.phantoms) queueBlast(f.x, f.y, rand(0.03, 0.2), 70, false, 'phantom');
     G.phantoms = [];
   }
-  function updatePhantoms(dt) {
-    const P = G.paddle;
-    for (let i = G.phantoms.length - 1; i >= 0; i--) {
-      const f = G.phantoms[i];
-      f.life -= dt;
-      let dead = f.life <= 0;
-      const n = Math.max(1, Math.ceil(f.speed * dt / 5)), sdt = dt / n;
-      for (let k = 0; k < n && !dead; k++) {
-        f.x += f.vx * sdt; f.y += f.vy * sdt;
-        if (f.x < BR) { f.x = BR; f.vx = Math.abs(f.vx); }
-        if (f.x > W - BR) { f.x = W - BR; f.vx = -Math.abs(f.vx); }
-        if (f.y < TOP_Y + BR) { f.y = TOP_Y + BR; f.vy = Math.abs(f.vy); }
-        collideBlocks(f);
-        if (G.mode !== 'play') return;
-        if (f.vy > 0 && f.y + BR >= PADDLE_Y && f.y + BR <= PADDLE_Y + 12 && Math.abs(f.x - P.x) <= PADDLE_W / 2 + BR) {
-          const a = clamp((f.x - P.x) / (PADDLE_W / 2), -1, 1) * 60 * DEG;
-          f.vx = Math.sin(a) * f.speed; f.vy = -Math.cos(a) * f.speed; f.y = PADDLE_Y - BR;
-        }
-        if (f.y > H + 20) dead = true;
-      }
-      f.trail.push({ x: f.x, y: f.y }); if (f.trail.length > 10) f.trail.shift();
-      if (dead) { burst(f.x, f.y, 10, '#ff4dd8', 200); G.phantoms.splice(i, 1); }
+  function updateAllBalls(dt) {
+    const initial = [G.ball, ...G.phantoms].filter(Boolean);
+    const original = G.ball;
+    for (const ball of initial) {
+      if (ball.lost) continue;
+      G.ball = ball;
+      G.flight = ball.flight || 0;
+      updateBall(dt);
+      ball.flight = G.flight;
+      if (G.mode !== 'play') { G.ball = original; return; }
     }
+    const survivors = [...new Set([...initial, ...G.phantoms])].filter(ball => !ball.lost);
+    if (!survivors.length) {
+      G.ball = original; G.phantoms = []; gameOver('BALL LOST'); return;
+    }
+    G.ball = survivors[0]; G.phantoms = survivors.slice(1);
+    G.flight = G.ball.flight || 0;
   }
 
   // =====================================================================
@@ -1024,12 +1033,14 @@
   function step(dt) {
     G.t += dt;
     processActions();
+
     if (G.mode === 'play') updatePlay(dt);
     else if (G.mode === 'clear') { updateClear(dt); updateBlasts(dt); }
     else if (G.mode === 'over') G.overT += dt;
     if (G.mode === 'play' || G.mode === 'clear') updateCombos(dt);
     if (G.mode !== 'title') updateDebris(dt);
     updateFx(dt);
+    syncPaddleWidth();
   }
 
   function updatePlay(dt) {
@@ -1044,13 +1055,14 @@
         const dir = clamp(((k.ArrowLeft || k.KeyA) ? -1 : 0) + ((k.ArrowRight || k.KeyD) ? 1 : 0) + IN.padX, -1, 1);
         P.x += dir * PADDLE_SPEED * dt;
       }
-      P.x = clamp(P.x, PADDLE_W / 2, W - PADDLE_W / 2);
+      P.x = clamp(P.x, paddleWidth() / 2, W - paddleWidth() / 2);
     }
     P.vx = (P.x - px0) / dt;
     // パリィ判定ウィンドウの終了
     if (p.active && G.t - p.press > PARRY_WIN) {
       p.active = false;
       if (!p.success) {
+
         p.cd = p.press + PARRY_CD;
         G.streak = 0;
         G.judge = { text: 'MISS', t: 0, color: '#8a8aa0' };
@@ -1081,9 +1093,7 @@
         if (st >= 1) G.heat = Math.max(0, G.heat - DECAY[st] * dt);
       }
     }
-    updateBall(dt);
-    if (G.mode !== 'play') return;
-    updatePhantoms(dt);
+    updateAllBalls(dt);
     if (G.mode !== 'play') return;
     if (active) updateTurrets(dt);
     updateBullets(dt);
@@ -1123,7 +1133,8 @@
     const b = G.ball, P = G.paddle;
     if (b.attached) { b.x = P.x; b.y = PADDLE_Y - BR - 1; b.trail.length = 0; return; }
     // 段階移行時に補間して加速
-    b.speed += (targetSpeed() - b.speed) * Math.min(1, 4 * dt);
+    b.speed += (targetSpeed() - b.speed) * Math.min(1, (G.od ? 2 : 4) * dt);
+    if (G.od) b.speed = Math.min(b.speed, OD_MAX_SPEED);
     // 磁力ブロック: 半径 140px 内で 220px/s² の引力
     for (const bl of G.blocks) {
       if (bl.type !== 'M') continue;
@@ -1146,12 +1157,12 @@
       collideBlocks(b);
       if (G.mode !== 'play') return;
       if (b.vy > 0 && b.y + BR >= PADDLE_Y && py + BR <= PADDLE_Y + 8 &&
-          Math.abs(b.x - P.x) <= PADDLE_W / 2 + BR * 0.6) {
+          Math.abs(b.x - P.x) <= paddleWidth() / 2 + BR * 0.6) {
         // 接触時刻をサブステップ内で補間して求める
         const fr = b.y !== py ? clamp((PADDLE_Y - (py + BR)) / (b.y - py), 0, 1) : 1;
         paddleBounce(t0 + sdt * (i + fr));
       }
-      if (b.y - BR > H) { gameOver('BALL LOST'); return; }
+      if (b.y - BR > H) { b.lost = true; return; }
     }
     const tl = G.od ? 24 : [0, 6, 9, 16][stage()];
     b.trail.push({ x: b.x, y: b.y });
@@ -1160,7 +1171,7 @@
 
   function paddleBounce(tc) {
     const b = G.ball, P = G.paddle, p = G.parry;
-    const off = clamp((b.x - P.x) / (PADDLE_W / 2), -1, 1);
+    const off = clamp((b.x - P.x) / (paddleWidth() / 2), -1, 1);
     const a = off * 60 * DEG;   // 中心ほど垂直、端で ±60°
     b.vx = Math.sin(a) * b.speed; b.vy = -Math.cos(a) * b.speed;
     b.y = PADDLE_Y - BR;
@@ -1171,9 +1182,9 @@
     if (p.active && P.stun <= 0 && d <= PARRY_WIN + 1e-6 && d >= -PERFECT_WIN) {
       const ad = Math.abs(d);
       applyParry(ad <= JUST_WIN ? 'JUST' : ad <= PERFECT_WIN + 1e-6 ? 'PERFECT' : 'GOOD', 'ball', b.x, PADDLE_Y);
-      G.lastContact = { t: tc, used: true };
+      G.lastContact = { t: tc, used: true, ball: b };
     } else {
-      G.lastContact = { t: tc, used: false };
+      G.lastContact = { t: tc, used: false, ball: b };
       SFX.paddle();
     }
   }
@@ -1376,7 +1387,7 @@
         const x = bl.x + G.form.ox + bl.w / 2, y = bl.y + G.form.oy + bl.h;
         const sp = bulletSpeed();
         let tx = P.x;
-        if (lead) tx = clamp(P.x + P.vx * (Math.hypot(P.x - x, PADDLE_Y - y) / sp) * 0.6, PADDLE_W / 2, W - PADDLE_W / 2);
+        if (lead) tx = clamp(P.x + P.vx * (Math.hypot(P.x - x, PADDLE_Y - y) / sp) * 0.6, paddleWidth() / 2, W - paddleWidth() / 2);
         const ang = Math.atan2(PADDLE_Y - y, tx - x);
         fireBullet(x, y, ang, sp, bl, false);
         SFX.fire();
@@ -1467,7 +1478,7 @@
       L.t += dt;
       if (L.t >= L.warn) {
         if (!L.boom) { L.boom = true; SFX.laser(); G.shake = Math.max(G.shake, 6); }
-        if (!L.hit && P.stun <= 0 && Math.abs(P.x - L.x) < PADDLE_W / 2 + L.w / 2 - 6) { L.hit = true; hurt(); }
+        if (!L.hit && P.stun <= 0 && Math.abs(P.x - L.x) < paddleWidth() / 2 + L.w / 2 - 6) { L.hit = true; hurt(); }
       }
       if (L.t > L.warn + L.fire) G.lasers.splice(i, 1);
     }
@@ -1512,9 +1523,9 @@
       u.x += u.vx * dt; u.y += u.vy * dt;
       if (u.x < -20 || u.x > W + 20 || u.y < TOP_Y - 4 || u.y > H + 20) { G.bullets.splice(i, 1); continue; }
       if (u.hostile) {
-        const px = P.x - PADDLE_W / 2;
-        if (rectDist(u.x, u.y, px, PADDLE_Y, PADDLE_W, PADDLE_H) <= u.r + GRAZE_DIST) u.near = true;
-        if (u.vy > 0 && circleRect(u.x, u.y, u.r, px, PADDLE_Y, PADDLE_W, PADDLE_H)) {
+        const px = P.x - paddleWidth() / 2;
+        if (rectDist(u.x, u.y, px, PADDLE_Y, paddleWidth(), PADDLE_H) <= u.r + GRAZE_DIST) u.near = true;
+        if (u.vy > 0 && circleRect(u.x, u.y, u.r, px, PADDLE_Y, paddleWidth(), PADDLE_H)) {
           const d = tcB - p.press;
           if (p.active && P.stun <= 0 && d <= PARRY_WIN + 1e-6 && d >= -PERFECT_WIN) {
             const ad = Math.abs(d);
@@ -1949,18 +1960,9 @@
   }
 
   function drawPhantoms() {
-    for (const f of G.phantoms) {
-      for (let i = 0; i < f.trail.length; i++) {
-        const a = (i + 1) / f.trail.length;
-        ctx.globalAlpha = a * 0.3; ctx.fillStyle = '#ff4dd8';
-        ctx.beginPath(); ctx.arc(f.trail[i].x, f.trail[i].y, BR * a, 0, Math.PI * 2); ctx.fill();
-      }
-      ctx.globalAlpha = Math.min(1, f.life) * 0.85;
-      ctx.fillStyle = '#ff9cf0';
-      ctx.beginPath(); ctx.arc(f.x, f.y, BR, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
+    const current = G.ball, flight = G.flight;
+    for (const ball of G.phantoms) { G.ball = ball; G.flight = ball.flight || 0; drawBall(); }
+    G.ball = current; G.flight = flight;
   }
 
   function drawBall() {
@@ -2014,7 +2016,7 @@
 
   function drawPaddle() {
     const P = G.paddle, p = G.parry || {};
-    const x = P.x - PADDLE_W / 2, y = PADDLE_Y;
+    const x = P.x - paddleWidth() / 2, y = PADDLE_Y;
     const t = performance.now() / 1000;
     const stunned = P.stun > 0;
     const cooling = G.t < (p.cd || 0);
@@ -2025,23 +2027,23 @@
     ctx.save();
     ctx.shadowColor = col; ctx.shadowBlur = p.active ? 30 : 14;
     ctx.fillStyle = col;
-    roundRect(x, y, PADDLE_W, PADDLE_H, 7); ctx.fill();
+    roundRect(x, y, paddleWidth(), PADDLE_H, 7); ctx.fill();
     ctx.restore();
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    roundRect(x + 6, y + 3, PADDLE_W - 12, 3, 2); ctx.fill();
+    roundRect(x + 6, y + 3, paddleWidth() - 12, 3, 2); ctx.fill();
     if (p.active && G.mode === 'play') {
       const k = clamp((G.t - p.press) / PARRY_WIN, 0, 1);
       ctx.strokeStyle = `rgba(255,225,77,${1 - k})`; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.ellipse(P.x, y + 2, PADDLE_W / 2 + 8 + k * 14, 14 + k * 10, 0, Math.PI, 0); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(P.x, y + 2, paddleWidth() / 2 + 8 + k * 14, 14 + k * 10, 0, Math.PI, 0); ctx.stroke();
     }
     if (cooling && !stunned) {
       const k = clamp((p.cd - G.t) / PARRY_CD, 0, 1);
       ctx.fillStyle = 'rgba(255,255,255,0.35)';
-      ctx.fillRect(x, y + PADDLE_H + 4, PADDLE_W * k, 2);
+      ctx.fillRect(x, y + PADDLE_H + 4, paddleWidth() * k, 2);
     }
     if (stunned) {
       ctx.fillStyle = '#ff4060';
-      ctx.fillRect(x, y + PADDLE_H + 4, PADDLE_W * (P.stun / STUN), 2);
+      ctx.fillRect(x, y + PADDLE_H + 4, paddleWidth() * (P.stun / STUN), 2);
     }
   }
   function roundRect(x, y, w, h, r) {
@@ -2222,15 +2224,33 @@
     const k = Math.min(1, G.overT / 0.5);
     ctx.globalAlpha = k;
     ctx.fillStyle = 'rgba(5,4,15,0.82)'; ctx.fillRect(0, 0, W, H);
-    glowText('GAME OVER', W / 2, 160, 68, '#ff4060', 26);
-    text(G.overReason, W / 2, 220, 24, '#ff8090');
-    text('SCORE', W / 2, 268, 22, '#7a74b0');
-    glowText(fmt(G.score), W / 2, 312, 56, '#ffffff', 12);
-    if (G.newBest) glowText('NEW RECORD', W / 2, 362, 26, '#ffe14d', 14);
+    glowText('GAME OVER', W / 2, 130, 68, '#ff4060', 26);
+    text(G.overReason, W / 2, 190, 24, '#ff8090');
     const s = G.stats;
-    text('WAVE ' + G.wave + '    MAX CHAIN ' + G.maxStreak + '    JUST ' + s.just + '    GRAZE ' + s.graze, W / 2, 410, 24, '#cfd6ff');
-    text('BEST COLLAPSE ' + s.bestCollapse + '    BEST BLAST ' + s.bestBlast + '    BEST RICOCHET ' + s.bestRicochet, W / 2, 450, 22, '#cfd6ff');
-    text('BEST  ' + fmt(G.best) + '   (WAVE ' + G.bestWave + ')', W / 2, 498, 24, '#7a74b0');
+    const columns = [
+      [['SCORE', G.score], ['WAVE', G.wave], ['MAX CHAIN', G.maxStreak], ['JUST', s.just], ['GRAZE', s.graze]],
+      [['BEST SCORE', G.best], ['BEST WAVE', G.bestWave], ['BEST COLLAPSE', s.bestCollapse], ['BEST BLAST', s.bestBlast], ['BEST RICOCHET', s.bestRicochet]]
+    ];
+    const columnWidth = 440, gap = 60, left = W / 2 - columnWidth - gap / 2;
+    columns.forEach((rows, column) => {
+      const x = left + column * (columnWidth + gap);
+      rows.forEach(([label, value], row) => {
+        const y = 278 + row * 54;
+        ctx.fillStyle = row % 2 === 0 ? 'rgba(52,43,88,0.35)' : 'rgba(20,28,48,0.35)';
+        roundRect(x - 12, y - 24, columnWidth + 24, 48, 8); ctx.fill();
+        text(label, x, y, 26, label === 'SCORE' ? '#4dfcff' : '#cfd6ff', 'left');
+        const number = fmt(value || 0);
+        let size = label === 'SCORE' ? 36 : 30;
+        ctx.font = '900 ' + size + 'px ' + FONT;
+        const labelWidth = ctx.measureText(label).width;
+        const available = Math.max(70, columnWidth - labelWidth - 24);
+        ctx.font = '900 ' + size + 'px ' + FONT;
+        const measured = ctx.measureText(number).width;
+        if (measured > available) size *= available / measured;
+        text(number, x + columnWidth, y, size, '#ffffff', 'right', FONT, 900);
+      });
+    });
+    if (G.newBest) glowText('NEW RECORD', W / 2, 230, 26, '#ffe14d', 14);
     if (G.overT > 1.0 && Math.floor(G.overT * 2) % 2 === 0) drawRetryHint(W / 2, 566);
     ctx.globalAlpha = 1;
   }
@@ -2322,9 +2342,9 @@
   <div class="help-wrap"><div class="help-header"><h1>遊び方</h1><button id="help-back">戻る</button></div>
     <div class="help-grid"><article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 24h80M10 24l9-8M10 24l9 8M90 24l-9-8M90 24l-9 8"/><rect x="35" y="34" width="30" height="6" rx="3"/></svg></div><h2>移動</h2><p>画面内・左のバーをドラッグ<br>横 ↔ / 縦 ↕ で切り替え</p></article>
       <article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M35 40h30M50 29V5m0 0L38 17m12-12 12 12"/><path d="M29 29q21 16 42 0"/><circle cx="50" cy="24" r="4"/></svg></div><h2>発射・パリィ</h2><p>当たる瞬間にタップ</p></article>
-      <article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="24" r="17"/><circle cx="50" cy="24" r="7"/><path d="M24 24h9m34 0h9M50 0v7m0 34v7"/></svg></div><h2>タイミング</h2><p>PERFECT → 貫通弾<br>JUST → 衝撃波</p></article>
+      <article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="24" r="17"/><circle cx="50" cy="24" r="7"/><path d="M24 24h9m34 0h9M50 0v7m0 34v7"/></svg></div><h2>タイミング</h2><p>PERFECT → 貫通弾<br>JUST → 衝撃波<br>ヒート上昇でバー拡大（最大1.5倍）</p></article>
       <article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="42" y="4" width="16" height="12"/><path d="M50 16v9m-28 0h56M22 25v8m28-8v8m28-8v8"/><path d="M15 38h14m14 0h14m14 0h14"/></svg></div><h2>連鎖</h2><p>白い要石で崩落<br>オレンジの爆薬で誘爆</p></article>
-      <article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 35h70" stroke="#ff4dd8"/><circle cx="50" cy="12" r="6"/><path d="M50 23v19m0 0-6-6m6 6 6-6"/></svg></div><h2>ゲーム終了</h2><p>ボール落下・警告線に注意</p></article>
+      <article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 35h70" stroke="#ff4dd8"/><circle cx="50" cy="12" r="6"/><path d="M50 23v19m0 0-6-6m6 6 6-6"/></svg></div><h2>ゲーム終了</h2><p>最後のボール落下で終了<br>警告線にも注意</p></article>
       <article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M40 8v32M60 8v32" stroke-width="7"/></svg></div><h2>一時停止</h2><p>Ⅱで停止・再開</p></article>
     </div></div>
 </section>
@@ -2335,8 +2355,8 @@
   const languagePairs = [
   ['#start-button','スタート','START'],['#help-button','遊び方','HOW TO PLAY'],['.subtitle','ブロック崩し × パリィ × 弾幕','Brick breaker × Parry × Bullet hell'],['.help-header h1','遊び方','HOW TO PLAY'],['#help-back','戻る','BACK']
   ];
-  const helpJapanese = [['移動','画面内・左のバーをドラッグ<br>↔ / ↕ で切り替え'],['発射・パリィ','当たる瞬間にタップ'],['タイミング','PERFECT → 貫通弾<br>JUST → 衝撃波'],['連鎖','白い要石で崩落<br>オレンジの爆薬で誘爆'],['ゲーム終了','ボール落下・警告線に注意'],['一時停止','Ⅱで停止・再開']];
-  const helpEnglish = [['MOVE','Drag the playfield or left slider<br>Switch with ↔ / ↕'],['LAUNCH / PARRY','Tap as the ball or bullet hits'],['TIMING','PERFECT → Pierce<br>JUST → Shockwave'],['CHAIN','White keystone → Collapse<br>Orange explosive → Chain blast'],['GAME OVER','Keep the ball up<br>Keep blocks above the warning line'],['PAUSE','Tap Ⅱ to pause or resume']];
+  const helpJapanese = [['移動','画面内・左のバーをドラッグ<br>↔ / ↕ で切り替え'],['発射・パリィ','当たる瞬間にタップ'],['タイミング','PERFECT → 貫通弾<br>JUST → 衝撃波'],['連鎖','白い要石で崩落<br>オレンジの爆薬で誘爆'],['ゲーム終了','最後のボール落下で終了<br>警告線にも注意'],['一時停止','Ⅱで停止・再開']];
+  const helpEnglish = [['MOVE','Drag the playfield or left slider<br>Switch with ↔ / ↕'],['LAUNCH / PARRY','Tap as the ball or bullet hits'],['TIMING','PERFECT → Pierce<br>JUST → Shockwave<br>Heat widens paddle (max 1.5×)'],['CHAIN','White keystone → Collapse<br>Orange explosive → Chain blast'],['GAME OVER','Keep at least one ball up<br>Keep blocks above the warning line'],['PAUSE','Tap Ⅱ to pause or resume']];
   function applyLanguage() {
     document.documentElement.lang = uiLanguage;
     for (const [selector,ja,en] of languagePairs) document.querySelector(selector).textContent = uiLanguage === 'ja' ? ja : en;
@@ -2364,7 +2384,7 @@
     document.getElementById('pause-button').hidden = G.mode === 'over';
       const thumb = document.getElementById('drag-thumb');
       if (!title) {
-        const position = (10 + 80 * clamp((G.paddle.x - PADDLE_W / 2) / (W - PADDLE_W), 0, 1)).toFixed(1) + '%';
+        const position = (10 + 80 * clamp((G.paddle.x - paddleWidth() / 2) / (W - paddleWidth()), 0, 1)).toFixed(1) + '%';
         if (controlAxis === "vertical") { thumb.style.left = "50%"; if (thumb.style.top !== position) thumb.style.top = position; }
         else { thumb.style.top = "50%"; if (thumb.style.left !== position) thumb.style.left = position; }
       }
@@ -2413,9 +2433,9 @@
       const vertical = onRail && controlAxis === 'vertical';
       const rail = onRail ? e.currentTarget.querySelector('.drag-rail').getBoundingClientRect() : null;
       const travel = onRail ? Math.max(1, (vertical ? rail.height : rail.width) - 20) : cv.getBoundingClientRect().width;
-      const scale = onRail ? (W - PADDLE_W) / travel : W / travel;
+      const scale = onRail ? (W - paddleWidth()) / travel : W / travel;
       const delta = vertical ? e.clientY - lastTouchY : e.clientX - lastTouchX;
-      IN.mouseX = clamp(IN.mouseX + delta * scale, PADDLE_W / 2, W - PADDLE_W / 2);
+      IN.mouseX = clamp(IN.mouseX + delta * scale, paddleWidth() / 2, W - paddleWidth() / 2);
       lastTouchY = e.clientY; lastTouchX = e.clientX; IN.useMouse = true;
     }
     for (const surface of [cv, document.getElementById('drag-zone')]) {
