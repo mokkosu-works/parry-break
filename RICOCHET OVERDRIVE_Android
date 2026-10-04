@@ -128,9 +128,8 @@
 <script>
   let uiLanguage = 'en';
   try { uiLanguage = localStorage.getItem('ro_language') === 'ja' ? 'ja' : 'en'; } catch (_) {}
-  const japaneseLabels = {'SCORE':'スコア','WAVE':'ウェーブ','CHAIN':'連続ヒット','TIME':'残り時間','WARNING LINE':'警告ライン','GAME OVER':'ゲームオーバー','NEW RECORD':'新記録','PAUSED':'一時停止','READY':'準備','TAP':'タップ','TO RESUME':'で再開'};
   function localizedCanvasText(value) {
-    return uiLanguage === 'ja' && japaneseLabels[value] ? japaneseLabels[value] : value;
+    return value;
   }
 </script>
 <script>
@@ -563,18 +562,18 @@
     G.structDirty = false;
     G.mode = 'play';
     G.lowest = 0;
-    G.banner = { text: G.boss ? 'WARNING' : 'WAVE ' + n, sub: G.boss ? 'BOSS ' + (G.boss.idx + 1) + '  —  パリィした赤い弾と貫通弾でコアを撃て' : waveSub(), t: 0 };
+    G.banner = { text: G.boss ? 'WARNING' : 'WAVE ' + n, sub: G.boss ? 'BOSS ' + (G.boss.idx + 1) + '  —  HIT CORES WITH PARRIED RED BULLETS AND PIERCING SHOTS' : waveSub(), t: 0 };
     if (G.boss) SFX.alarm();
   }
   function waveSub() {
     const intro = {
-      2: 'NEW: 要石 — 壊すと支えを失ったブロックが崩落する',
-      4: 'NEW: 砲台ブロック — 弾をパリィで撃ち返せ',
-      6: 'NEW: 爆薬ブロック — 誘爆して周囲を吹き飛ばす。破片もパリィできる',
-      8: 'NEW: 反射ブロック — 軌道がずれる',
-      14: 'NEW: 磁力ブロック — ボールを引き寄せる',
-      20: 'NEW: 分裂ブロック — 小ブロックが散らばる',
-      26: 'NEW: 鏡面ブロック — 撃ち返し弾を跳ね返す',
+      2: 'NEW: KEYSTONE — BREAK IT TO COLLAPSE BLOCKS',
+      4: 'NEW: TURRET — PARRY ITS BULLETS',
+      6: 'NEW: EXPLOSIVE — CHAIN BLASTS; PARRY THE DEBRIS',
+      8: 'NEW: REFLECTOR — CHANGES BALL TRAJECTORY',
+      14: 'NEW: MAGNET — ATTRACTS THE BALL',
+      20: 'NEW: SPLITTER — SCATTERS SMALL BLOCKS',
+      26: 'NEW: MIRROR — REFLECTS RETURNED BULLETS',
     };
     if (G.loop > 0 && G.base === 1) return 'LOOP ' + (G.loop + 1) + ' — SPEED UP';
     return intro[G.base] || '';
@@ -948,7 +947,7 @@
     G.od = true; G.heat = OD_HEAT; G.odTime = OD_TIME; G.odElapsed = 0;
     G.flash = 0.5; G.shake = 14;
     SFX.od();
-    G.banner = { text: 'OVERDRIVE', sub: '全貫通 × 16 — PERFECT で分身弾', t: 0, od: true };
+    G.banner = { text: 'OVERDRIVE', sub: 'FULL PIERCE x16 — PERFECT SPAWNS PHANTOMS', t: 0, od: true };
   }
   function endOD() {
     G.od = false; G.heat = STAGE_MIN[2];
@@ -1323,7 +1322,7 @@
   function bossShift() {
     const B = G.boss;
     SFX.phase(); G.shake = 16; G.flash = 0.3; G.flashColor = '#ff8040';
-    G.banner = { text: 'PHASE ' + B.phase, sub: B.phase === 2 ? '鏡面シールド展開 — ロックオンレーザー起動' : '要塞展開 — 弾幕激化', t: 0 };
+    G.banner = { text: 'PHASE ' + B.phase, sub: B.phase === 2 ? 'MIRROR SHIELDS — LOCK-ON LASERS' : 'FORTRESS EXPANDS — BULLET STORM', t: 0 };
     // コア周囲に鏡面シールド
     for (const c of G.blocks.filter(b => b.type === 'C')) {
       const y = c.y + c.h;
@@ -1385,7 +1384,7 @@
       B.time -= dt;
       if (B.time <= 0) {
         B.time = 0; B.plunge = true;
-        G.banner = { text: 'TIME OVER', sub: '要塞急降下', t: 0 };
+        G.banner = { text: 'TIME OVER', sub: 'FORTRESS DIVING', t: 0 };
         SFX.alarm();
       }
     }
@@ -1667,7 +1666,7 @@
     return COL[bl.type] || '#ffffff';
   }
   function text(s, x, y, size, color, align = 'center', font = FONT, weight = 700) {
-    if (uiLanguage === 'ja') font = JFONT;
+    // Gameplay typography is independent of the menu language.
     ctx.font = `${weight} ${size}px ${font}`;
     ctx.textAlign = align; ctx.textBaseline = 'middle';
     ctx.fillStyle = color; ctx.fillText(localizedCanvasText(s), x, y);
@@ -2202,7 +2201,7 @@
       text('SCORE', W / 2 - 220, y + 10, 15, '#7a74b0', 'left');
       text(fmt(G.dispScore), W / 2 + 220, y + 10, 22, '#ffffff', 'right', FONT, 900);
     }
-    if (G.ending) text('ここからループ — 速度は上がり続ける', W / 2, y + 60, 16, '#ff4dd8', 'center', JFONT);
+    if (G.ending) text('NEXT LOOP — SPEED KEEPS RISING', W / 2, y + 60, 16, '#ff4dd8', 'center', JFONT);
     ctx.globalAlpha = 1;
   }
 
@@ -2219,7 +2218,7 @@
     text('WAVE ' + G.wave + '    MAX CHAIN ' + G.maxStreak + '    JUST ' + s.just + '    GRAZE ' + s.graze, W / 2, 410, 24, '#cfd6ff');
     text('BEST COLLAPSE ' + s.bestCollapse + '    BEST BLAST ' + s.bestBlast + '    BEST RICOCHET ' + s.bestRicochet, W / 2, 450, 22, '#cfd6ff');
     text('BEST  ' + fmt(G.best) + '   (WAVE ' + G.bestWave + ')', W / 2, 498, 24, '#7a74b0');
-    if (G.overT > 1.0 && Math.floor(G.overT * 2) % 2 === 0) text('↑ ボタンでリトライ', W / 2, 566, 26, '#ffffff', 'center', JFONT);
+    if (G.overT > 1.0 && Math.floor(G.overT * 2) % 2 === 0) text('TAP ↑ TO RETRY', W / 2, 566, 26, '#ffffff', 'center', JFONT);
     ctx.globalAlpha = 1;
   }
 
