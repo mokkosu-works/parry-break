@@ -302,26 +302,42 @@ cd app
 flutter pub get
 flutter run                 # 接続した端末 / シミュレーターで起動
 flutter test                # テスト
-flutter build ipa           # iOS (要: 署名の設定、第9章)
+flutter build ipa --release # iOS (要: 署名の設定、第9章)
 flutter build appbundle     # Android (要: key.properties、第9章)
 ```
 
 ## 9. ストア公開までの手順
 
-### 9.1 ランキングの設定
+掲載文・スクリーンショット・審査メモなど、App Store Connect に入力する内容は [app-store.md](app-store.md) にまとめた。
 
-1. **iOS**: App Store Connect でアプリを登録し、Game Center のリーダーボードを3つ作る(ID の例は `lib/services/leaderboard.dart` の `LeaderboardConfig.ios`)。Xcode で Runner の Signing & Capabilities に **Game Center** を追加する。
-2. **Android**: Google Play Console で Play Games サービスを設定し、リーダーボードを3つ作る。リーダーボード ID を `LeaderboardConfig.android` に、プロジェクト ID を `android/app/src/main/res/values/games-ids.xml` の `app_id` に書く。
-3. `LeaderboardConfig.enabled` を `true` にする。タイトル画面に「ランキング」ボタンが出る。
+### 9.1 アプリ側で設定済みのもの
 
-設定するまではランキングは無効で、ボタンも出ない(スコアの送信もしない)。
+| 項目 | 設定 |
+| --- | --- |
+| バンドル ID | `com.watsuwo.parrybreak`(iOS / Android 共通。旧 WebView 版の `com.watsuwo.ricochet` は App Store に登録していなかったため、アプリ名に合わせて変えた) |
+| 画面 | 横画面固定・全画面・ステータスバー非表示・120Hz(`CADisableMinimumFrameDurationOnPhone`) |
+| 言語 | `Info.plist` の `CFBundleLocalizations` に en / ja。これがないと App Store で対応言語が英語だけになる |
+| 暗号化 | `ITSAppUsesNonExemptEncryption = false`(輸出コンプライアンスの質問が出ない) |
+| Game Center | `ios/Runner/Runner.entitlements`(`com.apple.developer.game-center`)を Runner の全構成に設定済み |
+| ランキング | `LeaderboardConfig.iosEnabled = true`。ID は `com.watsuwo.parrybreak.endless_score` / `.endless_wave` / `.stages_total`。Android は `androidEnabled = false` のまま |
+| アイコン・起動画面 | `branding/icons/` の画像から `dart run flutter_launcher_icons`、`dart run flutter_native_splash:create` で作り直せる |
+| ポリシー・サポート | 別のリポジトリ `watsuwo/watsuwo.github.io` の `parry-break/privacy.html` と `parry-break/support.html` を GitHub Pages で公開している(https://watsuwo.github.io/parry-break/privacy と https://watsuwo.github.io/parry-break/support)。広告(AdMob)の `app-ads.txt` も同じリポジトリにある |
 
-### 9.2 署名とビルド
+### 9.2 iOS の公開手順
 
-- **Android**: アップロード鍵を作り、`app/android/key.properties`(git には入れない)に `storeFile` / `storePassword` / `keyAlias` / `keyPassword` を書く。ない場合はデバッグ鍵で署名される。
-- **iOS**: Xcode で Runner の Team を設定する。バンドル ID は `com.watsuwo.ricochet`(旧 WebView 版と同じ)。
-- アイコンは `branding/icons/` の画像から `dart run flutter_launcher_icons`、起動画面は `dart run flutter_native_splash:create` で作り直せる。
-- 横画面固定・全画面・ステータスバー非表示・120Hz(`CADisableMinimumFrameDurationOnPhone`)は設定済み。
+1. **署名**: Xcode → Settings → Accounts に Apple ID を追加する。`app/ios/Runner.xcworkspace` を開き、Runner → Signing & Capabilities で Team を選ぶ。自動署名で Bundle ID が登録され、Game Center も有効になる。
+2. **App Store Connect** → マイ App → 新規 App。プラットフォーム iOS、名前 PARRY BREAK、プライマリ言語は日本語、バンドル ID `com.watsuwo.parrybreak`、SKU `parrybreak`。
+3. **Game Center**: リーダーボードを3つ作る(クラシック、整数、大きいほど上位、名前は日本語と英語)。ID は 9.1 の表のとおり。一度作った ID は削除しても使い回せない。バージョンのページの Game Center 欄で、3つをこのバージョンに含める。
+
+   | ID | 内容 | 名前 |
+   | --- | --- | --- |
+   | `com.watsuwo.parrybreak.endless_score` | エンドレスの最終スコア | エンドレス: スコア / Endless: Score |
+   | `com.watsuwo.parrybreak.endless_wave` | エンドレスの到達ウェーブ | エンドレス: 到達ウェーブ / Endless: Wave |
+   | `com.watsuwo.parrybreak.stages_total` | 全ステージの最高スコアの合計 | ステージ: 合計スコア / Stages: Total Score |
+
+4. **ビルドとアップロード**: `cd app && flutter build ipa --release`。できた `build/ios/archive/Runner.xcarchive` を Xcode の Organizer で開き、Distribute App → App Store Connect でアップロードする。2回目以降は `pubspec.yaml` の `version` のビルド番号(`+` の後ろ)を上げる。
+5. **TestFlight**: 実機で、操作感・判定・音・振動・Game Center(サインイン、スコアの送信、ランキング画面)を確かめる。トラッキング許可のダイアログは最初の起動で出る(AdMob で IDFA の説明メッセージを作ってある場合)。広告は最初の起動から24時間たつまで出ない(9.3)。
+6. **審査に出す**: [app-store.md](app-store.md) の内容(App のプライバシーでの広告の申告を含む)を入力し、スクリーンショットを載せて提出する。
 
 ### 9.3 広告の設定
 
@@ -333,7 +349,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 
 | 制限 | 値 |
 | --- | --- |
-| 最初の起動からの猶予 | 24時間。この間は広告も同意の画面(ATT・EU の同意)も出さない。デバッグビルドでは猶予なし |
+| 最初の起動からの猶予 | 24時間。この間は広告を出さない(読み込みもしない)。同意の画面(ATT・EU の同意)は猶予に関係なく最初の起動で出す。審査でトラッキング許可のダイアログを確かめられるようにするため。デバッグビルドでは猶予なし |
 | 前回からの間隔 | 3分以上 |
 | 1日の上限 | 8回 |
 
@@ -347,12 +363,17 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 
 広告を止めるときは `AdsConfig.enabled` を `false` にする。
 
+### 9.4 Android
+
+- **ランキング**: Google Play Console で Play Games サービスを設定し、リーダーボードを3つ作る。リーダーボード ID を `LeaderboardConfig.android` に、プロジェクト ID を `android/app/src/main/res/values/games-ids.xml` の `app_id` に書き、`LeaderboardConfig.androidEnabled` を `true` にする。設定するまで、Android ではランキングのボタンが出ず、スコアも送らない。
+- **署名**: アップロード鍵を作り、`app/android/key.properties`(git には入れない)に `storeFile` / `storePassword` / `keyAlias` / `keyPassword` を書く。ない場合はデバッグ鍵で署名される。
+
 ## 10. 残作業
 
 | 項目 | 内容 |
 | --- | --- |
 | 実機での確認 | iOS / Android の実機で、操作感・判定(キャリブレーション後)・音の遅延・振動・描画速度(OVERDRIVE 中や大崩落)を確認する。画質「低」との差も見る |
-| ストアの設定 | 第9章(ランキング、署名、ストアの掲載情報) |
+| ストアの設定 | 第9章。iOS は 9.2 の手順(署名・App Store Connect・リーダーボード・スクリーンショット)が残っている。Android は 9.4 |
 | iPad のレイアウト | 4:3 では上下に余白が出る。HUD を盤面の外に出す配置は未対応 |
 | 音の共存 | iOS で他アプリの音楽を流しながら遊ぶ設定は未対応(オーディオセッションの設定が必要) |
 | ゲームパッド | 入力は抽象化済み。ゲームパッドの読み取りは未実装 |

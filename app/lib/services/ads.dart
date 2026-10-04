@@ -33,7 +33,7 @@ abstract final class AdsConfig {
 
 /// インタースティシャルを出してよいかの判定 (頻度の制限)。
 ///
-/// - 最初の起動から [grace] の間は出さない (初日のプレイヤーには広告も同意の画面も見せない)
+/// - 最初の起動から [grace] の間は出さない (初日のプレイヤーには広告を見せない。同意の画面は最初の起動で出す)
 /// - 前回から [minGap] 以上あける
 /// - 1 日 [dailyCap] 回まで
 class InterstitialPolicy {
@@ -87,7 +87,7 @@ class InterstitialPolicy {
 }
 
 abstract class AdsService {
-  /// 起動後に呼ぶ。同意を集め (EU の同意画面、iOS のトラッキング許可)、広告を読み込んでおく。
+  /// 起動後に呼ぶ。同意を集め (EU の同意画面、iOS のトラッキング許可)、出せる時期なら広告を読み込んでおく。
   Future<void> init();
 
   /// 結果画面からタイトルなどへ戻るときに呼ぶ。出してよければ出し、閉じられるまで待つ。
@@ -122,7 +122,7 @@ class AdMobAds implements AdsService {
   @override
   Future<void> init() async {
     _policy.markLaunch();
-    if (!_policy.pastGrace) return;
+    // 同意の画面は猶予の間も最初の起動で出す。審査ではトラッキング許可のダイアログが出ることを確かめられるため
     await _gatherConsent();
     if (!await ConsentInformation.instance.canRequestAds()) return;
     await MobileAds.instance.initialize();
@@ -150,7 +150,7 @@ class AdMobAds implements AdsService {
   }
 
   void _load() {
-    if (!_ready || _loading || _ad != null) return;
+    if (!_ready || _loading || _ad != null || !_policy.pastGrace) return;
     _loading = true;
     InterstitialAd.load(
       adUnitId: AdsConfig.interstitial,

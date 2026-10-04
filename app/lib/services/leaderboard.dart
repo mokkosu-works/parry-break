@@ -13,16 +13,23 @@ enum Board { endlessScore, endlessWave, stagesTotal }
 /// ストアで作ったリーダーボードの ID。
 ///
 /// App Store Connect (Game Center) と Google Play Console (Play Games Services) で
-/// リーダーボードを作成し、ここに ID を書いてから [enabled] を true にする。
+/// リーダーボードを作成し、ここに ID を書いてから、その OS のフラグを true にする。
 /// Android は android/app/src/main/res/values/games-ids.xml の app_id も設定する。
 /// 手順は docs/native-app-spec.md の「ランキングの設定」を参照。
 abstract final class LeaderboardConfig {
-  static const enabled = false;
+  static const iosEnabled = true;
+  static const androidEnabled = false;
+
+  static bool get enabled => switch (defaultTargetPlatform) {
+    TargetPlatform.iOS => iosEnabled,
+    TargetPlatform.android => androidEnabled,
+    _ => false,
+  };
 
   static const ios = <Board, String>{
-    Board.endlessScore: 'com.watsuwo.ricochet.endless_score',
-    Board.endlessWave: 'com.watsuwo.ricochet.endless_wave',
-    Board.stagesTotal: 'com.watsuwo.ricochet.stages_total',
+    Board.endlessScore: 'com.watsuwo.parrybreak.endless_score',
+    Board.endlessWave: 'com.watsuwo.parrybreak.endless_wave',
+    Board.stagesTotal: 'com.watsuwo.parrybreak.stages_total',
   };
 
   static const android = <Board, String>{
@@ -77,8 +84,11 @@ class GamesServicesLeaderboard implements LeaderboardService {
 
   set _pending(Map<String, int> v) => _prefs.setString(_pendingKey, jsonEncode(v));
 
-  Score _score(Board b, int value) =>
-      Score(iOSLeaderboardID: LeaderboardConfig.ios[b], androidLeaderboardID: LeaderboardConfig.android[b], value: value);
+  Score _score(Board b, int value) => Score(
+    iOSLeaderboardID: LeaderboardConfig.ios[b],
+    androidLeaderboardID: LeaderboardConfig.android[b],
+    value: value,
+  );
 
   @override
   Future<void> signIn() async {
