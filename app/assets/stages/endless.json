@@ -1,0 +1,266 @@
+{
+ "version": 1,
+ "_comment": "エンドレス(アーケード)の定義。handcrafted にないウェーブは generator が自動生成する。bosses[i] は W(10×(i+1)) のボス。",
+ "wavesPerLoop": 60,
+ "bossEvery": 10,
+ "loopSpeedup": 0.15,
+ "loopIntro": "intro.loop",
+ "generator": {
+  "unlock": {
+   "N": 1,
+   "K": 2,
+   "T": 4,
+   "B": 6,
+   "R": 8,
+   "M": 14,
+   "S": 20,
+   "X": 26
+  }
+ },
+ "handcrafted": {
+  "1": {
+   "rows": [
+    "..NNNNNNNNNN..",
+    ".NNNNNNNNNNNN.",
+    ".NNNNNNNNNNNN.",
+    "..NNNNNNNNNN..",
+    "....NNNNNN...."
+   ]
+  },
+  "2": {
+   "rows": [
+    "...K......K...",
+    "...N......N...",
+    ".NNNNN..NNNNN.",
+    ".NNNNN..NNNNN.",
+    "..NNN....NNN.."
+   ],
+   "intro": "intro.keystone"
+  },
+  "4": {
+   "rows": [
+    "...T......T...",
+    "NNNNNNNNNNNNNN",
+    ".NNNNNNNNNNNN.",
+    "..NNNN..NNNN.."
+   ],
+   "intro": "intro.turret"
+  },
+  "6": {
+   "rows": [
+    "NNNNNNNNNNNNNN",
+    "NNNBNNNNNNBNNN",
+    "NNNNNNBBNNNNNN",
+    "NNBNNNNNNNNBNN",
+    ".NNNNNNNNNNNN."
+   ],
+   "intro": "intro.explosive"
+  },
+  "8": {
+   "rows": [
+    "RR....NN....RR",
+    "NNNNNNNNNNNNNN",
+    "..NNNRNNRNNN..",
+    "..NNNNNNNNNN.."
+   ],
+   "intro": "intro.reflector"
+  },
+  "14": {
+   "rows": [
+    "NNNNNNNNNNNNNN",
+    "NNN..M..M..NNN",
+    "NNN........NNN",
+    "NNNNN....NNNNN"
+   ],
+   "intro": "intro.magnet"
+  },
+  "20": {
+   "rows": [
+    "..SSSSSSSSSS..",
+    "NNNNNNNNNNNNNN",
+    ".N.N.N..N.N.N."
+   ],
+   "intro": "intro.splitter"
+  },
+  "26": {
+   "rows": [
+    "...T......T...",
+    "..XXX....XXX..",
+    "NNNNNNNNNNNNNN",
+    ".NNNNNNNNNNNN.",
+    "..NNNNNNNNNN.."
+   ],
+   "intro": "intro.mirror"
+  }
+ },
+ "bosses": [
+  {
+   "template": [
+    "#T#####T#",
+    "NNNNNNNNN",
+    "NNN.C.NNN",
+    "#NN...NN#"
+   ],
+   "coreHp": 8,
+   "timeLimit": 90,
+   "patterns": [
+    {
+     "type": "fan",
+     "from": 1
+    },
+    {
+     "type": "aimed3",
+     "from": 2
+    },
+    {
+     "type": "laser",
+     "from": 2
+    },
+    {
+     "type": "spiral",
+     "from": 3
+    }
+   ]
+  },
+  {
+   "template": [
+    "#T#T###T#T#",
+    "NNNNNNNNNNN",
+    "NNCNNTNNCNN",
+    "#N.N#.#N.N#"
+   ],
+   "coreHp": 6,
+   "timeLimit": 90,
+   "patterns": [
+    {
+     "type": "fan",
+     "from": 1
+    },
+    {
+     "type": "aimed3",
+     "from": 2
+    },
+    {
+     "type": "laser",
+     "from": 2
+    },
+    {
+     "type": "spiral",
+     "from": 3
+    }
+   ]
+  },
+  {
+   "template": [
+    "#T##T###T##T#",
+    "NNNNNNNNNNNNN",
+    "NCNNNNCNNNNCN",
+    "#.#TNN.NNT#.#"
+   ],
+   "coreHp": 6,
+   "timeLimit": 85,
+   "patterns": [
+    {
+     "type": "fan",
+     "from": 1
+    },
+    {
+     "type": "aimed3",
+     "from": 2
+    },
+    {
+     "type": "laser",
+     "from": 2
+    },
+    {
+     "type": "spiral",
+     "from": 3
+    }
+   ]
+  },
+  {
+   "template": [
+    "#T##T###T##T#",
+    "NNNNNNNNNNNNN",
+    "NCNNNNCNNNNCN",
+    "#.#TNN.NNT#.#"
+   ],
+   "coreHp": 7,
+   "timeLimit": 85,
+   "patterns": [
+    {
+     "type": "fan",
+     "from": 1
+    },
+    {
+     "type": "aimed3",
+     "from": 2
+    },
+    {
+     "type": "laser",
+     "from": 2
+    },
+    {
+     "type": "spiral",
+     "from": 3
+    }
+   ]
+  },
+  {
+   "template": [
+    "#T##T###T##T#",
+    "NNNNNNNNNNNNN",
+    "NCNNNNCNNNNCN",
+    "#.#TNN.NNT#.#"
+   ],
+   "coreHp": 8,
+   "timeLimit": 85,
+   "patterns": [
+    {
+     "type": "fan",
+     "from": 1
+    },
+    {
+     "type": "aimed3",
+     "from": 2
+    },
+    {
+     "type": "laser",
+     "from": 2
+    },
+    {
+     "type": "spiral",
+     "from": 3
+    }
+   ]
+  },
+  {
+   "template": [
+    "#T##T###T##T#",
+    "NNNNNNNNNNNNN",
+    "NCNNNNCNNNNCN",
+    "#.#TNN.NNT#.#"
+   ],
+   "coreHp": 9,
+   "timeLimit": 85,
+   "patterns": [
+    {
+     "type": "fan",
+     "from": 1
+    },
+    {
+     "type": "aimed3",
+     "from": 2
+    },
+    {
+     "type": "laser",
+     "from": 2
+    },
+    {
+     "type": "spiral",
+     "from": 3
+    }
+   ]
+  }
+ ]
+}
