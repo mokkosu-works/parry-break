@@ -69,9 +69,24 @@ void main() {
       expect(w.phantoms, isEmpty);
     });
 
-    test('分身弾が残っていても、メインのボールを落とせばゲームオーバー', () {
+    test('メインのボールを落としても、分身弾が残っていればそれがメインのボールになる', () {
       final w = inPlay();
-      w.phantoms.add(phantom(w, y: 300, vy: -400));
+      final low = phantom(w, y: 500, vy: 400);
+      final rising = phantom(w, y: 400, vy: -400);
+      final high = phantom(w, y: 200, vy: -400);
+      w.phantoms.addAll([low, rising, high]);
+      w.ball
+        ..y = Field.height - 5
+        ..vy = 600;
+      final events = run(w, 0.2);
+      expect(events.whereType<GameOver>(), isEmpty);
+      expect(w.ball, same(high)); // 上へ向かっていて、いちばん高いもの
+      expect(w.ball.phantom, isFalse);
+      expect(w.phantoms, unorderedEquals([low, rising]));
+    });
+
+    test('分身弾も残っていなければ、メインのボールを落とした時点でゲームオーバー', () {
+      final w = inPlay();
       w.ball
         ..y = Field.height - 5
         ..vy = 600;
