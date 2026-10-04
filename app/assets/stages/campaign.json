@@ -455,6 +455,181 @@
      ]
     }
    ]
+  },
+  {
+   "id": "ch03",
+   "title": {
+    "ja": "第3章 弾幕回廊",
+    "en": "CHAPTER 3  BARRAGE"
+   },
+   "stages": [
+    {
+     "id": "3-1",
+     "title": {
+      "ja": "総力戦",
+      "en": "ALL OUT"
+     },
+     "waves": [
+      {
+       "endless": 32
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "collapse",
+       "value": 20
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "3-2",
+     "title": {
+      "ja": "火薬庫",
+      "en": "POWDER KEG"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..BBB....BBB..",
+        "NNNNNNNNNNNNNN",
+        "N.SSSS..SSSS.N",
+        "NNNBNNNNNNBNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 31
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "chainBlast",
+       "value": 5
+      },
+      {
+       "type": "time",
+       "value": 50
+      }
+     ]
+    },
+    {
+     "id": "3-3",
+     "title": {
+      "ja": "十字砲火",
+      "en": "CROSSFIRE"
+     },
+     "waves": [
+      {
+       "endless": 35
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 8
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "3-4",
+     "title": {
+      "ja": "三連戦",
+      "en": "TRIPLE BILL"
+     },
+     "waves": [
+      {
+       "endless": 33
+      },
+      {
+       "endless": 36
+      },
+      {
+       "endless": 37
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "just",
+       "value": 5
+      },
+      {
+       "type": "time",
+       "value": 180
+      }
+     ]
+    },
+    {
+     "id": "3-5",
+     "title": {
+      "ja": "背水の陣",
+      "en": "LAST STAND"
+     },
+     "waves": [
+      {
+       "endless": 38,
+       "intro": "intro.survive",
+       "clear": {
+        "type": "survive",
+        "value": 75
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 25
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "3-6",
+     "title": {
+      "ja": "弾幕の要塞",
+      "en": "CURTAIN FORTRESS"
+     },
+     "waves": [
+      {
+       "boss": 2
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "perfect",
+       "value": 10
+      },
+      {
+       "type": "time",
+       "value": 80
+      }
+     ]
+    }
+   ]
   }
  ]
 }
