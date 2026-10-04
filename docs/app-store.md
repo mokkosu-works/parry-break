@@ -28,7 +28,7 @@ App Store Connect に入力する内容の下書き。手順は [native-app-spec
 **プロモーション用テキスト**(170字以内、審査なしで差し替えられる)
 
 ```
-ボールも敵弾も、当たる瞬間に弾き返せ。タイミングが完璧なら貫通弾、ジャストなら衝撃波。安全策では点が伸びない、攻めるほど倍率が跳ね上がるスコアアタック。
+パリィで攻めて撃破せよ！一つのボールで挑む、シンプル操作の高難易度ブロック崩し。
 ```
 
 **説明文**(4000字以内)
@@ -77,7 +77,7 @@ Parry, break, survive
 **Promotional text** (170 characters)
 
 ```
-Hit back the ball and enemy bullets the instant they land. PERFECT fires a piercing shot, JUST a shockwave. Play it safe and your score stalls. Take risks and it soars.
+Parry to attack and destroy! One ball, simple controls, and a seriously tough block breaker.
 ```
 
 **Description** (4000 characters)
