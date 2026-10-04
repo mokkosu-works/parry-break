@@ -23,6 +23,8 @@ class Tuning {
     this.odHeat = 700,
     this.odTime = 10,
     this.odMaxTime = 20,
+    this.bossOdHurtPenalty = 3,
+    this.odCoreDamageMul = 2,
     this.maxSpeed = 1400,
     this.odMaxSpeed = 1000,
     this.odStartSpeedCap = 900,
@@ -67,6 +69,12 @@ class Tuning {
   final List<double> stageSpeed;
   final List<double> heatDecay;
   final double odHeat, odTime, odMaxTime;
+
+  /// ボス戦で OVERDRIVE 中に被弾したとき、OVERDRIVE を終わらせずに減らす残り時間 (秒)。
+  final double bossOdHurtPenalty;
+
+  /// OVERDRIVE 中にコアへ与えるダメージの倍率。
+  final int odCoreDamageMul;
 
   // ボール
   final double maxSpeed, odMaxSpeed, odStartSpeedCap, minAngleDeg;
@@ -123,6 +131,8 @@ class Tuning {
       odHeat: d('odHeat', odHeat),
       odTime: d('odTime', odTime),
       odMaxTime: d('odMaxTime', odMaxTime),
+      bossOdHurtPenalty: d('bossOdHurtPenalty', bossOdHurtPenalty),
+      odCoreDamageMul: (o['odCoreDamageMul'] as num?)?.toInt() ?? odCoreDamageMul,
       maxSpeed: d('maxSpeed', maxSpeed),
       odMaxSpeed: d('odMaxSpeed', odMaxSpeed),
       odStartSpeedCap: d('odStartSpeedCap', odStartSpeedCap),
