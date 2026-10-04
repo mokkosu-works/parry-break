@@ -34,7 +34,7 @@
         <meta-data
             android:name="com.google.android.gms.games.APP_ID"
             android:value="@string/app_id"/>
-        <!-- AdMob のアプリ ID。いまは Google のテスト用。リリース前に本番の ID に置き換える (lib/services/ads.dart) -->
+        <!-- AdMob のアプリ ID。Android はまだ AdMob に登録していないので Google のテスト用 (lib/services/ads.dart) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713"/>

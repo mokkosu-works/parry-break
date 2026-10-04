@@ -8,18 +8,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// AdMob の設定。
 ///
-/// いまの ID は Google が公開しているテスト用のもの。リリース前に AdMob で
-/// アプリと広告ユニットを作り、ここと次の 2 か所を本番の ID に置き換える。
+/// アプリ ID は次の 2 か所に書く (広告ユニット ID とは別)。
 /// - ios/Runner/Info.plist の GADApplicationIdentifier
 /// - android/app/src/main/AndroidManifest.xml の com.google.android.gms.ads.APPLICATION_ID
+///
+/// Android はまだ AdMob に登録していないので、アプリ ID も広告ユニット ID も Google のテスト用のまま。
 abstract final class AdsConfig {
   static const enabled = true;
 
-  static const iosInterstitial = 'ca-app-pub-3940256099942544/4411468910';
+  static const iosInterstitial = 'ca-app-pub-4435922675604695/2281923603';
   static const androidInterstitial = 'ca-app-pub-3940256099942544/1033173712';
 
-  static String get interstitial =>
-      defaultTargetPlatform == TargetPlatform.iOS ? iosInterstitial : androidInterstitial;
+  // Google のテスト用の広告ユニット。デバッグビルドではこちらを使う
+  // (開発中に本番の広告を表示・クリックすると、AdMob の規約違反になるため)。
+  static const _testIosInterstitial = 'ca-app-pub-3940256099942544/4411468910';
+  static const _testAndroidInterstitial = 'ca-app-pub-3940256099942544/1033173712';
+
+  static String get interstitial {
+    final ios = defaultTargetPlatform == TargetPlatform.iOS;
+    if (kDebugMode) return ios ? _testIosInterstitial : _testAndroidInterstitial;
+    return ios ? iosInterstitial : androidInterstitial;
+  }
 }
 
 /// インタースティシャルを出してよいかの判定 (頻度の制限)。
