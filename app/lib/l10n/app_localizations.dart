@@ -179,13 +179,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpParryZones.
   ///
   /// In ja, this message translates to:
-  /// **'画面の右半分を、当たる瞬間にタップ'**
+  /// **'ボールや弾が当たる瞬間に画面の右半分をタップ'**
   String get helpParryZones;
 
   /// No description provided for @helpParryRail.
   ///
   /// In ja, this message translates to:
-  /// **'当たる瞬間に PARRY ボタン'**
+  /// **'ボールや弾が当たる瞬間に PARRY ボタンを押す'**
   String get helpParryRail;
 
   /// No description provided for @helpTimingTitle.
@@ -209,19 +209,19 @@ abstract class AppLocalizations {
   /// No description provided for @helpChainBody.
   ///
   /// In ja, this message translates to:
-  /// **'白い要石を壊すと崩落\nオレンジの爆薬で誘爆'**
+  /// **'白い要石を壊す → 崩落\nオレンジの爆薬 → 誘爆'**
   String get helpChainBody;
 
   /// No description provided for @helpOverTitle.
   ///
   /// In ja, this message translates to:
-  /// **'ゲーム終了'**
+  /// **'ゲームオーバー'**
   String get helpOverTitle;
 
   /// No description provided for @helpOverBody.
   ///
   /// In ja, this message translates to:
-  /// **'ボールを落とすと終了\nブロックが警告線に届いても終了'**
+  /// **'ボールを落とすと終わり\nブロックが警告線まで下りてきても終わり'**
   String get helpOverBody;
 
   /// No description provided for @helpPauseTitle.
@@ -233,7 +233,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpPauseBody.
   ///
   /// In ja, this message translates to:
-  /// **'右上の Ⅱ で停止'**
+  /// **'右上の Ⅱ をタップ'**
   String get helpPauseBody;
 
   /// No description provided for @paused.
@@ -299,7 +299,7 @@ abstract class AppLocalizations {
   /// No description provided for @locked.
   ///
   /// In ja, this message translates to:
-  /// **'ロック中'**
+  /// **'未解放'**
   String get locked;
 
   /// No description provided for @starClear.
@@ -311,7 +311,7 @@ abstract class AppLocalizations {
   /// No description provided for @starNoHit.
   ///
   /// In ja, this message translates to:
-  /// **'被弾なしでクリア'**
+  /// **'一度も被弾せずにクリア'**
   String get starNoHit;
 
   /// No description provided for @starTime.
@@ -329,61 +329,61 @@ abstract class AppLocalizations {
   /// No description provided for @starJust.
   ///
   /// In ja, this message translates to:
-  /// **'JUST を {value} 回'**
+  /// **'JUST を {value} 回出す'**
   String starJust(String value);
 
   /// No description provided for @starPerfect.
   ///
   /// In ja, this message translates to:
-  /// **'PERFECT 以上を {value} 回'**
+  /// **'PERFECT 以上を {value} 回出す'**
   String starPerfect(String value);
 
   /// No description provided for @starCollapse.
   ///
   /// In ja, this message translates to:
-  /// **'COLLAPSE ×{value} 以上'**
+  /// **'COLLAPSE ×{value} 以上を決める'**
   String starCollapse(String value);
 
   /// No description provided for @starChainBlast.
   ///
   /// In ja, this message translates to:
-  /// **'CHAIN BLAST ×{value} 以上'**
+  /// **'CHAIN BLAST ×{value} 以上を決める'**
   String starChainBlast(String value);
 
   /// No description provided for @starReturnKills.
   ///
   /// In ja, this message translates to:
-  /// **'撃ち返しで {value} 個破壊'**
+  /// **'撃ち返した弾でブロックを {value} 個壊す'**
   String starReturnKills(String value);
 
   /// No description provided for @starGraze.
   ///
   /// In ja, this message translates to:
-  /// **'GRAZE を {value} 回'**
+  /// **'GRAZE を {value} 回決める'**
   String starGraze(String value);
 
   /// No description provided for @starRicochet.
   ///
   /// In ja, this message translates to:
-  /// **'RICOCHET ×{value} 以上'**
+  /// **'RICOCHET ×{value} 以上を決める'**
   String starRicochet(String value);
 
   /// No description provided for @clearAnnihilate.
   ///
   /// In ja, this message translates to:
-  /// **'目標: 全消し'**
+  /// **'目標: ブロックをすべて壊す'**
   String get clearAnnihilate;
 
   /// No description provided for @clearScore.
   ///
   /// In ja, this message translates to:
-  /// **'目標: スコア {value}'**
+  /// **'目標: スコア {value} に到達'**
   String clearScore(String value);
 
   /// No description provided for @clearSurvive.
   ///
   /// In ja, this message translates to:
-  /// **'目標: {seconds}秒耐える'**
+  /// **'目標: {seconds}秒間耐え抜く'**
   String clearSurvive(String seconds);
 
   /// No description provided for @clearBoss.
@@ -401,7 +401,7 @@ abstract class AppLocalizations {
   /// No description provided for @controlsZones.
   ///
   /// In ja, this message translates to:
-  /// **'画面の左右で操作'**
+  /// **'画面の左右'**
   String get controlsZones;
 
   /// No description provided for @controlsRailH.
@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTimingHelp.
   ///
   /// In ja, this message translates to:
-  /// **'画面とタッチの遅れを打ち消すため、入力をこの時間だけ早めて扱います'**
+  /// **'画面表示やタッチの遅れを補正するため、入力をこの時間だけ早く受け付けたものとして扱います'**
   String get settingsTimingHelp;
 
   /// No description provided for @calibrate.
@@ -443,13 +443,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsBgm.
   ///
   /// In ja, this message translates to:
-  /// **'BGM 音量'**
+  /// **'BGM の音量'**
   String get settingsBgm;
 
   /// No description provided for @settingsSfx.
   ///
   /// In ja, this message translates to:
-  /// **'効果音 音量'**
+  /// **'効果音の音量'**
   String get settingsSfx;
 
   /// No description provided for @settingsHaptics.
@@ -479,13 +479,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsReduceEffects.
   ///
   /// In ja, this message translates to:
-  /// **'刺激を弱める'**
+  /// **'演出を控えめにする'**
   String get settingsReduceEffects;
 
   /// No description provided for @settingsReduceEffectsHelp.
   ///
   /// In ja, this message translates to:
-  /// **'フラッシュ・画面反転・画面の揺れを弱めます'**
+  /// **'フラッシュ・画面の反転・揺れを抑えます'**
   String get settingsReduceEffectsHelp;
 
   /// No description provided for @settingsLanguage.
@@ -503,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDebugModeHelp.
   ///
   /// In ja, this message translates to:
-  /// **'全ステージを遊べます。記録とランキングには残りません'**
+  /// **'すべてのステージを遊べます。スコアは記録されず、ランキングにも登録されません'**
   String get settingsDebugModeHelp;
 
   /// No description provided for @debugModeOn.
@@ -521,7 +521,7 @@ abstract class AppLocalizations {
   /// No description provided for @languageSystem.
   ///
   /// In ja, this message translates to:
-  /// **'端末の設定'**
+  /// **'端末の設定に合わせる'**
   String get languageSystem;
 
   /// No description provided for @calibrationTitle.
@@ -551,7 +551,7 @@ abstract class AppLocalizations {
   /// No description provided for @calibrationRetry.
   ///
   /// In ja, this message translates to:
-  /// **'もう一度'**
+  /// **'測り直す'**
   String get calibrationRetry;
 
   /// No description provided for @tapToStart.
@@ -587,7 +587,7 @@ abstract class AppLocalizations {
   /// No description provided for @introKeystone.
   ///
   /// In ja, this message translates to:
-  /// **'NEW: 要石 — 壊すと支えていたブロックが崩落'**
+  /// **'NEW: 要石 — 壊すと、支えていたブロックが崩れ落ちる'**
   String get introKeystone;
 
   /// No description provided for @introTurret.
@@ -599,37 +599,37 @@ abstract class AppLocalizations {
   /// No description provided for @introExplosive.
   ///
   /// In ja, this message translates to:
-  /// **'NEW: 爆薬 — 誘爆させろ。破片も撃ち返せる'**
+  /// **'NEW: 爆薬 — 周りを巻き込んで誘爆する。破片も撃ち返せる'**
   String get introExplosive;
 
   /// No description provided for @introReflector.
   ///
   /// In ja, this message translates to:
-  /// **'NEW: 反射 — ボールの軌道が変わる'**
+  /// **'NEW: 反射板 — 当たるとボールの向きが変わる'**
   String get introReflector;
 
   /// No description provided for @introMagnet.
   ///
   /// In ja, this message translates to:
-  /// **'NEW: 磁力 — ボールを引き寄せる'**
+  /// **'NEW: 磁石 — 近くのボールを引き寄せる'**
   String get introMagnet;
 
   /// No description provided for @introSplitter.
   ///
   /// In ja, this message translates to:
-  /// **'NEW: 分裂 — 小さなブロックを散らす'**
+  /// **'NEW: 分裂 — 壊すと小さなブロックが飛び散る'**
   String get introSplitter;
 
   /// No description provided for @introMirror.
   ///
   /// In ja, this message translates to:
-  /// **'NEW: 鏡面 — 撃ち返した弾を跳ね返す'**
+  /// **'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す'**
   String get introMirror;
 
   /// No description provided for @introLoop.
   ///
   /// In ja, this message translates to:
-  /// **'周回 {loop} — スピードアップ'**
+  /// **'{loop}周目 — スピードアップ'**
   String introLoop(String loop);
 
   /// No description provided for @introParry.
@@ -641,55 +641,55 @@ abstract class AppLocalizations {
   /// No description provided for @introPierce.
   ///
   /// In ja, this message translates to:
-  /// **'PERFECT パリィで貫通弾。まとめて貫け'**
+  /// **'PERFECT でパリィすると貫通弾。まとめて撃ち抜け'**
   String get introPierce;
 
   /// No description provided for @introSurvive.
   ///
   /// In ja, this message translates to:
-  /// **'ブロックが警告線に届かないよう耐えろ'**
+  /// **'ブロックを警告線まで下ろさずに耐え抜け'**
   String get introSurvive;
 
   /// No description provided for @introScore.
   ///
   /// In ja, this message translates to:
-  /// **'目標スコアに届けばクリア'**
+  /// **'目標スコアに到達すればクリア'**
   String get introScore;
 
   /// No description provided for @bannerBoss.
   ///
   /// In ja, this message translates to:
-  /// **'パリィした赤い弾と貫通弾でコアを撃て'**
+  /// **'赤い弾をパリィで撃ち返し、貫通弾でコアを狙え'**
   String get bannerBoss;
 
   /// No description provided for @bannerOverdrive.
   ///
   /// In ja, this message translates to:
-  /// **'全貫通 ×16 — PERFECT で分身弾'**
+  /// **'全弾貫通 ×16 — PERFECT で分身弾'**
   String get bannerOverdrive;
 
   /// No description provided for @bannerPhase2.
   ///
   /// In ja, this message translates to:
-  /// **'鏡面シールド — ロックオンレーザー'**
+  /// **'鏡のシールド展開 — ロックオンレーザーに注意'**
   String get bannerPhase2;
 
   /// No description provided for @bannerPhase3.
   ///
   /// In ja, this message translates to:
-  /// **'要塞展開 — 弾幕'**
+  /// **'要塞が変形 — 弾幕に備えろ'**
   String get bannerPhase3;
 
   /// No description provided for @bannerTimeOver.
   ///
   /// In ja, this message translates to:
-  /// **'要塞が急降下'**
+  /// **'要塞が急降下してくる'**
   String get bannerTimeOver;
 
   /// No description provided for @endingSub.
   ///
   /// In ja, this message translates to:
-  /// **'次の周回 — さらに加速'**
+  /// **'次の周回へ — さらに加速する'**
   String get endingSub;
 }
 
