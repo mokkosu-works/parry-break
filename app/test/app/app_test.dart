@@ -12,6 +12,7 @@ import 'package:ricochet/main.dart';
 import 'package:ricochet/services/content.dart';
 import 'package:ricochet/services/records.dart';
 import 'package:ricochet/services/settings.dart';
+import 'package:ricochet/ui/help_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/helpers.dart';
@@ -205,6 +206,15 @@ void main() {
     await tester.tap(find.text('SETTINGS'));
     await _frames(tester, 0.5);
     await _shot(tester, '08_settings');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('遊び方の画面', (tester) async {
+    await _pumpApp(tester);
+    await tester.tap(find.text('HOW TO PLAY'));
+    await _frames(tester, 0.5);
+    expect(find.byType(HelpScreen), findsOneWidget);
+    await _shot(tester, '12_help');
     expect(tester.takeException(), isNull);
   });
 }
