@@ -266,19 +266,18 @@ Synth _titleMusic() {
   return s;
 }
 
-/// すべての効果音と BGM を WAV にする。キーは効果音名、BGM は `music0`〜`music4`、タイトルは `musicTitle`。
-Map<String, Uint8List> renderSoundBank([Object? _]) {
-  final out = <String, Uint8List>{};
-  var seed = 1;
-  for (final e in _sfx.entries) {
-    final (len, def) = e.value;
-    final s = Synth(len, seed: seed++);
-    def(s);
-    out[e.key] = s.toWav(gain: _sfxGain);
-  }
-  for (var l = 0; l < musicLevels; l++) {
-    out['music$l'] = _music(l).toWav(gain: _musicGain);
-  }
-  out['musicTitle'] = _titleMusic().toWav(gain: _musicGain);
-  return out;
+/// 書き出す音の名前 (効果音、`music0`〜`music4`、`musicTitle` の順)。
+List<String> get soundNames => [..._sfx.keys, for (var l = 0; l < musicLevels; l++) 'music$l', 'musicTitle'];
+
+/// [name] の音を WAV にする。1 つずつ書き出せるので、別 isolate を使えない Web では間に描画を挟める。
+Uint8List renderSound(String name) {
+  if (name == 'musicTitle') return _titleMusic().toWav(gain: _musicGain);
+  if (name.startsWith('music')) return _music(int.parse(name.substring(5))).toWav(gain: _musicGain);
+  final (len, def) = _sfx[name]!;
+  final s = Synth(len, seed: _sfx.keys.toList().indexOf(name) + 1);
+  def(s);
+  return s.toWav(gain: _sfxGain);
 }
+
+/// すべての効果音と BGM を WAV にする。キーは効果音名、BGM は `music0`〜`music4`、タイトルは `musicTitle`。
+Map<String, Uint8List> renderSoundBank([Object? _]) => {for (final n in soundNames) n: renderSound(n)};

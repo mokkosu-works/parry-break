@@ -31,7 +31,7 @@ abstract class AudioService {
   void play(String name);
 }
 
-/// 音を出さない実装 (Web のプレビューやテスト)。
+/// 音を出さない実装 (テストや、音の準備前の既定値)。
 class SilentAudio implements AudioService {
   @override
   Future<void> init() async {}
@@ -76,9 +76,17 @@ class SoLoudAudio implements AudioService {
     try {
       await _sl.init(bufferSize: 512);
       _sl.setMaxActiveVoiceCount(48);
-      final bank = await compute(renderSoundBank, null);
-      for (final e in bank.entries) {
-        _src[e.key] = await _sl.loadMem('${e.key}.wav', e.value);
+      if (kIsWeb) {
+        // Web は別 isolate を使えない。1 音ずつ書き出して、間に描画へ処理を戻す
+        for (final n in soundNames) {
+          _src[n] = await _sl.loadMem('$n.wav', renderSound(n));
+          await Future<void>.delayed(Duration.zero);
+        }
+      } else {
+        final bank = await compute(renderSoundBank, null);
+        for (final e in bank.entries) {
+          _src[e.key] = await _sl.loadMem('${e.key}.wav', e.value);
+        }
       }
       _ready = true;
       if (_titleWanted) startTitleMusic();
@@ -271,4 +279,4 @@ class SoLoudAudio implements AudioService {
   }
 }
 
-AudioService createAudioService() => kIsWeb ? SilentAudio() : SoLoudAudio();
+AudioService createAudioService() => SoLoudAudio();
