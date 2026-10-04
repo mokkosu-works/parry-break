@@ -48,6 +48,9 @@ class Formation {
 class Paddle {
   double x = Field.width / 2, vx = 0, stun = 0;
 
+  /// 被弾後の無敵の残り時間。この間は敵弾・レーザーに当たらない (パリィはできる)。
+  double invuln = 0;
+
   /// 直前のステップの値 (描画でステップ間を補間するため)。
   double prevX = Field.width / 2;
 }

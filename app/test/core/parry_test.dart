@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ricochet/core/core.dart';
 
@@ -67,5 +69,27 @@ void main() {
     expect(w.ball.pierce, 3);
     expect(w.ball.breaker, isTrue);
     expect(w.heat, inInclusiveRange(150, 160)); // JUST で +160 (その後は減衰)
+  });
+
+  test('被弾: 短く止まり、その後しばらく無敵。パドル付近の弾は消え、続けて被弾しない', () {
+    final w = testWorld(const SingleWaveMode(['NNNNNNNNNNNNNN']));
+    run(w, 1.1);
+    final x = w.paddle.x;
+    // パドルの真上に縦に並べた敵弾 (先頭が 0.1 秒後に当たる) と、遠くの敵弾
+    for (var k = 0; k < 6; k++) {
+      w.fireBullet(x, Field.paddleY - 30 - k * 40, math.pi / 2, 300);
+    }
+    w.fireBullet(80, 200, math.pi / 2, 100);
+    final events = run(w, 0.2);
+    expect(events.whereType<PlayerHurt>(), hasLength(1));
+    expect(w.paddle.stun, closeTo(w.tuning.stunTime - 0.1, 0.05));
+    expect(w.bullets.where((u) => u.hostile).map((u) => u.x), [80]); // 遠くの弾だけ残る
+    // 無敵の間に当たる弾では被弾しない
+    w.fireBullet(x, Field.paddleY - 30, math.pi / 2, 300);
+    expect(run(w, 0.5).whereType<PlayerHurt>(), isEmpty);
+    // 無敵が切れたら、また被弾する
+    run(w, w.tuning.hurtInvuln);
+    w.fireBullet(w.paddle.x, Field.paddleY - 30, math.pi / 2, 300);
+    expect(run(w, 0.3).whereType<PlayerHurt>(), hasLength(1));
   });
 }

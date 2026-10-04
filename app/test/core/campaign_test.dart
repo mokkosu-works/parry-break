@@ -21,6 +21,13 @@ void main() {
     }
   });
 
+  test('エンドレスのボスの番号を指定したステージでも、ボスではなく配置になる', () {
+    final s = campaign.stage('2-1')!; // エンドレスの W20 (分裂の学習ウェーブ)
+    final w = World(mode: StageMode(s))..start();
+    expect(w.boss, isNull);
+    expect(w.blocks.any((b) => b.type == 'S'), isTrue);
+  });
+
   test('生存ステージは時間が来たらクリアになり、モードが終わる', () {
     final s = campaign.stage('1-7')!;
     final w = World(mode: StageMode(s))..start();

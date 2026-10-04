@@ -200,6 +200,9 @@ class FxState {
       case CoreDamaged(:final x, :final y):
         burst(x, y, 18, Palette.blocks['C']!, 320);
         _shake(8);
+      case BlockRepaired(:final block, :final x, :final y):
+        burst(x, y, 8, blockColor(block), 160);
+        ring(x, y, 34, Palette.cyan, 2);
       case CoreDestroyed(:final x, :final y):
         burst(x, y, 60, Palette.blocks['C']!, 520);
         burst(x, y, 30, Palette.white, 300);

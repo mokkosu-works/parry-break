@@ -58,8 +58,11 @@ class EndlessContent {
     if (base % bossEvery == 0 && bosses.isNotEmpty) {
       return BossContent(bosses[(base ~/ bossEvery - 1).clamp(0, bosses.length - 1)]);
     }
-    return LayoutContent(handcrafted[base] ?? generateLayout(base, unlock: unlock));
+    return layoutFor(base);
   }
+
+  /// 難易度 [base] の配置 (ボスのウェーブ番号でも、ボスではなく配置を返す)。
+  LayoutContent layoutFor(int base) => LayoutContent(handcrafted[base] ?? generateLayout(base, unlock: unlock));
 
   /// エンドレスの [number] 番目のウェーブ。
   WaveSpec wave(int number) {
@@ -188,7 +191,7 @@ class ChapterDef {
 ///
 /// ウェーブの書き方:
 /// - `{"rows": [...], "legend": {...}}`: 配置を直接書く
-/// - `{"endless": 2}`: エンドレスの W2 と同じ中身
+/// - `{"endless": 2}`: エンドレスの W2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)
 /// - `{"boss": 0}`: エンドレスの 1 体目のボス
 /// 共通で `difficulty`(既定 1)、`clear`、`tuning`、`intro` を書ける。
 class Campaign {
@@ -234,7 +237,7 @@ class Campaign {
           legend: Map<String, String>.from((w['legend'] as Map?) ?? const {}));
     } else if (w['endless'] != null) {
       final n = (w['endless'] as num).toInt();
-      content = endless.contentFor(n);
+      content = endless.layoutFor(n);
       difficulty ??= n;
     } else if (w['boss'] != null) {
       final i = (w['boss'] as num).toInt();
