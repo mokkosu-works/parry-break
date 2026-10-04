@@ -1,0 +1,573 @@
+{
+ "waves": {
+  "1": [
+   "..NNNNNNNNNN..",
+   ".NNNNNNNNNNNN.",
+   ".NNNNNNNNNNNN.",
+   "..NNNNNNNNNN..",
+   "....NNNNNN...."
+  ],
+  "2": [
+   "...K......K...",
+   "...N......N...",
+   ".NNNNN..NNNNN.",
+   ".NNNNN..NNNNN.",
+   "..NNN....NNN.."
+  ],
+  "3": [
+   "KNNNNNKKNNNNNK",
+   "N.N.N.NN.N.N.N",
+   "NNNNNNNNNNNNNN",
+   "NNNNNNNNNNNNNN"
+  ],
+  "4": [
+   "...T......T...",
+   "NNNNNNNNNNNNNN",
+   ".NNNNNNNNNNNN.",
+   "..NNNN..NNNN.."
+  ],
+  "5": [
+   "KNNNNNKKNNNNNK",
+   ".NNNNNNNNNNNN.",
+   "..NTNNNNNNTN..",
+   "..NNNNNNNNNN.."
+  ],
+  "6": [
+   "NNNNNNNNNNNNNN",
+   "NNNBNNNNNNBNNN",
+   "NNNNNNBBNNNNNN",
+   "NNBNNNNNNNNBNN",
+   ".NNNNNNNNNNNN."
+  ],
+  "7": [
+   "KTNNBNKKNBNNTK",
+   ".NNBNNNNNNBNN.",
+   "..NNNNNNNNNN..",
+   "..NNNNNNNNNN..",
+   "...NNNNNNNN..."
+  ],
+  "8": [
+   "RR....NN....RR",
+   "NNNNNNNNNNNNNN",
+   "..NNNRNNRNNN..",
+   "..NNNNNNNNNN.."
+  ],
+  "9": [
+   "NNK.KR..RK.KNN",
+   ".NNN.RNNR.NNN.",
+   "NNN.NN..NN.NNN",
+   "NRNN.TNNT.NNRN",
+   "N.NRN....NRN.N"
+  ],
+  "11": [
+   "KNNNNNKKNNNNNK",
+   ".NNNNNBBNNNNN.",
+   "..RNNNNNNNNR..",
+   "..NNNNNNNNNN..",
+   "...NNRNNRNN..."
+  ],
+  "12": [
+   "NNNKNNTTNNKNNN",
+   ".N.N.N..N.N.N.",
+   "N.N.N.NN.N.N.N",
+   ".N.#.N..N.#.N.",
+   "R.N.N.NN.N.N.R"
+  ],
+  "13": [
+   "KRNNTNKKNTNNRK",
+   "N.R.N.NN.N.R.N",
+   "NNBNRNRRNRNBNN",
+   "N#NRNN##NNRN#N",
+   "N.N.N.NN.N.N.N"
+  ],
+  "14": [
+   "NNNNNNNNNNNNNN",
+   "NNN..M..M..NNN",
+   "NNN........NNN",
+   "NNNNN....NNNNN"
+  ],
+  "15": [
+   "....KNKKNK....",
+   "..NNRNNNNRNN..",
+   "NNNNRMNNMRNNNN",
+   "NMNNNNNNNNNNMN",
+   "..NNRNBBNRNN..",
+   "....NNNNNN...."
+  ],
+  "16": [
+   "KNTNTNKKNTNTNK",
+   ".NNNNNNNNNNNN.",
+   "..NBNNNNNNBN..",
+   "..NMMNNNNMMN..",
+   "...NNNNNNNN...",
+   "....NNNNNN...."
+  ],
+  "17": [
+   "KNNNNMKKMNNNNK",
+   ".N#NNNNNNNN#N.",
+   "..T#MNNNNM#T..",
+   "..NNNNNNNNNN..",
+   "...NNNNNNNN...",
+   "....NNNNNN...."
+  ],
+  "18": [
+   "KNNNTNKKNTNNNK",
+   "RN.NN.NN.NN.NR",
+   "NN.NB.##.BN.NN",
+   "NM.NN.KK.NN.MN",
+   "BB.NN.NN.NN.BB",
+   "NN.NM.NN.MN.NN"
+  ],
+  "19": [
+   "KNNNMNKKNMNNNK",
+   "NN.NM.NN.MN.NN",
+   "NN.NN.RR.NN.NN",
+   "#N.BN.##.NB.N#",
+   "NR.NN.NN.NN.RN",
+   "NN.NN.NN.NN.NN"
+  ],
+  "21": [
+   ".....KKKK.....",
+   "...NSNNNNSN...",
+   ".NMN##NN##NMN.",
+   "NNNNNNNNNNNNNN",
+   ".NNSNSSSSNSNN.",
+   "...NNNNNNNN...",
+   ".....SNNS....."
+  ],
+  "22": [
+   "KRNSSNKKNSSNRK",
+   "RRNNNBNNBNNNRR",
+   "NNNNNNNNNNNNNN",
+   "NNNNNNTTNNNNNN",
+   "N#NNNNMMNNNN#N",
+   "NN#NBNNNNBN#NN",
+   "NNNNRNNNNRNNNN"
+  ],
+  "23": [
+   "KRNNSSKKSSNNRK",
+   "SN.NN.NN.NN.NS",
+   "N#.NM.NN.MN.#N",
+   "NB.NN.RR.NN.BN",
+   "NN.NN.NN.NN.NN",
+   "SS.NN.NN.NN.SS",
+   "NN.NB.MM.BN.NN"
+  ],
+  "24": [
+   "KTSBNMKKMNBSTK",
+   "RMNNSNNNNSNNMR",
+   "NNNNNNNNNNNNNN",
+   "NNNNNBNNBNNNNN",
+   "RSBNNNNNNNNBSR",
+   "SNNNRNNNNRNNNS",
+   "NNN#NNNNNN#NNN"
+  ],
+  "25": [
+   "NNNNKNTTNKNNNN",
+   ".S.S.N..N.S.S.",
+   "#.N.R.BB.R.N.#",
+   ".N.N.#..#.N.N.",
+   "N.S.N.NN.N.S.N",
+   ".N.N.N..N.N.N.",
+   "N.N.N.NN.N.N.N"
+  ],
+  "26": [
+   "...T......T...",
+   "..XXX....XXX..",
+   "NNNNNNNNNNNNNN",
+   ".NNNNNNNNNNNN.",
+   "..NNNNNNNNNN.."
+  ],
+  "27": [
+   "KNNNTNKKNTNNNK",
+   "TXNN#SXXS#NNXT",
+   "NNNNNNNNNNNNNN",
+   "RNNNNNNNNNNNNR",
+   "XBN#NNNNNN#NBX",
+   "NNNNNNNNNNNNNN",
+   "NNNNSNSSNSNNNN"
+  ],
+  "28": [
+   "NN.NKNNNNKN.NN",
+   ".NNN..NN..NNN.",
+   ".N...K..K...N.",
+   "N.NNNN..NNNN.N",
+   "NN.N.NNNN.N.NN",
+   "S.MRNNNNNNRM.S",
+   ".NNNNNNNNNNNN.",
+   "MNN.NNNNNN.NNM"
+  ],
+  "29": [
+   ".....KKKK.....",
+   "....NNNNNN....",
+   "..NNXNNNNXNN..",
+   "NNNNNNNNNNNNNN",
+   "NNNNNNNNNNNNNN",
+   "..NNBSNNSBNN..",
+   "....NN##NN....",
+   ".....NNNN....."
+  ],
+  "31": [
+   "NNNTNKNNKNTNNN",
+   ".T.N.N..N.N.T.",
+   "N.N.X.SS.X.N.N",
+   ".N.N.X..X.N.N.",
+   "N.N.N.NN.N.N.N",
+   ".N.N.N..N.N.N.",
+   "N.#.N.NN.N.#.N",
+   ".N.N.X..X.N.N."
+  ],
+  "32": [
+   ".....KKKK.....",
+   "....N#NN#N....",
+   "..NNNNNNNNNN..",
+   "MNNNRNNNNRNNNM",
+   "NBNXNNNNNNXNBN",
+   "..NBNNNNNNBN..",
+   "....BTBBTB....",
+   ".....#SS#....."
+  ],
+  "33": [
+   "KNSNSNKKNSNSNK",
+   "NN.NR.RR.RN.NN",
+   "SN.NN.NN.NN.NS",
+   "NN.NN.##.NN.NN",
+   "NN.NN.KK.NN.NN",
+   "NN.RN.NN.NR.NN",
+   "NN.NN.NN.NN.NN",
+   "RX.NN.SS.NN.XR"
+  ],
+  "34": [
+   "KNNXNXKKXNXNNK",
+   "RNNNTMTTMTNNNR",
+   "BNNSNN##NNSNNB",
+   "NNSNNXNNXNNSNN",
+   "RNNRNNBBNNRNNR",
+   "#NNNRNNNNRNNN#",
+   "NNNSNRNNRNSNNN",
+   "SNNNNNBBNNNNNS"
+  ],
+  "35": [
+   "K...NNKKNN...K",
+   "NXNN......NNXN",
+   ".NN.KNKKNK.NN.",
+   "N..NNNSSNNN..N",
+   ".NNNNRNNRNNNN.",
+   "K.#XN.NN.NX#.K",
+   "NXN.N.NN.N.NXN",
+   "N.NN..NN..NN.N"
+  ],
+  "36": [
+   "KNNSNNKKNNSNNK",
+   ".XNRNNNNNNRNX.",
+   "..NNNNNNNNNN..",
+   "..RSSNNNNSSR..",
+   "...SN#NN#NS...",
+   "....NNXXNN....",
+   ".....XNNX.....",
+   "......##......"
+  ],
+  "37": [
+   "KNNNNNKKNNNNNK",
+   "NNNNX####XNNNN",
+   "XNNNNXNNXNNNNX",
+   "NNSNNNNNNNNSNN",
+   "NNRMNNNNNNMRNN",
+   "NNNNNMNNMNNNNN",
+   "NNNRNNNNNNRNNN",
+   "NNNNNNNNNNNNNN"
+  ],
+  "38": [
+   "...KBNKKNBK...",
+   "NNNNTN..NTNNNN",
+   "NNNNNN..NNNNNN",
+   "N.RSBNNNNBSR.N",
+   "NN.N.NNNN.N.NN",
+   "NN#NS.BB.SN#NN",
+   ".RN..NNNN..NR.",
+   ".NR#..NN..#RN."
+  ],
+  "39": [
+   "KNNNNNKKNNNNNK",
+   "RS.BN.TT.NB.SR",
+   "NR.NN.BB.NN.RN",
+   "#N.SX.NN.XS.N#",
+   "SN.NR.NN.RN.NS",
+   "NN.MN.NN.NM.NN",
+   "NX.#X.NN.X#.XN",
+   "NN.NM.NN.MN.NN"
+  ],
+  "41": [
+   "KNBNNBKKBNNBNK",
+   "NNNNNNRRNNNNNN",
+   "NXBNNTNNTNNBXN",
+   "NXXRNNNNNNRXXN",
+   "NNNNNNNNNNNNNN",
+   "NNNNSNNNNSNNNN",
+   "NNNNNNBBNNNNNN",
+   "NNNNNNNNNNNNNN"
+  ],
+  "42": [
+   "KNNNNSKKSNNNNK",
+   "NNNNXNNNNXNNNN",
+   "NNXSNRNNRNSXNN",
+   "SRNNNTNNTNNNRS",
+   "NXNSBNNNNBSNXN",
+   "BNN#SNNNNS#NNB",
+   "NNNNM#RR#MNNNN",
+   "NNNNNTNNTNNNNN"
+  ],
+  "43": [
+   "KNNTNNNNNNTNNK",
+   ".N.N.N..N.N.N.",
+   "N.X.#.SS.#.X.N",
+   ".N.N.N..N.N.N.",
+   "X.T.B.NN.B.T.X",
+   ".#.N.N..N.N.#.",
+   "N.N.N.NN.N.N.N",
+   ".X.N.N..N.N.X."
+  ],
+  "44": [
+   "KNSSNRKKRNSSNK",
+   "#T.NN.NN.NN.T#",
+   "NN.NS.NN.SN.NN",
+   "NN.XN.##.NX.NN",
+   "NN.NN.KK.NN.NN",
+   "SN.RN.NN.NR.NS",
+   "BM.NT.NN.TN.MB",
+   "TB.NN.NN.NN.BT"
+  ],
+  "45": [
+   "KNNNNNKKNNNNNK",
+   "RNNNN#TT#NNNNR",
+   "NNBNRNNNNRNBNN",
+   "TNXSXNNNNXSXNT",
+   "NNNN#RNNR#NNNN",
+   "NNRNMNNNNMNRNN",
+   "XNNNNNNNNNNNNX",
+   "NNBNNNNNNNNBNN"
+  ],
+  "46": [
+   "KNSRNNKKNNRSNK",
+   "T.N.N.NN.N.N.T",
+   "NXNNNNNNNNNNXN",
+   "NSNNNNNNNNNNSN",
+   "N.S.N.##.N.S.N",
+   "TSNNXNRRNXNNST",
+   "NN#NNBNNBNN#NN",
+   "N.N.N.NN.N.N.N"
+  ],
+  "47": [
+   "KNNNNSKKSNNNNK",
+   "NT.NN.NN.NN.TN",
+   "NN.XN.NN.NX.NN",
+   "XX.NN.NN.NN.XX",
+   "NN.NN.NN.NN.NN",
+   "N#.NN.NN.NN.#N",
+   "NN.NN.NN.NN.NN",
+   "RN.RN.NN.NR.NR"
+  ],
+  "48": [
+   ".....KKKK.....",
+   "....TNNNNT....",
+   "..NNNNNNNNNN..",
+   "N#NNBNXXNBNN#N",
+   "NSNNXSNNSXNNSN",
+   "..XNSNNNNSNX..",
+   "....RNNNNR....",
+   ".....NNNN....."
+  ],
+  "49": [
+   ".....KKKK.....",
+   "....#NNNN#....",
+   "..NNNNTTNNNN..",
+   "N#NRNNNNNNRN#N",
+   "NNNBSNNNNSBNNN",
+   "..NXNNNNNNXN..",
+   "....NXNNXN....",
+   ".....NNNN....."
+  ],
+  "51": [
+   "NNKNNNNNNNNKNN",
+   ".X.N.T..T.N.X.",
+   "N.N.N.NN.N.N.N",
+   ".N.N.N..N.N.N.",
+   "X.N.N.NN.N.N.X",
+   ".N.B.N..N.B.N.",
+   "B.N.N.NN.N.N.B",
+   ".N.B.N..N.B.N."
+  ],
+  "52": [
+   "KNNNBNKKNBNNNK",
+   "RRNNTNRRNTNNRR",
+   "S#NNNNNNNNNN#S",
+   "NNNNN#BB#NNNNN",
+   "NRMNNNNNNNNMRN",
+   "NNNNNRNNRNNNNN",
+   "NBNNNRBBRNNNBN",
+   "NBSSNNNNNNSSBN"
+  ],
+  "53": [
+   "KTNNNNKKNNNNTK",
+   "#NNNNTNNTNNNN#",
+   "NNNNXXNNXXNNNN",
+   "NNNNNXNNXNNNNN",
+   "NNNS#NNNN#SNNN",
+   "NNNNNNNNNNNNNN",
+   "NNNNNNSSNNNNNN",
+   "NNNNNNNNNNNNNN"
+  ],
+  "54": [
+   "NKSNTTNNTTNSKN",
+   ".S.N.N..N.N.S.",
+   "N.S.S.SS.S.S.N",
+   ".N.N.N..N.N.N.",
+   "N.N.B.NN.B.N.N",
+   ".N.N.N..N.N.N.",
+   "#.N.N.XX.N.N.#",
+   ".N.N.N..N.N.N."
+  ],
+  "55": [
+   "KNNNNNKKNNNNNK",
+   ".NNSNSNNSNSNN.",
+   "..NSNN##NNSN..",
+   "..NNMNNNNMNN..",
+   "...NNXTTXNN...",
+   "....#NNNN#....",
+   ".....XNNX.....",
+   "......NN......"
+  ],
+  "56": [
+   "KNNNNBKKBNNNNK",
+   ".NNSNNNNNNSNN.",
+   "..SNNNNNNNNS..",
+   "..NRBSMMSBRN..",
+   "...XSRNNRSX...",
+   "....NNNNNN....",
+   ".....RNNR.....",
+   "......RR......"
+  ],
+  "57": [
+   "KNRTNNKKNNTRNK",
+   ".RTXNNNNNNXTR.",
+   "..NXNSNNSNXN..",
+   "..NNNRXXRNNN..",
+   "...BNNNNNNB...",
+   "....NNNNNN....",
+   ".....NNNN.....",
+   "......NN......"
+  ],
+  "58": [
+   "KMNNNNKKNNNNMK",
+   "MRRSXNNNNXSRRM",
+   "NNNNNNXXNNNNNN",
+   "NNNNNNNNNNNNNN",
+   "NBNRSNNNNSRNBN",
+   "NSNNRNNNNRNNSN",
+   "NNNNNNNNNNNNNN",
+   "NNNNSNBBNSNNNN"
+  ],
+  "59": [
+   "KNRNNNKKNNNRNK",
+   "BN.NN.NN.NN.NB",
+   "NN.NN.SS.NN.NN",
+   "NN.TX.NN.XT.NN",
+   "NN.NN.NN.NN.NN",
+   "XX.N#.NN.#N.XX",
+   "MN.#N.NN.N#.NM",
+   "NN.BN.NN.NB.NN"
+  ]
+ },
+ "bosses": [
+  [
+   "#T#####T#",
+   "NNNNNNNNN",
+   "NNN.C.NNN",
+   "#NN...NN#"
+  ],
+  [
+   "#T#T###T#T#",
+   "NNNNNNNNNNN",
+   "NNCNNTNNCNN",
+   "#N.N#.#N.N#"
+  ],
+  [
+   "#T##T###T##T#",
+   "NNNNNNNNNNNNN",
+   "NCNNNNCNNNNCN",
+   "#.#TNN.NNT#.#"
+  ]
+ ],
+ "rng": {
+  "0": [
+   0.26642920868471265,
+   0.0003297457005828619,
+   0.2232720274478197,
+   0.1462021479383111,
+   0.46732782293111086,
+   0.5450490827206522,
+   0.6152513844426721,
+   0.6489853798411787
+  ],
+  "1": [
+   0.6270739405881613,
+   0.002735721180215478,
+   0.5274470399599522,
+   0.9810509674716741,
+   0.9683778982143849,
+   0.281103502959013,
+   0.6128388606011868,
+   0.7207431411370635
+  ],
+  "3": [
+   0.7202267837710679,
+   0.03866216051392257,
+   0.4561921926215291,
+   0.07492800964973867,
+   0.7630053898319602,
+   0.481180417817086,
+   0.48672957462258637,
+   0.1618005665950477
+  ],
+  "138": [
+   0.14137820806354284,
+   0.79464967478998,
+   0.813958944985643,
+   0.568581952014938,
+   0.9785107469651848,
+   0.7000347464345396,
+   0.3539475461002439,
+   0.1102422617841512
+  ],
+  "7922": [
+   0.5035016816109419,
+   0.9694599339272827,
+   0.665587896713987,
+   0.37088171299546957,
+   0.6024882257916033,
+   0.03638662211596966,
+   0.43813822884112597,
+   0.8429181494284421
+  ],
+  "123456789": [
+   0.2577907438389957,
+   0.9707721115555614,
+   0.7853280142880976,
+   0.20616457983851433,
+   0.30307188746519387,
+   0.7470660470426083,
+   0.7787336520850658,
+   0.2845096290111542
+  ],
+  "-5": [
+   0.48384718922898173,
+   0.05296749505214393,
+   0.9390332337934524,
+   0.7963776015676558,
+   0.9763057488016784,
+   0.847053894540295,
+   0.5056252481881529,
+   0.5977867702022195
+  ]
+ }
+}

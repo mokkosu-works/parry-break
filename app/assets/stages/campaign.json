@@ -1,0 +1,458 @@
+{
+ "version": 1,
+ "_comment": "ステージモードの定義。ウェーブは rows(直接配置) / endless(エンドレスの W番号) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet",
+ "chapters": [
+  {
+   "id": "ch01",
+   "title": {
+    "ja": "第1章 基礎訓練",
+    "en": "CHAPTER 1  BASICS"
+   },
+   "stages": [
+    {
+     "id": "1-1",
+     "title": {
+      "ja": "はじめの一撃",
+      "en": "FIRST STRIKE"
+     },
+     "waves": [
+      {
+       "endless": 1,
+       "intro": "intro.parry",
+       "tuning": {
+        "descentBase": 3
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "perfect",
+       "value": 3
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "1-2",
+     "title": {
+      "ja": "要石",
+      "en": "KEYSTONE"
+     },
+     "waves": [
+      {
+       "endless": 2
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "collapse",
+       "value": 14
+      },
+      {
+       "type": "time",
+       "value": 45
+      }
+     ]
+    },
+    {
+     "id": "1-3",
+     "title": {
+      "ja": "貫通弾",
+      "en": "PIERCE"
+     },
+     "waves": [
+      {
+       "rows": [
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 2,
+       "intro": "intro.pierce",
+       "tuning": {
+        "descentBase": 3.5
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "perfect",
+       "value": 8
+      },
+      {
+       "type": "just",
+       "value": 1
+      }
+     ]
+    },
+    {
+     "id": "1-4",
+     "title": {
+      "ja": "砲台",
+      "en": "TURRET"
+     },
+     "waves": [
+      {
+       "endless": 4
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 3
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "1-5",
+     "title": {
+      "ja": "誘爆",
+      "en": "CHAIN BLAST"
+     },
+     "waves": [
+      {
+       "endless": 6
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "chainBlast",
+       "value": 3
+      },
+      {
+       "type": "time",
+       "value": 50
+      }
+     ]
+    },
+    {
+     "id": "1-6",
+     "title": {
+      "ja": "反射",
+      "en": "REFLECTOR"
+     },
+     "waves": [
+      {
+       "endless": 8
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "noHit"
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "1-7",
+     "title": {
+      "ja": "防衛線",
+      "en": "HOLD THE LINE"
+     },
+     "waves": [
+      {
+       "endless": 11,
+       "intro": "intro.survive",
+       "clear": {
+        "type": "survive",
+        "value": 40
+       },
+       "tuning": {
+        "descentBase": 7
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 5
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "1-8",
+     "title": {
+      "ja": "スコアラッシュ",
+      "en": "SCORE RUSH"
+     },
+     "waves": [
+      {
+       "endless": 9,
+       "intro": "intro.score",
+       "clear": {
+        "type": "score",
+        "value": 120000
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "score",
+       "value": 200000
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "1-9",
+     "title": {
+      "ja": "磁力",
+      "en": "MAGNET"
+     },
+     "waves": [
+      {
+       "endless": 14
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "ricochet",
+       "value": 8
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "1-10",
+     "title": {
+      "ja": "要塞",
+      "en": "FORTRESS"
+     },
+     "waves": [
+      {
+       "boss": 0
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "noHit"
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ch02",
+   "title": {
+    "ja": "第2章 オーバードライブ",
+    "en": "CHAPTER 2  OVERDRIVE"
+   },
+   "stages": [
+    {
+     "id": "2-1",
+     "title": {
+      "ja": "分裂",
+      "en": "SPLITTER"
+     },
+     "waves": [
+      {
+       "endless": 20
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "collapse",
+       "value": 20
+      },
+      {
+       "type": "time",
+       "value": 50
+      }
+     ]
+    },
+    {
+     "id": "2-2",
+     "title": {
+      "ja": "鏡面",
+      "en": "MIRROR"
+     },
+     "waves": [
+      {
+       "endless": 26
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 5
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "2-3",
+     "title": {
+      "ja": "二連戦",
+      "en": "DOUBLE BILL"
+     },
+     "waves": [
+      {
+       "endless": 15
+      },
+      {
+       "endless": 16
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "just",
+       "value": 3
+      },
+      {
+       "type": "time",
+       "value": 120
+      }
+     ]
+    },
+    {
+     "id": "2-4",
+     "title": {
+      "ja": "耐久",
+      "en": "ENDURANCE"
+     },
+     "waves": [
+      {
+       "endless": 28,
+       "intro": "intro.survive",
+       "clear": {
+        "type": "survive",
+        "value": 60
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 15
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "2-5",
+     "title": {
+      "ja": "高得点",
+      "en": "HIGH ROLLER"
+     },
+     "waves": [
+      {
+       "endless": 27,
+       "intro": "intro.score",
+       "clear": {
+        "type": "score",
+        "value": 400000
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "score",
+       "value": 800000
+      },
+      {
+       "type": "ricochet",
+       "value": 15
+      }
+     ]
+    },
+    {
+     "id": "2-6",
+     "title": {
+      "ja": "砲台要塞",
+      "en": "GUN FORTRESS"
+     },
+     "waves": [
+      {
+       "boss": 1
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "noHit"
+      },
+      {
+       "type": "time",
+       "value": 75
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

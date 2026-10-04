@@ -1,0 +1,203 @@
+{
+  "@@locale": "ja",
+  "appTitle": "RICOCHET OVERDRIVE",
+  "menuEndless": "エンドレス",
+  "menuStages": "ステージ",
+  "menuHowToPlay": "遊び方",
+  "menuSettings": "設定",
+  "menuRanking": "ランキング",
+  "back": "戻る",
+  "bestScore": "最高スコア",
+  "waveN": "ウェーブ {n}",
+  "@waveN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "helpMoveTitle": "移動",
+  "helpMoveZones": "画面の左半分をドラッグ",
+  "helpMoveRail": "左のレールをドラッグ",
+  "helpParryTitle": "発射・パリィ",
+  "helpParryZones": "画面の右半分を、当たる瞬間にタップ",
+  "helpParryRail": "当たる瞬間に PARRY ボタン",
+  "helpTimingTitle": "タイミング",
+  "helpTimingBody": "PERFECT → 貫通弾\nJUST → 衝撃波\nヒートでパドルが伸びる（最大1.5倍）",
+  "helpChainTitle": "連鎖",
+  "helpChainBody": "白い要石を壊すと崩落\nオレンジの爆薬で誘爆",
+  "helpOverTitle": "ゲーム終了",
+  "helpOverBody": "ボールを落とすと終了\nブロックが警告線に届いても終了",
+  "helpPauseTitle": "一時停止",
+  "helpPauseBody": "右上の Ⅱ で停止",
+  "paused": "一時停止中",
+  "resume": "再開",
+  "retry": "リトライ",
+  "toTitle": "タイトルへ",
+  "nextStage": "次のステージ",
+  "stageSelect": "ステージ選択",
+  "gameOver": "GAME OVER",
+  "stageClear": "STAGE CLEAR",
+  "stageFailed": "STAGE FAILED",
+  "newRecord": "NEW RECORD",
+  "locked": "ロック中",
+  "starClear": "クリア",
+  "starNoHit": "被弾なしでクリア",
+  "starTime": "{seconds}秒以内にクリア",
+  "@starTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "starScore": "スコア {value} 以上",
+  "@starScore": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "starJust": "JUST を {value} 回",
+  "@starJust": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "starPerfect": "PERFECT 以上を {value} 回",
+  "@starPerfect": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "starCollapse": "COLLAPSE ×{value} 以上",
+  "@starCollapse": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "starChainBlast": "CHAIN BLAST ×{value} 以上",
+  "@starChainBlast": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "starReturnKills": "撃ち返しで {value} 個破壊",
+  "@starReturnKills": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "starGraze": "GRAZE を {value} 回",
+  "@starGraze": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "starRicochet": "RICOCHET ×{value} 以上",
+  "@starRicochet": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "clearAnnihilate": "目標: 全消し",
+  "clearScore": "目標: スコア {value}",
+  "@clearScore": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "clearSurvive": "目標: {seconds}秒耐える",
+  "@clearSurvive": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "clearBoss": "目標: コアをすべて破壊",
+  "settingsControls": "操作方法",
+  "controlsZones": "画面の左右で操作",
+  "controlsRailH": "レール（横）",
+  "controlsRailV": "レール（縦）",
+  "settingsSensitivity": "移動感度",
+  "settingsTiming": "判定タイミング補正",
+  "settingsTimingHelp": "画面とタッチの遅れを打ち消すため、入力をこの時間だけ早めて扱います",
+  "calibrate": "測定する",
+  "settingsBgm": "BGM 音量",
+  "settingsSfx": "効果音 音量",
+  "settingsHaptics": "振動",
+  "settingsQuality": "画質",
+  "qualityHigh": "高",
+  "qualityLow": "低（省電力）",
+  "settingsReduceEffects": "刺激を弱める",
+  "settingsReduceEffectsHelp": "フラッシュ・画面反転・画面の揺れを弱めます",
+  "settingsLanguage": "言語",
+  "languageSystem": "端末の設定",
+  "calibrationTitle": "判定タイミングの測定",
+  "calibrationBody": "リングが線に重なる瞬間にタップしてください（{count}回）",
+  "@calibrationBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "calibrationResult": "測定結果: {ms}ms",
+  "@calibrationResult": {
+    "placeholders": {
+      "ms": {
+        "type": "String"
+      }
+    }
+  },
+  "calibrationApply": "この値を使う",
+  "calibrationRetry": "もう一度",
+  "tapToStart": "タップで開始",
+  "rankingUnavailable": "ランキングは現在利用できません",
+  "rankingEndlessScore": "エンドレス: スコア",
+  "rankingEndlessWave": "エンドレス: 到達ウェーブ",
+  "rankingStages": "ステージ: 合計スコア",
+  "introKeystone": "NEW: 要石 — 壊すと支えていたブロックが崩落",
+  "introTurret": "NEW: 砲台 — 弾をパリィで撃ち返せ",
+  "introExplosive": "NEW: 爆薬 — 誘爆させろ。破片も撃ち返せる",
+  "introReflector": "NEW: 反射 — ボールの軌道が変わる",
+  "introMagnet": "NEW: 磁力 — ボールを引き寄せる",
+  "introSplitter": "NEW: 分裂 — 小さなブロックを散らす",
+  "introMirror": "NEW: 鏡面 — 撃ち返した弾を跳ね返す",
+  "introLoop": "周回 {loop} — スピードアップ",
+  "@introLoop": {
+    "placeholders": {
+      "loop": {
+        "type": "String"
+      }
+    }
+  },
+  "introParry": "ボールが当たる瞬間にタップしてパリィ",
+  "introPierce": "PERFECT パリィで貫通弾。まとめて貫け",
+  "introSurvive": "ブロックが警告線に届かないよう耐えろ",
+  "introScore": "目標スコアに届けばクリア",
+  "bannerBoss": "パリィした赤い弾と貫通弾でコアを撃て",
+  "bannerOverdrive": "全貫通 ×16 — PERFECT で分身弾",
+  "bannerPhase2": "鏡面シールド — ロックオンレーザー",
+  "bannerPhase3": "要塞展開 — 弾幕",
+  "bannerTimeOver": "要塞が急降下",
+  "endingSub": "次の周回 — さらに加速"
+}
