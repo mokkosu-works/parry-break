@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ricochet/app/providers.dart';
-import 'package:ricochet/core/core.dart';
-import 'package:ricochet/game/game_screen.dart';
-import 'package:ricochet/main.dart';
-import 'package:ricochet/services/content.dart';
-import 'package:ricochet/services/records.dart';
-import 'package:ricochet/services/settings.dart';
-import 'package:ricochet/ui/help_screen.dart';
+import 'package:parry_break/app/providers.dart';
+import 'package:parry_break/core/core.dart';
+import 'package:parry_break/game/game_screen.dart';
+import 'package:parry_break/main.dart';
+import 'package:parry_break/services/content.dart';
+import 'package:parry_break/services/records.dart';
+import 'package:parry_break/services/settings.dart';
+import 'package:parry_break/ui/help_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/helpers.dart';
@@ -60,7 +60,7 @@ Future<void> _pumpApp(WidgetTester tester,
       contentProvider.overrideWithValue(GameContent(endless: endlessContent, campaign: _campaign)),
       timeSourceProvider.overrideWithValue(() => binding.clock.now().microsecondsSinceEpoch / 1e6),
     ],
-    child: RicochetApp(home: home),
+    child: ParryBreakApp(home: home),
   ));
   await tester.pump();
 }

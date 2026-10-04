@@ -1,4 +1,4 @@
-# RICOCHET OVERDRIVE
+# PARRY BREAK
 
 ブロック崩し × パリィ × 弾幕のアーケード型スコアアタック。Flutter で iOS / Android に対応する。
 

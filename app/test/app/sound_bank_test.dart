@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ricochet/audio/sound_bank.dart';
+import 'package:parry_break/audio/sound_bank.dart';
 
 void main() {
   test('効果音と BGM がすべて WAV として書き出せる', () {

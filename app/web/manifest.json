@@ -1,11 +1,11 @@
 {
-    "name": "ricochet",
-    "short_name": "ricochet",
+    "name": "PARRY BREAK",
+    "short_name": "PARRY BREAK",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#07060F",
     "theme_color": "#07060F",
-    "description": "A new Flutter project.",
+    "description": "PARRY BREAK — ブロック崩し × パリィ × 弾幕",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import '../../render/palette.dart';
 import '../widgets.dart';
 
-/// タイトルのロゴ。斜体の RICOCHET (色ずれ・光の走査・ときどきグリッチ) と、線画の OVERDRIVE。
+/// タイトルのロゴ。斜体の PARRY (色ずれ・光の走査・ときどきグリッチ) と、線画の BREAK。
 class TitleLogo extends StatefulWidget {
   const TitleLogo({super.key, required this.size, this.animate = true});
 
-  /// RICOCHET の文字の大きさ。
+  /// PARRY の文字の大きさ。
   final double size;
   final bool animate;
 
@@ -58,11 +58,11 @@ class _TitleLogoState extends State<TitleLogo> with SingleTickerProviderStateMix
               Stack(children: [
                 Transform.translate(
                   offset: Offset(-split + jx, jy),
-                  child: Text('RICOCHET', style: _style(s, color: withAlpha(Palette.magenta, 0.7))),
+                  child: Text('PARRY', style: _style(s, color: withAlpha(Palette.magenta, 0.7))),
                 ),
                 Transform.translate(
                   offset: Offset(split, -jy),
-                  child: Text('RICOCHET', style: _style(s, color: withAlpha(Palette.cyan, 0.7))),
+                  child: Text('PARRY', style: _style(s, color: withAlpha(Palette.cyan, 0.7))),
                 ),
                 ShaderMask(
                   blendMode: BlendMode.srcIn,
@@ -76,7 +76,7 @@ class _TitleLogoState extends State<TitleLogo> with SingleTickerProviderStateMix
                     ],
                   ).createShader(r),
                   child: Text(
-                    'RICOCHET',
+                    'PARRY',
                     style: _style(s).copyWith(shadows: [
                       Shadow(color: withAlpha(Palette.cyan, 0.9), blurRadius: s * 0.12),
                       Shadow(color: withAlpha(Palette.cyan, 0.5), blurRadius: s * 0.4),
@@ -85,21 +85,21 @@ class _TitleLogoState extends State<TitleLogo> with SingleTickerProviderStateMix
                 ),
               ]),
               SizedBox(height: s * 0.14),
-              _TrailBar(width: s * 5.6, height: math.max(2, s * 0.045), phase: v),
+              _TrailBar(width: s * 4.7, height: math.max(2, s * 0.045), phase: v),
               SizedBox(height: s * 0.14),
               Padding(
-                padding: EdgeInsets.only(left: s * 0.9),
+                padding: EdgeInsets.only(left: s * 0.7),
                 child: Stack(children: [
-                  Text('OVERDRIVE',
-                      style: _style(s * 0.58, spacing: s * 0.16).copyWith(
+                  Text('BREAK',
+                      style: _style(s * 0.68, spacing: s * 0.16).copyWith(
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = math.max(1.5, s * 0.026)
                           ..color = Palette.magenta,
                         shadows: [Shadow(color: Palette.magenta, blurRadius: s * 0.18)],
                       )),
-                  Text('OVERDRIVE',
-                      style: _style(s * 0.58, color: withAlpha(Palette.magenta, 0.16), spacing: s * 0.16)),
+                  Text('BREAK',
+                      style: _style(s * 0.68, color: withAlpha(Palette.magenta, 0.16), spacing: s * 0.16)),
                 ]),
               ),
             ],
@@ -110,7 +110,7 @@ class _TitleLogoState extends State<TitleLogo> with SingleTickerProviderStateMix
   }
 }
 
-/// RICOCHET と OVERDRIVE の間の光のライン。左から伸び、先端で光の玉が脈打つ (跳ね返ったボールの軌跡)。
+/// PARRY と BREAK の間の光のライン。左から伸び、先端で光の玉が脈打つ (跳ね返ったボールの軌跡)。
 class _TrailBar extends StatelessWidget {
   const _TrailBar({required this.width, required this.height, required this.phase});
   final double width, height, phase;

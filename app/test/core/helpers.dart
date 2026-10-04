@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:ricochet/core/core.dart';
+import 'package:parry_break/core/core.dart';
 
 /// assets のエンドレスの定義。
 final endlessContent =

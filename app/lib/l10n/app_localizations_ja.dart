@@ -10,7 +10,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'RICOCHET OVERDRIVE';
+  String get appTitle => 'PARRY BREAK';
 
   @override
   String get menuEndless => 'エンドレス';
