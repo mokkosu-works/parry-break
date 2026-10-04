@@ -124,29 +124,32 @@ iPad にも対応している(`TARGETED_DEVICE_FAMILY = 1,2`)ため、iPhone と
 | iPhone 6.9 インチ | 2868 × 1320 | iPhone 18 Pro Max |
 | iPad 13 インチ | 2752 × 2064 | iPad Pro 13-inch (M5) |
 
-撮り方:
+撮り方: `integration_test/store_screenshots_test.dart` が、シミュレータで実際のアプリを動かして5枚を撮る(ボス戦・崩落・プレイ中・ステージ選択・タイトル。番号は載せる順)。記録は見栄えのよい値を入れた仮のもので、端末の保存データには触らない。
 
 ```sh
-open -a Simulator              # File → Open Simulator で上の端末を選ぶ
-cd app && flutter run -d <デバイス ID>
-xcrun simctl io booted screenshot ~/Desktop/parrybreak-01.png   # Simulator で ⌘S でもよい
+cd app
+open -a Simulator   # iPhone 18 Pro Max と iPad Pro 13-inch (M5) を起動しておく
+SHOT_DIR=build/store_screenshots/ja/iphone flutter drive -d <デバイス ID> --dart-define=lang=ja \
+  --driver=test_driver/integration_test.dart --target=integration_test/store_screenshots_test.dart
 ```
 
-- デバッグモードでは左下に DEBUG の帯が出るため、通常モードで撮る
-- 候補: タイトル、PERFECT の瞬間、OVERDRIVE 中、大崩落・誘爆、ボス戦、ステージ選択
+`lang=en` で英語版、`-d` に iPad の ID を渡すと iPad 版になる。PNG は透過の情報を持つので、`sips -s format jpeg` で JPEG にしてから載せる。
 
 ## App のプライバシー
 
-開発者自身は何も集めないが、広告(Google AdMob)の SDK がデータを集めるため、「データの収集なし」は選べない。Google が公開している開示内容([Data disclosure for Apple's App Store](https://developers.google.com/admob/ios/privacy/data-disclosure))に合わせて入力する。入力の時点で、このページの最新の内容を確かめること。目安は次のとおり。
+開発者自身は何も集めないが、広告(Google AdMob)と同意画面(UMP)の SDK がデータを集めるため、「データの収集なし」は選べない。下の表は、ビルドに入っている両 SDK のプライバシーマニフェスト(`GoogleMobileAds.framework` と `UserMessagingPlatform.framework` の `PrivacyInfo.xcprivacy`)をまとめたもの。SDK を更新したら、マニフェストを見直して表も直す。
 
-| データの種類 | 用途 | ユーザーとの関連付け | トラッキング |
+| データの種類 | 用途 | ユーザーに関連付け | トラッキング |
 | --- | --- | --- | --- |
-| 位置情報 → おおよその場所 | 他社の広告、分析 | なし | なし |
-| ID → デバイス ID(IDFA) | 他社の広告、分析 | なし | **あり**(ATT で許可された場合) |
-| 使用状況データ → 製品の操作、広告データ | 他社の広告、分析 | なし | なし |
-| 診断 → クラッシュデータ、パフォーマンスデータ、その他の診断データ | 他社の広告、分析 | なし | なし |
+| 位置情報 → おおよその場所 | 他社の広告、デベロッパの広告、分析、App の機能 | はい | いいえ |
+| ID → デバイス ID | 他社の広告、デベロッパの広告、分析 | はい | **はい** |
+| 使用状況データ → 製品の操作 | 他社の広告、デベロッパの広告、分析、App の機能 | はい | いいえ |
+| 使用状況データ → 広告データ | 他社の広告、デベロッパの広告、分析 | はい | いいえ |
+| 診断 → クラッシュデータ | 分析 | いいえ | いいえ |
+| 診断 → パフォーマンスデータ | 他社の広告、デベロッパの広告、分析、App の機能 | いいえ | いいえ |
+| 診断 → その他の診断データ | 他社の広告、デベロッパの広告、分析 | いいえ | いいえ |
 
-ランキングは Apple の Game Center が扱うため、申告に含めない。
+`Info.plist` に `NSUserTrackingUsageDescription` があるので、デバイス ID の「トラッキング」を「はい」にしないと提出できない。ランキングは Apple の Game Center が扱うため、申告に含めない。
 
 ## 年齢制限
 
