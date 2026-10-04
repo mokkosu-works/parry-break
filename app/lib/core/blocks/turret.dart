@@ -39,7 +39,7 @@ class TurretBlock extends BlockBehavior {
     if (boss != null && boss.plunge) return;
     final difficulty = w.wave.difficulty;
     final interval = boss != null
-        ? math.max(1.0, 2.4 - boss.index * 0.2) / w.wave.loopMul
+        ? math.max(1.8, 3.6 - boss.index * 0.12) / w.wave.loopMul
         : w.tuning.turretInterval(difficulty, w.wave.loopMul);
     b.fireT -= dt;
     b.telegraph = b.fireT <= 0.5;

@@ -30,11 +30,11 @@ extension _BulletSystem on World {
           final grade = _judgeContact(tcB);
           if (grade != null) {
             _parryBullet(u, grade);
-          } else {
+          } else if (p.invuln <= 0) {
             bullets.removeAt(i);
             _hurt();
           }
-        } else if (u.near && !u.grazed && u.y > Field.paddleY + Field.paddleH + u.r && p.stun <= 0) {
+        } else if (u.near && !u.grazed && u.y > Field.paddleY + Field.paddleH + u.r && p.invuln <= 0) {
           u.grazed = true;
           _graze(u);
         }
@@ -156,7 +156,7 @@ extension _BulletSystem on World {
           l.fired = true;
           emit(LaserFired(l.x));
         }
-        if (!l.hit && p.stun <= 0 && (p.x - l.x).abs() < paddleWidth / 2 + l.w / 2 - 6) {
+        if (!l.hit && p.invuln <= 0 && (p.x - l.x).abs() < paddleWidth / 2 + l.w / 2 - 6) {
           l.hit = true;
           _hurt();
         }

@@ -55,6 +55,7 @@ extension _WaveSystem on World {
     final p = paddle, pr = parry;
     // パドル
     final px0 = p.x;
+    if (p.invuln > 0) p.invuln -= dt;
     if (p.stun > 0) {
       p.stun -= dt;
     } else {

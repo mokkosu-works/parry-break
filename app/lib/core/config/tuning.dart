@@ -11,7 +11,9 @@ class Tuning {
     this.perfectWindow = 0.03,
     this.justWindow = 0.012,
     this.parryCooldown = 0.35,
-    this.stunTime = 0.8,
+    this.stunTime = 0.4,
+    this.hurtInvuln = 1.2,
+    this.hurtClearRadius = 220,
     this.paddleSpeed = 900,
     this.paddleWidth = 120,
     this.stageMin = const [0, 100, 250, 450],
@@ -49,6 +51,12 @@ class Tuning {
 
   // パリィ判定 (秒)
   final double parryWindow, perfectWindow, justWindow, parryCooldown, stunTime;
+
+  /// 被弾後の無敵時間 (秒、スタンを含む)。続けざまの被弾を防ぐ。
+  final double hurtInvuln;
+
+  /// 被弾したとき、パドルからこの距離 (px) 以内の敵弾を消す。
+  final double hurtClearRadius;
 
   // パドル
   final double paddleSpeed, paddleWidth;
@@ -104,6 +112,8 @@ class Tuning {
       justWindow: d('justWindow', justWindow),
       parryCooldown: d('parryCooldown', parryCooldown),
       stunTime: d('stunTime', stunTime),
+      hurtInvuln: d('hurtInvuln', hurtInvuln),
+      hurtClearRadius: d('hurtClearRadius', hurtClearRadius),
       paddleSpeed: d('paddleSpeed', paddleSpeed),
       paddleWidth: d('paddleWidth', paddleWidth),
       stageMin: stageMin,

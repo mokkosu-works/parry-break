@@ -1,6 +1,6 @@
 {
  "version": 1,
- "_comment": "エンドレス(アーケード)の定義。handcrafted にないウェーブは generator が自動生成する。bosses[i] は W(10×(i+1)) のボス。",
+ "_comment": "エンドレス(アーケード)の定義。handcrafted にないウェーブは generator が自動生成する。bosses[i] は W(10×(i+1)) のボス。ボスの sway は左右に揺れる速さ。",
  "wavesPerLoop": 60,
  "bossEvery": 10,
  "loopSpeedup": 0.15,
@@ -95,14 +95,16 @@
  },
  "bosses": [
   {
+   "_name": "要塞",
    "template": [
     "#T#####T#",
     "NNNNNNNNN",
     "NNN.C.NNN",
     "#NN...NN#"
    ],
-   "coreHp": 8,
+   "coreHp": 6,
    "timeLimit": 90,
+   "sway": 0.5,
    "patterns": [
     {
      "type": "fan",
@@ -114,15 +116,13 @@
     },
     {
      "type": "laser",
-     "from": 2
-    },
-    {
-     "type": "spiral",
      "from": 3
     }
-   ]
+   ],
+   "reinforce": 0
   },
   {
+   "_name": "砲台要塞",
    "template": [
     "#T#T###T#T#",
     "NNNNNNNNNNN",
@@ -131,6 +131,7 @@
    ],
    "coreHp": 6,
    "timeLimit": 90,
+   "sway": 0.55,
    "patterns": [
     {
      "type": "fan",
@@ -151,6 +152,7 @@
    ]
   },
   {
+   "_name": "三連コア",
    "template": [
     "#T##T###T##T#",
     "NNNNNNNNNNNNN",
@@ -158,46 +160,46 @@
     "#.#TNN.NNT#.#"
    ],
    "coreHp": 6,
-   "timeLimit": 85,
+   "timeLimit": 90,
+   "sway": 0.6,
    "patterns": [
     {
      "type": "fan",
      "from": 1
     },
     {
-     "type": "aimed3",
-     "from": 2
-    },
-    {
-     "type": "laser",
+     "type": "curtain",
      "from": 2
     },
     {
      "type": "spiral",
      "from": 3
     }
-   ]
-  },
-  {
-   "template": [
-    "#T##T###T##T#",
-    "NNNNNNNNNNNNN",
-    "NCNNNNCNNNNCN",
-    "#.#TNN.NNT#.#"
    ],
-   "coreHp": 7,
-   "timeLimit": 85,
+   "reinforce": 0
+  },
+  {
+   "_name": "鏡の城",
+   "template": [
+    "#T##T###T##T#",
+    "NRNNNXNXNNNRN",
+    "NN.C.RNR.C.NN",
+    "#X...X#X...X#"
+   ],
+   "coreHp": 10,
+   "timeLimit": 90,
+   "sway": 0.7,
    "patterns": [
+    {
+     "type": "aimed3",
+     "from": 1
+    },
     {
      "type": "fan",
      "from": 1
     },
     {
-     "type": "aimed3",
-     "from": 2
-    },
-    {
-     "type": "laser",
+     "type": "laserGrid",
      "from": 2
     },
     {
@@ -207,60 +209,77 @@
    ]
   },
   {
+   "_name": "再生要塞",
    "template": [
     "#T##T###T##T#",
     "NNNNNNNNNNNNN",
-    "NCNNNNCNNNNCN",
-    "#.#TNN.NNT#.#"
+    "NNCNNNCNNNCNN",
+    "NN.NN...NN.NN"
    ],
    "coreHp": 8,
-   "timeLimit": 85,
+   "timeLimit": 95,
+   "sway": 0.75,
    "patterns": [
     {
      "type": "fan",
      "from": 1
     },
     {
+     "type": "repair",
+     "from": 1
+    },
+    {
      "type": "aimed3",
+     "from": 1
+    },
+    {
+     "type": "curtain",
      "from": 2
     },
     {
      "type": "laser",
-     "from": 2
-    },
-    {
-     "type": "spiral",
      "from": 3
     }
    ]
   },
   {
+   "_name": "終焉の要塞",
    "template": [
-    "#T##T###T##T#",
-    "NNNNNNNNNNNNN",
-    "NCNNNNCNNNNCN",
-    "#.#TNN.NNT#.#"
+    "#T##T#X#T##T#",
+    "NXNNNXNXNNNXN",
+    "NRCRNNCNNRCRN",
+    "#N.NB...BN.N#"
    ],
-   "coreHp": 9,
-   "timeLimit": 85,
+   "coreHp": 10,
+   "timeLimit": 100,
+   "sway": 0.85,
    "patterns": [
     {
-     "type": "fan",
+     "type": "aimed3",
      "from": 1
     },
     {
-     "type": "aimed3",
+     "type": "curtain",
+     "from": 1
+    },
+    {
+     "type": "fan",
      "from": 2
     },
     {
-     "type": "laser",
+     "type": "repair",
      "from": 2
+    },
+    {
+     "type": "laserGrid",
+     "from": 3
     },
     {
      "type": "spiral",
      "from": 3
     }
-   ]
+   ],
+   "reinforce": 0
   }
  ]
 }

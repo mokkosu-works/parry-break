@@ -127,7 +127,15 @@ extension _ParrySystem on World {
   void _hurt() {
     if (od) _endOverdrive(byHit: true);
     heat = 0;
-    paddle.stun = tuning.stunTime;
+    paddle
+      ..stun = tuning.stunTime
+      ..invuln = tuning.hurtInvuln;
+    // パドル付近の敵弾を消す (続けざまの被弾を防ぐ)
+    final r2 = tuning.hurtClearRadius * tuning.hurtClearRadius;
+    for (final u in bullets) {
+      final dx = u.x - paddle.x, dy = u.y - Field.paddleY;
+      if (u.hostile && dx * dx + dy * dy <= r2) u.dead = true;
+    }
     parry.active = false;
     stats.hurt++;
     emit(PlayerHurt(paddle.x));

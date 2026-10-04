@@ -162,9 +162,11 @@ class SoLoudAudio implements AudioService {
       case PhantomsSpawned():
         play('phantom');
       case LaserWarned():
-        play('laserWarn');
+        play('laserWarn', gap: 0.05); // 格子は同時に何本も撃つ
       case LaserFired():
-        play('laser');
+        play('laser', gap: 0.05);
+      case BlockRepaired():
+        play('clink', gap: 0.04);
       case StageCompleted():
         cutMusic();
       default:

@@ -347,6 +347,8 @@ class FieldPainter extends CustomPainter {
     var col = Palette.cyan;
     if (stunned) {
       col = math.sin(_t * 40) > 0 ? Palette.red : const Color(0xFF55556A);
+    } else if (p.invuln > 0 && math.sin(_t * 30) > 0) {
+      col = const Color(0xFF55556A); // 被弾後の無敵: 点滅
     } else if (cooling) {
       col = const Color(0xFF5A6A80);
     } else if (pr.active) {

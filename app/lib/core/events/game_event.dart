@@ -215,6 +215,13 @@ final class LaserFired extends GameEvent {
   final double x;
 }
 
+/// ボスが装甲のブロックを作り直した。[x], [y] は画面上の中心。
+final class BlockRepaired extends GameEvent {
+  const BlockRepaired(this.block, this.x, this.y);
+  final Block block;
+  final double x, y;
+}
+
 final class BossPhaseChanged extends GameEvent {
   const BossPhaseChanged(this.phase);
   final int phase;

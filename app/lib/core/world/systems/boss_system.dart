@@ -42,14 +42,14 @@ extension _BossSystem on World {
         emit(const Banner(BannerKind.timeOver));
       }
     }
-    form.ox = math.sin(b.t * 0.55) * b.amp * math.min(1, b.t / 2);
+    form.ox = math.sin(b.t * b.def.sway) * b.amp * math.min(1, b.t / 2);
     if (b.plunge) {
       form.oy += 520 * dt; // 時間切れ: 要塞が急降下してゲームオーバー
       return;
     }
     final cores = blocks.where((x) => x.type == bossCoreId).toList();
     if (cores.isEmpty) return;
-    final rate = const [1.0, 1.3, 1.7][b.phase - 1] * (1 + b.index * 0.08) * wave.loopMul;
+    final rate = const [1.0, 1.15, 1.3][b.phase - 1] * (1 + b.index * 0.05) * wave.loopMul;
     for (final p in b.patterns) {
       if (b.phase >= p.fromPhase) p.update(this, b, cores, dt, rate);
     }
@@ -75,7 +75,7 @@ extension _BossSystem on World {
   bool _occupied(double x, double y) =>
       blocks.any((b) => x < b.x + b.w && x + Field.cellW > b.x && y < b.y + b.h && y + Field.cellH > b.y);
 
-  /// フェーズ移行: コアの下に鏡面シールド、両翼に砲台を増やす。
+  /// フェーズ移行: コアの下に鏡面シールド、フェーズ2 では両翼に砲台を増やす。
   void _bossShift() {
     final b = boss!;
     emit(BossPhaseChanged(b.phase));
@@ -87,12 +87,12 @@ extension _BossSystem on World {
         if (!_occupied(x, y)) addBlock('X', x, y);
       }
     }
-    final xs = [b.left - Field.cellW, b.left + b.cols * Field.cellW];
-    if (b.phase == 3) xs.addAll([b.left - 2 * Field.cellW, b.left + (b.cols + 1) * Field.cellW]);
-    for (final x in xs) {
-      if (x < 0 || x + Field.cellW > Field.width) continue;
-      final y = b.phase == 3 ? Field.gridY0 + Field.cellH : Field.gridY0;
-      if (!_occupied(x, y)) addBlock('T', x, y).fireT = 1.5 + aux.next();
+    // 両翼の砲台はフェーズ2 だけで足す (弾が増えすぎないように)
+    if (b.phase == 2 && b.def.reinforce > 0) {
+      for (final x in [b.left - Field.cellW, b.left + b.cols * Field.cellW]) {
+        if (x < 0 || x + Field.cellW > Field.width) continue;
+        if (!_occupied(x, Field.gridY0)) addBlock('T', x, Field.gridY0).fireT = 1.5 + aux.next();
+      }
     }
     var minX = Field.width, maxX = 0.0;
     for (final x in blocks) {
