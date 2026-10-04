@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Google Play Console の「Play Games サービス → 設定」に表示される数字のプロジェクト ID に置き換える。
-     置き換えるまでは lib/services/leaderboard.dart の LeaderboardConfig.enabled を false のままにする。 -->
+     置き換えるまでは lib/services/leaderboard.dart の LeaderboardConfig.androidEnabled を false のままにする。 -->
 <resources>
     <string name="app_id" translatable="false">000000000000</string>
 </resources>
