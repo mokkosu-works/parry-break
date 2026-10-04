@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In ja, this message translates to:
-  /// **'RICOCHET OVERDRIVE'**
+  /// **'PARRY BREAK'**
   String get appTitle;
 
   /// No description provided for @menuEndless.

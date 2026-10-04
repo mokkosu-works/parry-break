@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ricochet/core/core.dart';
-import 'package:ricochet/l10n/app_localizations.dart';
-import 'package:ricochet/render/block_painters.dart';
-import 'package:ricochet/render/field_painter.dart';
-import 'package:ricochet/render/fx.dart';
-import 'package:ricochet/render/text_cache.dart';
+import 'package:parry_break/core/core.dart';
+import 'package:parry_break/l10n/app_localizations.dart';
+import 'package:parry_break/render/block_painters.dart';
+import 'package:parry_break/render/field_painter.dart';
+import 'package:parry_break/render/fx.dart';
+import 'package:parry_break/render/text_cache.dart';
 
 import '../core/helpers.dart';
 

@@ -27,12 +27,12 @@ Future<void> main() async {
       contentProvider.overrideWithValue(content),
       audioProvider.overrideWithValue(audio),
     ],
-    child: RicochetApp(audioInit: audio.init()),
+    child: ParryBreakApp(audioInit: audio.init()),
   ));
 }
 
-class RicochetApp extends ConsumerStatefulWidget {
-  const RicochetApp({super.key, this.audioInit, this.home});
+class ParryBreakApp extends ConsumerStatefulWidget {
+  const ParryBreakApp({super.key, this.audioInit, this.home});
 
   /// 音の準備 (効果音・BGM の生成) は起動を待たせずに裏で進める。
   final Future<void>? audioInit;
@@ -41,10 +41,10 @@ class RicochetApp extends ConsumerStatefulWidget {
   final Widget? home;
 
   @override
-  ConsumerState<RicochetApp> createState() => _RicochetAppState();
+  ConsumerState<ParryBreakApp> createState() => _ParryBreakAppState();
 }
 
-class _RicochetAppState extends ConsumerState<RicochetApp> {
+class _ParryBreakAppState extends ConsumerState<ParryBreakApp> {
   @override
   void initState() {
     super.initState();
@@ -60,7 +60,7 @@ class _RicochetAppState extends ConsumerState<RicochetApp> {
     final lang = ref.watch(settingsProvider.select((s) => s.language));
     final debug = ref.watch(debugModeProvider);
     return MaterialApp(
-      title: 'RICOCHET OVERDRIVE',
+      title: 'PARRY BREAK',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       locale: lang == null ? null : Locale(lang),

@@ -1,4 +1,4 @@
-# RICOCHET OVERDRIVE (Flutter)
+# PARRY BREAK (Flutter)
 
 仕様・アーキテクチャ・拡張の手順は [../docs/native-app-spec.md](../docs/native-app-spec.md) を参照。
 
