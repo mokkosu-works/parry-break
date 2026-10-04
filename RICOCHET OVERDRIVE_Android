@@ -121,6 +121,18 @@
     #home-screen #language-toggle { position:absolute;right:max(18px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));font-size:16px;padding:8px 16px;min-height:44px;z-index:5;border-color:#a66bff;box-shadow:0 0 14px #a66bff50; }
       .help-card:nth-child(2) .help-icon { color:#ffb8ed; }
     .help-card:nth-child(2) .help-icon svg { filter:drop-shadow(0 0 4px currentColor); }
+  
+    #return-top { position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;min-width:110px;min-height:48px;padding:10px 24px;border:1px solid #4dfcff;border-radius:12px;background:#101a2c;color:#a8ffff;font:700 20px system-ui,sans-serif;box-shadow:inset 0 0 12px #4dfcff25,0 0 14px #4dfcff50;touch-action:manipulation; }
+      #home-record { margin:8px 0 0;font-size:clamp(20px,3vw,26px);font-weight:700;line-height:1.4;color:#e8e4ff;letter-spacing:1px;text-shadow:0 0 8px #a66bff70; }
+  
+    #home-record { margin:26px 0 0;position:relative;display:grid;grid-template-columns:auto auto;align-items:center;gap:4px 22px;padding:10px 24px;border:1px solid #a66bff88;border-radius:12px;background:linear-gradient(120deg,#18142ddd,#102430dd);box-shadow:inset 0 0 18px #a66bff18,0 0 20px #a66bff25;min-width:210px;text-align:center; }
+    #home-record::before { content:'';position:absolute;left:20px;right:20px;top:-1px;height:2px;background:linear-gradient(90deg,transparent,#4dfcff,#ff4dd8,transparent);box-shadow:0 0 8px #4dfcff; }
+    .record-label { grid-column:1 / -1;font-size:12px;letter-spacing:3px;color:#c5b4ef; }
+    #record-score { font-size:clamp(28px,4vw,38px);font-variant-numeric:tabular-nums;letter-spacing:2px;color:#eaffff;text-shadow:0 0 12px #4dfcff77; }
+    .record-wave { font-size:14px;color:#ffb8ed;border-left:1px solid #a66bff66;padding-left:20px;letter-spacing:1px; }
+    @media(max-height:360px) { #home-screen { gap:8px; } #home-record { margin-top:16px;padding:6px 20px; } #record-score { font-size:28px; } }
+      #home-record .record-label { font-size:20px; }
+    #home-record .record-wave { font-size:18px; }
   </style>
 </head>
 <body>
@@ -813,6 +825,7 @@
       if (frameRequest !== null) cancelAnimationFrame(frameRequest);
       frameRequest = null;
       render();
+      if (typeof updateMobileScreens === "function") updateMobileScreens();
     } else {
       last = performance.now();
       if (frameRequest === null) frameRequest = requestAnimationFrame(frame);
@@ -821,7 +834,7 @@
     if (AU.ctx) { if (p) AU.ctx.suspend(); else AU.ctx.resume(); }
   }
   function togglePause() {
-    if (G.mode === 'over') { toTitle(); return; }
+    if (G.mode === 'over') return;
     setPause(!G.paused);
   }
   function toTitle() {
@@ -2218,10 +2231,25 @@
     text('WAVE ' + G.wave + '    MAX CHAIN ' + G.maxStreak + '    JUST ' + s.just + '    GRAZE ' + s.graze, W / 2, 410, 24, '#cfd6ff');
     text('BEST COLLAPSE ' + s.bestCollapse + '    BEST BLAST ' + s.bestBlast + '    BEST RICOCHET ' + s.bestRicochet, W / 2, 450, 22, '#cfd6ff');
     text('BEST  ' + fmt(G.best) + '   (WAVE ' + G.bestWave + ')', W / 2, 498, 24, '#7a74b0');
-    if (G.overT > 1.0 && Math.floor(G.overT * 2) % 2 === 0) text('TAP ↑ TO RETRY', W / 2, 566, 26, '#ffffff', 'center', JFONT);
+    if (G.overT > 1.0 && Math.floor(G.overT * 2) % 2 === 0) drawRetryHint(W / 2, 566);
     ctx.globalAlpha = 1;
   }
 
+  function drawRetryHint(x, y) {
+    ctx.save(); ctx.font = '700 26px ' + FONT;
+    const left = ctx.measureText('TAP').width, right = ctx.measureText('TO RETRY').width;
+    const width = left + right + 70;
+    const iconX = x - width / 2 + left + 35;
+    text('TAP', x - width / 2, y, 26, '#ffffff', 'left');
+    text('TO RETRY', iconX + 35, y, 26, '#ffffff', 'left');
+    drawActionSymbol(iconX, y);
+    ctx.restore();
+  }
+  function drawActionSymbol(x, y) {
+    ctx.save(); ctx.translate(x,y);ctx.strokeStyle='#ffb8ed';ctx.lineWidth=2;ctx.lineCap='round';ctx.shadowColor='#ffb8ed';ctx.shadowBlur=4;
+    ctx.beginPath();ctx.moveTo(-12,16);ctx.lineTo(12,16);ctx.moveTo(0,6);ctx.lineTo(0,-16);ctx.lineTo(-9,-7);ctx.moveTo(0,-16);ctx.lineTo(9,-7);ctx.moveTo(-17,6);ctx.quadraticCurveTo(0,23,17,6);ctx.stroke();
+    ctx.beginPath();ctx.arc(0,2,3,0,Math.PI*2);ctx.stroke();ctx.restore();
+  }
   function drawLaunchHint(x, y) {
     // Same arrow, reflection arc and ball as the action button.
     ctx.save(); ctx.translate(x,y); ctx.strokeStyle='#ffb8ed';ctx.lineWidth=2;ctx.lineCap='round';
@@ -2279,7 +2307,7 @@
     SYNC.wall = now; SYNC.sim = G.t + (G.hitstop > 0 ? 0 : acc); SYNC.scale = scale;
     if (!G.paused) G.dispScore += ((G.score || 0) - G.dispScore) * Math.min(1, rdt * 12);
     render();
-    if (!G.paused && typeof updateMobileScreens === "function") updateMobileScreens();
+    if (typeof updateMobileScreens === "function") updateMobileScreens();
     if (!G.paused) frameRequest = requestAnimationFrame(frame);
   }
   frameRequest = requestAnimationFrame(frame);
@@ -2288,7 +2316,7 @@
   <div class="neon-orb" aria-hidden="true"></div><div class="neon-orb two" aria-hidden="true"></div><div class="neon-orb three" aria-hidden="true"></div><h1 class="game-title">RICOCHET<span>OVERDRIVE</span></h1>
   <p class="subtitle">ブロック崩し × パリィ × 弾幕</p>
   <div class="menu-buttons"><button id="start-button">START</button><button id="help-button">HOW TO PLAY</button></div>
-  <button id="language-toggle" aria-label="Switch language">日本語</button><p id="home-record"></p>
+  <button id="language-toggle" aria-label="Switch language">日本語</button><div id="home-record"><span class="record-label">BEST SCORE</span><strong id="record-score">0</strong><span id="record-wave" class="record-wave">WAVE 0</span></div>
 </section>
 <section id="help-screen" class="screen" hidden aria-label="遊び方">
   <div class="help-wrap"><div class="help-header"><h1>遊び方</h1><button id="help-back">戻る</button></div>
@@ -2300,7 +2328,7 @@
       <article class="help-card"><div class="help-icon"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M40 8v32M60 8v32" stroke-width="7"/></svg></div><h2>一時停止</h2><p>Ⅱで停止・再開</p></article>
     </div></div>
 </section>
-<div id="mobile-controls" hidden><button id="axis-toggle" aria-label="操作バーの向きを切り替え"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 24h32M8 24l8-8m-8 8 8 8M40 24l-8-8m8 8-8 8"/></svg></button><div id="drag-zone" aria-label="左右ドラッグで移動"><div class="drag-rail" aria-hidden="true"><span id="drag-thumb" class="drag-thumb"></span></div></div><div id="action-panel"><button id="pause-button" aria-label="一時停止・再開"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M40 8v32M60 8v32" stroke-width="7"/></svg></button><button id="parry-button" aria-label="発射・パリィ"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M35 40h30M50 29V5m0 0L38 17m12-12 12 12"/><path d="M29 29q21 16 42 0"/><circle cx="50" cy="24" r="4"/></svg></button></div></div>
+<button id="return-top" hidden>TOP</button><div id="mobile-controls" hidden><button id="axis-toggle" aria-label="操作バーの向きを切り替え"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 24h32M8 24l8-8m-8 8 8 8M40 24l-8-8m8 8-8 8"/></svg></button><div id="drag-zone" aria-label="左右ドラッグで移動"><div class="drag-rail" aria-hidden="true"><span id="drag-thumb" class="drag-thumb"></span></div></div><div id="action-panel"><button id="pause-button" aria-label="一時停止・再開"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M40 8v32M60 8v32" stroke-width="7"/></svg></button><button id="parry-button" aria-label="発射・パリィ"><svg viewBox="0 0 100 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M35 40h30M50 29V5m0 0L38 17m12-12 12 12"/><path d="M29 29q21 16 42 0"/><circle cx="50" cy="24" r="4"/></svg></button></div></div>
 <script>
 
 
@@ -2316,7 +2344,7 @@
     (uiLanguage === 'ja' ? helpJapanese : helpEnglish).forEach(([title,body],i) => {
       cards[i].querySelector('h2').textContent = title; cards[i].querySelector('p').innerHTML = body;
     });
-    document.getElementById('language-toggle').textContent = uiLanguage === 'ja' ? 'Endlish' : '日本語';
+    document.getElementById('language-toggle').textContent = uiLanguage === 'ja' ? 'English' : '日本語';
   }
   document.getElementById('language-toggle').addEventListener('click', () => {
     uiLanguage = uiLanguage === 'ja' ? 'en' : 'ja';
@@ -2325,10 +2353,15 @@
   });
   applyLanguage();
 
-    let controlAxis = storage.get("ro_control_axis", "horizontal");
+    document.getElementById('return-top').addEventListener('click', () => {
+    IN.actions.length = 0; toTitle(); updateMobileScreens();
+  });
+  let controlAxis = storage.get("ro_control_axis", "horizontal");
     let helpVisible = false, lastScreenKey = "", lastRecord = "";
     function updateMobileScreens() {
       const title = G.mode === 'title';
+    document.getElementById('return-top').hidden = !(G.paused || G.mode === 'over');
+    document.getElementById('pause-button').hidden = G.mode === 'over';
       const thumb = document.getElementById('drag-thumb');
       if (!title) {
         const position = (10 + 80 * clamp((G.paddle.x - PADDLE_W / 2) / (W - PADDLE_W), 0, 1)).toFixed(1) + '%';
@@ -2343,7 +2376,9 @@
       document.getElementById('help-screen').hidden = !title || !helpVisible;
       document.getElementById('mobile-controls').hidden = title;
       if (!title) helpVisible = false;
-      document.getElementById('home-record').textContent = G.best ? 'BEST ' + fmt(G.best) + ' · WAVE ' + G.bestWave : '';
+      document.getElementById('home-record').hidden = !G.best;
+    document.getElementById('record-score').textContent = fmt(G.best || 0);
+    document.getElementById('record-wave').textContent = 'WAVE ' + (G.bestWave || 0);
     }
     document.getElementById('start-button').addEventListener('click', e => {
       auInit(); IN.actions.push({t:performance.now()});
