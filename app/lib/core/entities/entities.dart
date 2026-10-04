@@ -93,7 +93,8 @@ class Ball {
   int flight = 0;
 
   /// OVERDRIVE 中に生まれる分身弾。落としてもミスにならない。
-  final bool phantom;
+  /// メインのボールを落としたときは、残っている分身弾の1つが昇格してメインのボールになる。
+  bool phantom;
 
   /// 分身弾の残り寿命 (秒)。
   double life;

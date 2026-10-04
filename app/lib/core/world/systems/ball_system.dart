@@ -12,8 +12,28 @@ extension _BallSystem on World {
       f.life -= dt;
     }
     phantoms.removeWhere((f) => f.lost || f.life <= 0);
-    // 分身弾はボールの数に含めない: メインのボールを落としたらゲームオーバー
-    if (ball.lost) _gameOver('BALL LOST');
+    // メインのボールを落としても、分身弾が1つでも残っていればそれが新しいボールになる
+    if (ball.lost) {
+      if (phantoms.isEmpty) {
+        _gameOver('BALL LOST');
+      } else {
+        _promotePhantom();
+      }
+    }
+  }
+
+  /// 残っている分身弾のうち、上へ向かっているもの・より高い位置にあるものを優先してメインのボールにする。
+  void _promotePhantom() {
+    var best = phantoms.first;
+    for (final f in phantoms.skip(1)) {
+      final up = f.vy < 0, bestUp = best.vy < 0;
+      if (up != bestUp ? up : f.y < best.y) best = f;
+    }
+    phantoms.remove(best);
+    best
+      ..phantom = false
+      ..life = 0;
+    ball = best;
   }
 
   void _updateBall(Ball b, double dt) {
