@@ -162,7 +162,8 @@ class _BackgroundPainter extends CustomPainter {
             ..shader = RadialGradient(colors: [withAlpha(color, 0.15), withAlpha(color, 0)])
                 .createShader(Rect.fromCircle(center: c, radius: rad)));
     }
-    // 漂う光の玉
+    // 漂う光の玉。止まった背景では、文字の上に止まって重なることがあるので描かない
+    if (still) return;
     for (final (i, color, r) in [(0, Palette.white, 9.0), (1, const Color(0xFFFFB8EC), 8.0), (2, Palette.yellow, 5.0)]) {
       final p = t * (0.09 + i * 0.03) + i * 2.1;
       final x = size.width * (0.5 + 0.42 * math.sin(p * 1.3 + i));
