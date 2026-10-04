@@ -1,0 +1,6 @@
+{
+  "name": "web-check",
+  "private": true,
+  "description": "Web ビルドをヘッドレス Chromium で開いて、起動・音・スクリーンショットを確かめる",
+  "dependencies": { "playwright-core": "^1.50.0" }
+}
