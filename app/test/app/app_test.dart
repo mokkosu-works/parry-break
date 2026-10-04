@@ -98,7 +98,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.pause));
     await _frames(tester, 0.2);
-    expect(find.text('PAUSED'), findsOneWidget);
+    expect(find.text('PAUSED'), findsWidgets);
     await _shot(tester, '04_paused');
     await tester.tap(find.text('RESUME'));
     await _frames(tester, 1.3); // 1 秒のカウントダウン
@@ -134,6 +134,45 @@ void main() {
     await tester.tapAt(const Offset(1450, 400));
     await _frames(tester, 0.1);
     expect(w.ball.attached, isFalse);
+  });
+
+  testWidgets('結果画面: エンドレスのゲームオーバー (記録更新)', (tester) async {
+    await _pumpApp(tester, home: const GameScreen());
+    await _frames(tester, 1.2);
+    final w = GameScreen.debugLastController!.world;
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await _frames(tester, 0.3);
+    w
+      ..addScore(1234560)
+      ..maxStreak = 17;
+    w.stats
+      ..just = 9
+      ..graze = 23
+      ..bestCollapse = 31
+      ..bestBlast = 4
+      ..bestRicochet = 12;
+    w.ball
+      ..y = Field.height - 4
+      ..vy = 600;
+    await _frames(tester, 3.2);
+    expect(find.text('RETRY'), findsOneWidget);
+    await _shot(tester, '10_result_endless');
+    await tester.tap(find.text('RETRY'));
+    await _frames(tester, 0.5);
+    expect(find.text('RETRY'), findsNothing);
+  });
+
+  testWidgets('結果画面: ステージクリア (星 3 つ)', (tester) async {
+    await _pumpApp(tester, home: GameScreen(stage: _campaign.stage('1-4')));
+    await _frames(tester, 1.2);
+    final w = GameScreen.debugLastController!.world;
+    w.stats.returnKills = 3;
+    for (final b in w.blocks.where((b) => b.behavior.clearable).toList()) {
+      w.destroyBlock(b, DestroyCause.pierce);
+    }
+    await _frames(tester, 6.5);
+    expect(find.text('NEXT STAGE'), findsOneWidget);
+    await _shot(tester, '11_result_stage_clear');
   });
 
   testWidgets('ボスのステージ (要塞・コア・HP バー) を描ける', (tester) async {

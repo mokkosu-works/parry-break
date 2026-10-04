@@ -17,9 +17,10 @@ import '../services/leaderboard.dart';
 import '../services/records.dart';
 import '../services/settings.dart';
 import '../ui/settings_screen.dart';
-import '../ui/stage_text.dart';
+import '../ui/arcade.dart';
 import '../ui/widgets.dart';
 import 'game_controller.dart';
+import 'result_overlay.dart';
 
 /// プレイ画面。[stage] があればステージモード、なければエンドレス。
 class GameScreen extends ConsumerStatefulWidget {
@@ -162,8 +163,12 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     return KeyEventResult.ignored;
   }
 
+  /// リトライのたびに増やす (結果画面の演出を最初から出すため)。
+  int _runId = 0;
+
   void _retry() {
     _outcome = null;
+    _runId++;
     _ctl.start();
   }
 
@@ -250,7 +255,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
               ),
             ),
             if (_ctl.paused && !_ctl.finished) Positioned.fill(child: _pauseOverlay(l)),
-            if (_ctl.finished) Positioned.fill(child: _resultOverlay(l)),
+            if (_ctl.finished) Positioned.fill(child: _resultOverlay()),
           ]);
         }),
       ),
@@ -280,114 +285,54 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
 
   Widget _pauseOverlay(AppLocalizations l) {
     final rc = _ctl.resumeCountdown;
-    return Container(
-      color: const Color(0xCC05040F),
-      alignment: Alignment.center,
-      child: rc != null
-          ? Text('${rc.ceil()}', style: orbitron(72, color: Palette.cyan, weight: 900))
-          : SingleChildScrollView(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(l.paused,
-                    style: orbitron(48, color: Palette.cyan, weight: 900)
-                        .copyWith(shadows: const [Shadow(color: Palette.cyan, blurRadius: 18)])),
-                const SizedBox(height: 24),
-                Wrap(spacing: 16, runSpacing: 12, alignment: WrapAlignment.center, children: [
-                  NeonButton(label: l.resume, filled: true, onPressed: _ctl.requestResume, icon: Icons.play_arrow),
-                  NeonButton(label: l.retry, onPressed: _retry, icon: Icons.replay),
-                  NeonButton(label: l.menuSettings, onPressed: _openSettings, icon: Icons.tune),
-                  NeonButton(label: l.toTitle, color: Palette.magenta, onPressed: _toTitle, icon: Icons.home),
+    return Stack(fit: StackFit.expand, children: [
+      const ColoredBox(color: Color(0xCC05040F)),
+      const Scanlines(),
+      Center(
+        child: rc != null
+            ? ChromaticTitle('${rc.ceil()}', size: 96, color: Palette.cyan)
+            : SingleChildScrollView(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const ChromaticTitle('PAUSED', size: 56, color: Palette.cyan),
+                  const SizedBox(height: 30),
+                  Wrap(spacing: 14, runSpacing: 12, alignment: WrapAlignment.center, children: [
+                    SlashButton(label: 'RESUME', primary: true, icon: Icons.play_arrow, onPressed: _ctl.requestResume),
+                    SlashButton(label: 'RETRY', icon: Icons.replay, onPressed: _retry),
+                    SlashButton(label: 'SETTINGS', icon: Icons.tune, onPressed: _openSettings),
+                    SlashButton(label: 'TITLE', color: Palette.magenta, icon: Icons.home, onPressed: _toTitle),
+                  ]),
                 ]),
-              ]),
-            ),
-    );
+              ),
+      ),
+    ]);
   }
 
-  Widget _resultOverlay(AppLocalizations l) {
+  Widget _resultOverlay() {
     final w = _ctl.world, o = _outcome, stage = widget.stage;
     final records = ref.read(recordsProvider);
     final cleared = o?.cleared ?? false;
-    final title = stage == null ? l.gameOver : (cleared ? l.stageClear : l.stageFailed);
-    final titleColor = stage != null && cleared ? Palette.cyan : Palette.red;
     final next = cleared ? _nextStage : null;
-    Widget row(String label, String value, {Color color = Palette.pale, bool big = false}) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(children: [
-            Expanded(child: Text(label, style: orbitron(big ? 18 : 15, color: color))),
-            Text(value, style: orbitron(big ? 24 : 18, weight: 900)),
-          ]),
-        );
-    final s = w.stats;
-    return Container(
-      color: const Color(0xD105040F),
-      child: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(title,
-                    style: orbitron(44, color: titleColor, weight: 900)
-                        .copyWith(shadows: [Shadow(color: titleColor, blurRadius: 20)])),
-                if (stage == null || !cleared)
-                  Text(w.overReason, style: orbitron(18, color: const Color(0xFFFF8090))),
-                if (o?.newBest ?? false)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(l.newRecord,
-                        style: orbitron(20, color: Palette.yellow, weight: 900)
-                            .copyWith(shadows: const [Shadow(color: Palette.yellow, blurRadius: 12)])),
-                  ),
-                const SizedBox(height: 14),
-                if (stage == null)
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Expanded(
-                      child: Column(children: [
-                        row('SCORE', formatScore(w.score), color: Palette.cyan, big: true),
-                        row('WAVE', '${w.wave.number}'),
-                        row('MAX CHAIN', '${w.maxStreak}'),
-                        row('JUST', '${s.just}'),
-                        row('GRAZE', '${s.graze}'),
-                      ]),
-                    ),
-                    const SizedBox(width: 32),
-                    Expanded(
-                      child: Column(children: [
-                        row('BEST SCORE', formatScore(records.endless.bestScore), big: true),
-                        row('BEST WAVE', '${records.endless.bestWave}'),
-                        row('BEST COLLAPSE', '${s.bestCollapse}'),
-                        row('BEST BLAST', '${s.bestBlast}'),
-                        row('BEST RICOCHET', '${s.bestRicochet}'),
-                      ]),
-                    ),
-                  ])
-                else ...[
-                  row('SCORE', formatScore(w.score), color: Palette.cyan, big: true),
-                  row('BEST', formatScore(records.stage(stage.id).bestScore)),
-                  const SizedBox(height: 8),
-                  for (var i = 0; i < stage.stars.length; i++)
-                    StarLine(achieved: o?.stars?[i] ?? false, text: starText(l, stage.stars[i])),
-                ],
-                const SizedBox(height: 20),
-                Wrap(spacing: 16, runSpacing: 12, alignment: WrapAlignment.center, children: [
-                  if (next != null)
-                    NeonButton(
-                      label: l.nextStage,
-                      filled: true,
-                      icon: Icons.skip_next,
-                      onPressed: () => Navigator.of(context).pushReplacement(fadeRoute(GameScreen(stage: next))),
-                    ),
-                  NeonButton(label: l.retry, filled: next == null, icon: Icons.replay, onPressed: _retry),
-                  if (stage != null)
-                    NeonButton(
-                        label: l.stageSelect, icon: Icons.grid_view, onPressed: () => Navigator.of(context).pop()),
-                  NeonButton(label: l.toTitle, color: Palette.magenta, icon: Icons.home, onPressed: _toTitle),
-                ]),
-              ]),
-            ),
-          ),
-        ),
+    return ResultOverlay(
+      key: ValueKey(_runId),
+      data: ResultData(
+        score: w.score,
+        wave: w.wave.number,
+        maxChain: w.maxStreak,
+        stats: w.stats,
+        reason: w.overReason,
+        newBest: o?.newBest ?? false,
+        bestScore: stage == null ? records.endless.bestScore : records.stage(stage.id).bestScore,
+        bestWave: records.endless.bestWave,
+        stage: stage,
+        cleared: cleared,
+        achieved: o?.stars,
       ),
+      reduceMotion: ref.read(settingsProvider).reduceEffects || MediaQuery.disableAnimationsOf(context),
+      onNewRecord: () => _ctl.audio.play('ricochet'),
+      onRetry: _retry,
+      onTitle: _toTitle,
+      onNext: next == null ? null : () => Navigator.of(context).pushReplacement(fadeRoute(GameScreen(stage: next))),
+      onStageSelect: stage == null ? null : () => Navigator.of(context).pop(),
     );
   }
 }
