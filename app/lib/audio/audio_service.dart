@@ -18,6 +18,9 @@ abstract class AudioService {
 
   void startMusic();
 
+  /// タイトル画面の BGM をループで流す。ゲームの [startMusic] で止まる。
+  void startTitleMusic();
+
   /// ミスしたとき: BGM を即座に止める (コアピラー4)。
   void cutMusic();
 
@@ -38,6 +41,8 @@ class SilentAudio implements AudioService {
   void setMusicLevel(int level) {}
   @override
   void startMusic() {}
+  @override
+  void startTitleMusic() {}
   @override
   void cutMusic() {}
   @override
@@ -63,6 +68,9 @@ class SoLoudAudio implements AudioService {
   Timer? _switch;
   bool _musicOn = false;
 
+  /// タイトル BGM を流したい状態か (音の準備が終わる前に呼ばれても、終わり次第流す)。
+  bool _titleWanted = false;
+
   @override
   Future<void> init() async {
     try {
@@ -73,6 +81,7 @@ class SoLoudAudio implements AudioService {
         _src[e.key] = await _sl.loadMem('${e.key}.wav', e.value);
       }
       _ready = true;
+      if (_titleWanted) startTitleMusic();
     } on Object catch (e) {
       debugPrint('audio disabled: $e');
     }
@@ -175,7 +184,18 @@ class SoLoudAudio implements AudioService {
   }
 
   @override
+  void startTitleMusic() {
+    _titleWanted = true;
+    final s = _src['musicTitle'];
+    if (!_ready || s == null || (_music != null && !_musicOn)) return; // 流し済み
+    _stopMusic();
+    _musicOn = false; // 段階の切り替え (setMusicLevel) はしない
+    _music = _sl.play(s, volume: _bgm, looping: true);
+  }
+
+  @override
   void startMusic() {
+    _titleWanted = false;
     if (!_ready) return;
     _stopMusic();
     _musicOn = true;
@@ -228,6 +248,7 @@ class SoLoudAudio implements AudioService {
 
   @override
   void cutMusic() {
+    _titleWanted = false;
     _musicOn = false;
     _stopMusic();
   }

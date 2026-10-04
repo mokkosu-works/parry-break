@@ -51,6 +51,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
   void initState() {
     super.initState();
     _intro.forward();
+    ref.read(audioProvider).startTitleMusic();
   }
 
   @override
@@ -70,7 +71,11 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
     final firstTime = records.endless.bestScore == 0 && records.stages.isEmpty;
     final stars = content.campaign.stages.fold(0, (s, st) => s + records.stage(st.id).starCount);
     final totalStars = content.campaign.stages.fold(0, (s, st) => s + st.stars.length);
-    void push(Widget w) => nav.push(fadeRoute(w));
+    // ゲームから戻ったときに、止まっているタイトル BGM を流し直す
+    Future<void> push(Widget w) async {
+      await nav.push(fadeRoute(w));
+      if (mounted) ref.read(audioProvider).startTitleMusic();
+    }
     return [
       if (firstTime)
         _MenuEntry('START', () => push(GameScreen(stage: content.campaign.stages.first)),
