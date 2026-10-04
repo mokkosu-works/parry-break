@@ -494,6 +494,12 @@ abstract class AppLocalizations {
   /// **'言語'**
   String get settingsLanguage;
 
+  /// No description provided for @settingsAdPrivacy.
+  ///
+  /// In ja, this message translates to:
+  /// **'広告のプライバシー設定'**
+  String get settingsAdPrivacy;
+
   /// No description provided for @settingsDebugMode.
   ///
   /// In ja, this message translates to:

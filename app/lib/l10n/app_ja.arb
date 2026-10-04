@@ -150,6 +150,7 @@
   "settingsReduceEffects": "演出を控えめにする",
   "settingsReduceEffectsHelp": "フラッシュ・画面の反転・揺れを抑えます",
   "settingsLanguage": "言語",
+  "settingsAdPrivacy": "広告のプライバシー設定",
   "settingsDebugMode": "デバッグモード",
   "settingsDebugModeHelp": "すべてのステージを遊べます。スコアは記録されず、ランキングにも登録されません",
   "debugModeOn": "デバッグモード ON",

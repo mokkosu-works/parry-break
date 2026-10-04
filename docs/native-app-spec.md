@@ -14,6 +14,7 @@ Oct 4, 2026 · @watsuwo
 | 技術 | Flutter(描画は CustomPainter)+ Riverpod(アプリ層の状態)+ flutter_soloud(音)+ games_services(ランキング)+ shared_preferences(保存) |
 | ゲームモード | **エンドレス**(現行のアーケード: 60ウェーブ + ループ)と、**ステージモード**(新規: チャプター制) |
 | オンライン | 初回リリースでは **ランキング**(Game Center / Google Play Games)のみ。クラウドセーブや課金は後から足せる構造にしておく |
+| 収益化 | **広告のみ**(AdMob)。課金は入れない。まずはインタースティシャルだけで、結果画面からタイトル・ステージ選択へ戻るときに、頻度を制限して出す(9.3)。リワード広告と、その報酬にするボス練習モードは次の段階で作る |
 | 仕様の正 | 現在の実装。明らかな不具合だけを design.md の記載どおりに直す |
 
 ## 2. 現状の実装(移植の対象)
@@ -322,6 +323,30 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 - アイコンは `branding/icons/` の画像から `dart run flutter_launcher_icons`、起動画面は `dart run flutter_native_splash:create` で作り直せる。
 - 横画面固定・全画面・ステータスバー非表示・120Hz(`CADisableMinimumFrameDurationOnPhone`)は設定済み。
 
+### 9.3 広告の設定
+
+広告の処理は `lib/services/ads.dart` にある。
+
+**出すタイミング**: 結果画面の TITLE / STAGE SELECT で戻るときだけ出す。RETRY・NEXT STAGE・ポーズ中のメニュー・プレイ中には出さない。デバッグモードのプレイの後にも出さない。
+
+**頻度の制限**(`InterstitialPolicy`)
+
+| 制限 | 値 |
+| --- | --- |
+| 最初の起動からの猶予 | 24時間。この間は広告も同意の画面(ATT・EU の同意)も出さない。デバッグビルドでは猶予なし |
+| 前回からの間隔 | 3分以上 |
+| 1日の上限 | 8回 |
+
+**リリース前の作業**
+
+1. AdMob でアプリ(iOS / Android)とインタースティシャルの広告ユニットを作る。
+2. テスト用の ID を本番の ID に置き換える: `AdsConfig` の広告ユニット ID、`ios/Runner/Info.plist` の `GADApplicationIdentifier`、`android/app/src/main/AndroidManifest.xml` の `com.google.android.gms.ads.APPLICATION_ID`。
+3. AdMob の「プライバシーとメッセージ」で、EU 向けの同意メッセージと、iOS の IDFA の説明メッセージを作る(起動時の同意の流れの中で ATT の許可ダイアログが出る)。
+4. `Info.plist` の `SKAdNetworkItems` に、Google が公開している一覧を入れる(いまは Google のものだけ)。`NSUserTrackingUsageDescription` は英語だけなので、必要なら日本語化する。
+5. App Store Connect の「App のプライバシー」と、Google Play の「データ セーフティ」に広告の利用を書く。
+
+広告を止めるときは `AdsConfig.enabled` を `false` にする。
+
 ## 10. 残作業
 
 | 項目 | 内容 |
@@ -331,5 +356,6 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 | iPad のレイアウト | 4:3 では上下に余白が出る。HUD を盤面の外に出す配置は未対応 |
 | 音の共存 | iOS で他アプリの音楽を流しながら遊ぶ設定は未対応(オーディオセッションの設定が必要) |
 | ゲームパッド | 入力は抽象化済み。ゲームパッドの読み取りは未実装 |
+| 広告 | 本番 ID への置き換えなどのリリース前の作業(9.3)。リワード広告とボス練習モード |
 | `legacy/` の削除 | 移植元のブラウザ版。配置の一致テストのゴールデンデータは書き出し済みなので、削除してよい(`tools/dump_layouts.mjs` も不要になる) |
 

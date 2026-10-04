@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../app/providers.dart';
 import '../l10n/app_localizations.dart';
 import '../render/palette.dart';
+import '../services/ads.dart';
 import '../services/settings.dart';
 import 'calibration_screen.dart';
 import 'widgets.dart';
@@ -16,6 +17,7 @@ class SettingsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final s = ref.watch(settingsProvider);
     final n = ref.read(settingsProvider.notifier);
+    final ads = ref.read(adsProvider);
     void volumes(Settings v) => ref.read(audioProvider).setVolumes(bgm: v.bgmVolume, sfx: v.sfxVolume);
 
     return ScreenFrame(
@@ -119,6 +121,13 @@ class SettingsScreen extends ConsumerWidget {
               onSelectionChanged: (v) => n.update((x) => x.copyWith(language: () => v.first.isEmpty ? null : v.first)),
             ),
           ]),
+          // 同意が必要な地域 (EU など) では、同意をいつでも変えられる入口を置く
+          if (ads.privacyOptionsRequired)
+            ListTile(
+              title: Text(l.settingsAdPrivacy),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: ads.showPrivacyOptions,
+            ),
           if (s.debugMode)
             SwitchListTile(
               title: Text(l.settingsDebugMode),
