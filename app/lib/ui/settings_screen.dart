@@ -119,6 +119,13 @@ class SettingsScreen extends ConsumerWidget {
               onSelectionChanged: (v) => n.update((x) => x.copyWith(language: () => v.first.isEmpty ? null : v.first)),
             ),
           ]),
+          if (s.debugMode)
+            SwitchListTile(
+              title: Text(l.settingsDebugMode),
+              subtitle: Text(l.settingsDebugModeHelp),
+              value: true,
+              onChanged: (v) => n.update((x) => x.copyWith(debugMode: v)),
+            ),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../app/providers.dart';
 import '../core/core.dart';
 import '../game/game_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -20,6 +21,7 @@ class StageSelectScreen extends ConsumerWidget {
     final lang = Localizations.localeOf(context).languageCode;
     final campaign = ref.watch(contentProvider).campaign;
     final records = ref.watch(recordsProvider);
+    final debug = ref.watch(debugModeProvider);
     final totalStars = campaign.stages.fold(0, (s, st) => s + st.stars.length);
     final gotStars = campaign.stages.fold(0, (s, st) => s + records.stage(st.id).starCount);
 
@@ -45,7 +47,7 @@ class StageSelectScreen extends ConsumerWidget {
                   stage: st,
                   title: st.title.of(lang),
                   record: records.stage(st.id),
-                  unlocked: records.isUnlocked(campaign, st),
+                  unlocked: debug || records.isUnlocked(campaign, st),
                   onTap: () => _showDetail(context, l, st, st.title.of(lang), records.stage(st.id)),
                 ),
             ]),

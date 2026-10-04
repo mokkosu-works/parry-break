@@ -14,5 +14,8 @@ final hapticsProvider = Provider<HapticsService>((ref) {
   return h;
 });
 
+/// デバッグモード中か (設定の [Settings.debugMode])。
+final debugModeProvider = Provider<bool>((ref) => ref.watch(settingsProvider.select((s) => s.debugMode)));
+
 /// ゲームの時計 (秒)。null なら実時間。テストでは偽の時刻に差し替える。
 final timeSourceProvider = Provider<double Function()?>((ref) => null);

@@ -494,6 +494,30 @@ abstract class AppLocalizations {
   /// **'言語'**
   String get settingsLanguage;
 
+  /// No description provided for @settingsDebugMode.
+  ///
+  /// In ja, this message translates to:
+  /// **'デバッグモード'**
+  String get settingsDebugMode;
+
+  /// No description provided for @settingsDebugModeHelp.
+  ///
+  /// In ja, this message translates to:
+  /// **'全ステージを遊べます。記録とランキングには残りません'**
+  String get settingsDebugModeHelp;
+
+  /// No description provided for @debugModeOn.
+  ///
+  /// In ja, this message translates to:
+  /// **'デバッグモード ON'**
+  String get debugModeOn;
+
+  /// No description provided for @debugModeOff.
+  ///
+  /// In ja, this message translates to:
+  /// **'デバッグモード OFF'**
+  String get debugModeOff;
+
   /// No description provided for @languageSystem.
   ///
   /// In ja, this message translates to:

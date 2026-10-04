@@ -58,6 +58,7 @@ class _RicochetAppState extends ConsumerState<RicochetApp> {
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(settingsProvider.select((s) => s.language));
+    final debug = ref.watch(debugModeProvider);
     return MaterialApp(
       title: 'RICOCHET OVERDRIVE',
       debugShowCheckedModeBanner: false,
@@ -66,6 +67,8 @@ class _RicochetAppState extends ConsumerState<RicochetApp> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: widget.home ?? const TitleScreen(),
+      // デバッグモード中はどの画面でも分かるように帯を出す
+      builder: debug ? (context, child) => Banner(message: 'DEBUG', location: BannerLocation.bottomStart, child: child!) : null,
     );
   }
 }

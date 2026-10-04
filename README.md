@@ -13,4 +13,6 @@ flutter run
 flutter test
 ```
 
+各ステージの動作確認には、デバッグモードが使える。タイトル右下の `VER 1.0.0` を 3 回続けてタップすると入り、もう一度 3 回タップするか、設定画面のスイッチで抜ける。デバッグモード中は全ステージの鍵が外れ、プレイ結果は記録にもランキングにも残らない。画面の左下には DEBUG の帯が出る。
+
 ステージは `app/assets/stages/campaign.json`、エンドレスの配置とボスは `app/assets/stages/endless.json` に書く。
