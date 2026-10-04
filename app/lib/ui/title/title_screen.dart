@@ -13,6 +13,7 @@ import '../../services/content.dart';
 import '../../services/leaderboard.dart';
 import '../../services/records.dart';
 import '../../services/settings.dart';
+import '../arcade.dart';
 import '../help_screen.dart';
 import '../settings_screen.dart';
 import '../stage_select_screen.dart';
@@ -147,7 +148,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
             child: Opacity(opacity: 0.5, child: AttractDemo(animate: !still)),
           ),
           const _Shade(),
-          const IgnorePointer(child: CustomPaint(painter: _ScanlinePainter())),
+          const Scanlines(),
           SafeArea(
             child: LayoutBuilder(builder: (context, c) {
               final logoSize = math.min(c.maxWidth * 0.085, c.maxHeight * 0.17);
@@ -254,22 +255,6 @@ class _Shade extends StatelessWidget {
           ),
         ]),
       );
-}
-
-/// ブラウン管の走査線。
-class _ScanlinePainter extends CustomPainter {
-  const _ScanlinePainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = const Color(0x14000000);
-    for (var y = 0.0; y < size.height; y += 3) {
-      canvas.drawRect(Rect.fromLTWH(0, y, size.width, 1), p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ScanlinePainter old) => false;
 }
 
 /// メニューの 1 項目。選ぶと斜めの光の帯が出る。
