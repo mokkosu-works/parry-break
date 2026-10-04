@@ -13,7 +13,7 @@ class Tuning {
     this.parryCooldown = 0.35,
     this.stunTime = 0.8,
     this.paddleSpeed = 900,
-    this.paddleWidths = const [120, 135, 150, 165, 180],
+    this.paddleWidth = 120,
     this.stageMin = const [0, 100, 250, 450],
     this.stageMult = const [1, 2, 4, 8, 16],
     this.stageSpeed = const [1, 495 / 420, 585 / 420, 690 / 420],
@@ -51,10 +51,7 @@ class Tuning {
   final double parryWindow, perfectWindow, justWindow, parryCooldown, stunTime;
 
   // パドル
-  final double paddleSpeed;
-
-  /// ヒート段階 1〜4 と OVERDRIVE のパドル幅。
-  final List<double> paddleWidths;
+  final double paddleSpeed, paddleWidth;
 
   // ヒート
   final List<double> stageMin;
@@ -108,7 +105,7 @@ class Tuning {
       parryCooldown: d('parryCooldown', parryCooldown),
       stunTime: d('stunTime', stunTime),
       paddleSpeed: d('paddleSpeed', paddleSpeed),
-      paddleWidths: paddleWidths,
+      paddleWidth: d('paddleWidth', paddleWidth),
       stageMin: stageMin,
       stageMult: stageMult,
       stageSpeed: stageSpeed,

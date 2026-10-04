@@ -188,7 +188,6 @@ class World {
     }
     if (phase == WorldPhase.playing || phase == WorldPhase.clearing) _updateCombos(dt);
     _updateFalling(dt);
-    _syncPaddleWidth();
   }
 
   void _savePrevious() {
@@ -222,7 +221,7 @@ class World {
   /// 得点倍率。
   int get mult => od ? tuning.stageMult[4] : tuning.stageMult[stage];
 
-  double get paddleWidth => tuning.paddleWidths[od ? 4 : stage];
+  double get paddleWidth => tuning.paddleWidth;
 
   double get descentSpeed => tuning.descentSpeed(wave.difficulty, wave.loopMul);
 

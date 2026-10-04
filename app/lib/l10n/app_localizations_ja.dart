@@ -60,7 +60,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpTimingTitle => 'タイミング';
 
   @override
-  String get helpTimingBody => 'PERFECT → 貫通弾\nJUST → 衝撃波\nヒートでパドルが伸びる（最大1.5倍）';
+  String get helpTimingBody => 'PERFECT → 貫通弾\nJUST → 衝撃波';
 
   @override
   String get helpChainTitle => '連鎖';

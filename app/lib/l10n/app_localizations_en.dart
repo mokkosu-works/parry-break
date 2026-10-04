@@ -61,8 +61,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpTimingTitle => 'TIMING';
 
   @override
-  String get helpTimingBody =>
-      'PERFECT → Pierce\nJUST → Shockwave\nHeat widens the paddle (max 1.5×)';
+  String get helpTimingBody => 'PERFECT → Pierce\nJUST → Shockwave';
 
   @override
   String get helpChainTitle => 'CHAIN';
