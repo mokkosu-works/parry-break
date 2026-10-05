@@ -6,8 +6,8 @@ import 'package:parry_break/core/core.dart';
 
 import 'helpers.dart';
 
-/// ブラウザ版 (legacy/index.html) の配置生成と一致することを確かめる。
-/// ゴールデンデータは `node tools/dump_layouts.mjs` で作る。
+/// ブラウザ版 (削除済み) の配置生成と一致することを確かめる。
+/// ゴールデンデータはブラウザ版から書き出したもので、作り直すことはできない。
 void main() {
   final golden = jsonDecode(File('test/core/golden/layouts.json').readAsStringSync()) as Map<String, dynamic>;
 
