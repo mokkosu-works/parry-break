@@ -366,7 +366,28 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 ### 9.4 Android
 
 - **ランキング**: Google Play Console で Play Games サービスを設定し、リーダーボードを3つ作る。リーダーボード ID を `LeaderboardConfig.android` に、プロジェクト ID を `android/app/src/main/res/values/games-ids.xml` の `app_id` に書き、`LeaderboardConfig.androidEnabled` を `true` にする。設定するまで、Android ではランキングのボタンが出ず、スコアも送らない。
-- **署名**: アップロード鍵を作り、`app/android/key.properties`(git には入れない)に `storeFile` / `storePassword` / `keyAlias` / `keyPassword` を書く。ない場合はデバッグ鍵で署名される。
+- **ビルド環境**: JDK 17 以上と Android SDK(platform 36、NDK 28.2)が要る。`flutter doctor` の Android toolchain に ✓ が付けばよい。初回のビルドでは、足りない SDK の部品(platform 35、CMake)を Gradle が自動で入れる。
+- **署名**: Play には、アップロード鍵で署名した App Bundle を上げる。Play アプリ署名(Play App Signing)により、ストアで配るアプリは Google が管理する鍵で署名し直される。そのため、アップロード鍵をなくしても、Play Console から作り直しを申請できる。
+  1. 鍵を作る。鍵はリポジトリの外に置く。PKCS12 では鍵のパスワードがキーストアのパスワードと同じになる。
+
+     ```sh
+     keytool -genkeypair -keystore ~/keys/parrybreak/upload-keystore.jks -storetype PKCS12 \
+       -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+     ```
+
+  2. `app/android/key.properties`(git には入れない)に書く。`storeFile` は絶対パスで書く(相対パスだと `android/app/` から探される)。このファイルがないと、リリースビルドもデバッグ鍵で署名され、Play には上げられない。
+
+     ```properties
+     storeFile=/home/<ユーザー名>/keys/parrybreak/upload-keystore.jks
+     storePassword=<パスワード>
+     keyAlias=upload
+     keyPassword=<パスワード>
+     ```
+
+  3. 鍵ファイルとパスワードを、別々の場所にバックアップする。
+
+  いまのアップロード鍵は iliveoyama-creator が保管している(`CN=watsuwo, O=watsuwo, C=JP`、SHA-256 `11:AE:30:B4:E2:C8:D9:86:D1:B9:73:FF:E9:FE:87:68:1B:D4:A9:19:A1:9C:7A:C0:BC:E1:3A:C7:43:EE:3E:8F`)。
+- **ビルド**: `cd app && flutter build appbundle`。できた `build/app/outputs/bundle/release/app-release.aab` を Play Console に上げる。`keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab` の Owner と SHA-256 がアップロード鍵と同じなら、正しく署名できている。2回目以降は、iOS と同じく `pubspec.yaml` の `version` のビルド番号(`+` の後ろ)を上げる。
 
 ## 10. 残作業
 
