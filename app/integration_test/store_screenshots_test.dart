@@ -1,14 +1,19 @@
-// App Store 用のスクリーンショットを、シミュレータで実際のアプリを動かして撮る。
+// App Store / Play Store 用のスクリーンショットを、シミュレータ・エミュレーターで実際のアプリを動かして撮る。
 // ファイル名の番号は App Store に載せる順 (最初の 1 枚が検索結果に出るので、プレイ画面から並べる)。
 //
 //   SHOT_DIR=build/store_screenshots/iphone flutter drive -d <デバイス ID> \
 //     --driver=test_driver/integration_test.dart --target=integration_test/store_screenshots_test.dart
 //
-// 手順は docs/app-store.md の「スクリーンショット」を参照。
+// Android のエミュレーターでは --no-enable-impeller も付ける (付けないとエミュレーターごと落ちる)。
+//
+// 手順は docs/app-store.md と docs/play-store.md の「スクリーンショット」を参照。
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,7 +47,22 @@ void main() {
   const playWave = int.fromEnvironment('playWave', defaultValue: 28);
 
   Future<void> wait(WidgetTester t, double seconds) => t.pump(Duration(milliseconds: (seconds * 1000).round()));
-  Future<void> shot(String name) => binding.takeScreenshot(name);
+  Future<void> shot(String name) async {
+    if (!Platform.isAndroid) {
+      await binding.takeScreenshot(name);
+      return;
+    }
+    // Android の標準の撮り方 (convertFlutterSurfaceToImage) はエミュレーターごと落ちることがあるので、
+    // Flutter が描いた画面をそのまま画像にして、takeScreenshot と同じ形でドライバーに渡す
+    // 一番上の層は画素密度の倍率を含むので、範囲は実際の画素数で渡す
+    final view = binding.renderViews.first;
+    final image = await (view.debugLayer! as OffsetLayer).toImage(Offset.zero & view.flutterView.physicalSize);
+    final png = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    binding.reportData ??= <String, dynamic>{};
+    ((binding.reportData!['screenshots'] ??= <dynamic>[]) as List<dynamic>)
+        .add(<String, dynamic>{'screenshotName': name, 'bytes': png!.buffer.asUint8List().toList()});
+  }
 
   World world(WidgetTester t) =>
       t.widgetList<CustomPaint>(find.byType(CustomPaint)).map((c) => c.painter).whereType<FieldPainter>().first.world;
@@ -91,6 +111,8 @@ void main() {
     ..vx = 120;
 
   testWidgets('store screenshots', (t) async {
+    // main() を通らないので、横向きの指定もここでする (iOS は Info.plist で横向きに決まっているが、Android は縦のままになる)
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     SharedPreferences.setMockInitialValues({
       'settings.v1': jsonEncode(Settings(language: lang, timingOffsetMs: 0).toJson()),
