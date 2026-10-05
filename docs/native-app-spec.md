@@ -308,7 +308,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 
 ## 9. ストア公開までの手順
 
-掲載文・スクリーンショット・審査メモなど、App Store Connect に入力する内容は [app-store.md](app-store.md) にまとめた。
+掲載文・スクリーンショット・審査メモなど、App Store Connect に入力する内容は [app-store.md](app-store.md) にまとめた。Google Play Console に入力する内容は [play-store.md](play-store.md) にまとめた。
 
 ### 9.1 アプリ側で設定済みのもの
 

@@ -5,6 +5,7 @@
 - ゲームの仕様: [design.md](design.md)
 - ネイティブ版の仕様・アーキテクチャ・ストア公開の手順: [docs/native-app-spec.md](docs/native-app-spec.md)
 - App Store の掲載情報: [docs/app-store.md](docs/app-store.md)
+- Play Store の掲載情報: [docs/play-store.md](docs/play-store.md)
 - アプリ本体: [app/](app/)
 
 ```sh
