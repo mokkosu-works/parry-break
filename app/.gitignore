@@ -51,3 +51,7 @@ app.*.map.json
 **/fastlane/report.xml
 **/fastlane/README.md
 **/fastlane/test_output/
+
+# Bundler (手元で gem を app/vendor/bundle に入れるため)
+/.bundle/
+/vendor/bundle/
