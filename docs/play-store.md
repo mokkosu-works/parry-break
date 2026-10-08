@@ -103,9 +103,21 @@ Play Games サービスを有効にしたら、`- Google Play Games leaderboards
 | --- | --- | --- | --- |
 | アプリのアイコン | 512 × 512、PNG(32 ビット) | 1 | `app/branding/icons/icon-512.png`。いまは透過なしの PNG なので、受け付けられなければ透過ありで書き出し直す |
 | フィーチャー グラフィック | 1024 × 500、JPEG か 24 ビット PNG(透過なし) | 1 | **未作成**。ストアのページの一番上に出る横長の画像 |
-| スマートフォンのスクリーンショット | 長い辺が短い辺の2倍以内、320〜3840 px | 2〜8 | **未作成**。ゲームは横画面で 1920 × 1080 以上を4枚以上にすると、おすすめに載りやすい |
+| スマートフォンのスクリーンショット | 長い辺が短い辺の2倍以内、320〜3840 px | 2〜8 | 下の手順で 1920 × 1080 を5枚撮る。ゲームは横画面で 1920 × 1080 以上を4枚以上にすると、おすすめに載りやすい |
 
-App Store 用のスクリーンショット(`integration_test/store_screenshots_test.dart`)は iPhone の縦横比が 2:1 を超える(2868 × 1320 など)ため、そのままでは使えない。iPad 用(4:3)は使える。Android のエミュレーターで同じテストを動かすか、16:9 に切り出す。
+### スクリーンショット
+
+App Store と同じ `integration_test/store_screenshots_test.dart` を、Android のエミュレーターで動かして5枚を撮る(iPhone 用は縦横比が 2:1 を超えるので Play Store には使えない)。エミュレーターは画面 1080 × 1920(横にすると 1920 × 1080)のものを使う。
+
+```sh
+cd app
+flutter emulators --launch <エミュレーター ID>
+SHOT_DIR=build/store_screenshots/ja/android flutter drive -d <デバイス ID> --no-enable-impeller --dart-define=lang=ja \
+  --driver=test_driver/integration_test.dart --target=integration_test/store_screenshots_test.dart
+```
+
+- `--no-enable-impeller` は外さない。標準の描画エンジン(Impeller)のままだと、しばらく動かしたところでエミュレーターごと落ちる(WSL のエミュレーターで確認)。
+- `lang=en` で英語版になる。PNG のまま載せてよい。
 
 ## データ セーフティ
 
