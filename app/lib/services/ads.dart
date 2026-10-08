@@ -13,13 +13,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// アプリ ID は次の 2 か所に書く (広告ユニット ID とは別)。
 /// - ios/Runner/Info.plist の GADApplicationIdentifier
 /// - android/app/src/main/AndroidManifest.xml の com.google.android.gms.ads.APPLICATION_ID
-///
-/// Android はまだ AdMob に登録していないので、アプリ ID も広告ユニット ID も Google のテスト用のまま。
 abstract final class AdsConfig {
   static const enabled = true;
 
   static const iosInterstitial = 'ca-app-pub-4435922675604695/2281923603';
-  static const androidInterstitial = 'ca-app-pub-3940256099942544/1033173712';
+  static const androidInterstitial = 'ca-app-pub-4435922675604695/7946499628';
 
   // Google のテスト用の広告ユニット。デバッグビルドではこちらを使う
   // (開発中に本番の広告を表示・クリックすると、AdMob の規約違反になるため)。
