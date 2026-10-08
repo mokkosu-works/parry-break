@@ -19,8 +19,8 @@ runs:
       run: |
         # マシンの環境変数は env コンテキストから読めないので、キャッシュの path に使うために書き出す
         echo "SDK_DIR=$ANDROID_HOME" >> "$GITHUB_ENV"
-        # ATD は CI 向けの軽いイメージ (アプリや画面の部品を省いてあり、起動が速く、CPU を食わない)。Google Play 開発者サービスは入っている
-        echo "IMAGE=system-images;android-34;google_atd;x86_64" >> "$GITHUB_ENV"
+        # 軽い google_atd (CI 向け) は、Android の画面の読み出し (PixelCopy) が使えず、テストで画面を撮れなかったので使わない
+        echo "IMAGE=system-images;android-34;google_apis;x86_64" >> "$GITHUB_ENV"
         # avdmanager (新しい cmdline-tools) とエミュレーターで AVD の既定の置き場所が違うので、そろえる
         mkdir -p "$HOME/.android/avd"
         echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
@@ -69,9 +69,9 @@ runs:
       uses: actions/cache@v4
       with:
         path: |
-          ${{ env.SDK_DIR }}/system-images/android-34/google_atd
+          ${{ env.SDK_DIR }}/system-images/android-34/google_apis
           ${{ env.SDK_DIR }}/ndk/28.2.13676358
-        key: android-sdk-34-google_atd-x86_64-ndk-28.2.13676358
+        key: android-sdk-34-google_apis-x86_64-ndk-28.2.13676358
 
     - name: SDK を用意する
       shell: bash
