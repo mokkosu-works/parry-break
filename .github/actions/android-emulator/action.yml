@@ -78,7 +78,12 @@ runs:
       run: |
         bin="$ANDROID_HOME/cmdline-tools/latest/bin"
         yes | "$bin/sdkmanager" --licenses >/dev/null || true
-        "$bin/sdkmanager" --install "$IMAGE" emulator platform-tools "ndk;28.2.13676358" >/dev/null
+        # ダウンロードが壊れて失敗することがある (Error on ZipFile unknown archive) ので、3 回まで試す
+        for i in 1 2 3; do
+          "$bin/sdkmanager" --install "$IMAGE" emulator platform-tools "ndk;28.2.13676358" >/dev/null && break
+          [ "$i" = 3 ] && exit 1
+          echo "::warning::SDK の用意に失敗したので、もう一度試す ($i 回目)"
+        done
         echo no | "$bin/avdmanager" create avd -n ci -k "$IMAGE" -d pixel_6 --force
         if ! "$ANDROID_HOME/emulator/emulator" -list-avds | grep -qx ci; then
           echo "::error::作った AVD がエミュレーターから見えない (ANDROID_AVD_HOME=$ANDROID_AVD_HOME)"
