@@ -1,15 +1,45 @@
 # Android エミュレーターを起動し、アプリをデバッグビルドしておく。pr.yml の e2e と implement.yml から使う。
 # 終わると、エミュレーターが emulator-5554 で起動していて、adb と flutter が使える。
 # ubuntu-latest の KVM を使う (macOS のマシンは使わない。費用は docs/release-flow.md 9.4)。
+# 各ステップの所要時間は、実行の Summary に表で出る。
+#
+# 非公開リポジトリの ubuntu-latest は 2 コア・メモリ 8GB・ディスクの空き 14GB ほど。
+# そのままでは SDK のイメージ・NDK・Gradle のビルドでディスクが足りなくなるので、最初に使わないものを消す。
 name: android-emulator
 description: Android エミュレーターの起動と、アプリのデバッグビルド
 
 runs:
   using: composite
   steps:
+    - name: ディスクを空ける
+      shell: bash
+      env:
+        # Flutter (flutter.ndkVersion) が使う NDK。Flutter を上げたら合わせる
+        KEEP_NDK: 28.2.13676358
+      run: |
+        # マシンの環境変数は env コンテキストから読めないので、キャッシュの path に使うために書き出す
+        echo "SDK_DIR=$ANDROID_HOME" >> "$GITHUB_ENV"
+        echo "| ステップ | 秒 |" >> "$GITHUB_STEP_SUMMARY"
+        echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+        df -h /
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
+          /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/lib/node_modules \
+          /usr/local/share/powershell /usr/local/share/chromium /opt/microsoft /opt/google
+        # 使わない版の NDK (Android SDK そのものは消さない)
+        for d in "$ANDROID_HOME"/ndk/*; do
+          [ "$(basename "$d")" = "$KEEP_NDK" ] || rm -rf "$d"
+        done
+        sudo docker image prune --all --force >/dev/null 2>&1 || true
+        df -h /
+        echo "| ディスクを空ける | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
+
     - name: KVM を使えるようにする
       shell: bash
       run: |
+        if [ ! -e /dev/kvm ]; then
+          echo "::error::このマシンには /dev/kvm がない (エミュレーターが遅すぎて動かない)"
+          exit 1
+        fi
         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
         sudo udevadm control --reload-rules
         sudo udevadm trigger --name-match=kvm
@@ -27,26 +57,46 @@ runs:
         channel: stable
         cache: true
 
+    # システムイメージと NDK は合わせて 2GB ほどあるので、ダウンロードと展開を毎回しない
+    - name: システムイメージと NDK のキャッシュ
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ env.SDK_DIR }}/system-images/android-34/google_atd
+          ${{ env.SDK_DIR }}/ndk/28.2.13676358
+        key: android-sdk-34-google_atd-x86_64-ndk-28.2.13676358
+
     - name: エミュレーターを起動する (起動を待つあいだにビルドする)
       shell: bash
       env:
-        IMAGE: system-images;android-34;google_apis;x86_64
+        # ATD は CI 向けの軽いイメージ (アプリや画面の部品を省いてあり、起動が速く、CPU を食わない)。Google Play 開発者サービスは入っている
+        IMAGE: system-images;android-34;google_atd;x86_64
       run: |
         bin="$ANDROID_HOME/cmdline-tools/latest/bin"
         yes | "$bin/sdkmanager" --licenses >/dev/null || true
-        "$bin/sdkmanager" --install "$IMAGE" emulator platform-tools >/dev/null
+        "$bin/sdkmanager" --install "$IMAGE" emulator platform-tools "ndk;28.2.13676358" >/dev/null
         echo no | "$bin/avdmanager" create avd -n ci -k "$IMAGE" -d pixel_6 --force
+        # 2 コアのマシンなので、エミュレーターの CPU とメモリは控えめにして、ビルドに回す
         nohup "$ANDROID_HOME/emulator/emulator" -avd ci -no-window -no-audio -no-boot-anim -no-snapshot \
-          -gpu swiftshader_indirect -camera-back none -memory 4096 > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          -gpu swiftshader_indirect -camera-back none -cores 2 -memory 2048 -partition-size 4096 \
+          > "$RUNNER_TEMP/emulator.log" 2>&1 &
         echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+        echo "| エミュレーターを起動する (イメージの用意を含む) | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
 
     # 最初の Gradle のビルドは 5 分以上かかる。ここで済ませておけば、あとの flutter drive は差分のビルドで済む
     - name: デバッグビルド
       shell: bash
       working-directory: app
       run: |
+        # app/android/gradle.properties の -Xmx8G のままでは、エミュレーターと合わせてメモリが足りない。
+        # ホームの gradle.properties はプロジェクトのものより優先される
+        mkdir -p ~/.gradle
+        echo "org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" >> ~/.gradle/gradle.properties
         flutter pub get
-        flutter build apk --debug
+        # エミュレーターの ABI (x86_64) だけをビルドする
+        flutter build apk --debug --target-platform android-x64
+        echo "| デバッグビルド | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
+        df -h /
 
     - name: エミュレーターの起動を待つ
       shell: bash
@@ -64,3 +114,4 @@ runs:
         adb shell svc power stayon true
         adb shell input keyevent 82
         adb devices
+        echo "| エミュレーターの起動を待つ (ビルドのあと) | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
