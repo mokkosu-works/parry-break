@@ -1,0 +1,2 @@
+/* トラッキング許可のダイアログの説明 (NSUserTrackingUsageDescription の日本語) */
+"NSUserTrackingUsageDescription" = "あなたの興味に合った広告を表示するために使用します。";
