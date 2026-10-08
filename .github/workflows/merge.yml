@@ -1,0 +1,31 @@
+# 人が dev 向けの PR を Approve したら、チェック・エミュレーターでのテスト・Claude のレビューが通っていれば squash でマージする。
+# まだ終わっていなければ何もしない (終わったときに pr.yml の merge がマージする)。条件は .github/scripts/merge-if-approved.sh。
+name: merge
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: pr-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    if: >-
+      github.event.review.state == 'approved' &&
+      github.event.pull_request.base.ref == 'dev' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # スクリプトは PR の側ではなく、dev にあるものを使う (PR で条件を緩められないように)
+          ref: dev
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/merge-if-approved.sh ${{ github.event.pull_request.number }}

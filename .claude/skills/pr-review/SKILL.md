@@ -5,7 +5,7 @@ description: PR をこのリポジトリの観点(ゲームの判定・決定性
 
 # PR のレビュー
 
-`dev` 向けの PR は、このレビューで `needs-fix` が付かず、CI が通れば **人が見ずに自動でマージされる**(`.github/workflows/pr.yml`、運用は `docs/release-flow.md`)。ここでの見落としはそのまま次のリリースに入る。逆に、好みの指摘で止めるとリリースが遅れる。**見るのは「出すと困るもの」だけ** にする。
+`dev` 向けの PR は、このレビューで `needs-fix` が付かず、CI(チェックとエミュレーターでのスモークテスト)が通り、人が Approve するとマージされる(`.github/workflows/pr.yml`・`merge.yml`、運用は `docs/release-flow.md`)。人は **このレビューの所見と PR の本文を頼りに** Approve するかを決めるので、コードを細かく読まない。ここでの見落としはそのまま次のリリースに入る。逆に、好みの指摘で止めるとリリースが遅れる。**見るのは「出すと困るもの」だけ** にする。
 
 ## 1. 変更を集める
 
@@ -15,7 +15,7 @@ gh pr diff <番号>
 ```
 
 - 差分だけで判断しない。変更した関数の呼び出し元・テスト・関連する JSON は、チェックアウトしたファイルを読んで確かめる(CI ではチェックアウトが PR の内容になっている)。
-- `flutter analyze` / `flutter test` は `check.yml` が別に動かすので、ここでは実行しない。テストが **足りないか** だけを見る。
+- `flutter analyze` / `flutter test` は `check.yml` が、スモークテスト(`integration_test/smoke_test.dart`)は `pr.yml` の `e2e` が別に動かすので、ここでは実行しない。テストが **足りないか** だけを見る。
 - `app/lib/l10n/app_localizations*.dart` は生成物なので、中身は読まずに `.arb` と合っているかだけを見る。
 
 ## 2. 観点
@@ -83,14 +83,22 @@ gh pr diff <番号>
 | 広告の頻度の制限 | `app/test/services/ads_test.dart` に、時刻を差し替えたテスト |
 | 不具合の修正 | 直す前に落ちるテスト(回帰テスト) |
 
-### 2.8 ドキュメントとの食い違い
+### 2.8 Issue から作った PR(作者が `claude[bot]`、ブランチが `claude/issue-*`)
+
+`implement-issue` スキルで作った PR。人は本文の「完了条件」「エミュレーターで確かめたこと」を見て Approve するので、それが正しいかを確かめる。
+
+- `Closes #<番号>` の Issue を `gh issue view <番号> --comments` で読み、完了条件のうち、差分で満たしていないものに `[x]` が付いている → 不具合
+- Issue の範囲を超えた変更(頼まれていない機能・整理)が入っている → 提案(大きければ不具合)
+- 「確かめられなかったこと」が空なのに、音・広告・ランキング・iOS だけの処理を変えている → 提案(人が実機で確かめる項目を足すよう書く)
+
+### 2.9 ドキュメントとの食い違い
 
 `design.md` と `docs/native-app-spec.md` は **実装を正とする**。食い違いそのものは止める理由にしない。
 
 - 仕様と違う挙動が、明らかに意図しない不具合に見える → 指摘する
 - 仕様に書いてある値・手順を変えたのに、ドキュメントを直していない → 直すよう提案する(`needs-fix` にはしない)
 
-### 2.9 `main` 向けの PR(リリース PR・ホットフィックス)
+### 2.10 `main` 向けの PR(リリース PR・ホットフィックス)
 
 `baseRefName` が `main` のときだけ見る。マージは人がするので、ここでは人が確認しやすい指摘をする。
 
@@ -99,10 +107,11 @@ gh pr diff <番号>
 - 文面が今回の変更と合っているか、ユーザーに見えない内部の変更を書いていないか、日本語と英語で内容が揃っているか
 - `release/*` の PR に、リリースに関係ない機能の変更が混ざっていないか
 
-### 2.10 CI(`.github/workflows/`)
+### 2.11 CI(`.github/workflows/`)
 
 - `permissions` を広げた、シークレットをログに出しうる(`echo`、`set -x`)、フォークの PR でシークレットを使う → 不具合
-- `pr.yml` の自動マージの条件(`needs-fix` / `hold` / draft / `--match-head-commit`)を緩めた → 意図した変更か必ず確かめる
+- マージの条件(`.github/scripts/merge-if-approved.sh` の Approve・ジョブの結果・`needs-fix` / `hold`・`--match-head-commit`、`pr.yml` / `merge.yml` の `if`)を緩めた → 意図した変更か必ず確かめる
+- `implement.yml` の Claude に許すツール(`--allowedTools`)を広げた → 意図した変更か必ず確かめる
 
 ## 3. 重さを決める
 

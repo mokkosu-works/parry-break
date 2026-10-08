@@ -1,6 +1,7 @@
-# PR ごとに、チェックと Claude のレビューを行う。
-# dev 向けの PR は、両方が通り、hold / needs-fix のラベルがなければ自動でマージする。
-# main 向けの PR (リリース PR・ホットフィックス) は自動ではマージしない。手順は docs/release-flow.md。
+# PR ごとに、チェック・エミュレーターでのテスト・Claude のレビューを行う。
+# dev 向けの PR は、すべて通って人が Approve していれば (順番はどちらが先でもよい)、squash でマージする。
+# 人の Approve を受けてマージするのは merge.yml。条件は .github/scripts/merge-if-approved.sh。
+# main 向けの PR (リリース PR・ホットフィックス) は人が手でマージする。手順は docs/release-flow.md。
 name: pr
 
 on:
@@ -14,6 +15,31 @@ concurrency:
 jobs:
   check:
     uses: ./.github/workflows/check.yml
+
+  # Android エミュレーターでアプリを動かし、起動から一通りの画面を通って落ちないことを確かめる
+  e2e:
+    # 15 分ほどかかるので、下書きでは動かさない (ready_for_review で動く)
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/android-emulator
+      - name: スモークテスト
+        working-directory: app
+        run: >-
+          SHOT_DIR=build/smoke flutter drive -d emulator-5554
+          --driver=test_driver/integration_test.dart --target=integration_test/smoke_test.dart
+      - if: always()
+        run: adb logcat -d > app/build/logcat.txt || true
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke
+          path: |
+            app/build/smoke/
+            app/build/logcat.txt
+          if-no-files-found: ignore
 
   review:
     # フォークからの PR ではシークレットが使えないので動かさない
@@ -34,6 +60,8 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Issue から実装した PR は Claude の GitHub アプリ (claude[bot]) が作るので、それも通す
+          allowed_bots: claude
           # 観点・重さの基準・ラベルの付け方は .claude/skills/pr-review/SKILL.md に書く
           prompt: |
             REPO: ${{ github.repository }}
@@ -43,10 +71,10 @@ jobs:
             pr-review スキル(.claude/skills/pr-review/SKILL.md)の手順で、この PR をレビューする。
             指摘は日本語のインラインコメントで書き、最後に全体の所見をコメントし、needs-fix ラベルを付け外しする。
           claude_args: >-
-            --allowedTools "Skill,Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(git log:*),Bash(git diff:*),Bash(git tag:*),Bash(wc:*)"
+            --allowedTools "Skill,Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh issue view:*),Bash(git log:*),Bash(git diff:*),Bash(git tag:*),Bash(wc:*)"
 
-  automerge:
-    needs: [check, review]
+  merge:
+    needs: [check, e2e, review]
     if: >-
       github.event.pull_request.base.ref == 'dev' &&
       !github.event.pull_request.draft &&
@@ -56,16 +84,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          # スクリプトは PR の側ではなく、dev にあるものを使う (PR で条件を緩められないように)
+          ref: dev
+      # 人がもう Approve していればマージする。まだなら何もしない (Approve されたときに merge.yml がマージする)
       - env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          # ラベルはレビューの後に付くので、イベントの中身ではなくいまの状態を読む
-          labels=$(gh pr view "$PR" -R "$GITHUB_REPOSITORY" --json labels -q '[.labels[].name] | join(" ")')
-          if grep -qwE 'hold|needs-fix' <<<"$labels"; then
-            echo "::notice::ラベル ($labels) が付いているので、自動ではマージしない"
-            exit 0
-          fi
-          # レビューの後に push されていたらマージしない (その push の実行に任せる)
-          gh pr merge "$PR" -R "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$HEAD_SHA"
+        run: .github/scripts/merge-if-approved.sh ${{ github.event.pull_request.number }}

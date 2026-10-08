@@ -1,4 +1,4 @@
-// integration_test/store_screenshots_test.dart の撮った画面を、PNG として書き出す。
+// integration_test/ のテスト (スモークテスト・ストアのスクリーンショットなど) が撮った画面を、PNG として書き出す。
 // 書き出し先は環境変数 SHOT_DIR (省略時は build/store_screenshots)。
 import 'dart:io';
 

@@ -1,0 +1,138 @@
+# Issue のコメントで @claude と書くと、Claude がその Issue を実装し、Android エミュレーターで確かめてから dev 向けの PR を作る。
+# 手順と PR の書き方は .claude/skills/implement-issue/SKILL.md に書く。
+# PR は Claude の GitHub アプリ (claude[bot]) が作るので、pr.yml (チェック・e2e・レビュー) がそのまま動く。マージは人が Approve してから。
+# 同じ Issue でもう一度 @claude と書くと (質問への回答など)、同じブランチ・同じ PR で続きをする。
+# Claude がブランチに変更を残したのに PR を作らずに終わったときは、ワークフローが下書きの PR を作る。
+name: implement
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: implement-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    if: >-
+      !github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@claude') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    env:
+      ISSUE: ${{ github.event.issue.number }}
+      BRANCH: claude/issue-${{ github.event.issue.number }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: 着手したことを Issue に書く
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "着手しました。実装して Android エミュレーターで確かめてから PR を作ります。([進み具合]($RUN_URL))"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: 作業ブランチに切り替える (前回の続きなら、そのブランチ)
+        run: |
+          if git rev-parse -q --verify "refs/remotes/origin/$BRANCH" >/dev/null; then
+            git switch -c "$BRANCH" "origin/$BRANCH"
+          else
+            git switch -c "$BRANCH"
+          fi
+
+      - uses: ./.github/actions/android-emulator
+
+      - id: claude
+        uses: anthropics/claude-code-action@v1
+        env:
+          # flutter drive の撮った画面の置き場所 (test_driver/integration_test.dart が読む)
+          SHOT_DIR: ${{ github.workspace }}/app/build/claude
+          # ビルドとエミュレーターでのテストは数分かかる
+          BASH_DEFAULT_TIMEOUT_MS: '900000'
+          BASH_MAX_TIMEOUT_MS: '1800000'
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          base_branch: dev
+          prompt: |
+            REPO: ${{ github.repository }}
+            ISSUE NUMBER: ${{ github.event.issue.number }}
+            BRANCH: ${{ env.BRANCH }} (チェックアウト済み。dev から切ってある)
+            RUN URL: ${{ env.RUN_URL }}
+            DEVICE: emulator-5554 (Android エミュレーター。起動済みで、アプリのデバッグビルドも済んでいる)
+            SHOT_DIR: ${{ github.workspace }}/app/build/claude
+
+            implement-issue スキル(.claude/skills/implement-issue/SKILL.md)の手順で、この Issue を実装し、
+            エミュレーターで確かめてから dev 向けの PR を作る(すでに PR があればそこに push する)。
+          claude_args: >-
+            --max-turns 300
+            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,TodoWrite,Bash(flutter:*),Bash(dart:*),Bash(adb:*),Bash(git:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr ready:*),Bash(gh pr comment:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(grep:*),Bash(find:*),Bash(wc:*),Bash(sed -n:*),Bash(timeout:*)"
+
+      # Claude が途中で止まった・PR を作り忘れたときも、やったことが PR として残るようにする。
+      # Claude の GitHub アプリのトークンで作るので、Approve できるのは「準備完了」にしたあと pr.yml が通ってから
+      - name: PR がなければ下書きで作る
+        if: always() && steps.claude.outputs.github_token != ''
+        env:
+          GH_TOKEN: ${{ steps.claude.outputs.github_token }}
+        run: |
+          echo "::add-mask::$GH_TOKEN"
+          repo="$GITHUB_REPOSITORY"
+          # コミットしたが push していなければ push する (コミットしていない変更は残さない)
+          if git rev-parse -q --verify "refs/heads/$BRANCH" >/dev/null; then
+            unpushed=$(git rev-list "origin/$BRANCH..$BRANCH" 2>/dev/null || git rev-list "origin/dev..$BRANCH")
+            if [ -n "$unpushed" ]; then
+              git push "https://x-access-token:$GH_TOKEN@github.com/$repo.git" "$BRANCH:$BRANCH"
+            fi
+          fi
+          if ! gh api "repos/$repo/branches/$BRANCH" >/dev/null 2>&1; then
+            echo "ブランチがない (実装していない。質問だけで終えたなど)"
+            exit 0
+          fi
+          ahead=$(gh api "repos/$repo/compare/dev...$BRANCH" -q .ahead_by)
+          if [ "$ahead" -eq 0 ]; then
+            echo "dev からの変更がない"
+            exit 0
+          fi
+          pr=$(gh pr list -R "$repo" --head "$BRANCH" --state open --json url -q '.[0].url')
+          if [ -n "$pr" ]; then
+            echo "PR がある: $pr"
+            exit 0
+          fi
+          title=$(gh issue view "$ISSUE" -R "$repo" --json title -q .title)
+          body=$(printf '%s\n' \
+            "**Claude が PR を作らずに終わったので、ワークフローが下書きで作りました。** 動作の確認が済んでいるかわかりません。" \
+            "続けさせるなら Issue に \`@claude\` とコメントし、このまま進めるなら差分を確かめて「準備完了」にしてください。" \
+            "" \
+            "Closes #$ISSUE" \
+            "" \
+            "実行のログと撮った画面: $RUN_URL")
+          pr=$(gh pr create -R "$repo" --draft --base dev --head "$BRANCH" --title "$title" --body "$body")
+          gh issue comment "$ISSUE" -R "$repo" --body "Claude が PR を作らずに終わったので、下書きの PR を作りました: $pr"
+
+      - name: logcat を残す
+        if: always()
+        run: adb logcat -d > app/build/claude-logcat.txt || true
+
+      # PR の本文からリンクする (Claude が「確かめたこと」に、この実行の URL を書く)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-screenshots
+          path: |
+            app/build/claude/
+            app/build/claude-logcat.txt
+          if-no-files-found: ignore
+
+      - name: 失敗したことを Issue に書く
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "途中で失敗しました。[ログ]($RUN_URL) を確かめてください。もう一度 \`@claude\` と書くと、続きからやり直します。"
