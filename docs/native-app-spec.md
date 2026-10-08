@@ -336,7 +336,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
    | `com.watsuwo.parrybreak.stages_total` | 全ステージの最高スコアの合計 | ステージ: 合計スコア / Stages: Total Score |
 
 4. **ビルドとアップロード**: `cd app && flutter build ipa --release`。できた `build/ios/archive/Runner.xcarchive` を Xcode の Organizer で開き、Distribute App → App Store Connect でアップロードする。2回目以降は `pubspec.yaml` の `version` のビルド番号(`+` の後ろ)を上げる。
-5. **TestFlight**: 実機で、操作感・判定・音・振動・Game Center(サインイン、スコアの送信、ランキング画面)を確かめる。トラッキング許可のダイアログは最初の起動で出る(AdMob で IDFA の説明メッセージを作ってある場合)。広告は最初の起動から24時間たつまで出ない(9.3)。
+5. **TestFlight**: 実機で、操作感・判定・音・振動・Game Center(サインイン、スコアの送信、ランキング画面)を確かめる。トラッキング許可のダイアログは最初の起動で、同意の画面のあとに出る(アプリが `app_tracking_transparency` で直接聞く)。広告は最初の起動から24時間たつまで出ない(9.3)。
 6. **審査に出す**: [app-store.md](app-store.md) の内容(App のプライバシーでの広告の申告を含む)を入力し、スクリーンショットを載せて提出する。
 
 ### 9.3 広告の設定
@@ -357,8 +357,8 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 
 1. AdMob でアプリ(iOS / Android)とインタースティシャルの広告ユニットを作る。
 2. テスト用の ID を本番の ID に置き換える: `AdsConfig` の広告ユニット ID、`ios/Runner/Info.plist` の `GADApplicationIdentifier`、`android/app/src/main/AndroidManifest.xml` の `com.google.android.gms.ads.APPLICATION_ID`。**iOS は置き換え済み**(アプリ `ca-app-pub-4435922675604695~8150605646`、インタースティシャル `ca-app-pub-4435922675604695/2281923603`)。Android は未登録でテスト用のまま。デバッグビルドでは、本番の ID があってもテスト用の広告ユニットを使う。
-3. AdMob の「プライバシーとメッセージ」で、EU 向けの同意メッセージと、iOS の IDFA の説明メッセージを作る(起動時の同意の流れの中で ATT の許可ダイアログが出る)。
-4. `Info.plist` の `SKAdNetworkItems` に、Google が公開している一覧を入れる(いまは Google のものだけ)。`NSUserTrackingUsageDescription` は英語だけなので、必要なら日本語化する。
+3. AdMob の「プライバシーとメッセージ」で、EU 向けの同意メッセージを作る。ATT の許可ダイアログはアプリが同意の流れのあと、AdMob を初期化する前に直接出す(UMP の IDFA の説明メッセージ任せにすると、設定や地域によってダイアログが出ず、審査で Guideline 2.1 の指摘を受けた)。
+4. `Info.plist` の `SKAdNetworkItems` に、Google が公開している一覧を入れる(いまは Google のものだけ)。`NSUserTrackingUsageDescription` の日本語は `ios/Runner/ja.lproj/InfoPlist.strings` にある。
 5. App Store Connect の「App のプライバシー」と、Google Play の「データ セーフティ」に広告の利用を書く。
 
 広告を止めるときは `AdsConfig.enabled` を `false` にする。

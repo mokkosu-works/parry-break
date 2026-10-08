@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,14 +126,15 @@ class AdMobAds implements AdsService {
     _policy.markLaunch();
     // 同意の画面は猶予の間も最初の起動で出す。審査ではトラッキング許可のダイアログが出ることを確かめられるため
     await _gatherConsent();
+    // ATT は SDK を初期化する (IDFA を読む) 前に聞く
+    await _requestTracking();
     if (!await ConsentInformation.instance.canRequestAds()) return;
     await MobileAds.instance.initialize();
     _ready = true;
     _load();
   }
 
-  /// 同意が必要な地域なら同意画面を出す。iOS のトラッキング許可は、AdMob の
-  /// 「プライバシーとメッセージ」で IDFA の説明メッセージを作っておくと、この流れで出る。
+  /// 同意が必要な地域 (EU など) なら同意画面を出す。
   Future<void> _gatherConsent() {
     final done = Completer<void>();
     ConsentInformation.instance.requestConsentInfoUpdate(ConsentRequestParameters(), () async {
@@ -144,6 +147,36 @@ class AdMobAds implements AdsService {
     }, (e) {
       // 失敗しても、前回までの同意で広告を出せることがある (canRequestAds で確かめる)
       debugPrint('consent update failed: ${e.message}');
+      done.complete();
+    });
+    return done.future;
+  }
+
+  /// iOS のトラッキング許可のダイアログを出す (まだ聞いていなければ)。
+  ///
+  /// AdMob の IDFA の説明メッセージ (UMP) 任せにすると、メッセージの設定や地域によっては
+  /// ダイアログが出ず、審査で指摘される (Guideline 2.1)。UMP がすでに聞いていれば、ここでは何も出ない。
+  Future<void> _requestTracking() async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    try {
+      if (await AppTrackingTransparency.trackingAuthorizationStatus != TrackingStatus.notDetermined) return;
+      // アプリがアクティブでないとダイアログが出ずに終わるので、前面に出るのを待つ。
+      // 同意画面を閉じた直後もしばらくアクティブでないことがあるので、少し間をあける
+      await _untilResumed();
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await AppTrackingTransparency.requestTrackingAuthorization();
+    } on PlatformException catch (e) {
+      debugPrint('tracking authorization failed: ${e.message}');
+    }
+  }
+
+  Future<void> _untilResumed() {
+    final binding = WidgetsBinding.instance;
+    if (binding.lifecycleState == AppLifecycleState.resumed) return Future.value();
+    final done = Completer<void>();
+    late final AppLifecycleListener listener;
+    listener = AppLifecycleListener(onResume: () {
+      listener.dispose();
       done.complete();
     });
     return done.future;
