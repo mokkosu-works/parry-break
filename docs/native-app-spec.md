@@ -308,6 +308,8 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 
 ## 9. ストア公開までの手順
 
+この章は最初の公開の手順。2回目以降のビルドとアップロードは CI で行う([release-flow.md](release-flow.md))。
+
 掲載文・スクリーンショット・審査メモなど、App Store Connect に入力する内容は [app-store.md](app-store.md) にまとめた。Google Play Console に入力する内容は [play-store.md](play-store.md) にまとめた。
 
 ### 9.1 アプリ側で設定済みのもの

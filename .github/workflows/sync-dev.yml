@@ -1,0 +1,32 @@
+# main に入った変更 (リリース PR のマージ、ホットフィックス) を dev に戻す。
+# dev が main の変更をすべて含んでいれば何もしない。衝突したら失敗するので、手で main を dev にマージする。
+name: sync-dev
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: sync-dev
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "dev は main を含んでいる"
+            exit 0
+          fi
+          git merge --no-edit origin/main -m "main の変更を dev に取り込む"
+          git push origin HEAD:dev
