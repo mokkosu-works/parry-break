@@ -1,22 +1,15 @@
 # テスト配信で確認したビルドを本番に出す。最新のタグ (GitHub Release) のビルドを使う。手順は docs/release-flow.md。
-#   action=promote: iOS は審査に提出 (承認後に段階的リリース)、Android は内部テストから本番へ android_rollout の割合で公開
-#   action=rollout: Android の本番の公開割合を android_rollout に変える (1.0 で全員)
+#   iOS: 審査に提出する (承認後に段階的リリース)
+#   Android: 内部テストのビルドを本番に昇格し、全員に公開する
 name: promote
 
 on:
   workflow_dispatch:
     inputs:
-      action:
-        type: choice
-        options: [promote, rollout]
-        default: promote
       platform:
         type: choice
         options: [both, ios, android]
         default: both
-      android_rollout:
-        description: Android の公開割合 (0.2 = 20%)
-        default: '0.2'
       build_number:
         description: 出すビルド番号 (空なら最新の release の実行のもの)
         required: false
@@ -49,7 +42,7 @@ jobs:
 
   ios:
     needs: resolve
-    if: inputs.action == 'promote' && inputs.platform != 'android'
+    if: inputs.platform != 'android'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -91,6 +84,5 @@ jobs:
       - env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: >-
-          bundle exec fastlane ${{ inputs.action }}
+          bundle exec fastlane promote
           version_code:${{ needs.resolve.outputs.build_number }}
-          rollout:${{ inputs.android_rollout }}

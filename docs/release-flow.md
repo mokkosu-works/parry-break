@@ -31,7 +31,7 @@ hotfix/* ─PR (人がマージ)─▶ main
 | 未完成の機能 | `dev` に入れてよいが、ユーザーに見せない(ステージは JSON から外す、機能は設定値で無効にする)。リリースを止めないため |
 | タグ | `vX.Y.Z`。テスト配信に成功したときに CI が付ける |
 | ビルド番号 | CI が `release.yml の実行番号 + 100` を付ける。iOS と Android で同じ番号。`pubspec.yaml` の `+` の後ろは手元のビルド用で、ストアには使わない |
-| ストアの公開 | iOS は段階的リリース(7日かけて全員へ)、Android は段階的公開(20% → 100%)。どちらも問題があれば止められる |
+| ストアの公開 | iOS は段階的リリース(7日かけて全員へ。問題があれば止められる)。Android は最初から全員に公開する(止められないので、問題があれば修正版を出す) |
 
 ### 自動マージを止めるには
 
@@ -63,7 +63,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | `claude.yml` | PR・Issue のコメントの `@claude` | Claude が依頼に応える(指摘の修正、小さな実装)。作る PR は `dev` 向け |
 | `release.yml` | `main` への push(手動実行も可) | バージョン名のタグがまだなければ、チェックのあと両 OS をビルドしてテスト配信し、タグと GitHub Release を作る |
 | `sync-dev.yml` | `main` への push | `main` を `dev` にマージする |
-| `promote.yml` | 手動実行 | テスト配信中のビルドを本番に出す。Android の公開割合を上げる |
+| `promote.yml` | 手動実行 | テスト配信中のビルドを本番に出す(iOS は審査に提出、Android は全員に公開) |
 
 `release.yml` は、リポジトリの変数 `IOS_RELEASE` / `ANDROID_RELEASE` が `true` の OS だけを動かす。準備ができていない OS は `true` にしない(第8章)。
 
@@ -84,11 +84,10 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | 9 | マージ直後 | ⚙️ | `release.yml`: Android を Play の内部テストに、iOS を TestFlight に上げ、`vX.Y.Z` のタグと GitHub Release を作る。`sync-dev.yml`: `main` を `dev` に戻す |
 | 10 | 配信後(30分ほど) | 🧑 | 実機で第8章の確認をする(**人の判断 2**)。だめなら `fix/*` で直し、手順 3 からパッチでやり直す |
 | 11 | 確認後 | 🧑 | Actions → `promote` を実行する(**人の判断 3**) |
-| 12 | 〃 | ⚙️ | iOS: 新機能の文面を入れて審査に提出する(承認されたら自動で段階的リリース)。Android: 本番トラックに 20% で公開する |
+| 12 | 〃 | ⚙️ | iOS: 新機能の文面を入れて審査に提出する(承認されたら自動で段階的リリース)。Android: 本番トラックに昇格し、全員に公開する |
 | 13 | 審査で却下されたら | 🤖🧑 | App Store Connect の却下理由を Claude に貼る。Claude が原因を調べ、修正の PR か返信の下書きを作る |
-| 14 | 公開から2〜3日 | 🧑 | ストアのクラッシュ・レビューを見て問題がなければ、`promote` を `action = rollout`、`android_rollout = 1.0` で実行する |
 
-人の作業は、リリース1回あたり **PR のマージ・実機確認・ボタン2回**。
+人の作業は、リリース1回あたり **PR のマージ・実機確認・ボタン1回**。
 
 ## 4. ストアの公開状況とタグ
 
@@ -193,5 +192,5 @@ CI のマシンには Xcode のアカウントがないので、配布用の証�
 | `dart format` のチェック | いまのコードは大半が `dart format` の結果と違う(79ファイル中68)。一度まとめて整形する PR を入れてから、`check.yml` に `dart format --output=none --set-exit-if-changed lib test integration_test` を足す |
 | 掲載文の自動送信 | 説明文・キーワードを fastlane の `metadata/` に移し、`promote` で送る。いまは更新が少ないので手で入力する |
 | スクリーンショットの自動化 | `integration_test/store_screenshots_test.dart` を CI のシミュレータで動かし、fastlane の `screenshots/` に置いて送る。macOS の時間がかかるので、画面が変わったときだけ手動で実行するワークフローにする |
-| Android の公開割合の自動引き上げ | ストアのクラッシュ率を見て、問題がなければ定期実行で割合を上げる。クラッシュの収集(Crashlytics など)を入れてから |
+| Android の段階的公開 | いまは最初から全員に出す。利用者が増えたら、`promote` で一部(例: 20%)に出し、クラッシュ率を見て割合を上げる形に戻す。クラッシュの収集(Crashlytics など)を入れてから |
 | ブランチの保護 | GitHub Pro にするか公開リポジトリにすれば、`main` / `dev` を「PR 必須・`check` 必須」にできる。そのときは `pr.yml` の自動マージを GitHub の auto-merge に置き換えられる |

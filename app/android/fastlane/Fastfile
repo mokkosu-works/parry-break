@@ -20,35 +20,17 @@ platform :android do
     )
   end
 
-  # 内部テストのビルドを本番に、rollout の割合で公開する
-  #   fastlane promote version_code:123 rollout:0.2
+  # 内部テストのビルドを本番に昇格し、全員に公開する (段階的公開はしない)
+  #   fastlane promote version_code:123
   lane :promote do |options|
-    rollout = options.fetch(:rollout, "0.2").to_s
     upload_to_play_store(
       track: "internal",
       track_promote_to: "production",
       version_code: options.fetch(:version_code).to_i,
-      rollout: rollout,
-      # 昇格した先 (本番) のリリースの状態。release_status は昇格では使われない
-      track_promote_release_status: rollout.to_f >= 1.0 ? "completed" : "inProgress",
+      # 昇格した先 (本番) のリリースの状態
+      track_promote_release_status: "completed",
       skip_upload_aab: true,
       skip_upload_apk: true,
-      **SKIP_LISTING,
-    )
-  end
-
-  # 本番の公開割合を変える。1.0 で全員に出す
-  #   fastlane rollout version_code:123 rollout:1.0
-  lane :rollout do |options|
-    rollout = options.fetch(:rollout).to_s
-    upload_to_play_store(
-      track: "production",
-      version_code: options.fetch(:version_code).to_i,
-      rollout: rollout,
-      release_status: rollout.to_f >= 1.0 ? "completed" : "inProgress",
-      skip_upload_aab: true,
-      skip_upload_apk: true,
-      skip_upload_changelogs: true,
       **SKIP_LISTING,
     )
   end
