@@ -1,0 +1,60 @@
+name: 改善要望
+description: 新しい機能の提案や、遊びやすさ・見た目などの改善を要望する
+title: "[要望] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        要望ありがとうございます。困っていることや、こうなったら嬉しいことを自由に書いてください。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 困っていること・きっかけ
+      description: どんな場面で、何が不便・物足りないと感じたかを書いてください。
+      placeholder: 例) ジャストパリィが決まったのかどうか、音を消していると分かりにくい
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: こうなってほしい
+      description: 思いついている解決案があれば書いてください。
+      placeholder: 例) ジャストパリィのときに画面が一瞬光る
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 関係する部分
+      multiple: true
+      options:
+        - 操作・手触り
+        - ゲームバランス・難易度
+        - ステージ・ボス
+        - 見た目・演出
+        - 音
+        - UI・メニュー
+        - ランキング・記録
+        - その他
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: ほかに考えた案
+      description: 別のやり方や、似たことをしている他のゲームがあれば書いてください。
+    validations:
+      required: false
+
+  - type: textarea
+    id: attachments
+    attributes:
+      label: 参考画像・動画
+      description: イメージがあれば貼り付けてください。
+    validations:
+      required: false
