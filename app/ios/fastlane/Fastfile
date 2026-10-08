@@ -1,0 +1,66 @@
+# iOS のテスト配信と審査への提出。CI (.github/workflows/release.yml / promote.yml) から呼ぶ。
+# 手順は docs/release-flow.md。
+default_platform(:ios)
+
+BUNDLE_ID = "com.watsuwo.parrybreak"
+
+platform :ios do
+  # App Store Connect API キー (環境変数 ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_P8_BASE64)
+  private_lane :asc_key do
+    app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_content: ENV.fetch("ASC_KEY_P8_BASE64"),
+      is_key_content_base64: true,
+    )
+  end
+
+  # flutter build ios --no-codesign の後に呼ぶ。署名してアーカイブし、TestFlight に上げる
+  lane :beta do
+    setup_ci
+    key = asc_key
+    match(type: "appstore", app_identifier: BUNDLE_ID, readonly: true, api_key: key)
+    # 手元は自動署名のまま。CI だけ match の証明書で手動署名にする
+    update_code_signing_settings(
+      path: "Runner.xcodeproj",
+      targets: ["Runner"],
+      build_configurations: ["Release"],
+      use_automatic_signing: false,
+      code_sign_identity: "Apple Distribution",
+      profile_name: "match AppStore #{BUNDLE_ID}",
+    )
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "../build/ios/ipa",
+      export_options: { provisioningProfiles: { BUNDLE_ID => "match AppStore #{BUNDLE_ID}" } },
+    )
+    upload_to_testflight(
+      api_key: key,
+      changelog: File.read("metadata/ja/release_notes.txt"),
+      skip_waiting_for_build_processing: true,
+    )
+  end
+
+  # TestFlight に上がっているビルドを、新機能の文面を入れて審査に出す。
+  # 承認されたら自動で段階的リリース (7日) を始める。
+  #   fastlane submit version:1.2.0 build_number:123
+  lane :submit do |options|
+    deliver(
+      api_key: asc_key,
+      app_version: options.fetch(:version),
+      build_number: options.fetch(:build_number).to_s,
+      metadata_path: "./fastlane/metadata",
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_app_version_update: false,
+      submit_for_review: true,
+      automatic_release: true,
+      phased_release: true,
+      force: true, # HTML のプレビューを作らない
+      precheck_include_in_app_purchases: false,
+    )
+  end
+end

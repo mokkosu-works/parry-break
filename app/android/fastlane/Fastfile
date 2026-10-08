@@ -1,0 +1,55 @@
+# Android のテスト配信と本番への公開。CI (.github/workflows/release.yml / promote.yml) から呼ぶ。
+# 内部テストへの最初のリリースは Play Console から手で作る (API ではアプリの最初のリリースを作れない)。
+# 手順は docs/release-flow.md。リリースノートは metadata/android/<言語>/changelogs/default.txt。
+default_platform(:android)
+
+SKIP_LISTING = {
+  json_key_data: ENV["PLAY_SERVICE_ACCOUNT_JSON"],
+  skip_upload_metadata: true,
+  skip_upload_images: true,
+  skip_upload_screenshots: true,
+}.freeze
+
+platform :android do
+  # flutter build appbundle の後に呼ぶ。内部テストに上げる
+  lane :internal do
+    upload_to_play_store(
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      **SKIP_LISTING,
+    )
+  end
+
+  # 内部テストのビルドを本番に、rollout の割合で公開する
+  #   fastlane promote version_code:123 rollout:0.2
+  lane :promote do |options|
+    rollout = options.fetch(:rollout, "0.2").to_s
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "production",
+      version_code: options.fetch(:version_code).to_i,
+      rollout: rollout,
+      # 昇格した先 (本番) のリリースの状態。release_status は昇格では使われない
+      track_promote_release_status: rollout.to_f >= 1.0 ? "completed" : "inProgress",
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      **SKIP_LISTING,
+    )
+  end
+
+  # 本番の公開割合を変える。1.0 で全員に出す
+  #   fastlane rollout version_code:123 rollout:1.0
+  lane :rollout do |options|
+    rollout = options.fetch(:rollout).to_s
+    upload_to_play_store(
+      track: "production",
+      version_code: options.fetch(:version_code).to_i,
+      rollout: rollout,
+      release_status: rollout.to_f >= 1.0 ? "completed" : "inProgress",
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_changelogs: true,
+      **SKIP_LISTING,
+    )
+  end
+end

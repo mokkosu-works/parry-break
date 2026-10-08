@@ -1,0 +1,81 @@
+# PR ごとに、チェックと Claude のレビューを行う。
+# dev 向けの PR は、両方が通り、hold / needs-fix のラベルがなければ自動でマージする。
+# main 向けの PR (リリース PR・ホットフィックス) は自動ではマージしない。手順は docs/release-flow.md。
+name: pr
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    uses: ./.github/workflows/check.yml
+
+  review:
+    # フォークからの PR ではシークレットが使えないので動かさない
+    if: >-
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            BASE: ${{ github.event.pull_request.base.ref }}
+
+            この PR をレビューする。見るのは次の点だけで、好みの問題は指摘しない。
+            - 不具合(ゲームの判定・乱数の再現性・保存データの互換・広告の出し方)
+            - design.md / docs/native-app-spec.md と実装の食い違い(仕様は実装を正とするが、明らかな不具合は指摘する)
+            - 足りないテスト
+            - BASE が main の PR(リリース PR・ホットフィックス)なら、docs/release-flow.md の「バージョン名の上げ方」に合っているか、
+              ストアの「新機能」の文面(app/ios/fastlane/metadata/*/release_notes.txt、
+              app/android/fastlane/metadata/android/*/changelogs/default.txt)が字数の上限に収まっているか
+
+            指摘は該当行へのインラインコメント(mcp__github_inline_comment__create_inline_comment)で、日本語で書く。
+            最後に `gh pr comment` で、全体の所見を短くまとめる。問題がなければそう書く。
+
+            マージの前に直すべき問題(不具合・データの互換が壊れる・審査で落ちる)が残っていれば
+            `gh pr edit <番号> --add-label needs-fix` を、なければ `gh pr edit <番号> --remove-label needs-fix` を実行する。
+            dev 向けの PR は、このラベルがなければ自動でマージされる。
+          claude_args: >-
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr edit:*)"
+
+  automerge:
+    needs: [check, review]
+    if: >-
+      github.event.pull_request.base.ref == 'dev' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # ラベルはレビューの後に付くので、イベントの中身ではなくいまの状態を読む
+          labels=$(gh pr view "$PR" -R "$GITHUB_REPOSITORY" --json labels -q '[.labels[].name] | join(" ")')
+          if grep -qwE 'hold|needs-fix' <<<"$labels"; then
+            echo "::notice::ラベル ($labels) が付いているので、自動ではマージしない"
+            exit 0
+          fi
+          # レビューの後に push されていたらマージしない (その push の実行に任せる)
+          gh pr merge "$PR" -R "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$HEAD_SHA"
