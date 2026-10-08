@@ -49,6 +49,8 @@ android {
 
     buildTypes {
         release {
+            // R8 の keep ルール (WorkManager の WorkDatabase を残す)
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // key.properties がなければデバッグ鍵で署名する (flutter run --release で動かすため)
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
