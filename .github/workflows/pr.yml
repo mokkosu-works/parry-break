@@ -21,7 +21,7 @@ jobs:
     # 15 分ほどかかるので、下書きでは動かさない (ready_for_review で動く)
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/android-emulator

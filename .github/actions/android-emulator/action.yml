@@ -19,8 +19,12 @@ runs:
       run: |
         # マシンの環境変数は env コンテキストから読めないので、キャッシュの path に使うために書き出す
         echo "SDK_DIR=$ANDROID_HOME" >> "$GITHUB_ENV"
+        # ATD は CI 向けの軽いイメージ (アプリや画面の部品を省いてあり、起動が速く、CPU を食わない)。Google Play 開発者サービスは入っている
+        echo "IMAGE=system-images;android-34;google_atd;x86_64" >> "$GITHUB_ENV"
         echo "| ステップ | 秒 |" >> "$GITHUB_STEP_SUMMARY"
         echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+        echo "CPU: $(nproc) / メモリ: $(free -h | awk '/Mem:/{print $2}')"
+        ls -l /dev/kvm || true
         df -h /
         sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
           /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/lib/node_modules \
@@ -66,24 +70,19 @@ runs:
           ${{ env.SDK_DIR }}/ndk/28.2.13676358
         key: android-sdk-34-google_atd-x86_64-ndk-28.2.13676358
 
-    - name: エミュレーターを起動する (起動を待つあいだにビルドする)
+    - name: SDK を用意する
       shell: bash
-      env:
-        # ATD は CI 向けの軽いイメージ (アプリや画面の部品を省いてあり、起動が速く、CPU を食わない)。Google Play 開発者サービスは入っている
-        IMAGE: system-images;android-34;google_atd;x86_64
       run: |
         bin="$ANDROID_HOME/cmdline-tools/latest/bin"
         yes | "$bin/sdkmanager" --licenses >/dev/null || true
         "$bin/sdkmanager" --install "$IMAGE" emulator platform-tools "ndk;28.2.13676358" >/dev/null
         echo no | "$bin/avdmanager" create avd -n ci -k "$IMAGE" -d pixel_6 --force
-        # 2 コアのマシンなので、エミュレーターの CPU とメモリは控えめにして、ビルドに回す
-        nohup "$ANDROID_HOME/emulator/emulator" -avd ci -no-window -no-audio -no-boot-anim -no-snapshot \
-          -gpu swiftshader_indirect -camera-back none -cores 2 -memory 2048 -partition-size 4096 \
-          > "$RUNNER_TEMP/emulator.log" 2>&1 &
         echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
-        echo "| エミュレーターを起動する (イメージの用意を含む) | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
+        "$ANDROID_HOME/emulator/emulator" -accel-check || true
+        echo "| SDK を用意する | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
 
-    # 最初の Gradle のビルドは 5 分以上かかる。ここで済ませておけば、あとの flutter drive は差分のビルドで済む
+    # 最初の Gradle のビルドは 5 分以上かかる。ここで済ませておけば、あとの flutter drive は差分のビルドで済む。
+    # 2 コアのマシンでは、エミュレーターと同時に動かすと CPU を取り合ってどちらも遅くなるので、先にビルドだけをする
     - name: デバッグビルド
       shell: bash
       working-directory: app
@@ -93,18 +92,24 @@ runs:
         mkdir -p ~/.gradle
         echo "org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" >> ~/.gradle/gradle.properties
         flutter pub get
-        # エミュレーターの ABI (x86_64) だけをビルドする
-        flutter build apk --debug --target-platform android-x64
+        # エミュレーターの ABI (x86_64) だけをビルドする。止まったときにログが残るよう、ジョブの上限より先に打ち切る
+        if ! timeout 25m flutter build apk --debug --target-platform android-x64; then
+          echo "::error::デバッグビルドが失敗したか、25 分で終わらなかった"
+          exit 1
+        fi
         echo "| デバッグビルド | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
         df -h /
 
-    - name: エミュレーターの起動を待つ
+    - name: エミュレーターを起動する
       shell: bash
       run: |
-        adb wait-for-device
-        if ! timeout 600 bash -c 'until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = 1 ]; do sleep 5; done'; then
-          echo "::error::エミュレーターが 10 分で起動しなかった"
-          tail -n 50 "$RUNNER_TEMP/emulator.log"
+        nohup "$ANDROID_HOME/emulator/emulator" -avd ci -no-window -no-audio -no-boot-anim -no-snapshot \
+          -gpu swiftshader_indirect -camera-back none -cores 2 -memory 2048 \
+          > "$RUNNER_TEMP/emulator.log" 2>&1 &
+        # adb wait-for-device は上限がないので、まとめて timeout で打ち切る
+        if ! timeout 8m bash -c 'adb wait-for-device; until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = 1 ]; do sleep 5; done'; then
+          echo "::error::エミュレーターが 8 分で起動しなかった"
+          tail -n 80 "$RUNNER_TEMP/emulator.log"
           exit 1
         fi
         # アニメーションを切り、画面を点けたままにする
@@ -114,4 +119,4 @@ runs:
         adb shell svc power stayon true
         adb shell input keyevent 82
         adb devices
-        echo "| エミュレーターの起動を待つ (ビルドのあと) | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
+        echo "| エミュレーターを起動する | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
