@@ -21,6 +21,9 @@ runs:
         echo "SDK_DIR=$ANDROID_HOME" >> "$GITHUB_ENV"
         # ATD は CI 向けの軽いイメージ (アプリや画面の部品を省いてあり、起動が速く、CPU を食わない)。Google Play 開発者サービスは入っている
         echo "IMAGE=system-images;android-34;google_atd;x86_64" >> "$GITHUB_ENV"
+        # avdmanager (新しい cmdline-tools) とエミュレーターで AVD の既定の置き場所が違うので、そろえる
+        mkdir -p "$HOME/.android/avd"
+        echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
         echo "| ステップ | 秒 |" >> "$GITHUB_STEP_SUMMARY"
         echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
         echo "CPU: $(nproc) / メモリ: $(free -h | awk '/Mem:/{print $2}')"
@@ -77,6 +80,11 @@ runs:
         yes | "$bin/sdkmanager" --licenses >/dev/null || true
         "$bin/sdkmanager" --install "$IMAGE" emulator platform-tools "ndk;28.2.13676358" >/dev/null
         echo no | "$bin/avdmanager" create avd -n ci -k "$IMAGE" -d pixel_6 --force
+        if ! "$ANDROID_HOME/emulator/emulator" -list-avds | grep -qx ci; then
+          echo "::error::作った AVD がエミュレーターから見えない (ANDROID_AVD_HOME=$ANDROID_AVD_HOME)"
+          ls -la "$ANDROID_AVD_HOME" ~/.config/.android/avd 2>/dev/null || true
+          exit 1
+        fi
         echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
         "$ANDROID_HOME/emulator/emulator" -accel-check || true
         echo "| SDK を用意する | $SECONDS |" >> "$GITHUB_STEP_SUMMARY"
