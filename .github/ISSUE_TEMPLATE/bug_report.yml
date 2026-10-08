@@ -8,6 +8,8 @@ body:
       value: |
         不具合の報告ありがとうございます。再現できる情報があるほど早く直せます。
 
+        起票したあと `@claude` を付けてコメントすると、Claude がこの Issue をもとに修正の PR を作ります。PR はレビューが通れば人が見ずに `dev` へマージされるので、**「本来どうなるべきか」と「完了条件」は 1 つに決めて** 書いてください。決めきれないことは「決めていないこと」に書きます。
+
   - type: textarea
     id: summary
     attributes:
@@ -33,7 +35,39 @@ body:
     id: expected
     attributes:
       label: 本来どうなるべきか
+      description: 直したあとの正しい動きを 1 つに決めて書いてください。案が複数あるなら、選んだものだけを書きます。
       placeholder: 例) ボールが壁で跳ね返る
+    validations:
+      required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: 完了条件
+      description: 直ったと言える条件を、確かめられる形で箇条書きにしてください。修正の PR はこれを満たすように作り、レビューもこれで確かめます。
+      placeholder: |
+        - [ ] OVERDRIVE 中にパリィしたボールが、左右の壁で跳ね返る
+        - [ ] 同じ状況を再現する単体テストがある
+    validations:
+      required: true
+
+  - type: textarea
+    id: open_questions
+    attributes:
+      label: 決めていないこと
+      description: 直し方で迷っていることがあれば書き、それぞれ「任せる」(Claude が決めて PR の本文に書く)か「先に聞いてほしい」(着手する前に Issue で質問する)かを添えてください。なければ空欄で構いません。
+      placeholder: |
+        - すり抜けたボールを戻すか、その場でミスにするか → 先に聞いてほしい
+        - テストの置き場所 → 任せる
+    validations:
+      required: false
+
+  - type: textarea
+    id: code
+    attributes:
+      label: 関係しそうなコード
+      description: 原因の見当がついていれば、ファイル・関数・設定値を書いてください。わからなければ空欄で構いません。
+      placeholder: 例) app/lib/core/ の壁との当たり判定、app/lib/core/config/tuning.dart の速度の上限
     validations:
       required: false
 
@@ -68,6 +102,7 @@ body:
       options:
         - iOS
         - Android
+        - 両方
         - その他 (シミュレータ・エミュレータなど)
     validations:
       required: true
@@ -93,6 +128,6 @@ body:
     id: attachments
     attributes:
       label: スクリーンショット・動画・ログ
-      description: あれば貼り付けてください。画像や動画はドラッグ&ドロップで添付できます。
+      description: あれば貼り付けてください。画像や動画はドラッグ&ドロップで添付できます。Claude は動画を見られないので、動画でわかることは再現手順にも文章で書いてください。
     validations:
       required: false
