@@ -21,17 +21,22 @@ jobs:
     # 15 分ほどかかるので、下書きでは動かさない (ready_for_review で動く)
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/android-emulator
       - name: スモークテスト
         working-directory: app
+        timeout-minutes: 15
         run: >-
           SHOT_DIR=build/smoke flutter drive -d emulator-5554
           --driver=test_driver/integration_test.dart --target=integration_test/smoke_test.dart
       - if: always()
-        run: adb logcat -d > app/build/logcat.txt || true
+        run: |
+          # 端末がないと adb logcat は待ち続けるので、上限を付ける。エミュレーター自体のログも残す
+          mkdir -p app/build
+          timeout 60 adb logcat -d > app/build/logcat.txt || true
+          cp "$RUNNER_TEMP/emulator.log" app/build/ 2>/dev/null || true
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -39,6 +44,7 @@ jobs:
           path: |
             app/build/smoke/
             app/build/logcat.txt
+            app/build/emulator.log
           if-no-files-found: ignore
 
   review:

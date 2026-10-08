@@ -119,7 +119,11 @@ jobs:
 
       - name: logcat を残す
         if: always()
-        run: adb logcat -d > app/build/claude-logcat.txt || true
+        run: |
+          # 端末がないと adb logcat は待ち続けるので、上限を付ける。エミュレーター自体のログも残す
+          mkdir -p app/build
+          timeout 60 adb logcat -d > app/build/claude-logcat.txt || true
+          cp "$RUNNER_TEMP/emulator.log" app/build/ 2>/dev/null || true
 
       # PR の本文からリンクする (Claude が「確かめたこと」に、この実行の URL を書く)
       - uses: actions/upload-artifact@v4
@@ -129,6 +133,7 @@ jobs:
           path: |
             app/build/claude/
             app/build/claude-logcat.txt
+            app/build/emulator.log
           if-no-files-found: ignore
 
       - name: 失敗したことを Issue に書く
