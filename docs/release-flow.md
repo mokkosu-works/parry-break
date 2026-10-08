@@ -115,7 +115,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 
 | 場面 | 仕組み | 内容 |
 | --- | --- | --- |
-| PR のレビュー | `pr.yml`(`anthropics/claude-code-action`) | 不具合・テストの漏れ・設計書との食い違いを指摘する。直すべき問題があれば `needs-fix` を付けて、`dev` への自動マージを止める |
+| PR のレビュー | `pr.yml`(`anthropics/claude-code-action`)+ `.claude/skills/pr-review/SKILL.md` | 不具合・テストの漏れ・設計書との食い違いを指摘する。直すべき問題があれば `needs-fix` を付けて、`dev` への自動マージを止める。観点と重さの基準はスキルに書く。手元でも `/pr-review <番号>` で同じレビューができる |
 | PR・Issue での依頼 | `claude.yml`(`@claude` を付けてコメント) | 指摘の修正、小さな機能の実装 |
 | リリース準備 | `.claude/skills/release/SKILL.md`(`/release`) | 第3章の手順 4〜7。Claude Code(ターミナル・Web・アプリ)で実行する |
 | リリース準備の定期実行 | Claude Code のルーティン(claude.ai/code の Routines) | 例: 隔週の月曜に `/release` を実行する。前回のタグから出す価値のある変更がなければ何もしない |
