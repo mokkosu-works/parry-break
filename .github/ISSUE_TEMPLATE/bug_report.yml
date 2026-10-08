@@ -1,0 +1,98 @@
+name: 不具合の報告
+description: 動作がおかしい、落ちる、表示が崩れるなどの不具合を報告する
+title: "[不具合] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        不具合の報告ありがとうございます。再現できる情報があるほど早く直せます。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 何が起きたか
+      description: 起きたことを簡潔に書いてください。
+      placeholder: 例) ボス戦でボールが壁をすり抜けて画面外に消えた
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 同じことを起こすための手順を書いてください。わからない場合は「不明」で構いません。
+      placeholder: |
+        1. ステージモードで第2章の 3 を選ぶ
+        2. OVERDRIVE 中にボールをパリィする
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 本来どうなるべきか
+      placeholder: 例) ボールが壁で跳ね返る
+    validations:
+      required: false
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: 起きた場面
+      options:
+        - ステージモード
+        - エンドレス
+        - タイトル・メニュー・設定
+        - ランキング・記録
+        - その他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: 発生頻度
+      options:
+        - 毎回起きる
+        - ときどき起きる
+        - 一度だけ起きた
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: OS
+      options:
+        - iOS
+        - Android
+        - その他 (シミュレータ・エミュレータなど)
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: 端末と OS のバージョン
+      placeholder: 例) iPhone 15 / iOS 18.1
+    validations:
+      required: false
+
+  - type: input
+    id: app_version
+    attributes:
+      label: アプリのバージョン
+      description: タイトル画面の右下に表示されています。
+      placeholder: 例) 1.0.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: attachments
+    attributes:
+      label: スクリーンショット・動画・ログ
+      description: あれば貼り付けてください。画像や動画はドラッグ&ドロップで添付できます。
+    validations:
+      required: false
