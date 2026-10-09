@@ -44,7 +44,7 @@ void main() {
       t.widgetList<CustomPaint>(find.byType(CustomPaint)).map((c) => c.painter).whereType<FieldPainter>().first.world;
 
   testWidgets('起動してタイトル・ステージ選択・エンドレスを通り、タイトルに戻る', (t) async {
-    // main() と同じく横向きに固定する (Android は AndroidManifest.xml で向きを決めていないので、しないと縦向きで描かれる)
+    // main() と同じく横向きに固定する (Android の向きは AndroidManifest.xml でも決めているが、iOS のシミュレータでも動かすため)
     await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     // 初めて起動したときと同じ (記録も設定もない)
