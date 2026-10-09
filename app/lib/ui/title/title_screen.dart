@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../audio/audio_service.dart';
 import '../../core/core.dart';
 import '../../game/game_screen.dart';
 import '../../l10n/app_localizations.dart';
@@ -51,10 +52,15 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
   void initState() {
     super.initState();
     _intro.forward();
+    _audio.setMenuMusic(true);
   }
+
+  // dispose では ref を読めないので、ここで握っておく
+  late final AudioService _audio = ref.read(audioProvider);
 
   @override
   void dispose() {
+    _audio.setMenuMusic(false);
     _intro.dispose();
     _focus.dispose();
     super.dispose();

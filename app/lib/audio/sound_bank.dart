@@ -234,7 +234,34 @@ Synth _music(int level) {
   return s;
 }
 
-/// すべての効果音と BGM を WAV にする。キーは効果音名、BGM は `music0`〜`music4`。
+/// タイトル・メニューの BGM のテンポ。
+const titleBpm = 108.0;
+
+const _titleRoots = [0, -4, -2, -5, 0, -4, -7, -5]; // 1 小節ごとのベースの根音
+const _titleArp = [0, 7, 12, 7, 3, 10, 15, 10];
+
+/// タイトル・メニューの BGM (8 小節のループ)。プレイ中より遅く、ベースとアルペジオを中心にして静かにする。
+Synth _titleMusic() {
+  final sp = 60 / titleBpm / 4;
+  final s = Synth(sp * 16 * 8, seed: 200)..wrap = true;
+  double nf(num semi) => 110 * math.pow(2, semi / 12).toDouble();
+  for (var step = 0; step < 128; step++) {
+    final t = step * sp;
+    final st = step % 16, bar = step ~/ 16;
+    final root = _titleRoots[bar];
+    if (st == 0) {
+      s.tone(150, 0.16, 'sine', 0.45, f2: 40, when: t);
+      s.tone(nf(root - 12), sp * 15, 'triangle', 0.12, when: t);
+    }
+    if (st == 8) s.tone(150, 0.16, 'sine', 0.3, f2: 40, when: t);
+    if (st % 4 == 2) s.noise(0.04, 0.06, 9000, when: t, filter: 'highpass');
+    if (st % 2 == 0) s.tone(nf(root + 12 + _titleArp[(st ~/ 2) % 8]), sp * 1.6, 'square', 0.022, when: t);
+    if (st == 0 && bar % 2 == 0) s.tone(nf(root + 24 + (bar >= 4 ? 3 : 7)), sp * 14, 'sine', 0.05, when: t);
+  }
+  return s;
+}
+
+/// すべての効果音と BGM を WAV にする。キーは効果音名、BGM は `music0`〜`music4`、タイトルは `musicTitle`。
 Map<String, Uint8List> renderSoundBank([Object? _]) {
   final out = <String, Uint8List>{};
   var seed = 1;
@@ -247,5 +274,6 @@ Map<String, Uint8List> renderSoundBank([Object? _]) {
   for (var l = 0; l < musicLevels; l++) {
     out['music$l'] = _music(l).toWav(gain: _musicGain);
   }
+  out['musicTitle'] = _titleMusic().toWav(gain: _musicGain);
   return out;
 }
