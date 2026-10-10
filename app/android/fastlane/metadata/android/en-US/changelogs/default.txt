@@ -1,1 +1,4 @@
-The first release of PARRY BREAK.
+- Music now plays on the title and menu screens
+- Android: the game now shows in landscape right from launch
+- Android: fixed an issue where the app could close right after launch
+- Minor bug fixes and performance improvements
