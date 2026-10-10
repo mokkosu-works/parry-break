@@ -172,40 +172,39 @@ class _Page extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final diagram = HelpDiagram(topic: page.topic, controls: controls, animate: animate);
-    final words = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          page.title,
-          style: orbitron(
-            30,
-            color: page.color,
-            weight: 900,
-            letterSpacing: 2,
-          ).copyWith(shadows: [Shadow(color: withAlpha(page.color, 0.6), blurRadius: 12)]),
-        ),
-        Container(margin: const EdgeInsets.symmetric(vertical: 14), width: 48, height: 3, color: page.color),
-        Text(
-          page.body,
-          style: TextStyle(
-            fontSize: 19,
-            height: 1.7,
-            color: withAlpha(Palette.white, 0.92),
-            fontFamilyFallback: kFontFallback,
-          ),
-        ),
-      ],
-    );
     return LayoutBuilder(
       builder: (context, c) {
+        // 背の低い画面 (スマホの横向き) では文字を小さくして、説明が 1 画面に収まるようにする
+        final compact = c.maxHeight < 420;
+        final words = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(page.title,
+                style: orbitron(compact ? 22 : 30, color: page.color, weight: 900, letterSpacing: 2)
+                    .copyWith(shadows: [Shadow(color: withAlpha(page.color, 0.6), blurRadius: 12)])),
+            Container(
+                margin: EdgeInsets.symmetric(vertical: compact ? 10 : 14), width: 48, height: 3, color: page.color),
+            // 改行ごとに 1 つの段落にする
+            for (final line in page.body.split('\n'))
+              Padding(
+                padding: EdgeInsets.only(bottom: compact ? 8 : 12),
+                child: Text(line,
+                    style: TextStyle(
+                        fontSize: compact ? 14 : 18,
+                        height: 1.55,
+                        color: withAlpha(Palette.white, 0.92),
+                        fontFamilyFallback: kFontFallback)),
+              ),
+          ],
+        );
         // 横長なら図と説明を左右に、縦に余裕があれば上下に並べる
         if (c.maxWidth / c.maxHeight > 1.3) {
           return Row(
             children: [
-              Expanded(flex: 3, child: Center(child: diagram)),
-              const SizedBox(width: 32),
-              Expanded(flex: 2, child: SingleChildScrollView(child: words)),
+              Expanded(flex: compact ? 1 : 3, child: Center(child: diagram)),
+              SizedBox(width: compact ? 24 : 32),
+              Expanded(flex: compact ? 1 : 2, child: SingleChildScrollView(child: words)),
             ],
           );
         }
