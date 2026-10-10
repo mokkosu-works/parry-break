@@ -20,7 +20,7 @@ List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
       topic: HelpTopic.move,
       title: l.helpMoveTitle,
       body: zones ? l.helpMoveZones : l.helpMoveRail,
-      color: Dot.sky, // パドル
+      color: Palette.accent, // パドル
     ),
     (
       topic: HelpTopic.parry,

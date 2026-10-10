@@ -53,13 +53,13 @@ class _TitleLogoState extends State<TitleLogo> with SingleTickerProviderStateMix
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _word('PARRY', s, Dot.mustard, Dot.brick),
+            _word('PARRY', s, Palette.main, Palette.sub),
             SizedBox(height: s * 0.12),
             _TrailBar(width: s * 4.7, dot: math.max(3, (s / 16).roundToDouble()), phase: v),
             SizedBox(height: s * 0.12),
             Padding(
               padding: EdgeInsets.only(left: s * 0.7),
-              child: _word('BREAK', s * 0.8, Dot.sky, Dot.violet),
+              child: _word('BREAK', s * 0.8, Palette.accent, Dot.violet),
             ),
           ],
         );
@@ -93,7 +93,7 @@ class _TrailPainter extends CustomPainter {
       if (x > size.width - d * 6) break;
       // 先端に近いほど明るい (残像)
       final k = x / size.width;
-      p.color = k > 0.66 ? Dot.white : k > 0.33 ? Dot.rose : Dot.dark(Dot.rose);
+      p.color = k > 0.66 ? Dot.white : k > 0.33 ? Palette.sub : Dot.dark(Palette.sub);
       canvas.drawRect(Rect.fromLTWH(x.floorToDouble(), y, d, d), p);
     }
     // ボール (2 コマで跳ねる)

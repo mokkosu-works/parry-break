@@ -116,7 +116,7 @@ class _ResultOverlayState extends State<ResultOverlay>
         ? 'GAME OVER'
         : (win ? 'STAGE CLEAR' : 'STAGE FAILED');
     // 勝ちはメインカラー (黄)、負けはアクセントカラー (赤)
-    final color = win ? Palette.main : Palette.accent;
+    final color = win ? Palette.main : Palette.sub;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -164,7 +164,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                                     const SizedBox(width: 10),
                                   ],
                                   if (!win)
-                                    PixelTag(d.reason, color: Palette.accent),
+                                    PixelTag(d.reason, color: Palette.sub),
                                 ],
                               ),
                             ),

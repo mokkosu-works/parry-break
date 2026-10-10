@@ -166,7 +166,7 @@ class _Rail extends StatelessWidget {
       height: h,
       child: Stack(clipBehavior: Clip.none, children: [
         Container(
-          decoration: BoxDecoration(color: Dot.night, border: Border.all(color: withAlpha(Dot.sky, 0.7), width: 3)),
+          decoration: BoxDecoration(color: Dot.night, border: Border.all(color: withAlpha(Palette.accent, 0.7), width: 3)),
         ),
         Positioned(
           left: vertical ? -3 : pos - 10,
@@ -174,7 +174,7 @@ class _Rail extends StatelessWidget {
           child: SizedBox(
             width: vertical ? 28 : 20,
             height: vertical ? 20 : 28,
-            child: const BevelBox(color: Dot.sky, child: SizedBox.expand()),
+            child: const BevelBox(color: Palette.accent, child: SizedBox.expand()),
           ),
         ),
       ]),
@@ -195,7 +195,7 @@ class ParryButton extends StatelessWidget {
       valueListenable: controller.frame,
       builder: (_, _, _) {
         final active = controller.world.parry.active;
-        final c = active ? Palette.yellow : Palette.accent;
+        final c = active ? Palette.yellow : Palette.sub;
         return Opacity(
           opacity: interactive ? 1 : 0.5,
           child: CustomPaint(
@@ -253,9 +253,9 @@ class MoveHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) => IgnorePointer(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          PixelIcon(PixelIcons.swap, color: withAlpha(Dot.sky, 0.7), size: 35),
+          PixelIcon(PixelIcons.swap, color: withAlpha(Palette.accent, 0.7), size: 35),
           const SizedBox(height: 6),
-          Container(width: 56, height: 4, color: withAlpha(Dot.sky, 0.45)),
+          Container(width: 56, height: 4, color: withAlpha(Palette.accent, 0.45)),
         ]),
       );
 }

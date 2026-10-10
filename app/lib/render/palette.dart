@@ -12,11 +12,12 @@ abstract final class Palette {
   /// メインカラー (黄)。ロゴの PARRY・見出し・いま選んでいるもの (▶)・主なボタン・記録 (ハイスコア・星)。
   static const main = Dot.mustard;
 
-  /// サブカラー (青)。プレイヤーの色 (パドル・BREAK)。二番手のボタン・戻る / めくる・補足の見出し。
-  static const sub = Dot.sky;
+  /// サブカラー (赤)。二番手のボタン・戻る / めくる・章の名前・見出しの影・PARRY ボタン・危険の表示。
+  static const sub = Dot.brick;
 
-  /// アクセントカラー (赤)。危険と衝撃だけに使う (GAME OVER・BALL LOST・危険ライン・PARRY ボタン)。見出しの影にも使う。
-  static const accent = Dot.brick;
+  /// アクセントカラー (青)。プレイヤーに関わるものだけ (パドル・ロゴの BREAK・移動・操作レール)。
+  /// 暖色のメイン・サブの反対側の色で、敵 (暖色) と自分 (寒色) を分ける。本文の小さな文字には使わない。
+  static const accent = Dot.sky;
   static const yellow = Dot.mustard;
   static const orange = Dot.orange;
   static const red = Dot.bulletRed;

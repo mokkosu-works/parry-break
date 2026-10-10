@@ -138,7 +138,7 @@ class _DiagramPainter extends CustomPainter {
   static Float32List? _grid;
   static final _ballSprite = DotSprite(['.##.', '####', '####', '.##.']);
 
-  void _paddle(double x, {Color col = Dot.sky, bool parry = false}) {
+  void _paddle(double x, {Color col = Palette.accent, bool parry = false}) {
     bevelRect(_c, Rect.fromLTWH(x - paddleW / 2, paddleY, paddleW, paddleH + 2), col);
     if (parry) {
       final rx = paddleW / 2 + 15;
@@ -224,7 +224,7 @@ class _DiagramPainter extends CustomPainter {
 
   /// 操作する場所を示す。領域方式なら左右の半分、レールなら左右の余白の帯とボタン。
   void _zones({required bool left, required bool lit}) {
-    final col = left ? Dot.sky : Palette.accent;
+    final col = left ? Palette.accent : Palette.sub;
     if (controls == ControlScheme.zones) {
       final r = left ? const Rect.fromLTWH(0, 0, w / 2, h) : const Rect.fromLTWH(w / 2, 0, w / 2, h);
       _c.drawRect(r, _fill..color = withAlpha(Dot.white, lit ? 0.07 : 0.03));
@@ -255,8 +255,8 @@ class _DiagramPainter extends CustomPainter {
     final Offset f;
     if (controls == ControlScheme.zones) {
       f = Offset(150 + k * 80, 200);
-      _arrow(Offset(f.dx - 34, f.dy), Offset(f.dx - 70, f.dy), withAlpha(Dot.sky, 0.8));
-      _arrow(Offset(f.dx + 34, f.dy), Offset(f.dx + 70, f.dy), withAlpha(Dot.sky, 0.8));
+      _arrow(Offset(f.dx - 34, f.dy), Offset(f.dx - 70, f.dy), withAlpha(Palette.accent, 0.8));
+      _arrow(Offset(f.dx + 34, f.dy), Offset(f.dx + 70, f.dy), withAlpha(Palette.accent, 0.8));
     } else {
       final r = _rail;
       f = _vertical ? Offset(r.center.dx, r.center.dy - k * 100) : Offset(r.center.dx + k * 80, r.center.dy);
@@ -292,7 +292,7 @@ class _DiagramPainter extends CustomPainter {
         );
       }
     }
-    _paddle(hitX, col: hitNow ? Palette.yellow : Dot.sky, parry: hitNow);
+    _paddle(hitX, col: hitNow ? Palette.yellow : Palette.accent, parry: hitNow);
     if (hitNow) {
       final k = _span(t, 0.5, 0.62);
       _ring(hit, 20 + k * 70, Palette.yellow, 1 - k);
@@ -323,7 +323,7 @@ class _DiagramPainter extends CustomPainter {
       if (t > 0.15 && t < 0.85) {
         _ball(Offset(cx, y), col: Palette.yellow, trail: [for (var i = 1; i < 8; i++) Offset(cx, y + i * 12)]);
       }
-      _paddle(cx, col: t < 0.3 ? Palette.yellow : Dot.sky, parry: t < 0.3);
+      _paddle(cx, col: t < 0.3 ? Palette.yellow : Palette.accent, parry: t < 0.3);
       if (t < 0.6) _label('PERFECT', cx, paddleY - 60, Palette.yellow, size: 26);
     } else {
       const hit = Offset(cx, 120);
@@ -340,7 +340,7 @@ class _DiagramPainter extends CustomPainter {
         _ball(p, col: Palette.justPink);
       }
       if (k > 0 && k < 1) _ring(hit, k * 170, Palette.justPink, 1 - k);
-      _paddle(cx, col: t < 0.2 ? Palette.justPink : Dot.sky, parry: t < 0.2);
+      _paddle(cx, col: t < 0.2 ? Palette.justPink : Palette.accent, parry: t < 0.2);
       if (t < 0.6) _label('JUST', cx, paddleY - 60, Palette.justPink, size: 26);
     }
   }
