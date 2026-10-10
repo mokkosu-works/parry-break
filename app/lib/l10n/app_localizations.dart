@@ -161,13 +161,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpMoveZones.
   ///
   /// In ja, this message translates to:
-  /// **'画面の左半分をドラッグ'**
+  /// **'画面の左半分をドラッグして、パドルを左右に動かす'**
   String get helpMoveZones;
 
   /// No description provided for @helpMoveRail.
   ///
   /// In ja, this message translates to:
-  /// **'左のレールをドラッグ'**
+  /// **'左のレールをドラッグして、パドルを左右に動かす'**
   String get helpMoveRail;
 
   /// No description provided for @helpParryTitle.
@@ -179,13 +179,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpParryZones.
   ///
   /// In ja, this message translates to:
-  /// **'ボールや弾が当たる瞬間に画面の右半分をタップ'**
+  /// **'画面の右半分をタップすると、ボールを打ち出す\nボールや敵の弾がパドルに当たる瞬間にタップすると、強く弾き返せる(パリィ)'**
   String get helpParryZones;
 
   /// No description provided for @helpParryRail.
   ///
   /// In ja, this message translates to:
-  /// **'ボールや弾が当たる瞬間に PARRY ボタンを押す'**
+  /// **'PARRY ボタンを押すと、ボールを打ち出す\nボールや敵の弾がパドルに当たる瞬間に押すと、強く弾き返せる(パリィ)'**
   String get helpParryRail;
 
   /// No description provided for @helpTimingTitle.
@@ -197,7 +197,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpTimingBody.
   ///
   /// In ja, this message translates to:
-  /// **'PERFECT → 貫通弾\nJUST → 衝撃波'**
+  /// **'当たる瞬間にぴったり合わせるほど、弾き返したボールが強くなる\nPERFECT:ボールがブロックを突き抜けて進む\nJUST(さらにぴったり):次に当たった所で衝撃波が出て、周りのブロックもまとめて壊す'**
   String get helpTimingBody;
 
   /// No description provided for @helpChainTitle.
@@ -209,7 +209,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpChainBody.
   ///
   /// In ja, this message translates to:
-  /// **'白い要石を壊す → 崩落\nオレンジの爆薬 → 誘爆'**
+  /// **'白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る'**
   String get helpChainBody;
 
   /// No description provided for @helpOverTitle.
@@ -221,7 +221,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpOverBody.
   ///
   /// In ja, this message translates to:
-  /// **'ボールを落とすと終わり\nブロックが警告線まで下りてきても終わり'**
+  /// **'ボールを画面の下に落とすと終わり\nブロックが赤い点線(警告ライン)まで下りてきても終わり'**
   String get helpOverBody;
 
   /// No description provided for @helpPauseTitle.
@@ -233,8 +233,20 @@ abstract class AppLocalizations {
   /// No description provided for @helpPauseBody.
   ///
   /// In ja, this message translates to:
-  /// **'右上の Ⅱ をタップ'**
+  /// **'右上の Ⅱ をタップすると、一時停止する'**
   String get helpPauseBody;
+
+  /// No description provided for @helpPrev.
+  ///
+  /// In ja, this message translates to:
+  /// **'前へ'**
+  String get helpPrev;
+
+  /// No description provided for @helpNext.
+  ///
+  /// In ja, this message translates to:
+  /// **'次へ'**
+  String get helpNext;
 
   /// No description provided for @paused.
   ///
@@ -391,6 +403,30 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'目標: コアをすべて破壊'**
   String get clearBoss;
+
+  /// No description provided for @settingsTabControls.
+  ///
+  /// In ja, this message translates to:
+  /// **'操作'**
+  String get settingsTabControls;
+
+  /// No description provided for @settingsTabSound.
+  ///
+  /// In ja, this message translates to:
+  /// **'サウンド'**
+  String get settingsTabSound;
+
+  /// No description provided for @settingsTabDisplay.
+  ///
+  /// In ja, this message translates to:
+  /// **'表示'**
+  String get settingsTabDisplay;
+
+  /// No description provided for @settingsTabOther.
+  ///
+  /// In ja, this message translates to:
+  /// **'その他'**
+  String get settingsTabOther;
 
   /// No description provided for @settingsControls.
   ///

@@ -47,7 +47,7 @@ platform :ios do
     )
   end
 
-  # TestFlight に上がっているビルドを、新機能の文面を入れて審査に出す。
+  # TestFlight に上がっているビルドを、metadata/ の掲載文 (名前・説明文・キーワード・URL・新機能) を送って審査に出す。
   # 承認されたら自動で段階的リリース (7日) を始める。
   #   fastlane submit version:1.2.0 build_number:123
   lane :submit do |options|

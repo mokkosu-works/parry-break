@@ -42,43 +42,53 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpMoveTitle => '移動';
 
   @override
-  String get helpMoveZones => '画面の左半分をドラッグ';
+  String get helpMoveZones => '画面の左半分をドラッグして、パドルを左右に動かす';
 
   @override
-  String get helpMoveRail => '左のレールをドラッグ';
+  String get helpMoveRail => '左のレールをドラッグして、パドルを左右に動かす';
 
   @override
   String get helpParryTitle => '発射・パリィ';
 
   @override
-  String get helpParryZones => 'ボールや弾が当たる瞬間に画面の右半分をタップ';
+  String get helpParryZones =>
+      '画面の右半分をタップすると、ボールを打ち出す\nボールや敵の弾がパドルに当たる瞬間にタップすると、強く弾き返せる(パリィ)';
 
   @override
-  String get helpParryRail => 'ボールや弾が当たる瞬間に PARRY ボタンを押す';
+  String get helpParryRail =>
+      'PARRY ボタンを押すと、ボールを打ち出す\nボールや敵の弾がパドルに当たる瞬間に押すと、強く弾き返せる(パリィ)';
 
   @override
   String get helpTimingTitle => 'タイミング';
 
   @override
-  String get helpTimingBody => 'PERFECT → 貫通弾\nJUST → 衝撃波';
+  String get helpTimingBody =>
+      '当たる瞬間にぴったり合わせるほど、弾き返したボールが強くなる\nPERFECT:ボールがブロックを突き抜けて進む\nJUST(さらにぴったり):次に当たった所で衝撃波が出て、周りのブロックもまとめて壊す';
 
   @override
   String get helpChainTitle => '連鎖';
 
   @override
-  String get helpChainBody => '白い要石を壊す → 崩落\nオレンジの爆薬 → 誘爆';
+  String get helpChainBody =>
+      '白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る';
 
   @override
   String get helpOverTitle => 'ゲームオーバー';
 
   @override
-  String get helpOverBody => 'ボールを落とすと終わり\nブロックが警告線まで下りてきても終わり';
+  String get helpOverBody => 'ボールを画面の下に落とすと終わり\nブロックが赤い点線(警告ライン)まで下りてきても終わり';
 
   @override
   String get helpPauseTitle => '一時停止';
 
   @override
-  String get helpPauseBody => '右上の Ⅱ をタップ';
+  String get helpPauseBody => '右上の Ⅱ をタップすると、一時停止する';
+
+  @override
+  String get helpPrev => '前へ';
+
+  @override
+  String get helpNext => '次へ';
 
   @override
   String get paused => '一時停止中';
@@ -179,6 +189,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get clearBoss => '目標: コアをすべて破壊';
+
+  @override
+  String get settingsTabControls => '操作';
+
+  @override
+  String get settingsTabSound => 'サウンド';
+
+  @override
+  String get settingsTabDisplay => '表示';
+
+  @override
+  String get settingsTabOther => 'その他';
 
   @override
   String get settingsControls => '操作方法';
