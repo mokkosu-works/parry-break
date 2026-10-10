@@ -328,8 +328,6 @@ void main() {
     await _frames(tester, 0.5);
     expect(find.text('START'), findsOneWidget);
     await _shot(tester, '07_stage_detail');
-    await tester.tap(find.text('BACK'));
-    await _frames(tester, 0.3);
     await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.back));
     await _frames(tester, 0.5);
     await tester.tap(find.text('SETTINGS'));
