@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parry_break/app/providers.dart';
+import 'package:parry_break/audio/audio_service.dart';
 import 'package:parry_break/core/core.dart';
 import 'package:parry_break/game/game_screen.dart';
 import 'package:parry_break/main.dart';
@@ -48,7 +49,8 @@ Future<void> _pumpApp(WidgetTester tester,
     Map<String, Object> prefs = const {},
     Size size = const Size(1600, 740),
     double dpr = 1,
-    AdsService? ads}) async {
+    AdsService? ads,
+    AudioService? audio}) async {
   tester.view
     ..physicalSize = size * dpr
     ..devicePixelRatio = dpr;
@@ -65,6 +67,7 @@ Future<void> _pumpApp(WidgetTester tester,
       contentProvider.overrideWithValue(GameContent(endless: endlessContent, campaign: _campaign)),
       timeSourceProvider.overrideWithValue(() => binding.clock.now().microsecondsSinceEpoch / 1e6),
       if (ads != null) adsProvider.overrideWithValue(ads),
+      if (audio != null) audioProvider.overrideWithValue(audio),
     ],
     child: ParryBreakApp(home: home),
   ));
@@ -92,6 +95,25 @@ class _FakeAds extends DisabledAds {
   int shown = 0;
   @override
   Future<void> showInterstitialIfDue() async => shown++;
+}
+
+/// タイトル用の BGM に関わる呼び出しを覚える。
+class _FakeAudio extends SilentAudio {
+  bool menu = false;
+  int games = 0;
+  bool active = true;
+
+  /// タイトル用の BGM が鳴っているはずか (SoLoudAudio と同じ条件)。
+  bool get titlePlaying => menu && games == 0 && active;
+
+  @override
+  void setMenuMusic(bool on) => menu = on;
+  @override
+  void enterGame() => games++;
+  @override
+  void leaveGame() => games--;
+  @override
+  void setAppActive(bool active) => this.active = active;
 }
 
 Future<void> _shot(WidgetTester tester, String name) async {
@@ -196,6 +218,32 @@ void main() {
     await tester.tap(find.text('TITLE'));
     await _frames(tester, 0.1);
     expect(ads.shown, 1);
+  });
+
+  testWidgets('タイトル用の BGM: メニューでは鳴り、ゲーム中は止まり、戻ると鳴る', (tester) async {
+    final audio = _FakeAudio();
+    await _pumpApp(tester, audio: audio);
+    await _frames(tester, 1);
+    expect(audio.titlePlaying, isTrue);
+
+    await tester.tap(find.text('SETTINGS'));
+    await _frames(tester, 0.5);
+    expect(audio.titlePlaying, isTrue); // メニュー画面でも続く
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await _frames(tester, 0.5);
+
+    await tester.tap(find.text('ENDLESS'));
+    await _frames(tester, 0.8);
+    expect(find.byType(GameScreen), findsOneWidget);
+    expect(audio.titlePlaying, isFalse);
+
+    await _frames(tester, 0.6);
+    await _gameOver(tester);
+    expect(audio.titlePlaying, isFalse); // 結果画面の間は鳴らさない
+    await tester.tap(find.text('TITLE'));
+    await _frames(tester, 1);
+    expect(find.byType(GameScreen), findsNothing);
+    expect(audio.titlePlaying, isTrue);
   });
 
   testWidgets('結果画面: デバッグモードのプレイでは広告を出さない', (tester) async {

@@ -6,7 +6,7 @@ void main() {
     final sw = Stopwatch()..start();
     final bank = renderSoundBank();
     final ms = sw.elapsedMilliseconds;
-    expect(bank.keys, containsAll(['just', 'perfect', 'good', 'note0', 'note19', 'music0', 'music4', 'brk2']));
+    expect(bank.keys, containsAll(['just', 'perfect', 'good', 'note0', 'note19', 'music0', 'music4', 'musicTitle', 'brk2']));
     for (final e in bank.entries) {
       final w = e.value;
       expect(String.fromCharCodes(w.sublist(0, 4)), 'RIFF', reason: e.key);

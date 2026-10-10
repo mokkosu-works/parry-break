@@ -1,6 +1,7 @@
-# PR ごとに、チェックと Claude のレビューを行う。
-# dev 向けの PR は、両方が通り、hold / needs-fix のラベルがなければ自動でマージする。
-# main 向けの PR (リリース PR・ホットフィックス) は自動ではマージしない。手順は docs/release-flow.md。
+# PR ごとに、チェック・エミュレーターでのテスト・Claude のレビューを行う。
+# dev 向けの PR は、すべて通って人が Approve していれば (順番はどちらが先でもよい)、squash でマージする。
+# 人の Approve を受けてマージするのは merge.yml。条件は .github/scripts/merge-if-approved.sh。
+# main 向けの PR (リリース PR・ホットフィックス) は人が手でマージする。手順は docs/release-flow.md。
 name: pr
 
 on:
@@ -14,6 +15,37 @@ concurrency:
 jobs:
   check:
     uses: ./.github/workflows/check.yml
+
+  # Android エミュレーターでアプリを動かし、起動から一通りの画面を通って落ちないことを確かめる
+  e2e:
+    # 15 分ほどかかるので、下書きでは動かさない (ready_for_review で動く)
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/android-emulator
+      - name: スモークテスト
+        working-directory: app
+        timeout-minutes: 15
+        run: >-
+          SHOT_DIR=build/smoke flutter drive -d emulator-5554
+          --driver=test_driver/integration_test.dart --target=integration_test/smoke_test.dart
+      - if: always()
+        run: |
+          # 端末がないと adb logcat は待ち続けるので、上限を付ける。エミュレーター自体のログも残す
+          mkdir -p app/build
+          timeout 60 adb logcat -d > app/build/logcat.txt || true
+          cp "$RUNNER_TEMP/emulator.log" app/build/ 2>/dev/null || true
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke
+          path: |
+            app/build/smoke/
+            app/build/logcat.txt
+            app/build/emulator.log
+          if-no-files-found: ignore
 
   review:
     # フォークからの PR ではシークレットが使えないので動かさない
@@ -29,34 +61,147 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          # main 向けの PR で、前回のタグからの変更を見るため
+          fetch-depth: 0
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Issue から実装した PR は Claude の GitHub アプリ (claude[bot]) が作るので、それも通す
+          allowed_bots: claude
+          # 観点・重さの基準・ラベルの付け方は .claude/skills/pr-review/SKILL.md に書く
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
             BASE: ${{ github.event.pull_request.base.ref }}
 
-            この PR をレビューする。見るのは次の点だけで、好みの問題は指摘しない。
-            - 不具合(ゲームの判定・乱数の再現性・保存データの互換・広告の出し方)
-            - design.md / docs/native-app-spec.md と実装の食い違い(仕様は実装を正とするが、明らかな不具合は指摘する)
-            - 足りないテスト
-            - BASE が main の PR(リリース PR・ホットフィックス)なら、docs/release-flow.md の「バージョン名の上げ方」に合っているか、
-              ストアの「新機能」の文面(app/ios/fastlane/metadata/*/release_notes.txt、
-              app/android/fastlane/metadata/android/*/changelogs/default.txt)が字数の上限に収まっているか
-
-            指摘は該当行へのインラインコメント(mcp__github_inline_comment__create_inline_comment)で、日本語で書く。
-            最後に `gh pr comment` で、全体の所見を短くまとめる。問題がなければそう書く。
-
-            マージの前に直すべき問題(不具合・データの互換が壊れる・審査で落ちる)が残っていれば
-            `gh pr edit <番号> --add-label needs-fix` を、なければ `gh pr edit <番号> --remove-label needs-fix` を実行する。
-            dev 向けの PR は、このラベルがなければ自動でマージされる。
+            pr-review スキル(.claude/skills/pr-review/SKILL.md)の手順で、この PR をレビューする。
+            指摘は日本語のインラインコメントで書き、最後に全体の所見をコメントし、needs-fix ラベルを付け外しする。
           claude_args: >-
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr edit:*)"
+            --allowedTools "Skill,Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh issue view:*),Bash(git log:*),Bash(git diff:*),Bash(git tag:*),Bash(wc:*)"
 
-  automerge:
-    needs: [check, review]
+  # レビューが needs-fix を付けたら、Claude が [要修正] の指摘を 1 つずつ確かめ、妥当なものだけを直してコミットする。
+  # ワークフローがチェックを通してから Claude の GitHub アプリのトークンで push するので、pr.yml がもう一度動き、
+  # 再レビューで直っていれば needs-fix が外れる。妥当でない指摘にはスレッドで理由を返し、needs-fix は人の判断に残す。
+  # 続けての自動修正は MAX_FIXES 回まで (人が push すると数え直す)。手順は .claude/skills/pr-fix/SKILL.md
+  # main 向けの PR (リリース PR・ホットフィックス) は人が直す
+  fix:
+    needs: review
+    if: >-
+      github.event.pull_request.base.ref == 'dev' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    env:
+      PR: ${{ github.event.pull_request.number }}
+      BASE: ${{ github.event.pull_request.base.ref }}
+      BRANCH: ${{ github.event.pull_request.head.ref }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      MAX_FIXES: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          # GITHUB_TOKEN を残すと push がそれで行われ、pr.yml が動かない
+          persist-credentials: false
+
+      - name: 直すかを決める
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FINDINGS: ${{ runner.temp }}/review-findings.json
+        run: |
+          skip() { echo "::notice::自動修正しない: $1"; echo "run=false" >> "$GITHUB_OUTPUT"; exit 0; }
+          labels=$(gh pr view "$PR" -R "$GITHUB_REPOSITORY" --json labels -q '[.labels[].name] | join(" ")')
+          grep -qw needs-fix <<<"$labels" || skip "needs-fix が付いていない"
+          grep -qw hold <<<"$labels" && skip "hold が付いている"
+          [ "$(git rev-parse HEAD)" = "$HEAD_SHA" ] || skip "レビューのあとに push された (その push の実行に任せる)"
+
+          # 先頭から続く自動修正のコミットを数える。人のコミットがあればそこで止まる (= 数え直す)
+          count=0
+          for c in $(git rev-list "origin/$BASE..HEAD"); do
+            git log -1 --format=%B "$c" | grep -qx 'Review-Fix: auto' || break
+            count=$((count + 1))
+          done
+          if [ "$count" -ge "$MAX_FIXES" ]; then
+            gh pr comment "$PR" -R "$GITHUB_REPOSITORY" --body "自動修正を続けて $MAX_FIXES 回したが、まだ \`[要修正]\` が残っているので止めた。レビューの指摘を見て、\`@claude\` で頼むか手で直してほしい。"
+            skip "続けての自動修正が $count 回"
+          fi
+
+          # この実行のレビューが、いまの先頭のコミットに書いた [要修正] の指摘 (返信は除く)
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/comments" | jq -s --arg head "$HEAD_SHA" '
+            add
+            | map(select(.user.login == "claude[bot]" and .in_reply_to_id == null
+                and .original_commit_id == $head and (.body | startswith("**[要修正]**"))))
+            | map({id, path, line: (.line // .original_line), body, url: .html_url})' > "$FINDINGS"
+          n=$(jq length "$FINDINGS")
+          [ "$n" -gt 0 ] || skip "インラインの [要修正] の指摘が見つからない"
+          echo "指摘 $n 件 / 続けての自動修正 $count 回"
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
+      - if: steps.gate.outputs.run == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          # check.yml と同じ値にする
+          flutter-version: 3.47.6
+          channel: stable
+          cache: true
+
+      - if: steps.gate.outputs.run == 'true'
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        env:
+          FINDINGS: ${{ runner.temp }}/review-findings.json
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # 自動修正の push で動いた 2 回目は、きっかけが claude[bot] になるので通す
+          allowed_bots: claude
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ env.PR }}
+            BRANCH: ${{ env.BRANCH }} (チェックアウト済み)
+            FINDINGS: ${{ runner.temp }}/review-findings.json (この実行のレビューの [要修正] の指摘)
+
+            pr-fix スキル(.claude/skills/pr-fix/SKILL.md)の手順で、指摘を 1 つずつ確かめ、妥当なものだけを直してコミットする。
+            push はしない(このあとワークフローがチェックを通してから push する)。各指摘のスレッドに判定を返信し、最後に全体をコメントする。
+          # push・ラベル・マージに使えるコマンドは許さない
+          claude_args: >-
+            --max-turns 150
+            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,TodoWrite,Bash(flutter:*),Bash(dart:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git add:*),Bash(git commit:*),Bash(git checkout --:*),Bash(git rev-parse:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh issue view:*),Bash(gh api -X POST repos/${{ github.repository }}/pulls/${{ env.PR }}/comments/:*),Bash(cat:*),Bash(ls:*),Bash(cd:*),Bash(wc:*),Bash(grep:*)"
+
+      # Claude の GitHub アプリのトークンで push する (GITHUB_TOKEN の push では pr.yml が動かず、再レビューされない)。
+      # push すると新しい pr.yml の実行がこの実行を止めるので、push を最後にする
+      - name: チェックを通してから push する
+        if: steps.gate.outputs.run == 'true' && steps.claude.outputs.github_token != ''
+        working-directory: app
+        env:
+          GH_TOKEN: ${{ steps.claude.outputs.github_token }}
+        run: |
+          echo "::add-mask::$GH_TOKEN"
+          if [ -z "$(git rev-list "origin/$BRANCH..HEAD")" ]; then
+            echo "コミットがない (直す指摘がなかった)"
+            exit 0
+          fi
+          git log --format='%h %s' "origin/$BRANCH..HEAD"
+          # コミットしたものだけを確かめて push する
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::warning::コミットしていない変更は push しない"
+            git stash push -u -q
+          fi
+          if ! { flutter analyze && flutter test; }; then
+            gh pr comment "$PR" -R "$GITHUB_REPOSITORY" --body "自動修正のコミットが \`flutter analyze\` / \`flutter test\` を通らなかったので、push しなかった。[ログ]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+            exit 1
+          fi
+          git push "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git" "HEAD:$BRANCH"
+
+  merge:
+    needs: [check, e2e, review]
     if: >-
       github.event.pull_request.base.ref == 'dev' &&
       !github.event.pull_request.draft &&
@@ -66,16 +211,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          # スクリプトは PR の側ではなく、dev にあるものを使う (PR で条件を緩められないように)
+          ref: dev
+      # 人がもう Approve していればマージする。まだなら何もしない (Approve されたときに merge.yml がマージする)
       - env:
           GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          # ラベルはレビューの後に付くので、イベントの中身ではなくいまの状態を読む
-          labels=$(gh pr view "$PR" -R "$GITHUB_REPOSITORY" --json labels -q '[.labels[].name] | join(" ")')
-          if grep -qwE 'hold|needs-fix' <<<"$labels"; then
-            echo "::notice::ラベル ($labels) が付いているので、自動ではマージしない"
-            exit 0
-          fi
-          # レビューの後に push されていたらマージしない (その push の実行に任せる)
-          gh pr merge "$PR" -R "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$HEAD_SHA"
+        run: .github/scripts/merge-if-approved.sh ${{ github.event.pull_request.number }}

@@ -26,6 +26,16 @@ abstract class AudioService {
   void setVolumes({required double bgm, required double sfx});
 
   void play(String name);
+
+  /// タイトルとメニュー画面にいる間、タイトル用の BGM を流す。画面が出る・消えるときに呼ぶ。
+  void setMenuMusic(bool on);
+
+  /// ゲーム画面が開いている間はタイトル用の BGM を止める (画面の出入りで呼ぶ。入れ子でもよい)。
+  void enterGame();
+  void leaveGame();
+
+  /// アプリが前面にあるか。背面の間はタイトル用の BGM を止める。
+  void setAppActive(bool active);
 }
 
 /// 音を出さない実装 (Web のプレビューやテスト)。
@@ -46,6 +56,14 @@ class SilentAudio implements AudioService {
   void setVolumes({required double bgm, required double sfx}) {}
   @override
   void play(String name) {}
+  @override
+  void setMenuMusic(bool on) {}
+  @override
+  void enterGame() {}
+  @override
+  void leaveGame() {}
+  @override
+  void setAppActive(bool active) {}
 }
 
 class SoLoudAudio implements AudioService {
@@ -63,6 +81,10 @@ class SoLoudAudio implements AudioService {
   Timer? _switch;
   bool _musicOn = false;
 
+  SoundHandle? _title;
+  bool _menuOn = false, _appActive = true;
+  int _games = 0;
+
   @override
   Future<void> init() async {
     try {
@@ -73,6 +95,7 @@ class SoLoudAudio implements AudioService {
         _src[e.key] = await _sl.loadMem('${e.key}.wav', e.value);
       }
       _ready = true;
+      _syncTitle();
     } on Object catch (e) {
       debugPrint('audio disabled: $e');
     }
@@ -247,6 +270,50 @@ class SoLoudAudio implements AudioService {
     _sfx = sfx;
     final h = _music;
     if (_ready && h != null) _sl.setVolume(h, bgm);
+    final t = _title;
+    if (_ready && t != null) _sl.setVolume(t, bgm);
+  }
+
+  @override
+  void setMenuMusic(bool on) {
+    _menuOn = on;
+    _syncTitle();
+  }
+
+  @override
+  void enterGame() {
+    _games++;
+    _syncTitle();
+  }
+
+  @override
+  void leaveGame() {
+    _games = math.max(0, _games - 1);
+    _syncTitle();
+  }
+
+  @override
+  void setAppActive(bool active) {
+    _appActive = active;
+    _syncTitle();
+  }
+
+  /// タイトル用の BGM を、メニューにいてゲームが開いていなければ流し、そうでなければ止める。
+  void _syncTitle() {
+    if (!_ready) return;
+    final h = _title;
+    if (!_menuOn || _games > 0) {
+      if (h != null) _sl.stop(h);
+      _title = null;
+      return;
+    }
+    if (h == null) {
+      final s = _src['musicTitle'];
+      if (s == null) return;
+      _title = _sl.play(s, volume: _bgm, looping: true, paused: !_appActive);
+    } else {
+      _sl.setPause(h, !_appActive);
+    }
   }
 }
 

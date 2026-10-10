@@ -6,7 +6,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        要望ありがとうございます。困っていることや、こうなったら嬉しいことを自由に書いてください。
+        要望ありがとうございます。困っていることや、こうなったら嬉しいことを書いてください。
+
+        起票したあと `@claude` を付けてコメントすると、Claude がこの Issue をもとに実装し、Android エミュレーターで確かめてから PR を作ります。人は PR のレビューの所見と確かめた結果を見て Approve するだけなので、**「こうなってほしい」と「完了条件」は 1 つに決めて** 書いてください。決めきれないことは「決めていないこと」に書きます。
 
   - type: textarea
     id: problem
@@ -21,10 +23,34 @@ body:
     id: proposal
     attributes:
       label: こうなってほしい
-      description: 思いついている解決案があれば書いてください。
+      description: 実装してほしい内容を 1 つに決めて書いてください。案が複数あるなら、選んだものだけを書き、残りは「ほかに考えた案」に書きます。
       placeholder: 例) ジャストパリィのときに画面が一瞬光る
     validations:
       required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: 完了条件
+      description: できたと言える条件を、確かめられる形で箇条書きにしてください。実装の PR はこれを満たすように作り、レビューもこれで確かめます。「○○したとき△△が表示される」のように画面で確かめられる形だと、Claude がエミュレーターで確かめます。やらないこと(範囲の外)もあれば書きます。
+      placeholder: |
+        - [ ] ジャストパリィのときだけ、画面全体が 0.1 秒ほど白く光る
+        - [ ] 設定の「演出を控えめにする」がオンなら光らない
+        - [ ] 通常のパリィでは光らない
+        - やらないこと: 光の色をステージごとに変える
+    validations:
+      required: true
+
+  - type: textarea
+    id: open_questions
+    attributes:
+      label: 決めていないこと
+      description: 迷っていることがあれば書き、それぞれ「任せる」(Claude が決めて PR の本文に書く)か「先に聞いてほしい」(着手する前に Issue で質問する)かを添えてください。なければ空欄で構いません。
+      placeholder: |
+        - 光る時間と明るさ → 任せる
+        - 設定でオン・オフできるようにするか → 先に聞いてほしい
+    validations:
+      required: false
 
   - type: dropdown
     id: area
@@ -44,10 +70,19 @@ body:
       required: false
 
   - type: textarea
+    id: code
+    attributes:
+      label: 関係しそうなコード
+      description: 手を入れる場所の見当がついていれば、ファイル・関数・設定値を書いてください。わからなければ空欄で構いません。
+      placeholder: 例) パリィの判定は app/lib/core/ が出す GameEvent、演出は app/lib/render/
+    validations:
+      required: false
+
+  - type: textarea
     id: alternatives
     attributes:
       label: ほかに考えた案
-      description: 別のやり方や、似たことをしている他のゲームがあれば書いてください。
+      description: 別のやり方や、似たことをしている他のゲームがあれば書いてください。ここに書いた案は実装しません。
     validations:
       required: false
 
@@ -55,6 +90,6 @@ body:
     id: attachments
     attributes:
       label: 参考画像・動画
-      description: イメージがあれば貼り付けてください。
+      description: イメージがあれば貼り付けてください。Claude は動画を見られないので、動画でわかることは「こうなってほしい」にも文章で書いてください。
     validations:
       required: false

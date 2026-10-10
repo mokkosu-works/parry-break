@@ -16,7 +16,8 @@ platform :ios do
   end
 
   # flutter build ios --no-codesign の後に呼ぶ。署名してアーカイブし、TestFlight に上げる
-  lane :beta do
+  #   fastlane beta upload:false で、アーカイブまで (署名の確認用)
+  lane :beta do |options|
     setup_ci
     key = asc_key
     match(type: "appstore", app_identifier: BUNDLE_ID, readonly: true, api_key: key)
@@ -37,6 +38,8 @@ platform :ios do
       output_directory: "../build/ios/ipa",
       export_options: { provisioningProfiles: { BUNDLE_ID => "match AppStore #{BUNDLE_ID}" } },
     )
+    next if options[:upload].to_s == "false"
+
     upload_to_testflight(
       api_key: key,
       changelog: File.read("metadata/ja/release_notes.txt"),
