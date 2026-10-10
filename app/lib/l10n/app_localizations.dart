@@ -236,6 +236,18 @@ abstract class AppLocalizations {
   /// **'右上の Ⅱ をタップ'**
   String get helpPauseBody;
 
+  /// No description provided for @helpPrev.
+  ///
+  /// In ja, this message translates to:
+  /// **'前へ'**
+  String get helpPrev;
+
+  /// No description provided for @helpNext.
+  ///
+  /// In ja, this message translates to:
+  /// **'次へ'**
+  String get helpNext;
+
   /// No description provided for @paused.
   ///
   /// In ja, this message translates to:

@@ -30,6 +30,8 @@
   "helpOverBody": "ボールを落とすと終わり\nブロックが警告線まで下りてきても終わり",
   "helpPauseTitle": "一時停止",
   "helpPauseBody": "右上の Ⅱ をタップ",
+  "helpPrev": "前へ",
+  "helpNext": "次へ",
   "paused": "一時停止中",
   "resume": "再開",
   "retry": "リトライ",

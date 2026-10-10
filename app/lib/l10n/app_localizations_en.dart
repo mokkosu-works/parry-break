@@ -84,6 +84,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPauseBody => 'Tap Ⅱ at the top right';
 
   @override
+  String get helpPrev => 'PREV';
+
+  @override
+  String get helpNext => 'NEXT';
+
+  @override
   String get paused => 'PAUSED';
 
   @override

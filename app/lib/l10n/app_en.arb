@@ -23,6 +23,8 @@
   "helpOverBody": "Don't drop the ball\nKeep blocks above the warning line",
   "helpPauseTitle": "PAUSE",
   "helpPauseBody": "Tap Ⅱ at the top right",
+  "helpPrev": "PREV",
+  "helpNext": "NEXT",
   "paused": "PAUSED",
   "resume": "RESUME",
   "retry": "RETRY",

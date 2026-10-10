@@ -81,6 +81,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpPauseBody => '右上の Ⅱ をタップ';
 
   @override
+  String get helpPrev => '前へ';
+
+  @override
+  String get helpNext => '次へ';
+
+  @override
   String get paused => '一時停止中';
 
   @override

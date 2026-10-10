@@ -1,176 +1,222 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
 import '../render/palette.dart';
 import '../services/settings.dart';
 import 'arcade.dart';
+import 'help_diagram.dart';
 import 'widgets.dart';
 
-/// 遊び方。番号付きの斜めに切ったパネルを並べるアーケード調の画面。
-class HelpScreen extends ConsumerWidget {
+/// 遊び方の 1 ページ分の中身。
+typedef HelpPage = ({HelpTopic topic, String title, String body, Color color});
+
+List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
+  final zones = controls == ControlScheme.zones;
+  return [
+    (
+      topic: HelpTopic.move,
+      title: l.helpMoveTitle,
+      body: zones ? l.helpMoveZones : l.helpMoveRail,
+      color: Palette.cyan,
+    ),
+    (
+      topic: HelpTopic.parry,
+      title: l.helpParryTitle,
+      body: zones ? l.helpParryZones : l.helpParryRail,
+      color: Palette.yellow,
+    ),
+    (topic: HelpTopic.timing, title: l.helpTimingTitle, body: l.helpTimingBody, color: Palette.justPink),
+    (topic: HelpTopic.chain, title: l.helpChainTitle, body: l.helpChainBody, color: Palette.orange),
+    (topic: HelpTopic.over, title: l.helpOverTitle, body: l.helpOverBody, color: Palette.red),
+    (topic: HelpTopic.pause, title: l.helpPauseTitle, body: l.helpPauseBody, color: Palette.pale),
+  ];
+}
+
+/// 遊び方。1 ページに 1 項目を、動く図と短い説明で見せる。左右のスワイプかボタンでめくる。
+class HelpScreen extends ConsumerStatefulWidget {
   const HelpScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HelpScreen> createState() => _HelpScreenState();
+}
+
+class _HelpScreenState extends ConsumerState<HelpScreen> {
+  final PageController _pages = PageController();
+  int _index = 0;
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
+  void _go(int i, int count) {
+    if (i < 0) return;
+    if (i >= count) {
+      Navigator.of(context).maybePop();
+      return;
+    }
+    _pages.animateToPage(i, duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final zones = ref.watch(settingsProvider).controls == ControlScheme.zones;
-    final cards = [
-      (Icons.swap_horiz, l.helpMoveTitle, zones ? l.helpMoveZones : l.helpMoveRail, Palette.cyan),
-      (Icons.touch_app, l.helpParryTitle, zones ? l.helpParryZones : l.helpParryRail, Palette.justPink),
-      (Icons.gps_fixed, l.helpTimingTitle, l.helpTimingBody, Palette.yellow),
-      (Icons.account_tree_outlined, l.helpChainTitle, l.helpChainBody, Palette.orange),
-      (Icons.south, l.helpOverTitle, l.helpOverBody, Palette.red),
-      (Icons.pause, l.helpPauseTitle, l.helpPauseBody, Palette.pale),
-    ];
+    final s = ref.watch(settingsProvider);
+    final pages = helpPages(l, s.controls);
+    final last = _index == pages.length - 1;
+    final page = pages[_index];
     return Scaffold(
-      body: NeonBackground(
-        animate: false,
-        child: Stack(children: [
-          const Positioned.fill(child: Scanlines()),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Row(children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back, color: Palette.cyan),
-                    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: ChromaticTitle(l.menuHowToPlay, size: 30, color: Palette.cyan),
+      body: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _go(_index - 1, pages.length),
+          const SingleActivator(LogicalKeyboardKey.arrowRight): () => _go(_index + 1, pages.length),
+        },
+        child: Focus(
+          autofocus: true,
+          child: NeonBackground(
+            animate: false,
+            child: Stack(
+              children: [
+                const Positioned.fill(child: Scanlines()),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => Navigator.of(context).maybePop(),
+                              icon: const Icon(Icons.arrow_back, color: Palette.cyan),
+                              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: ChromaticTitle(l.menuHowToPlay, size: 26, color: Palette.cyan),
+                              ),
+                            ),
+                            Text('${_index + 1}'.padLeft(2, '0'), style: orbitron(22, color: page.color, weight: 900)),
+                            Text(
+                              ' / ${pages.length.toString().padLeft(2, '0')}',
+                              style: orbitron(14, color: withAlpha(Palette.pale, 0.5), weight: 700),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: PageView.builder(
+                            controller: _pages,
+                            itemCount: pages.length,
+                            onPageChanged: (i) => setState(() => _index = i),
+                            itemBuilder: (context, i) =>
+                                _Page(page: pages[i], controls: s.controls, animate: !s.reduceEffects && i == _index),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: _index == 0 ? null : () => _go(_index - 1, pages.length),
+                              icon: const Icon(Icons.chevron_left),
+                              color: Palette.cyan,
+                              disabledColor: withAlpha(Palette.pale, 0.2),
+                              tooltip: l.helpPrev,
+                            ),
+                            const Spacer(),
+                            for (var i = 0; i < pages.length; i++)
+                              GestureDetector(
+                                onTap: () => _go(i, pages.length),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                                  width: i == _index ? 26 : 10,
+                                  height: 6,
+                                  color: i == _index ? page.color : withAlpha(Palette.pale, i < _index ? 0.5 : 0.18),
+                                ),
+                              ),
+                            const Spacer(),
+                            SlashButton(
+                              label: last ? l.back : l.helpNext,
+                              primary: last,
+                              color: page.color,
+                              onPressed: () => _go(_index + 1, pages.length),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(child: Container(height: 2, color: withAlpha(Palette.cyan, 0.35))),
-                ]),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: LayoutBuilder(builder: (context, c) {
-                    final cols = c.maxWidth > 720 ? 3 : 2;
-                    final rows = (cards.length / cols).ceil();
-                    const gap = 12.0;
-                    final w = (c.maxWidth - gap * (cols - 1)) / cols;
-                    final h = (c.maxHeight - gap * (rows - 1)) / rows;
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Wrap(spacing: gap, runSpacing: gap, children: [
-                        for (var i = 0; i < cards.length; i++)
-                          SizedBox(
-                            width: w,
-                            height: h.clamp(104.0, 280.0),
-                            child: _HelpPanel(
-                              index: i + 1,
-                              icon: cards[i].$1,
-                              title: cards[i].$2,
-                              body: cards[i].$3,
-                              color: cards[i].$4,
-                            ),
-                          ),
-                      ]),
-                    );
-                  }),
                 ),
-              ]),
+              ],
             ),
           ),
-        ]),
+        ),
       ),
     );
   }
 }
 
-class _HelpPanel extends StatelessWidget {
-  const _HelpPanel({required this.index, required this.icon, required this.title, required this.body, required this.color});
-  final int index;
-  final IconData icon;
-  final String title, body;
-  final Color color;
+class _Page extends StatelessWidget {
+  const _Page({required this.page, required this.controls, required this.animate});
+  final HelpPage page;
+  final ControlScheme controls;
+  final bool animate;
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _PanelPainter(color),
-      child: Stack(children: [
-        // 背景の大きな番号 (線だけ)
-        Positioned(
-          right: 14,
-          bottom: -4,
-          child: Text(
-            index.toString().padLeft(2, '0'),
-            style: orbitron(64, weight: 900).copyWith(
-              height: 1,
-              foreground: Paint()
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 1.5
-                ..color = withAlpha(color, 0.28),
-            ),
+    final diagram = HelpDiagram(topic: page.topic, controls: controls, animate: animate);
+    final words = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          page.title,
+          style: orbitron(
+            30,
+            color: page.color,
+            weight: 900,
+            letterSpacing: 2,
+          ).copyWith(shadows: [Shadow(color: withAlpha(page.color, 0.6), blurRadius: 12)]),
+        ),
+        Container(margin: const EdgeInsets.symmetric(vertical: 14), width: 48, height: 3, color: page.color),
+        Text(
+          page.body,
+          style: TextStyle(
+            fontSize: 19,
+            height: 1.7,
+            color: withAlpha(Palette.white, 0.92),
+            fontFamilyFallback: kFontFallback,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(22, 12, 14, 10),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(icon, color: color, size: 22, shadows: [Shadow(color: withAlpha(color, 0.8), blurRadius: 8)]),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: orbitron(17, color: color, weight: 800, letterSpacing: 2)),
-              ),
-            ]),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Text(body,
-                  style: TextStyle(fontSize: 16, height: 1.5, color: withAlpha(Palette.white, 0.92), fontFamilyFallback: kFontFallback)),
-            ),
-          ]),
-        ),
-      ]),
+      ],
+    );
+    return LayoutBuilder(
+      builder: (context, c) {
+        // 横長なら図と説明を左右に、縦に余裕があれば上下に並べる
+        if (c.maxWidth / c.maxHeight > 1.3) {
+          return Row(
+            children: [
+              Expanded(flex: 3, child: Center(child: diagram)),
+              const SizedBox(width: 32),
+              Expanded(flex: 2, child: SingleChildScrollView(child: words)),
+            ],
+          );
+        }
+        return Column(
+          children: [
+            Flexible(child: Center(child: diagram)),
+            const SizedBox(height: 16),
+            words,
+          ],
+        );
+      },
     );
   }
-}
-
-/// 右上を斜めに切り、左端に色つきの帯を置いたパネル。
-class _PanelPainter extends CustomPainter {
-  _PanelPainter(this.color);
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const cut = 18.0;
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width - cut, 0)
-      ..lineTo(size.width, cut)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(
-        path,
-        Paint()
-          ..shader = LinearGradient(colors: [withAlpha(color, 0.14), const Color(0xCC0D0B1C)])
-              .createShader(Offset.zero & size));
-    canvas.drawPath(
-        path,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1
-          ..color = withAlpha(color, 0.4));
-    canvas.drawRect(Rect.fromLTWH(0, 0, 5, size.height), Paint()..color = color);
-    canvas.drawRect(
-        Rect.fromLTWH(0, 0, 5, size.height),
-        Paint()
-          ..color = withAlpha(color, 0.5)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 6));
-  }
-
-  @override
-  bool shouldRepaint(_PanelPainter old) => old.color != color;
 }
