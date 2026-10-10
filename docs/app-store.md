@@ -15,7 +15,7 @@ App Store Connect に入力する内容。名前・説明文・キーワード�
 | 著作権 | 2026 watsuwo |
 | プライバシーポリシー URL | https://watsuwo.github.io/parry-break/privacy |
 | サポート URL | https://watsuwo.github.io/parry-break/support |
-| マーケティング URL | なし(任意) |
+| マーケティング URL | https://watsuwo.github.io/ (AdMob はここに書いたサイトの直下の `app-ads.txt` を見て、アプリを確認する) |
 
 ## 名前・説明文・キーワードなど(fastlane の metadata が正)
 
@@ -28,7 +28,7 @@ App Store Connect に入力する内容。名前・説明文・キーワード�
 | `promotional_text.txt` | プロモーション用テキスト(審査なしで差し替えられる) | 170字 |
 | `description.txt` | 説明文 | 4000字 |
 | `keywords.txt` | キーワード(カンマ区切り。名前とカテゴリの語は入れない) | 100字 |
-| `support_url.txt` / `privacy_url.txt` | サポート URL / プライバシーポリシー URL | |
+| `support_url.txt` / `privacy_url.txt` / `marketing_url.txt` | サポート URL / プライバシーポリシー URL / マーケティング URL | |
 | `release_notes.txt` | このバージョンの新機能([release-flow.md](release-flow.md) 第5章) | 4000字 |
 
 言語は `ja`(日本語、プライマリ)と `en-US`(英語)。著作権は `metadata/copyright.txt`。
