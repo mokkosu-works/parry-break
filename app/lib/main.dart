@@ -46,10 +46,23 @@ class ParryBreakApp extends ConsumerStatefulWidget {
   ConsumerState<ParryBreakApp> createState() => _ParryBreakAppState();
 }
 
-class _ParryBreakAppState extends ConsumerState<ParryBreakApp> {
+class _ParryBreakAppState extends ConsumerState<ParryBreakApp> with WidgetsBindingObserver {
+  late final AudioService _audio = ref.read(audioProvider);
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) =>
+      _audio.setAppActive(state == AppLifecycleState.resumed);
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     unawaited(widget.audioInit?.then((_) {
       final s = ref.read(settingsProvider);
       ref.read(audioProvider).setVolumes(bgm: s.bgmVolume, sfx: s.sfxVolume);

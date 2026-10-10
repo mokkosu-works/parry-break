@@ -69,6 +69,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     )..onFinished = _onFinished;
     GameScreen.debugLastController = _ctl;
     _ctl.addListener(_onControllerChange);
+    _ctl.audio.enterGame();
     _applySettings(settings);
     _ctl.start();
     _glow = settings.quality == GraphicsQuality.high ? GlowSprite.create() : null;
@@ -90,6 +91,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     _ticker.dispose();
     _ctl.removeListener(_onControllerChange);
     _ctl.dispose();
+    _ctl.audio.leaveGame();
     _text.clear();
     _focus.dispose();
     super.dispose();
