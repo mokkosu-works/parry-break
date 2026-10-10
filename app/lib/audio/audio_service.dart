@@ -31,6 +31,10 @@ abstract class AudioService {
   void setMenuMusic(bool on);
 
   /// ゲーム画面が開いている間はタイトル用の BGM を止める (画面の出入りで呼ぶ。入れ子でもよい)。
+  ///
+  /// 最後のゲーム画面が閉じたときにプレイ中の BGM を止め、ポーズの消音を戻す。
+  /// 「次のステージ」では次の画面が先に始まってから前の画面が閉じるので、
+  /// 前の画面の後片付けで次の画面の BGM を止めないよう、ここでまとめて扱う。
   void enterGame();
   void leaveGame();
 
@@ -289,6 +293,10 @@ class SoLoudAudio implements AudioService {
   @override
   void leaveGame() {
     _games = math.max(0, _games - 1);
+    if (_games == 0) {
+      cutMusic();
+      setPaused(false);
+    }
     _syncTitle();
   }
 
