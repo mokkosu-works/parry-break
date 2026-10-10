@@ -97,11 +97,14 @@ class _FakeAds extends DisabledAds {
   Future<void> showInterstitialIfDue() async => shown++;
 }
 
-/// タイトル用の BGM に関わる呼び出しを覚える。
+/// BGM に関わる呼び出しを覚える。
 class _FakeAudio extends SilentAudio {
   bool menu = false;
   int games = 0;
   bool active = true;
+
+  /// プレイ中の BGM が鳴っているはずか (SoLoudAudio と同じく、最後のゲーム画面が閉じたら止まる)。
+  bool music = false;
 
   /// タイトル用の BGM が鳴っているはずか (SoLoudAudio と同じ条件)。
   bool get titlePlaying => menu && games == 0 && active;
@@ -111,7 +114,14 @@ class _FakeAudio extends SilentAudio {
   @override
   void enterGame() => games++;
   @override
-  void leaveGame() => games--;
+  void leaveGame() {
+    if (--games == 0) music = false;
+  }
+
+  @override
+  void startMusic() => music = true;
+  @override
+  void cutMusic() => music = false;
   @override
   void setAppActive(bool active) => this.active = active;
 }
@@ -270,6 +280,24 @@ void main() {
     await _frames(tester, 6.5);
     expect(find.text('NEXT STAGE'), findsOneWidget);
     await _shot(tester, '11_result_stage_clear');
+  });
+
+  testWidgets('結果画面: 次のステージへ進んでも BGM が止まらない', (tester) async {
+    final audio = _FakeAudio();
+    await _pumpApp(tester, home: GameScreen(stage: _campaign.stage('1-4')), audio: audio);
+    for (var round = 0; round < 2; round++) {
+      await _frames(tester, 1.2);
+      final w = GameScreen.debugLastController!.world;
+      for (final b in w.blocks.where((b) => b.behavior.clearable).toList()) {
+        w.destroyBlock(b, DestroyCause.pierce);
+      }
+      await _frames(tester, 6.5);
+      await tester.tap(find.text('NEXT STAGE'));
+      await _frames(tester, 1); // 前の画面が閉じるまで
+      expect(audio.games, 1);
+      expect(audio.music, isTrue);
+    }
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('ボスのステージ (要塞・コア・HP バー) を描ける', (tester) async {

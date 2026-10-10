@@ -98,7 +98,8 @@ class GameController extends ChangeNotifier {
       // ステップの外で起きたイベント (ウェーブ開始など) もここで配る
       session.advance(now).forEach(_dispatch);
       fx.frame(rdt);
-      audio.setMusicLevel(world.od ? 4 : world.stage);
+      // 終わったプレイが、次のステージの画面の BGM を切り替えないようにする
+      if (!_finished) audio.setMusicLevel(world.od ? 4 : world.stage);
     }
     frame.value++;
   }
@@ -134,10 +135,9 @@ class GameController extends ChangeNotifier {
 
   void setInputLag(double seconds) => world.inputLag = seconds;
 
+  /// BGM は止めない (次のステージの画面が先に鳴らし始めているため)。止めるのは [AudioService.leaveGame]。
   @override
   void dispose() {
-    audio.cutMusic();
-    audio.setPaused(false);
     frame.dispose();
     super.dispose();
   }
