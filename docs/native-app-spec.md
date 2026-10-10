@@ -149,7 +149,7 @@ app/
       events/     game_event.dart
     game/         game_controller.dart(実時間で進め、イベントを演出・音・振動へ配る), game_screen.dart
     render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿),
-                  fx.dart(パーティクル・ポップアップ・コールアウトなど), glow.dart, text_cache.dart, palette.dart
+                  fx.dart(パーティクル・ポップアップ・コールアウトなど), pixel.dart(ドット絵の部品), text_cache.dart, palette.dart(16 色のパレットと画面の 3 色)
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
     input/        input_clock.dart(タッチの時刻の換算), touch_controls.dart(領域方式・レール・PARRY)
