@@ -69,7 +69,7 @@ class StageSelectScreen extends ConsumerWidget {
             Text(goalText(l, st), style: const TextStyle(color: Palette.cyan, fontSize: 15)),
             const SizedBox(height: 10),
             for (var i = 0; i < st.stars.length; i++)
-              StarLine(achieved: i < rec.stars.length && rec.stars[i], text: starText(l, st.stars[i])),
+              StarLine(achieved: rec.hasStar(i), text: starText(l, st.stars[i])),
             if (rec.bestScore > 0) ...[
               const SizedBox(height: 8),
               Text('BEST  ${formatScore(rec.bestScore)}', style: orbitron(15, color: Palette.pale)),
@@ -84,7 +84,7 @@ class StageSelectScreen extends ConsumerWidget {
             icon: Icons.play_arrow,
             onPressed: () {
               Navigator.of(ctx).pop();
-              Navigator.of(context).push(fadeRoute(GameScreen(stage: st)));
+              Navigator.of(context).push(fadeRoute<void>(GameScreen(stage: st)));
             },
           ),
         ],
@@ -135,8 +135,8 @@ class _StageTile extends StatelessWidget {
             const SizedBox(height: 6),
             Row(children: [
               for (var i = 0; i < stage.stars.length; i++)
-                Icon(i < record.stars.length && record.stars[i] ? Icons.star : Icons.star_border,
-                    size: 18, color: i < record.stars.length && record.stars[i] ? Palette.yellow : Palette.gray),
+                Icon(record.hasStar(i) ? Icons.star : Icons.star_border,
+                    size: 18, color: record.hasStar(i) ? Palette.yellow : Palette.gray),
             ]),
           ]),
         ),

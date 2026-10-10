@@ -46,4 +46,63 @@ void main() {
     expect(s.evaluate(StageResult(cleared: true, score: 0, stats: stats)), [true, true, false]);
     expect(s.evaluate(StageResult(cleared: false, score: 0, stats: stats)), [false, false, false]);
   });
+
+  group('JSON の読み込み', () {
+    test('星の条件を種類ごとに読み分ける', () {
+      expect(StarCondition.fromJson({'type': 'clear'}), isA<ClearStar>());
+      expect(StarCondition.fromJson({'type': 'noHit'}), isA<NoHitStar>());
+      expect(StarCondition.fromJson({'type': 'time', 'value': 45}), isA<TimeStar>().having((t) => t.seconds, 'seconds', 45));
+      expect(
+        StarCondition.fromJson({'type': 'score', 'value': 1000}),
+        isA<StatStar>().having((t) => t.kind, 'kind', StatKind.score).having((t) => t.value, 'value', 1000),
+      );
+      expect(StarCondition.fromJson({'type': 'just', 'value': 3}), isA<StatStar>().having((t) => t.kind, 'kind', StatKind.just));
+    });
+
+    test('星の条件の形が合わなければ例外', () {
+      expect(() => StarCondition.fromJson({'type': 'time'}), throwsFormatException);
+      expect(() => StarCondition.fromJson({'value': 3}), throwsFormatException);
+      expect(() => StarCondition.fromJson({'type': 'unknown', 'value': 3}), throwsArgumentError);
+    });
+
+    Campaign one(Map<String, Object?> wave) => Campaign.fromJson({
+          'chapters': [
+            {
+              'id': 'c',
+              'title': 'C',
+              'stages': [
+                {'id': 's', 'title': 'S', 'waves': [wave]},
+              ],
+            },
+          ],
+        }, endlessContent);
+
+    test('ウェーブの書き方ごとに中身と既定の難易度が決まる', () {
+      final rows = one({'rows': ['..NN..', '..XX..'], 'legend': {'X': 'T'}}).stage('s')!.waves.single;
+      expect(rows.difficulty, 1);
+      expect((rows.content as LayoutContent).blockIdAt(1, 2), 'T');
+
+      final fromEndless = one({'endless': 4}).stage('s')!.waves.single;
+      expect(fromEndless.difficulty, 4);
+      expect(fromEndless.content, isA<LayoutContent>());
+
+      final boss = one({'boss': 0}).stage('s')!.waves.single;
+      expect(boss.difficulty, endlessContent.bossEvery);
+      expect(boss.boss, same(endlessContent.bosses.first));
+
+      expect(one({'boss': 0, 'difficulty': 3}).stage('s')!.waves.single.difficulty, 3);
+    });
+
+    test('星を書かないステージはクリアだけ、中身のないウェーブは例外', () {
+      expect(one({'endless': 1}).stage('s')!.stars.single, isA<ClearStar>());
+      expect(() => one({'difficulty': 2}), throwsFormatException);
+    });
+
+    test('言語ごとの文字列', () {
+      expect(LocalizedText.fromJson({'ja': 'あ', 'en': 'a'}).of('ja'), 'あ');
+      expect(LocalizedText.fromJson({'ja': 'あ'}).of('en'), 'あ');
+      expect(LocalizedText.fromJson('plain').of('ja'), 'plain');
+      expect(LocalizedText.fromJson(null).of('en'), '');
+    });
+  });
 }

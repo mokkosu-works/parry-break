@@ -56,7 +56,7 @@ class SettingsScreen extends ConsumerWidget {
             display: '${s.timingOffsetMs}ms',
             onChanged: (v) => n.update((x) => x.copyWith(timingOffsetMs: v.round())),
             trailing: TextButton.icon(
-              onPressed: () => Navigator.of(context).push(fadeRoute(const CalibrationScreen())),
+              onPressed: () => Navigator.of(context).push(fadeRoute<void>(const CalibrationScreen())),
               icon: const Icon(Icons.timer_outlined),
               label: Text(l.calibrate),
             ),

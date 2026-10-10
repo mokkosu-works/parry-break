@@ -242,16 +242,12 @@ class FieldPainter extends CustomPainter {
     for (final u in world.bullets) {
       if (u.dead) continue;
       final x = _lerp(u.prevX, u.x), y = _lerp(u.prevY, u.y);
-      final Color c;
-      if (!u.hostile) {
-        c = u.red ? Palette.yellow : Palette.cyan;
-      } else if (u.kind == BulletKind.shard) {
-        c = const Color(0xFFD9A066);
-      } else if (u.kind == BulletKind.shrapnel) {
-        c = const Color(0xFFFFB347);
-      } else {
-        c = u.red ? const Color(0xFFFF2A3D) : const Color(0xFFFF9D4D);
-      }
+      final c = switch (u) {
+        Bullet(hostile: false, :final red) => red ? Palette.yellow : Palette.cyan,
+        Bullet(kind: BulletKind.shard) => const Color(0xFFD9A066),
+        Bullet(kind: BulletKind.shrapnel) => const Color(0xFFFFB347),
+        Bullet(:final red) => red ? const Color(0xFFFF2A3D) : const Color(0xFFFF9D4D),
+      };
       _c.drawCircle(Offset(x, y), u.r + 5, _fill..color = withAlpha(c, 0.25));
       if (u.hostile && u.kind == BulletKind.shard) {
         _c.save();

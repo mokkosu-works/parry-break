@@ -214,7 +214,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   }
 
   Future<void> _openSettings() async {
-    await Navigator.of(context).push(fadeRoute(const SettingsScreen()));
+    await Navigator.of(context).push(fadeRoute<void>(const SettingsScreen()));
     if (mounted) _applySettings(ref.read(settingsProvider));
   }
 
@@ -359,7 +359,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       onNewRecord: () => _ctl.audio.play('ricochet'),
       onRetry: _retry,
       onTitle: () => _leaveResult(_toTitle),
-      onNext: next == null ? null : () => Navigator.of(context).pushReplacement(fadeRoute(GameScreen(stage: next))),
+      onNext: next == null ? null : () => Navigator.of(context).pushReplacement(fadeRoute<void>(GameScreen(stage: next))),
       onStageSelect: stage == null ? null : () => _leaveResult(() => Navigator.of(context).pop()),
     );
   }
