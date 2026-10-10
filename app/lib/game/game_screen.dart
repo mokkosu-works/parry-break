@@ -9,7 +9,6 @@ import '../input/touch_controls.dart';
 import '../l10n/app_localizations.dart';
 import '../render/block_painters.dart';
 import '../render/field_painter.dart';
-import '../render/glow.dart';
 import '../render/palette.dart';
 import '../render/text_cache.dart';
 import '../services/ads.dart';
@@ -22,6 +21,8 @@ import '../ui/arcade.dart';
 import '../ui/widgets.dart';
 import 'game_controller.dart';
 import 'result_overlay.dart';
+import '../ui/pixel_icons.dart';
+import '../render/pixel.dart';
 
 /// プレイ画面。[stage] があればステージモード、なければエンドレス。
 class GameScreen extends ConsumerStatefulWidget {
@@ -49,7 +50,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   final TextCache _text = TextCache();
   final BlockPainterRegistry _blockPainters = BlockPainterRegistry();
   final FocusNode _focus = FocusNode();
-  GlowSprite? _glow;
   FieldPainter? _painter;
   _Outcome? _outcome;
 
@@ -72,7 +72,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     _ctl.audio.enterGame();
     _applySettings(settings);
     _ctl.start();
-    _glow = settings.quality == GraphicsQuality.high ? GlowSprite.create() : null;
     _ticker = createTicker((_) {
       _keyboardAxis();
       _ctl.tick();
@@ -230,47 +229,47 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       alpha: () => _ctl.session.alpha,
       time: () => _ctl.clock.now,
       text: _text,
-      glow: _glow,
       blockPainters: _blockPainters,
       l10n: l,
       highQuality: settings.quality == GraphicsQuality.high,
       repaint: _ctl.frame,
     );
     return Scaffold(
-      backgroundColor: const Color(0xFF030208),
+      backgroundColor: Dot.ink,
       body: Focus(
         focusNode: _focus,
         autofocus: true,
         onKeyEvent: _onKey,
         child: LayoutBuilder(builder: (context, c) {
-          final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context));
           final rail = settings.controls != ControlScheme.zones;
+          final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context), rail: rail);
           return Stack(children: [
             Positioned.fill(child: TouchInput(controller: _ctl, layout: layout, settings: settings)),
-            Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field(settings))),
-            // 左の余白: 移動
-            Positioned.fromRect(
-              rect: layout.left,
-              child: SafeArea(
-                right: false,
-                child: rail
-                    ? RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical)
-                    : const Align(alignment: Alignment(0, 0.55), child: MoveHint()),
-              ),
-            ),
-            // 右の余白: パリィ
-            Positioned(
-              left: layout.right.left,
-              width: layout.right.width,
-              bottom: 0,
-              height: c.maxHeight * 0.55,
-              child: SafeArea(
-                left: false,
-                child: Center(
-                  child: ParryButton(controller: _ctl, interactive: rail, size: (layout.right.width * 0.6).clamp(56, 84)),
+            Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field())),
+            // レール方式だけ、左右の余白に操作を置く (領域方式は画面の左右半分をタッチするので置かない)
+            if (rail) ...[
+              // 左の余白: 移動
+              Positioned.fromRect(
+                rect: layout.left,
+                child: SafeArea(
+                  right: false,
+                  child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical),
                 ),
               ),
-            ),
+              // 右の余白: パリィ
+              Positioned(
+                left: layout.right.left,
+                width: layout.right.width,
+                bottom: 0,
+                height: c.maxHeight * 0.55,
+                child: SafeArea(
+                  left: false,
+                  child: Center(
+                    child: ParryButton(controller: _ctl, size: (layout.right.width * 0.6).clamp(56, 84)),
+                  ),
+                ),
+              ),
+            ],
             Positioned(
               right: 0,
               top: 0,
@@ -278,7 +277,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                 left: false,
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: _RoundIcon(icon: Icons.pause, onTap: _ctl.finished ? null : _ctl.pause, label: l.paused),
+                  child: _RoundIcon(icon: PixelIcons.pause, onTap: _ctl.finished ? null : _ctl.pause, label: l.paused),
                 ),
               ),
             ),
@@ -290,44 +289,25 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     );
   }
 
-  Widget _field(Settings settings) {
-    final paint = RepaintBoundary(child: CustomPaint(painter: _painter, size: Size.infinite));
-    return ValueListenableBuilder(
-      valueListenable: _ctl.frame,
-      builder: (_, _, child) {
-        final w = _ctl.world;
-        final invert = w.od && w.phase == WorldPhase.playing && !settings.reduceEffects && !_ctl.paused;
-        // OVERDRIVE 中は画面の色を反転する (ブラウザ版の invert(1) hue-rotate(180deg))
-        return invert ? ColorFiltered(colorFilter: _odInvert, child: child) : child!;
-      },
-      child: paint,
-    );
-  }
-
-  static const _odInvert = ColorFilter.matrix([
-    0.574, -1.43, -0.144, 0, 255, //
-    -0.426, -0.43, -0.144, 0, 255,
-    -0.426, -1.43, 0.856, 0, 255,
-    0, 0, 0, 1, 0,
-  ]);
+  /// 盤面。OVERDRIVE の見せ方 (色の入れ替えと電飾) は FieldPainter が描く。
+  Widget _field() => RepaintBoundary(child: CustomPaint(painter: _painter, size: Size.infinite));
 
   Widget _pauseOverlay(AppLocalizations l) {
     final rc = _ctl.resumeCountdown;
     return Stack(fit: StackFit.expand, children: [
-      const ColoredBox(color: Color(0xCC05040F)),
-      const Scanlines(),
+      ColoredBox(color: withAlpha(Dot.ink, 0.8)),
       Center(
         child: rc != null
-            ? ChromaticTitle('${rc.ceil()}', size: 96, color: Palette.cyan)
+            ? PixelTitle('${rc.ceil()}', size: 96, color: Palette.yellow, shadow: Dot.brick)
             : SingleChildScrollView(
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const ChromaticTitle('PAUSED', size: 56, color: Palette.cyan),
+                  const PixelTitle('PAUSED', size: 56, color: Palette.yellow, shadow: Dot.brick),
                   const SizedBox(height: 30),
                   Wrap(spacing: 14, runSpacing: 12, alignment: WrapAlignment.center, children: [
-                    SlashButton(label: 'RESUME', primary: true, icon: Icons.play_arrow, onPressed: _ctl.requestResume),
-                    SlashButton(label: 'RETRY', icon: Icons.replay, onPressed: _retry),
-                    SlashButton(label: 'SETTINGS', icon: Icons.tune, onPressed: _openSettings),
-                    SlashButton(label: 'TITLE', color: Palette.magenta, icon: Icons.home, onPressed: _toTitle),
+                    PixelButton(label: 'RESUME', filled: true, icon: PixelIcons.play, onPressed: _ctl.requestResume),
+                    PixelButton(label: 'RETRY', icon: PixelIcons.replay, onPressed: _retry),
+                    PixelButton(label: 'SETTINGS', icon: PixelIcons.tune, onPressed: _openSettings),
+                    PixelButton(label: 'TITLE', color: Palette.gray, icon: PixelIcons.home, onPressed: _toTitle),
                   ]),
                 ]),
               ),
@@ -374,7 +354,7 @@ class StarLine extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 3),
         child: Row(children: [
-          Icon(achieved ? Icons.star : Icons.star_border, color: achieved ? Palette.yellow : Palette.gray, size: 24),
+          PixelStar(got: achieved, size: 22),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: TextStyle(color: achieved ? Palette.white : Palette.gray, fontSize: 15))),
         ]),
@@ -383,7 +363,7 @@ class StarLine extends StatelessWidget {
 
 class _RoundIcon extends StatelessWidget {
   const _RoundIcon({required this.icon, required this.onTap, required this.label});
-  final IconData icon;
+  final DotSprite icon;
   final VoidCallback? onTap;
   final String label;
 
@@ -396,13 +376,13 @@ class _RoundIcon extends StatelessWidget {
           child: Container(
             width: 52,
             height: 52,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF0B1523),
-              border: Border.all(color: Palette.cyan),
-              boxShadow: [BoxShadow(color: withAlpha(Palette.cyan, 0.35), blurRadius: 12)],
+              color: Dot.night,
+              border: Border.all(color: Palette.sub, width: 3),
+              boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
             ),
-            child: Icon(icon, color: const Color(0xFFA8FFFF)),
+            child: PixelIcon(icon, size: 21, color: Palette.sub),
           ),
         ),
       );

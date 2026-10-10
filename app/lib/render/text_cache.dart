@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 enum TextAlignH { left, center, right }
@@ -11,13 +10,14 @@ class TextCache {
   final int capacity;
   final LinkedHashMap<String, TextPainter> _cache = LinkedHashMap();
 
-  static const orbitron = 'Orbitron';
+  /// 英数字のドット文字。日本語は [jp] で補う。
+  static const pixel = 'Silkscreen';
 
-  /// 端末の標準フォント (日本語の説明文など)。
-  static const system = 'system';
+  /// 日本語のドット文字 (説明文など)。
+  static const jp = 'DotGothic16';
 
-  TextPainter get(String text, double size, Color color, {double weight = 700, double glow = 0, String? family}) {
-    final key = '$text|${size.toStringAsFixed(1)}|${color.toARGB32()}|$weight|$glow|$family';
+  TextPainter get(String text, double size, Color color, {double weight = 700, String? family}) {
+    final key = '$text|${size.toStringAsFixed(1)}|${color.toARGB32()}|$weight|$family';
     final hit = _cache.remove(key);
     if (hit != null) {
       _cache[key] = hit; // 最近使ったものを末尾へ
@@ -27,13 +27,12 @@ class TextCache {
       text: TextSpan(
         text: text,
         style: TextStyle(
-          fontFamily: family == system ? (kIsWeb ? 'NotoSansJP' : null) : family ?? orbitron,
-          fontFamilyFallback: kIsWeb ? const ['NotoSansJP'] : null,
+          fontFamily: family ?? pixel,
+          fontFamilyFallback: const [jp],
           fontSize: size,
           color: color,
           fontWeight: FontWeight.values[((weight / 100).round() - 1).clamp(0, 8)],
           fontVariations: [FontVariation('wght', weight.clamp(400, 900))],
-          shadows: glow > 0 ? [Shadow(color: color, blurRadius: glow)] : null,
           height: 1,
         ),
       ),
@@ -49,8 +48,8 @@ class TextCache {
 
   /// [y] を文字の縦の中心として描く。
   void draw(Canvas canvas, String text, double x, double y, double size, Color color,
-      {TextAlignH align = TextAlignH.center, double weight = 700, double glow = 0, String? family}) {
-    final tp = get(text, size, color, weight: weight, glow: glow, family: family);
+      {TextAlignH align = TextAlignH.center, double weight = 700, String? family}) {
+    final tp = get(text, size, color, weight: weight, family: family);
     final dx = switch (align) {
       TextAlignH.left => x,
       TextAlignH.center => x - tp.width / 2,

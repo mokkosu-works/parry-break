@@ -249,7 +249,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsReduceEffects => '演出を控えめにする';
 
   @override
-  String get settingsReduceEffectsHelp => 'フラッシュ・画面の反転・揺れを抑えます';
+  String get settingsReduceEffectsHelp => 'フラッシュ・点滅・揺れを抑えます';
 
   @override
   String get settingsLanguage => '言語';

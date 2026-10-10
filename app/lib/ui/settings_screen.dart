@@ -11,6 +11,8 @@ import '../services/settings.dart';
 import 'arcade.dart';
 import 'calibration_screen.dart';
 import 'widgets.dart';
+import 'pixel_icons.dart';
+import '../render/pixel.dart';
 
 enum _Tab { controls, sound, display, other }
 
@@ -27,12 +29,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   _Tab _tab = _Tab.controls;
 
-  static const _colors = {
-    _Tab.controls: Palette.cyan,
-    _Tab.sound: Palette.yellow,
-    _Tab.display: Palette.justPink,
-    _Tab.other: Palette.pale,
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +43,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (ads.privacyOptionsRequired || s.debugMode) _Tab.other,
     ];
     final tab = tabs.contains(_tab) ? _tab : _Tab.controls;
-    final color = _colors[tab]!;
+    // 選んでいるもの・いまの値はメインカラー (黄)
+    const color = Palette.main;
     final names = {
       _Tab.controls: l.settingsTabControls,
       _Tab.sound: l.settingsTabSound,
@@ -56,10 +53,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     };
 
     return Scaffold(
-      body: NeonBackground(
+      body: DotBackground(
         animate: false,
         child: Stack(children: [
-          const Positioned.fill(child: Scanlines()),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
@@ -67,7 +63,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Row(children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back, color: Palette.cyan),
+                    icon: PixelIcon(PixelIcons.back, color: Palette.sub),
                     tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   ),
                   const SizedBox(width: 10),
@@ -75,7 +71,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: ChromaticTitle(l.menuSettings, size: 26, color: Palette.cyan),
+                      child: PixelTitle(l.menuSettings, size: 26, color: Palette.yellow, shadow: Dot.brick),
                     ),
                   ),
                 ]),
@@ -87,28 +83,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       SizedBox(
                         width: tabW,
                         child: SingleChildScrollView(
-                          child: Column(children: [
-                            for (final t in tabs)
-                              _TabButton(
-                                label: names[t]!,
-                                color: _colors[t]!,
-                                selected: t == tab,
-                                onTap: () => setState(() => _tab = t),
-                              ),
-                          ]),
+                          child: PixelWindow(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Column(children: [
+                              for (final t in tabs)
+                                _TabButton(
+                                  label: names[t]!,
+                                  selected: t == tab,
+                                  onTap: () => setState(() => _tab = t),
+                                ),
+                            ]),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: const Color(0xB30D0B1C),
-                            border: Border(
-                              top: BorderSide(color: color, width: 2),
-                              left: const BorderSide(color: Palette.hudLine),
-                              right: const BorderSide(color: Palette.hudLine),
-                              bottom: const BorderSide(color: Palette.hudLine),
-                            ),
+                            color: withAlpha(Dot.ink, 0.92),
+                            border: Border.all(color: Palette.hudLine, width: 3),
+                            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(6, 6))],
                           ),
                           child: ListView(
                             key: PageStorageKey(tab),
@@ -177,8 +171,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 6),
               _SmallButton(
                 label: l.calibrate,
-                icon: Icons.timer_outlined,
-                color: color,
+                icon: PixelIcons.timer,
+                color: Palette.sub, // 画面を開く二番手のボタン
                 onTap: () => Navigator.of(context).push(fadeRoute<void>(const CalibrationScreen())),
               ),
             ]),
@@ -287,9 +281,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
 /// 左の分類の見出し。選んでいるものは色の帯と明るい地で示す。
 class _TabButton extends StatelessWidget {
-  const _TabButton({required this.label, required this.color, required this.selected, required this.onTap});
+  const _TabButton({required this.label, required this.selected, required this.onTap});
   final String label;
-  final Color color;
   final bool selected;
   final VoidCallback onTap;
 
@@ -300,29 +293,23 @@ class _TabButton extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            height: 54,
-            margin: const EdgeInsets.only(bottom: 6),
-            padding: const EdgeInsets.only(left: 16, right: 8),
-            alignment: Alignment.centerLeft,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [withAlpha(color, selected ? 0.28 : 0.04), withAlpha(color, 0)]),
-              border: Border(left: BorderSide(color: selected ? color : withAlpha(color, 0.25), width: 4)),
-            ),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1,
-                color: selected ? Palette.white : withAlpha(Palette.pale, 0.6),
-                shadows: selected ? [Shadow(color: color, blurRadius: 10)] : null,
-                fontFamilyFallback: kFontFallback,
+          child: SizedBox(
+            height: 48,
+            child: Row(children: [
+              SizedBox(width: 30, child: selected ? const Center(child: BlinkCursor(size: 16)) : null),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: selected ? Palette.white : Palette.gray,
+                    shadows: selected ? hardShadow(17) : null,
+                  ),
+                ),
               ),
-            ),
+            ]),
           ),
         ),
       );
@@ -342,14 +329,12 @@ class _Row extends StatelessWidget {
       Text(label,
           style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: enabled ? Palette.white : Palette.gray,
-              fontFamilyFallback: kFontFallback)),
+              color: enabled ? Palette.white : Palette.gray)),
       if (help != null) ...[
         const SizedBox(height: 3),
         Text(help!,
             style: TextStyle(
-                fontSize: 12, height: 1.4, color: withAlpha(Palette.pale, 0.55), fontFamilyFallback: kFontFallback)),
+                fontSize: 12, height: 1.4, color: withAlpha(Palette.pale, 0.55))),
       ],
     ]);
     return Padding(
@@ -372,7 +357,7 @@ class _Row extends StatelessWidget {
   }
 }
 
-/// 斜めに切った枠。選んでいるものは色で塗る。
+/// 四角い枠。選んでいるものは陰影の付いたブロックとして塗る。
 class _SlantPainter extends CustomPainter {
   _SlantPainter({required this.color, required this.on});
   final Color color;
@@ -380,27 +365,26 @@ class _SlantPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const s = 10.0;
-    final path = Path()
-      ..moveTo(s, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width - s, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final r = Offset.zero & size;
+    final p = Paint()..isAntiAlias = false;
     if (on) {
-      canvas.drawPath(
-          path,
-          Paint()
-            ..color = withAlpha(color, 0.4)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 8));
+      const d = 3.0;
+      canvas.drawRect(r, p..color = color);
+      p.color = Dot.light(color);
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, d), p);
+      canvas.drawRect(Rect.fromLTWH(0, 0, d, size.height), p);
+      p.color = Dot.dark(color);
+      canvas.drawRect(Rect.fromLTWH(0, size.height - d, size.width, d), p);
+      canvas.drawRect(Rect.fromLTWH(size.width - d, d, d, size.height - d), p);
+      return;
     }
-    canvas.drawPath(path, Paint()..color = on ? withAlpha(color, 0.3) : const Color(0x33000000));
-    canvas.drawPath(
-        path,
-        Paint()
+    canvas.drawRect(r, p..color = Dot.night);
+    canvas.drawRect(
+        r.deflate(1),
+        p
           ..style = PaintingStyle.stroke
-          ..strokeWidth = on ? 1.5 : 1
-          ..color = on ? color : withAlpha(Palette.pale, 0.25));
+          ..strokeWidth = 2
+          ..color = withAlpha(Palette.pale, 0.3));
   }
 
   @override
@@ -439,9 +423,7 @@ class _Choice<T> extends StatelessWidget {
                         child: Text(label,
                             style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: k == value ? FontWeight.w800 : FontWeight.w500,
-                                color: k == value ? Palette.white : withAlpha(Palette.pale, 0.65),
-                                fontFamilyFallback: kFontFallback)),
+                                color: k == value ? Dot.ink : withAlpha(Palette.pale, 0.65))),
                       ),
                     ),
                   ),
@@ -513,7 +495,7 @@ class _Meter extends StatelessWidget {
               onIncrease: enabled ? () => _step(1) : null,
               onDecrease: enabled ? () => _step(-1) : null,
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                _StepButton(icon: Icons.remove, color: col, onTap: enabled && value > min ? () => _step(-1) : null),
+                _StepButton(icon: PixelIcons.minus, color: col, onTap: enabled && value > min ? () => _step(-1) : null),
                 SizedBox(
                   width: (outer.maxWidth - 176).clamp(60.0, 240.0),
                   child: LayoutBuilder(builder: (context, c) {
@@ -528,12 +510,12 @@ class _Meter extends StatelessWidget {
                     );
                   }),
                 ),
-                _StepButton(icon: Icons.add, color: col, onTap: enabled && value < max ? () => _step(1) : null),
+                _StepButton(icon: PixelIcons.plus, color: col, onTap: enabled && value < max ? () => _step(1) : null),
                 SizedBox(
                   width: 76,
                   child: Text(format(value),
                       textAlign: TextAlign.right,
-                      style: orbitron(17, color: col, weight: 800)
+                      style: pixelFont(17, color: col, weight: 800)
                           .copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
                 ),
               ]),
@@ -553,27 +535,25 @@ class _MeterPainter extends CustomPainter {
     const gap = 3.0;
     final w = (size.width - gap * (_bars - 1)) / _bars;
     final lit = (k * _bars).round();
-    final on = Paint()..color = color;
-    final off = Paint()..color = withAlpha(Palette.pale, 0.12);
-    final glow = Paint()
-      ..color = withAlpha(color, 0.45)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final on = Paint()
+      ..color = color
+      ..isAntiAlias = false;
+    final top = Paint()
+      ..color = Dot.light(color)
+      ..isAntiAlias = false;
+    final off = Paint()
+      ..color = Dot.edge
+      ..isAntiAlias = false;
     for (var i = 0; i < _bars; i++) {
-      // 右へ行くほど少し高くする
-      final h = size.height * (0.45 + 0.4 * i / (_bars - 1));
-      final x = i * (w + gap);
-      final r = Rect.fromLTWH(x, (size.height - h) / 2 + 2, w, h - 4);
-      final path = Path()
-        ..moveTo(r.left + math.min(3, w / 3), r.top)
-        ..lineTo(r.right, r.top)
-        ..lineTo(r.right - math.min(3, w / 3), r.bottom)
-        ..lineTo(r.left, r.bottom)
-        ..close();
+      // 右へ行くほど 1 段ずつ高くする (4 段)
+      final h = size.height * (0.4 + 0.15 * (i * 4 ~/ _bars));
+      final x = (i * (w + gap)).floorToDouble();
+      final r = Rect.fromLTWH(x, (size.height - h).floorToDouble(), w.floorToDouble(), h.floorToDouble());
       if (i < lit) {
-        canvas.drawPath(path, glow);
-        canvas.drawPath(path, on);
+        canvas.drawRect(r, on);
+        canvas.drawRect(Rect.fromLTWH(r.left, r.top, r.width, 3), top);
       } else {
-        canvas.drawPath(path, off);
+        canvas.drawRect(r, off);
       }
     }
   }
@@ -584,14 +564,14 @@ class _MeterPainter extends CustomPainter {
 
 class _StepButton extends StatelessWidget {
   const _StepButton({required this.icon, required this.color, required this.onTap});
-  final IconData icon;
+  final DotSprite icon;
   final Color color;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => IconButton(
         onPressed: onTap,
-        icon: Icon(icon, size: 18),
+        icon: PixelIcon(icon, size: 18),
         color: color,
         disabledColor: withAlpha(Palette.pale, 0.2),
         constraints: const BoxConstraints(minWidth: 40, minHeight: 44),
@@ -603,7 +583,7 @@ class _StepButton extends StatelessWidget {
 class _SmallButton extends StatelessWidget {
   const _SmallButton({required this.label, required this.color, required this.onTap, this.icon});
   final String label;
-  final IconData? icon;
+  final DotSprite? icon;
   final Color color;
   final VoidCallback onTap;
 
@@ -619,10 +599,10 @@ class _SmallButton extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 40, minWidth: 64),
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                if (icon != null) ...[Icon(icon, size: 16, color: color), const SizedBox(width: 6)],
+                if (icon != null) ...[PixelIcon(icon!, size: 16, color: color), const SizedBox(width: 6)],
                 Text(label,
                     style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w700, color: color, fontFamilyFallback: kFontFallback)),
+                        fontSize: 14, color: color)),
               ]),
             ),
           ),

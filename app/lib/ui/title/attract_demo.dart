@@ -11,7 +11,6 @@ import '../../l10n/app_localizations.dart';
 import '../../render/block_painters.dart';
 import '../../render/field_painter.dart';
 import '../../render/fx.dart';
-import '../../render/glow.dart';
 import '../../render/text_cache.dart';
 import '../../services/content.dart';
 
@@ -39,7 +38,6 @@ class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProv
   final TextCache _text = TextCache();
   final ValueNotifier<int> _frame = ValueNotifier(0);
   final math.Random _rnd = math.Random();
-  GlowSprite? _glow;
   late World _world;
   late Session _session;
   late FxState _fx;
@@ -51,7 +49,6 @@ class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _glow = GlowSprite.create();
     _newRun();
     _ticker = createTicker((_) => _tick());
     if (widget.animate) _ticker.start();
@@ -163,7 +160,6 @@ class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProv
       alpha: () => _session.alpha,
       time: () => _clock.now,
       text: _text,
-      glow: _glow,
       blockPainters: BlockPainterRegistry(),
       l10n: AppLocalizations.of(context),
       highQuality: true,

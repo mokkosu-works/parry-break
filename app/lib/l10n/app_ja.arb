@@ -154,7 +154,7 @@
   "qualityHigh": "高",
   "qualityLow": "低（省電力）",
   "settingsReduceEffects": "演出を控えめにする",
-  "settingsReduceEffectsHelp": "フラッシュ・画面の反転・揺れを抑えます",
+  "settingsReduceEffectsHelp": "フラッシュ・点滅・揺れを抑えます",
   "settingsLanguage": "言語",
   "settingsAdPrivacy": "広告のプライバシー設定",
   "settingsDebugMode": "デバッグモード",

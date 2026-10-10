@@ -5,19 +5,26 @@ import 'package:flutter/material.dart';
 import '../core/core.dart';
 import '../game/game_controller.dart';
 import '../render/palette.dart';
+import '../render/pixel.dart';
 import '../services/settings.dart';
+import '../ui/widgets.dart';
 
 /// 盤面と左右の余白の配置。盤面 (1200×720) はセーフエリアの中で、左右に親指の操作エリアを残して最大化する。
 class FieldLayout {
   FieldLayout._(this.screen, this.field, this.scale);
 
-  factory FieldLayout.compute(Size size, EdgeInsets pad) {
+  /// [rail] はレール方式 (左右の余白に、押せるレールと PARRY ボタンを置く)。
+  /// 領域方式では左右に操作を置かないので、右上のポーズボタンの分だけ空けて盤面を大きくする。
+  factory FieldLayout.compute(Size size, EdgeInsets pad, {required bool rail}) {
     final avail = Rect.fromLTRB(pad.left, pad.top, size.width - pad.right, size.height - pad.bottom);
-    final side = (avail.width * 0.13).clamp(80.0, 150.0);
+    final side = rail ? (avail.width * 0.13).clamp(80.0, 150.0) : pauseGutter;
     final scale = math.max(0.1, math.min((avail.width - side * 2) / Field.width, avail.height / Field.height));
     final field = Rect.fromCenter(center: avail.center, width: Field.width * scale, height: Field.height * scale);
     return FieldLayout._(size, field, scale);
   }
+
+  /// 領域方式で左右に空ける幅 (右上のポーズボタンが盤面に重ならないため)。
+  static const pauseGutter = 68.0;
 
   final Size screen;
   final Rect field;
@@ -163,24 +170,15 @@ class _Rail extends StatelessWidget {
       height: h,
       child: Stack(clipBehavior: Clip.none, children: [
         Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF09202A),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: withAlpha(Palette.cyan, 0.6)),
-            boxShadow: [BoxShadow(color: withAlpha(Palette.cyan, 0.2), blurRadius: 12)],
-          ),
+          decoration: BoxDecoration(color: Dot.night, border: Border.all(color: withAlpha(Palette.accent, 0.7), width: 3)),
         ),
         Positioned(
           left: vertical ? -3 : pos - 10,
           top: vertical ? pos - 10 : -3,
-          child: Container(
+          child: SizedBox(
             width: vertical ? 28 : 20,
             height: vertical ? 20 : 28,
-            decoration: BoxDecoration(
-              color: const Color(0xFFB8FFFF),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: const [BoxShadow(color: Palette.cyan, blurRadius: 10)],
-            ),
+            child: const BevelBox(color: Palette.accent, child: SizedBox.expand()),
           ),
         ),
       ]),
@@ -188,11 +186,10 @@ class _Rail extends StatelessWidget {
   }
 }
 
-/// 発射・パリィのボタン (レール方式では押せる。領域方式では右半分のタップの目安として表示だけする)。
+/// 発射・パリィのボタン (レール方式で、右の余白に置く)。
 class ParryButton extends StatelessWidget {
-  const ParryButton({super.key, required this.controller, required this.interactive, this.size = 72});
+  const ParryButton({super.key, required this.controller, this.size = 72});
   final GameController controller;
-  final bool interactive;
   final double size;
 
   @override
@@ -201,28 +198,22 @@ class ParryButton extends StatelessWidget {
       valueListenable: controller.frame,
       builder: (_, _, _) {
         final active = controller.world.parry.active;
-        final c = active ? Palette.yellow : Palette.magenta;
-        return Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: withAlpha(const Color(0xFF251024), interactive ? 1 : 0.5),
-            border: Border.all(color: withAlpha(c, interactive ? 1 : 0.5), width: 2),
-            boxShadow: [BoxShadow(color: withAlpha(c, active ? 0.8 : 0.35), blurRadius: active ? 24 : 14)],
+        final c = active ? Palette.yellow : Palette.sub;
+        return CustomPaint(
+          size: Size.square(size),
+          painter: _ParryButtonPainter(c, pressed: active),
+          child: SizedBox.square(
+            dimension: size,
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.only(top: active ? size / 18 : 0),
+                child: Text('PARRY', style: pixelFont(size * 0.16, color: Dot.ink)),
+              ),
+            ),
           ),
-          alignment: Alignment.center,
-          child: Text('PARRY',
-              style: TextStyle(
-                fontFamily: 'Orbitron',
-                fontSize: size * 0.17,
-                color: withAlpha(const Color(0xFFFFB8ED), interactive ? 1 : 0.6),
-                fontWeight: FontWeight.w800,
-              )),
         );
       },
     );
-    if (!interactive) return IgnorePointer(child: button);
     return Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: (e) => controller.press(e.timeStamp),
@@ -231,20 +222,25 @@ class ParryButton extends StatelessWidget {
   }
 }
 
-/// 領域方式の移動の目安 (左の余白)。
-class MoveHint extends StatelessWidget {
-  const MoveHint({super.key});
+/// ドットで描いた丸いボタン。押している間は影の分だけ沈む。
+class _ParryButtonPainter extends CustomPainter {
+  _ParryButtonPainter(this.color, {required this.pressed});
+  final Color color;
+  final bool pressed;
 
   @override
-  Widget build(BuildContext context) => IgnorePointer(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.swap_horiz, color: withAlpha(Palette.cyan, 0.55), size: 36),
-          const SizedBox(height: 6),
-          Container(
-            width: 56,
-            height: 4,
-            decoration: BoxDecoration(color: withAlpha(Palette.cyan, 0.35), borderRadius: BorderRadius.circular(2)),
-          ),
-        ]),
-      );
+  void paint(Canvas canvas, Size size) {
+    final d = size.width / 18, cx = size.width / 2, cy = size.height / 2;
+    const r = 8.0;
+    final sink = pressed ? d : 0.0;
+    if (!pressed) pixelDisc(canvas, cx, cy + d, r, Dot.ink, d: d);
+    pixelDisc(canvas, cx, cy + sink, r, Dot.dark(color), d: d);
+    pixelDisc(canvas, cx, cy + sink - d / 2, r - 0.6, color, d: d);
+    // 左上のつや (文字に重ならない位置)
+    canvas.drawRect(Rect.fromLTWH(cx - d * 5, cy + sink - d * 6, d * 2, d), Paint()..color = Dot.light(color));
+    canvas.drawRect(Rect.fromLTWH(cx - d * 6, cy + sink - d * 5, d, d * 2), Paint()..color = Dot.light(color));
+  }
+
+  @override
+  bool shouldRepaint(_ParryButtonPainter old) => old.color != color || old.pressed != pressed;
 }
