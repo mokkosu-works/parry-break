@@ -94,7 +94,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | 3 | 出したい変更がたまったら(目安: 2週間に1回、または不具合の修正後すぐ) | 🧑 | Claude Code で `/release` を実行する(定期実行にもできる、第6章) |
 | 4 | 〃 | 🤖 | 前回のタグからの変更を集め、バージョン名を決める。`dev` から `release/vX.Y.Z` を切り、`app/pubspec.yaml` の `version` を上げる |
 | 5 | 〃 | 🤖 | ストアの「このバージョンの新機能」を日本語・英語で書く(第5章のファイル) |
-| 6 | 〃 | 🤖 | 掲載文([app-store.md](app-store.md) / [play-store.md](play-store.md))・スクリーンショット・ドキュメントの更新が要るか調べ、要るものは直す。ストア側で人がやる作業があれば、PR のチェックリストに挙げる |
+| 6 | 〃 | 🤖 | 掲載文(App Store は `app/ios/fastlane/metadata/`、Google Play は [play-store.md](play-store.md))・スクリーンショット・ドキュメントの更新が要るか調べ、要るものは直す。ストア側で人がやる作業があれば、PR のチェックリストに挙げる |
 | 7 | 〃 | 🤖 | `main` に向けたリリース PR を作る。Claude のレビューも付く |
 | 8 | リリース PR | 🧑 | 新機能の文面とバージョン名を確認して、**Create a merge commit** でマージする(**人の判断 1**) |
 | 9 | マージ直後 | ⚙️ | `release.yml`: Android を Play の内部テストに、iOS を TestFlight に上げ、`vX.Y.Z` のタグと GitHub Release を作る。`sync-dev.yml`: `main` を `dev` に戻す |
@@ -125,7 +125,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | `app/android/fastlane/metadata/android/ja-JP/changelogs/default.txt` | Google Play「リリースノート」(日本語) | 500字 |
 | `app/android/fastlane/metadata/android/en-US/changelogs/default.txt` | 同(英語) | 500字 |
 
-名前・説明文・キーワードなどの掲載文は、いまは [app-store.md](app-store.md) / [play-store.md](play-store.md) を正として手で入力する。
+App Store の名前・説明文・キーワード・URL などの掲載文は `app/ios/fastlane/metadata/<言語>/` が正で、`promote` で新機能の文面と一緒に送る([app-store.md](app-store.md))。Google Play の掲載文は、いまは [play-store.md](play-store.md) を正として手で入力する。
 
 ## 6. Claude による自動化
 
@@ -210,7 +210,7 @@ CI のマシンには Xcode のアカウントがないので、配布用の証�
 | 項目 | 内容 |
 | --- | --- |
 | `dart format` のチェック | いまのコードは大半が `dart format` の結果と違う(79ファイル中68)。一度まとめて整形する PR を入れてから、`check.yml` に `dart format --output=none --set-exit-if-changed lib test integration_test` を足す |
-| 掲載文の自動送信 | 説明文・キーワードを fastlane の `metadata/` に移し、`promote` で送る。いまは更新が少ないので手で入力する |
+| Google Play の掲載文の自動送信 | 説明文などを `app/android/fastlane/metadata/android/<言語>/` に移し、`promote` で送る。いまは更新が少ないので手で入力する(App Store は送っている) |
 | スクリーンショットの自動化 | `integration_test/store_screenshots_test.dart` を CI のシミュレータで動かし、fastlane の `screenshots/` に置いて送る。macOS の時間がかかるので、画面が変わったときだけ手動で実行するワークフローにする |
 | Android の段階的公開 | いまは最初から全員に出す。利用者が増えたら、`promote` で一部(例: 20%)に出し、クラッシュ率を見て割合を上げる形に戻す。クラッシュの収集(Crashlytics など)を入れてから |
 | ブランチの保護 | GitHub Pro にするか公開リポジトリにすれば、`main` / `dev` を「PR 必須・Approve 必須・`check` / `e2e` / `review` 必須」にできる。そのときは `merge-if-approved.sh` を GitHub の auto-merge に置き換えられる |

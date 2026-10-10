@@ -1,6 +1,6 @@
 # App Store 掲載情報
 
-App Store Connect に入力する内容の下書き。手順は [native-app-spec.md](native-app-spec.md) の第9章にある。文字数の上限は App Store Connect の制限。
+App Store Connect に入力する内容。名前・説明文・キーワードなどの掲載文は fastlane の metadata が正(下の節)。手順は [native-app-spec.md](native-app-spec.md) の第9章にある。文字数の上限は App Store Connect の制限。
 
 ## 基本情報
 
@@ -17,103 +17,21 @@ App Store Connect に入力する内容の下書き。手順は [native-app-spec
 | サポート URL | https://watsuwo.github.io/parry-break/support |
 | マーケティング URL | なし(任意) |
 
-## 日本語
+## 名前・説明文・キーワードなど(fastlane の metadata が正)
 
-**サブタイトル**(30字以内)
+言語ごとの掲載文は `app/ios/fastlane/metadata/<言語>/` のファイルが正で、`promote` を実行すると審査への提出と一緒に App Store Connect に送られる(`deliver`)。文面を変えるときはこのファイルを直す。App Store Connect で手で直しても、次の `promote` で上書きされる。
 
-```
-弾いて壊す、パリィ×ブロック崩し
-```
+| ファイル | 内容 | 上限 |
+| --- | --- | --- |
+| `name.txt` | 名前 | 30字 |
+| `subtitle.txt` | サブタイトル | 30字 |
+| `promotional_text.txt` | プロモーション用テキスト(審査なしで差し替えられる) | 170字 |
+| `description.txt` | 説明文 | 4000字 |
+| `keywords.txt` | キーワード(カンマ区切り。名前とカテゴリの語は入れない) | 100字 |
+| `support_url.txt` / `privacy_url.txt` | サポート URL / プライバシーポリシー URL | |
+| `release_notes.txt` | このバージョンの新機能([release-flow.md](release-flow.md) 第5章) | 4000字 |
 
-**プロモーション用テキスト**(170字以内、審査なしで差し替えられる)
-
-```
-パリィで攻めて撃破せよ！一つのボールで挑む、シンプル操作の高難易度ブロック崩し。
-```
-
-**説明文**(4000字以内)
-
-```
-PARRY BREAK は、ブロック崩しの「受けて守る」パドルを「弾いて攻める」武器に変えた、アーケード型のスコアアタックです。
-
-■ 当たる瞬間に弾く
-ボールや敵弾がパドルに当たる瞬間に画面の右半分をタップすると、パリィになります。タイミングが PERFECT なら貫通弾、JUST なら衝撃波。撃ち返した敵弾は、最大の得点源になります。
-
-■ 攻めるほど点が伸びる
-ジャストパリィや撃ち返しでヒートが上がり、倍率が跳ね上がります。最高段階で発動する OVERDRIVE では、ボールがブロックを次々と貫き、パリィのたびに分身弾が飛び出します。安全に受けるだけでは点になりません。
-
-■ 崩落と誘爆
-白い要石を壊すと、支えを失ったブロックがまとめて崩れ落ちます。オレンジの爆薬は周りを巻き込んで誘爆します。一撃で盤面をひっくり返す連鎖を狙ってください。
-
-■ 2つのモード
-・エンドレス: 60ウェーブとその先のループに挑むスコアアタック。10ウェーブごとにボス要塞が待ち受けます。
-・ステージ: 1面1〜2分の短いステージを、星3つの評価で攻略します。第1章は基本を覚えるチュートリアルです。
-
-■ ボール1個、ミスは即ゲームオーバー
-コンティニューはありません。ボールを落とすか、ブロックが警告線まで下りてきたら終わりです。
-
-■ 遊びやすさ
-・左半分ドラッグで移動、右半分タップでパリィ。操作レール方式にも切り替えられます
-・端末に合わせて判定タイミングを測定・補正できます
-・フラッシュや画面の揺れを抑える設定があります
-・Game Center のランキングに対応しています
-・広告はプレイ中には出ません。課金はありません
-```
-
-**キーワード**(100字以内、カンマ区切り。名前とカテゴリの語は入れない)
-
-```
-ブロック崩し,パリィ,弾幕,スコアアタック,シューティング,高難度,反射神経,リズム,ブレイクアウト,ボス
-```
-
-## English
-
-**Subtitle** (30 characters)
-
-```
-Parry, break, survive
-```
-
-**Promotional text** (170 characters)
-
-```
-Parry to attack and destroy! One ball, simple controls, and a seriously tough block breaker.
-```
-
-**Description** (4000 characters)
-
-```
-PARRY BREAK turns the block-breaker paddle from a shield into a weapon. An arcade score attack where you parry instead of just catching.
-
-- PARRY ON IMPACT
-Tap the right half of the screen just as the ball or a bullet hits your paddle. PERFECT timing fires a piercing shot; JUST releases a shockwave. Every bullet you send back is a chance for big points.
-
-- RISK PAYS
-Parries and returned bullets build up your Heat and your multiplier. Max it out to trigger OVERDRIVE: your ball tears through blocks, and every parry splits off clone balls. Playing safe won't get you far.
-
-- COLLAPSE AND CHAIN BLASTS
-Break a white keystone and every block it was holding comes crashing down. Orange explosives take their neighbours with them. Find the chain that flips the whole board.
-
-- TWO MODES
-Endless: Survive 60 waves and the loop beyond, with a boss fortress every 10 waves.
-Stages: Short 1-2 minute stages rated with up to three stars. Chapter 1 teaches the basics.
-
-- ONE BALL, NO CONTINUES
-Drop the ball or let the blocks reach the warning line and it's over.
-
-- BUILT TO PLAY WELL
-- Drag on the left half to move, tap the right half to parry, or switch to rail controls
-- Calibrate the timing offset to your device
-- Reduce flashing and screen shake in Settings
-- Game Center leaderboards
-- Ads never interrupt a run. No in-app purchases
-```
-
-**Keywords** (100 characters, comma separated)
-
-```
-breakout,brick breaker,parry,bullet hell,arcade,score attack,shooter,hardcore,reflex,boss,timing
-```
+言語は `ja`(日本語、プライマリ)と `en-US`(英語)。著作権は `metadata/copyright.txt`。
 
 ## スクリーンショット
 

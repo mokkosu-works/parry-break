@@ -43,7 +43,7 @@ gh pr list --base dev --state open    # まだ dev に入っていない PR
 - プレイヤー向けに書く。コードやファイル名、内部の用語(Riverpod、リファクタリングなど)は出さない。ゲーム内の用語は `app/lib/l10n/app_ja.arb` / `app_en.arb` の表記に合わせる。
 - 新しい遊び(ステージ・モード) → 遊びやすさの改善 → 不具合の修正 の順に、`・` の箇条書きで3〜6行。
 - 目立つ変更がなければ「細かな不具合を修正し、動作を改善しました。」/ "Bug fixes and performance improvements." でよい。
-- iOS と Android は同じ内容にする。Android は 500字に収める(`wc -m` で数える)。
+- iOS と Android は同じ内容にする。ただし片方の OS だけの変更(「Android で〜」など)は、その OS の文面にだけ書く。iOS の文面に「Android」と書かない(審査の前の確認で、ほかのプラットフォームへの言及として止められることがある)。Android は 500字に収める(`wc -m` で数える)。
 
 ## 4. ほかに直すものを調べる
 
@@ -51,7 +51,7 @@ gh pr list --base dev --state open    # まだ dev に入っていない PR
 
 | 変更 | 直すもの / 人の作業 |
 | --- | --- |
-| 章・ステージ・モードを足した | `docs/app-store.md` の説明文(日本語・英語)。ストアへの入力は人の作業 |
+| 章・ステージ・モードを足した | App Store の説明文 `app/ios/fastlane/metadata/{ja,en-US}/description.txt`(`promote` で送られる)。Google Play の説明文 `docs/play-store.md` と、そのストアへの入力は人の作業 |
 | 画面の見た目が変わった | スクリーンショットの撮り直し(人の作業、`docs/app-store.md` の手順) |
 | リーダーボードを足した | App Store Connect と Play Console で作る(人の作業、`docs/native-app-spec.md` 9.2 / 9.4) |
 | 広告・トラッキング・保存データ・外部の通信 | App のプライバシー / データ セーフティの申告の見直し(人の作業) |
