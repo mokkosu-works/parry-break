@@ -8,19 +8,23 @@ import '../render/palette.dart';
 import '../render/pixel.dart';
 import '../services/settings.dart';
 import '../ui/widgets.dart';
-import '../ui/pixel_icons.dart';
 
 /// 盤面と左右の余白の配置。盤面 (1200×720) はセーフエリアの中で、左右に親指の操作エリアを残して最大化する。
 class FieldLayout {
   FieldLayout._(this.screen, this.field, this.scale);
 
-  factory FieldLayout.compute(Size size, EdgeInsets pad) {
+  /// [rail] はレール方式 (左右の余白に、押せるレールと PARRY ボタンを置く)。
+  /// 領域方式では左右に操作を置かないので、右上のポーズボタンの分だけ空けて盤面を大きくする。
+  factory FieldLayout.compute(Size size, EdgeInsets pad, {required bool rail}) {
     final avail = Rect.fromLTRB(pad.left, pad.top, size.width - pad.right, size.height - pad.bottom);
-    final side = (avail.width * 0.13).clamp(80.0, 150.0);
+    final side = rail ? (avail.width * 0.13).clamp(80.0, 150.0) : pauseGutter;
     final scale = math.max(0.1, math.min((avail.width - side * 2) / Field.width, avail.height / Field.height));
     final field = Rect.fromCenter(center: avail.center, width: Field.width * scale, height: Field.height * scale);
     return FieldLayout._(size, field, scale);
   }
+
+  /// 領域方式で左右に空ける幅 (右上のポーズボタンが盤面に重ならないため)。
+  static const pauseGutter = 68.0;
 
   final Size screen;
   final Rect field;
@@ -182,11 +186,10 @@ class _Rail extends StatelessWidget {
   }
 }
 
-/// 発射・パリィのボタン (レール方式では押せる。領域方式では右半分のタップの目安として表示だけする)。
+/// 発射・パリィのボタン (レール方式で、右の余白に置く)。
 class ParryButton extends StatelessWidget {
-  const ParryButton({super.key, required this.controller, required this.interactive, this.size = 72});
+  const ParryButton({super.key, required this.controller, this.size = 72});
   final GameController controller;
-  final bool interactive;
   final double size;
 
   @override
@@ -196,25 +199,21 @@ class ParryButton extends StatelessWidget {
       builder: (_, _, _) {
         final active = controller.world.parry.active;
         final c = active ? Palette.yellow : Palette.sub;
-        return Opacity(
-          opacity: interactive ? 1 : 0.5,
-          child: CustomPaint(
-            size: Size.square(size),
-            painter: _ParryButtonPainter(c, pressed: active),
-            child: SizedBox.square(
-              dimension: size,
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.only(top: active ? size / 18 : 0),
-                  child: Text('PARRY', style: pixelFont(size * 0.16, color: Dot.ink)),
-                ),
+        return CustomPaint(
+          size: Size.square(size),
+          painter: _ParryButtonPainter(c, pressed: active),
+          child: SizedBox.square(
+            dimension: size,
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.only(top: active ? size / 18 : 0),
+                child: Text('PARRY', style: pixelFont(size * 0.16, color: Dot.ink)),
               ),
             ),
           ),
         );
       },
     );
-    if (!interactive) return IgnorePointer(child: button);
     return Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: (e) => controller.press(e.timeStamp),
@@ -244,18 +243,4 @@ class _ParryButtonPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ParryButtonPainter old) => old.color != color || old.pressed != pressed;
-}
-
-/// 領域方式の移動の目安 (左の余白)。
-class MoveHint extends StatelessWidget {
-  const MoveHint({super.key});
-
-  @override
-  Widget build(BuildContext context) => IgnorePointer(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          PixelIcon(PixelIcons.swap, color: withAlpha(Palette.accent, 0.7), size: 35),
-          const SizedBox(height: 6),
-          Container(width: 56, height: 4, color: withAlpha(Palette.accent, 0.45)),
-        ]),
-      );
 }

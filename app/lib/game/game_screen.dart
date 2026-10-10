@@ -241,34 +241,35 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
         autofocus: true,
         onKeyEvent: _onKey,
         child: LayoutBuilder(builder: (context, c) {
-          final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context));
           final rail = settings.controls != ControlScheme.zones;
+          final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context), rail: rail);
           return Stack(children: [
             Positioned.fill(child: TouchInput(controller: _ctl, layout: layout, settings: settings)),
             Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field(settings))),
-            // 左の余白: 移動
-            Positioned.fromRect(
-              rect: layout.left,
-              child: SafeArea(
-                right: false,
-                child: rail
-                    ? RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical)
-                    : const Align(alignment: Alignment(0, 0.55), child: MoveHint()),
-              ),
-            ),
-            // 右の余白: パリィ
-            Positioned(
-              left: layout.right.left,
-              width: layout.right.width,
-              bottom: 0,
-              height: c.maxHeight * 0.55,
-              child: SafeArea(
-                left: false,
-                child: Center(
-                  child: ParryButton(controller: _ctl, interactive: rail, size: (layout.right.width * 0.6).clamp(56, 84)),
+            // レール方式だけ、左右の余白に操作を置く (領域方式は画面の左右半分をタッチするので置かない)
+            if (rail) ...[
+              // 左の余白: 移動
+              Positioned.fromRect(
+                rect: layout.left,
+                child: SafeArea(
+                  right: false,
+                  child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical),
                 ),
               ),
-            ),
+              // 右の余白: パリィ
+              Positioned(
+                left: layout.right.left,
+                width: layout.right.width,
+                bottom: 0,
+                height: c.maxHeight * 0.55,
+                child: SafeArea(
+                  left: false,
+                  child: Center(
+                    child: ParryButton(controller: _ctl, size: (layout.right.width * 0.6).clamp(56, 84)),
+                  ),
+                ),
+              ),
+            ],
             Positioned(
               right: 0,
               top: 0,
