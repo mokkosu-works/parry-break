@@ -91,7 +91,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                           children: [
                             IconButton(
                               onPressed: () => Navigator.of(context).maybePop(),
-                              icon: PixelIcon(PixelIcons.back, color: Palette.accent),
+                              icon: PixelIcon(PixelIcons.back, color: Palette.sub),
                               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                             ),
                             const SizedBox(width: 10),
@@ -125,7 +125,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                             IconButton(
                               onPressed: _index == 0 ? null : () => _go(_index - 1, pages.length),
                               icon: PixelIcon(PixelIcons.chevronLeft),
-                              color: Palette.accent,
+                              color: Palette.sub,
                               disabledColor: withAlpha(Palette.pale, 0.2),
                               tooltip: l.helpPrev,
                             ),

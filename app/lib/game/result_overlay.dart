@@ -115,7 +115,8 @@ class _ResultOverlayState extends State<ResultOverlay>
     final title = stage == null
         ? 'GAME OVER'
         : (win ? 'STAGE CLEAR' : 'STAGE FAILED');
-    final color = win ? Palette.yellow : Palette.red;
+    // 勝ちはメインカラー (黄)、負けはアクセントカラー (赤)
+    final color = win ? Palette.main : Palette.accent;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -130,7 +131,10 @@ class _ResultOverlayState extends State<ResultOverlay>
               padding: const EdgeInsets.all(12),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: SizedBox(
+                // 後ろの盤面が透けて読みにくくならないよう、窓の中に置く
+                child: PixelWindow(
+                  padding: const EdgeInsets.fromLTRB(28, 22, 28, 26),
+                  child: SizedBox(
                   width: 1000,
                   height: 470,
                   child: AnimatedBuilder(
@@ -149,17 +153,18 @@ class _ResultOverlayState extends State<ResultOverlay>
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
+                                  const SizedBox(width: 16),
                                   PixelTitle(title, size: 64, color: color),
                                   const SizedBox(width: 26),
                                   if (stage != null) ...[
                                     PixelTag(
                                       'STAGE ${stage.id}',
-                                      color: Palette.accent,
+                                      color: Palette.sub,
                                     ),
                                     const SizedBox(width: 10),
                                   ],
                                   if (!win)
-                                    PixelTag(d.reason, color: Palette.red),
+                                    PixelTag(d.reason, color: Palette.accent),
                                 ],
                               ),
                             ),
@@ -173,14 +178,11 @@ class _ResultOverlayState extends State<ResultOverlay>
                             children: [
                               Expanded(flex: 11, child: _score(d)),
                               Container(
-                                width: 1,
                                 margin: const EdgeInsets.symmetric(
                                   horizontal: 28,
                                 ),
-                                color: withAlpha(
-                                  Palette.pale,
-                                  0.18 * _p(0.3, 0.5),
-                                ),
+                                width: 2,
+                                color: withAlpha(Dot.edge, _p(0.3, 0.5)),
                               ),
                               Expanded(
                                 flex: 9,
@@ -219,7 +221,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                                 ),
                               PixelButton(
                                 label: 'TITLE',
-                                color: Palette.accent2,
+                                color: Palette.gray,
                                 icon: PixelIcons.home,
                                 onPressed: widget.onTitle,
                               ),
@@ -229,6 +231,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                       ],
                     ),
                   ),
+                ),
                 ),
               ),
             ),
@@ -255,7 +258,7 @@ class _ResultOverlayState extends State<ResultOverlay>
             children: [
               Text(
                 'SCORE',
-                style: pixelFont(13, color: Palette.accent, letterSpacing: 6),
+                style: pixelFont(16, color: Palette.pale, letterSpacing: 4),
               ),
               const SizedBox(height: 4),
               FittedBox(
@@ -266,20 +269,20 @@ class _ResultOverlayState extends State<ResultOverlay>
                   style: pixelFont(84, weight: 900, letterSpacing: 2).copyWith(
                     fontFeatures: tab,
                     height: 1,
-                    shadows: hardShadow(84, color: Dot.dark(Palette.accent)),
+                    shadows: hardShadow(84),
                   ),
                 ),
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Container(width: 3, height: 30, color: Palette.accent2),
+                  Container(width: 4, height: 30, color: Palette.main),
                   const SizedBox(width: 10),
                   Text(
                     'HI-SCORE',
                     style: pixelFont(
-                      11,
-                      color: withAlpha(Palette.accent2, 0.9),
+                      14,
+                      color: Palette.main,
                       letterSpacing: 4,
                     ),
                   ),
@@ -443,9 +446,9 @@ class _Backdrop extends CustomPainter {
     final p = Paint()..isAntiAlias = false;
     for (var i = 0; i < 3; i++) {
       p.color = withAlpha(color, 0.2 - i * 0.06);
-      canvas.drawRect(Rect.fromLTWH(-40 + w * i / 3, 0, w / 3, h), p);
+      canvas.drawRect(Rect.fromLTWH(w * i / 3, 0, w / 3, h), p);
     }
-    canvas.drawRect(Rect.fromLTWH(-40, h, w + 40, 4), p..color = withAlpha(color, 0.7));
+    canvas.drawRect(Rect.fromLTWH(0, h, w, 4), p..color = withAlpha(color, 0.7));
   }
 
   @override

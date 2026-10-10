@@ -335,9 +335,9 @@ class _HiScore extends StatelessWidget {
   Widget build(BuildContext context) {
     const tab = [FontFeature.tabularFigures()];
     return Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-      Container(width: 3, height: 44, color: Palette.accent2, margin: const EdgeInsets.only(right: 12)),
+      Container(width: 4, height: 44, color: Palette.main, margin: const EdgeInsets.only(right: 12)),
       Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text('HI-SCORE', style: pixelFont(10, color: withAlpha(Palette.accent2, 0.9), letterSpacing: 4)),
+        Text('HI-SCORE', style: pixelFont(12, color: Palette.main, letterSpacing: 3)),
         const SizedBox(height: 2),
         Text(formatScore(record.bestScore),
             style: pixelFont(28, weight: 900, letterSpacing: 2).copyWith(fontFeatures: tab)),

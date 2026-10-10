@@ -36,14 +36,14 @@ ThemeData buildTheme() {
   final base = ThemeData(
     brightness: Brightness.dark,
     fontFamily: kJpFont,
-    colorScheme: const ColorScheme.dark(primary: Palette.accent, secondary: Palette.accent2, surface: Dot.night),
+    colorScheme: const ColorScheme.dark(primary: Palette.main, secondary: Palette.sub, surface: Dot.night),
     scaffoldBackgroundColor: Dot.ink,
     useMaterial3: true,
   );
   const square = RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: Dot.edge, width: 2));
   return base.copyWith(
     sliderTheme: base.sliderTheme.copyWith(
-      activeTrackColor: Palette.accent,
+      activeTrackColor: Palette.main,
       inactiveTrackColor: Dot.edge,
       thumbColor: Dot.white,
       trackHeight: 4,
@@ -53,7 +53,7 @@ ThemeData buildTheme() {
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Dot.white : Dot.dim),
-      trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Palette.accent : Dot.night),
+      trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Palette.main : Dot.night),
       trackOutlineColor: const WidgetStatePropertyAll(Dot.edge),
     ),
     dialogTheme: const DialogThemeData(backgroundColor: Dot.night, shape: square),
@@ -124,13 +124,14 @@ class _BevelPainter extends CustomPainter {
 }
 
 /// ドット絵のボタン。[filled] は色で塗った主なボタン (陰影の付いたブロック)、そうでなければ枠だけ。
+/// 色を省くと、主なボタンはメインカラー (黄)、枠だけのボタンはサブカラー (青)。
 /// 押すと硬い影の分だけ沈む。
 class PixelButton extends StatefulWidget {
   const PixelButton({
     super.key,
     required this.label,
     required this.onPressed,
-    this.color = Palette.accent,
+    this.color,
     this.filled = false,
     this.icon,
     this.fontSize = 18,
@@ -138,7 +139,7 @@ class PixelButton extends StatefulWidget {
 
   final String label;
   final VoidCallback? onPressed;
-  final Color color;
+  final Color? color;
   final bool filled;
   final DotSprite? icon;
   final double fontSize;
@@ -153,7 +154,7 @@ class _PixelButtonState extends State<PixelButton> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onPressed != null;
-    final c = enabled ? widget.color : Palette.gray;
+    final c = enabled ? widget.color ?? (widget.filled ? Palette.main : Palette.sub) : Palette.gray;
     final fg = widget.filled ? Dot.ink : Palette.white;
     final content = Container(
       constraints: const BoxConstraints(minHeight: 48, minWidth: 120),
@@ -370,7 +371,7 @@ class ScreenFrame extends StatelessWidget {
                 Row(children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: PixelIcon(PixelIcons.back, color: Palette.accent),
+                    icon: PixelIcon(PixelIcons.back, color: Palette.sub),
                     tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   ),
                   const SizedBox(width: 8),

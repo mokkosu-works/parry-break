@@ -103,7 +103,7 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: Wrap(spacing: 16, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                if (r >= 0) Text(l.calibrationResult('$r'), style: pixelFont(20, color: Palette.accent)),
+                if (r >= 0) Text(l.calibrationResult('$r'), style: pixelFont(20, color: Palette.main)),
                 PixelButton(label: l.calibrationRetry, icon: PixelIcons.replay, onPressed: _restart),
                 if (r >= 0)
                   PixelButton(
@@ -141,13 +141,13 @@ class _BeatPainter extends CustomPainter {
     final r = math.min(size.width, size.height) * 0.22;
     // ドットの輪: 真ん中が的、外から縮んでくる輪が拍
     int n(double rad) => math.max(12, (rad * 2 * math.pi / 14).round());
-    drawDots(canvas, ringDots(c.dx, c.dy, r, n(r)), Palette.accent, size: 6);
+    drawDots(canvas, ringDots(c.dx, c.dy, r, n(r)), Palette.sub, size: 6);
     for (var i = 0; i < beats; i++) {
       final dt = beatTime(i) - now;
       if (dt < -0.15 || dt > interval * 1.5) continue;
       if (dt >= 0) {
         final rad = r * (1 + dt / interval * 1.6);
-        drawDots(canvas, ringDots(c.dx, c.dy, rad, n(rad)), dt < interval * 0.75 ? Palette.accent2 : Dot.dark(Palette.accent2), size: 5);
+        drawDots(canvas, ringDots(c.dx, c.dy, rad, n(rad)), dt < interval * 0.75 ? Palette.main : Dot.dark(Palette.main), size: 5);
       } else {
         pixelDisc(canvas, c.dx, c.dy, r / 6, withAlpha(Palette.yellow, 0.6), d: 6);
       }

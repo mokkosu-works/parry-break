@@ -40,7 +40,7 @@ class StageSelectScreen extends ConsumerWidget {
           for (final ch in campaign.chapters) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
-              child: Text(ch.title.of(lang), style: pixelFont(18, color: Palette.accent2, weight: 800)),
+              child: Text(ch.title.of(lang), style: pixelFont(18, color: Palette.sub, weight: 800)),
             ),
             Wrap(spacing: 10, runSpacing: 10, children: [
               for (final st in ch.stages)
@@ -62,11 +62,11 @@ class StageSelectScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: const RoundedRectangleBorder(side: BorderSide(color: Palette.accent, width: 3)),
+        shape: const RoundedRectangleBorder(side: BorderSide(color: Palette.main, width: 3)),
         title: Text('${st.id}  $title', style: pixelFont(20, weight: 800)),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(goalText(l, st), style: const TextStyle(color: Palette.accent, fontSize: 15)),
+            Text(goalText(l, st), style: const TextStyle(color: Palette.sub, fontSize: 15)),
             const SizedBox(height: 10),
             for (var i = 0; i < st.stars.length; i++)
               StarLine(achieved: rec.hasStar(i), text: starText(l, st.stars[i])),
@@ -109,7 +109,7 @@ class _StageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = record.cleared ? Palette.accent : unlocked ? Palette.pale : Palette.gray;
+    final c = record.cleared ? Palette.main : unlocked ? Palette.pale : Palette.gray;
     return Opacity(
       opacity: unlocked ? 1 : 0.45,
       child: GestureDetector(

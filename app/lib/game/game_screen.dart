@@ -324,7 +324,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                     PixelButton(label: 'RESUME', filled: true, icon: PixelIcons.play, onPressed: _ctl.requestResume),
                     PixelButton(label: 'RETRY', icon: PixelIcons.replay, onPressed: _retry),
                     PixelButton(label: 'SETTINGS', icon: PixelIcons.tune, onPressed: _openSettings),
-                    PixelButton(label: 'TITLE', color: Palette.accent2, icon: PixelIcons.home, onPressed: _toTitle),
+                    PixelButton(label: 'TITLE', color: Palette.gray, icon: PixelIcons.home, onPressed: _toTitle),
                   ]),
                 ]),
               ),
@@ -396,10 +396,10 @@ class _RoundIcon extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Dot.night,
-              border: Border.all(color: Palette.accent, width: 3),
+              border: Border.all(color: Palette.sub, width: 3),
               boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
             ),
-            child: PixelIcon(icon, size: 21, color: Palette.accent),
+            child: PixelIcon(icon, size: 21, color: Palette.sub),
           ),
         ),
       );

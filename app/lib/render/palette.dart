@@ -7,11 +7,16 @@ abstract final class Palette {
   static const hudLine = Dot.edge;
   static const hudLabel = Dot.dim;
 
-  /// 主な強調色 (選択中・押せるもの・見出し)。
-  static const accent = Dot.brick;
+  // ---- 画面の 3 色 (盤面の外の UI で使う。盤面の中は Dot の色を大胆に使ってよい) ----
 
-  /// 二番目の強調色 (ハイスコア・もう一方のボタン)。
-  static const accent2 = Dot.mustard;
+  /// メインカラー (黄)。ロゴの PARRY・見出し・いま選んでいるもの (▶)・主なボタン・記録 (ハイスコア・星)。
+  static const main = Dot.mustard;
+
+  /// サブカラー (青)。プレイヤーの色 (パドル・BREAK)。二番手のボタン・戻る / めくる・補足の見出し。
+  static const sub = Dot.sky;
+
+  /// アクセントカラー (赤)。危険と衝撃だけに使う (GAME OVER・BALL LOST・危険ライン・PARRY ボタン)。見出しの影にも使う。
+  static const accent = Dot.brick;
   static const yellow = Dot.mustard;
   static const orange = Dot.orange;
   static const red = Dot.bulletRed;

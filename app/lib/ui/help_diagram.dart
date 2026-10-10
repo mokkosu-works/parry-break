@@ -445,14 +445,14 @@ class _DiagramPainter extends CustomPainter {
       _label('PAUSED', w / 2, 200, Palette.yellow, size: 30);
     }
     final b = Rect.fromCenter(center: btn, width: 40, height: 36);
-    _c.drawRect(b, _fill..color = withAlpha(Palette.accent, pressed ? 0.5 : 0.15));
-    pixelFrame(_c, b, Palette.accent, d: 3);
+    _c.drawRect(b, _fill..color = withAlpha(Palette.sub, pressed ? 0.5 : 0.15));
+    pixelFrame(_c, b, Palette.sub, d: 3);
     for (final dx in [-6.0, 6.0]) {
       _c.drawRect(Rect.fromCenter(center: btn + Offset(dx, 0), width: 5, height: 16), _fill..color = Palette.white);
     }
     if (_t > 0.2 && _t < 0.4) _arrow(const Offset(480, 110), const Offset(540, 56), withAlpha(Palette.pale, 0.7));
     _finger(btn + const Offset(-10, 46), down: pressed);
-    if (pressed) _ring(btn, 24 + _span(_t, 0.35, 0.45) * 30, Palette.accent, 1 - _span(_t, 0.35, 0.45));
+    if (pressed) _ring(btn, 24 + _span(_t, 0.35, 0.45) * 30, Palette.sub, 1 - _span(_t, 0.35, 0.45));
   }
 
   @override

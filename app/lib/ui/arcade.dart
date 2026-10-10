@@ -54,10 +54,10 @@ class StatReadout extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: pixelFont(10, color: withAlpha(Palette.pale, 0.6), letterSpacing: 3)),
-          const SizedBox(height: 3),
+          Text(label, style: pixelFont(14, color: Palette.pale, letterSpacing: 2)),
+          const SizedBox(height: 6),
           Text(value,
-              style: pixelFont(24, color: highlight ? Palette.yellow : Palette.white, weight: 900)
+              style: pixelFont(28, color: highlight ? Palette.main : Palette.white, weight: 900)
                   .copyWith(fontFeatures: const [FontFeature.tabularFigures()], height: 1)),
         ],
       );
