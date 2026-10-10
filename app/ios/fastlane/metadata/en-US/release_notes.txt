@@ -1,2 +1,4 @@
-- Music now plays on the title and menu screens
+- How to Play has been redesigned: flip through one topic per page, each with an animated diagram
+- Settings are now grouped into Controls, Sound, Display and Other tabs
+- Fixed an issue where the music stopped after moving on to the next stage
 - Minor bug fixes and performance improvements
