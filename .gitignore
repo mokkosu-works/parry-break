@@ -1,2 +1,6 @@
 .DS_Store
 xcuserdata/
+
+# Bundler (fastlane 用。手元で gem を vendor/bundle に入れるため)
+/.bundle/
+/vendor/bundle/

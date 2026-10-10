@@ -4,7 +4,7 @@
 //   adb shell settings put system accelerometer_rotation 0
 //   adb shell settings put system user_rotation 0
 //   SHOT_DIR=build/claude flutter drive -d <デバイス ID> \
-//     --driver=test_driver/integration_test.dart --target=integration_test/issue_41_test.dart
+//     --driver=test_driver/integration_test.dart --target=integration_test/landscape_on_launch_test.dart
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

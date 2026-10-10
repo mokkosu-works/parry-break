@@ -97,7 +97,6 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-          working-directory: app
       - name: アップロード鍵を置く
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -147,7 +146,6 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-          working-directory: app
       - run: flutter pub get
       # Flutter の成果物と依存を用意する。署名とアーカイブは fastlane が行う
       - run: >-
