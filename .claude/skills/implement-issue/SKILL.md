@@ -55,7 +55,7 @@ flutter drive -d emulator-5554 --driver=test_driver/integration_test.dart --targ
 
 ### 3.2 完了条件を確かめるテスト
 
-完了条件のうち画面で確かめられるものを、`app/integration_test/issue_<番号>_test.dart` に書いて動かす。
+完了条件のうち画面で確かめられるものを、`app/integration_test/<確かめる内容>_test.dart` に書いて動かす。ファイル名は何を確かめるかがわかる英語の snake_case にし(例: `landscape_on_launch_test.dart`)、1 行目のコメントを `// Issue #<番号>: <確かめること>` にする。
 
 - 書き方は `integration_test/smoke_test.dart`(起動・画面遷移・ボールを出して遊ぶ・撮影)と `integration_test/store_screenshots_test.dart`(記録の差し替え・`World` を直接動かしてボス戦や特定のウェーブを作る・パリィを決める)を真似る。
 - 入力は実機と同じ経路を使う: タップは `t.tap(find.text(...))`、パリィは `t.sendKeyEvent(LogicalKeyboardKey.space)`、パドルは `world.input.targetX`。
@@ -65,7 +65,7 @@ flutter drive -d emulator-5554 --driver=test_driver/integration_test.dart --targ
 
 ```sh
 cd app
-flutter drive -d emulator-5554 --driver=test_driver/integration_test.dart --target=integration_test/issue_<番号>_test.dart
+flutter drive -d emulator-5554 --driver=test_driver/integration_test.dart --target=integration_test/<確かめる内容>_test.dart
 ```
 
 ### 3.3 画面とログを見る
@@ -83,7 +83,7 @@ flutter drive -d emulator-5554 --driver=test_driver/integration_test.dart --targ
 
 ### 3.5 テストを残すか
 
-`issue_<番号>_test.dart` は PR に入れる(何を確かめたかをレビューと人が読めるように)。ただし、1 分を超える、撮影だけで `expect` がない、など繰り返し使う価値がないものは消して、確かめた内容を PR の本文に書く。
+このテストは PR に入れる(何を確かめたかをレビューと人が読めるように)。ただし、1 分を超える、撮影だけで `expect` がない、など繰り返し使う価値がないものは消して、確かめた内容を PR の本文に書く。
 
 ## 4. コミットして PR を作る
 
@@ -112,13 +112,13 @@ Closes #<番号>
 - (ユーザーから見た変化を先に。そのあとコードの変更を、ファイル単位で短く)
 
 ## 完了条件
-- [x] <Issue の完了条件 1> — <どう確かめたか: 単体テスト名 / issue_<番号>_test.dart の expect / 画面 issue<番号>_02 で ○○ が見えた>
+- [x] <Issue の完了条件 1> — <どう確かめたか: 単体テスト名 / <確かめる内容>_test.dart の expect / 画面 issue<番号>_02 で ○○ が見えた>
 - [ ] <満たせなかった条件> — <なぜか>
 
 ## エミュレーターで確かめたこと
 - 端末: Android エミュレーター (API 34, Pixel 6)
 - スモークテスト: 成功
-- issue_<番号>_test.dart: 成功(<何を確かめたか>)
+- <確かめる内容>_test.dart: 成功(<何を確かめたか>)
 - 画面: <撮った画面ごとに、何が写っていたか>
 - ログ: 例外・クラッシュなし
 - 撮った画面とログ: <RUN URL> の Artifacts の emulator-screenshots

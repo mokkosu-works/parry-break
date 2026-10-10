@@ -131,7 +131,7 @@ App Store の名前・説明文・キーワード・URL などの掲載文は `a
 
 | 場面 | 仕組み | 内容 |
 | --- | --- | --- |
-| Issue の実装 | `implement.yml`(Issue に `@claude` とコメント)+ `.claude/skills/implement-issue/SKILL.md` | 実装・単体テスト・Android エミュレーターでの確認(スモークテストと、完了条件を確かめる `integration_test/issue_<番号>_test.dart`、撮った画面を Claude が見る)をして、`dev` 向けの PR を作る。「先に聞いてほしい」項目が残っていれば、実装せずに Issue で質問する。手元でも `/implement-issue <番号>` で同じことができる |
+| Issue の実装 | `implement.yml`(Issue に `@claude` とコメント)+ `.claude/skills/implement-issue/SKILL.md` | 実装・単体テスト・Android エミュレーターでの確認(スモークテストと、完了条件を確かめる `integration_test/<確かめる内容>_test.dart`、撮った画面を Claude が見る)をして、`dev` 向けの PR を作る。「先に聞いてほしい」項目が残っていれば、実装せずに Issue で質問する。手元でも `/implement-issue <番号>` で同じことができる |
 | PR のレビュー | `pr.yml`(`anthropics/claude-code-action`)+ `.claude/skills/pr-review/SKILL.md` | 不具合・テストの漏れ・設計書との食い違い・完了条件を満たしているかを見る。直すべき問題があれば `needs-fix` を付けて、マージを止める。観点と重さの基準はスキルに書く。手元でも `/pr-review <番号>` で同じレビューができる |
 | 指摘の自動修正 | `pr.yml` の `fix` + `.claude/skills/pr-fix/SKILL.md` | `needs-fix` が付いたら、`[要修正]` の指摘を 1 つずつ確かめる(コードを追う・落ちるテストを書く)。妥当なものだけ直してコミットし、ワークフローが `flutter analyze` / `flutter test` を通してから Claude の GitHub アプリのトークンで push する(再レビューが動く)。妥当でない・人の判断が要る指摘は、スレッドに理由を返して人に回す。続けて 2 回まで。`main` 向けの PR では動かない。手元でも `/pr-fix <番号>` で同じことができる |
 | PR での依頼 | `claude.yml`(PR に `@claude` を付けてコメント) | 指摘の修正 |
@@ -186,7 +186,7 @@ TestFlight / Play の内部テストから入れて、次を確かめる(10分�
 CI のマシンには Xcode のアカウントがないので、配布用の証明書とプロファイルを暗号化して別の非公開リポジトリに置き、CI はそこから読む。
 
 1. 非公開のリポジトリ `watsuwo/certificates` を作る(空でよい)。
-2. Mac で `cd app && bundle install && cd ios && bundle exec fastlane match appstore` を実行する。リポジトリの URL と、暗号化のパスワード(= `MATCH_PASSWORD`)を聞かれる。Ruby は Homebrew などで 3.3 を入れる(macOS 標準の 2.6 では fastlane が動かない)。
+2. Mac のリポジトリ直下で `bundle install && cd app/ios && bundle exec fastlane match appstore` を実行する(fastlane の `Gemfile` はリポジトリ直下にある)。リポジトリの URL と、暗号化のパスワード(= `MATCH_PASSWORD`)を聞かれる。Ruby は Homebrew などで 3.3 を入れる(macOS 標準の 2.6 では fastlane が動かない)。
 3. `MATCH_GIT_BASIC_AUTHORIZATION` は、`certificates` を読める fine-grained トークンを使って `echo -n "watsuwo:<トークン>" | base64` で作る。
 4. 手元で Xcode からアーカイブする場合は、これまでどおり自動署名のままでよい(CI だけビルド時に手動署名に切り替える)。
 

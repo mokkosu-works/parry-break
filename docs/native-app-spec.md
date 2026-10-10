@@ -128,7 +128,7 @@ Core World(純粋 Dart: エンティティ + System 列 + レジストリ)
 
 ### 5.3 ディレクトリ構成
 
-Flutter プロジェクトはリポジトリ直下の `app/` に置く。アイコンの元画像は `app/branding/icons/` に置く。
+Flutter プロジェクトはリポジトリ直下の `app/` に置く。アイコンの元画像は `app/branding/icons/` に置く。ストアへ出す fastlane は `app/android/fastlane/` と `app/ios/fastlane/` にあり、その `Gemfile` はリポジトリ直下に置く(Bundler は上のディレクトリをたどって見つける)。
 
 ```
 app/
@@ -163,6 +163,10 @@ app/
   branding/icons/                     # アイコンの元画像(flutter_launcher_icons で各サイズを作る)
   test/core/                          # コアの単体テスト。golden/layouts.json はブラウザ版から書き出した配置
   test/app/                           # 画面のテスト(偽の時刻でアプリ全体を動かす)と画面写真
+  test/render/                        # 盤面の描画のテストと画面写真
+  test/audio/                         # 効果音・BGM の書き出しのテスト
+  test/services/                      # 記録・広告のテスト
+  integration_test/                   # 実機・エミュレーターで動かすテスト(flutter drive)
 tools/
   subset_jp_font.sh  # 日本語フォントを使っている文字だけに絞る
 ```
@@ -292,7 +296,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 | --- | --- |
 | `flutter analyze` | 指摘なし |
 | `flutter test`(29件) | すべて成功。コア(配置・乱数の一致、パリィ判定、崩落、分身弾、ボスのフェーズ、決定性、全ウェーブの読み込み、ステージと星)、音の生成、アプリ全体(タイトル → エンドレス → 発射 → ポーズ → 再開、タッチ操作、ボス戦の失敗 → リザルト、ステージ選択、設定)、盤面の描画(OVERDRIVE 中のボス戦、崩落、ウェーブクリア) |
-| 画面写真 | `test/app/screenshots/` に、テストで描いた画面の写真がある(作り直すには `flutter test test/app --dart-define=screenshots=true --update-goldens`) |
+| 画面写真 | `test/app/screenshots/` と `test/render/screenshots/` に、テストで描いた画面の写真がある(作り直すには `flutter test test/app test/render --dart-define=screenshots=true --update-goldens`) |
 | Web ビルド | `flutter build web` が通る(開発中に Chrome で確認するためだけに使う。ストアには出さない。音とランキングは無効) |
 
 ### 実行のしかた
