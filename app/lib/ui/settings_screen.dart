@@ -43,7 +43,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (ads.privacyOptionsRequired || s.debugMode) _Tab.other,
     ];
     final tab = tabs.contains(_tab) ? _tab : _Tab.controls;
-    const color = Palette.accent;
+    // 選んでいるもの・いまの値は黄 (アプリ全体で、黄 = 選択中、赤 = 押して実行するボタン)
+    const color = Palette.yellow;
     final names = {
       _Tab.controls: l.settingsTabControls,
       _Tab.sound: l.settingsTabSound,
@@ -171,7 +172,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _SmallButton(
                 label: l.calibrate,
                 icon: PixelIcons.timer,
-                color: color,
+                color: Palette.accent, // 押して画面を開くボタンなので赤
                 onTap: () => Navigator.of(context).push(fadeRoute<void>(const CalibrationScreen())),
               ),
             ]),
