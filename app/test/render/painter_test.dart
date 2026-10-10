@@ -25,7 +25,6 @@ Future<void> _paint(WidgetTester tester, World w, FxState fx, String name) async
     alpha: () => 1,
     time: () => 1.234,
     text: TextCache(),
-    glow: null,
     blockPainters: BlockPainterRegistry(),
     l10n: lookupAppLocalizations(const Locale('en')),
     highQuality: true,
@@ -53,6 +52,10 @@ void _run(World w, FxState fx, double seconds, {void Function()? before}) {
 void main() {
   setUpAll(() async {
     await (FontLoader('Orbitron')..addFont(rootBundle.load('assets/fonts/Orbitron.ttf'))).load();
+    await (FontLoader('Silkscreen')
+          ..addFont(rootBundle.load('assets/fonts/Silkscreen-Regular.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/Silkscreen-Bold.ttf')))
+        .load();
   });
 
   testWidgets('OVERDRIVE 中のボス戦 (フェーズ3・レーザー・分身弾・弾幕)', (tester) async {

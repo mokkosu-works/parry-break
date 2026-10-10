@@ -31,6 +31,10 @@ final _campaign = Campaign.fromJson(
 
 Future<void> _loadFonts() async {
   await (FontLoader('Orbitron')..addFont(rootBundle.load('assets/fonts/Orbitron.ttf'))).load();
+  await (FontLoader('Silkscreen')
+        ..addFont(rootBundle.load('assets/fonts/Silkscreen-Regular.ttf'))
+        ..addFont(rootBundle.load('assets/fonts/Silkscreen-Bold.ttf')))
+      .load();
   if (!_shots) return;
   // 画面写真の文字を読めるようにする (テストの標準フォントは四角で描かれる)
   for (final f in ['Roboto', 'MaterialIcons']) {

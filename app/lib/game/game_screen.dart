@@ -9,7 +9,6 @@ import '../input/touch_controls.dart';
 import '../l10n/app_localizations.dart';
 import '../render/block_painters.dart';
 import '../render/field_painter.dart';
-import '../render/glow.dart';
 import '../render/palette.dart';
 import '../render/text_cache.dart';
 import '../services/ads.dart';
@@ -49,7 +48,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   final TextCache _text = TextCache();
   final BlockPainterRegistry _blockPainters = BlockPainterRegistry();
   final FocusNode _focus = FocusNode();
-  GlowSprite? _glow;
   FieldPainter? _painter;
   _Outcome? _outcome;
 
@@ -72,7 +70,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     _ctl.audio.enterGame();
     _applySettings(settings);
     _ctl.start();
-    _glow = settings.quality == GraphicsQuality.high ? GlowSprite.create() : null;
     _ticker = createTicker((_) {
       _keyboardAxis();
       _ctl.tick();
@@ -230,7 +227,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       alpha: () => _ctl.session.alpha,
       time: () => _ctl.clock.now,
       text: _text,
-      glow: _glow,
       blockPainters: _blockPainters,
       l10n: l,
       highQuality: settings.quality == GraphicsQuality.high,

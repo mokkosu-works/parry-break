@@ -13,6 +13,9 @@ class TextCache {
 
   static const orbitron = 'Orbitron';
 
+  /// 盤面のドット文字 (英数字のみ)。
+  static const pixel = 'Silkscreen';
+
   /// 端末の標準フォント (日本語の説明文など)。
   static const system = 'system';
 

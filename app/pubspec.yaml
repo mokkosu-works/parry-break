@@ -74,6 +74,12 @@ flutter:
     - family: Orbitron
       fonts:
         - asset: assets/fonts/Orbitron.ttf
+    # 盤面のドット文字 (英数字のみ)
+    - family: Silkscreen
+      fonts:
+        - asset: assets/fonts/Silkscreen-Regular.ttf
+        - asset: assets/fonts/Silkscreen-Bold.ttf
+          weight: 700
     # Web 版で日本語を表示するためのフォント (使っている文字だけ。tools/subset_jp_font.sh で作る)
     - family: NotoSansJP
       fonts:

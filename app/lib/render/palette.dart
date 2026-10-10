@@ -17,23 +17,54 @@ abstract final class Palette {
   static const justPink = Color(0xFFFF6BF0);
 
   /// ブロックの色。通常ブロックは高さの段で変わる。
-  static const normalTiers = [Color(0xFF3EE0FF), Color(0xFFA66BFF), Color(0xFFFFD84D)];
+  static const normalTiers = [Dot.teal, Dot.violet, Dot.mustard];
   static const blocks = <String, Color>{
-    'T': Color(0xFFFF3D5A),
-    'R': Color(0xFF3DFF9B),
-    'M': Color(0xFF4D84FF),
-    'S': Color(0xFFFF5EC8),
-    's': Color(0xFFFF9EE0),
-    'X': Color(0xFFD8E4F0),
-    '#': Color(0xFF55556A),
-    'C': Color(0xFFFFDE3D),
-    'K': Color(0xFFFFFFFF),
-    'B': Color(0xFFFF7A1A),
+    'T': Dot.brick,
+    'R': Dot.mint,
+    'M': Dot.sky,
+    'S': Dot.rose,
+    's': Dot.blush,
+    'X': Dot.steel,
+    '#': Dot.edge,
+    'C': Dot.mustard,
+    'K': Dot.white,
+    'B': Dot.orange,
   };
 
   /// ヒート段階 (1〜4, OVERDRIVE) の色。
-  static const heatBar = [Color(0xFF5A6AFF), cyan, Color(0xFF3DFF9B), Color(0xFFFFB43C)];
-  static const multColor = [white, cyan, Color(0xFF3DFF9B), Color(0xFFFFB43C), magenta];
+  static const heatBar = [Dot.sky, Dot.teal, Dot.mint, Dot.mustard];
+  static const multColor = [Dot.white, Dot.ice, Dot.mint, Dot.mustard, Dot.rose];
+}
+
+/// 盤面のドット絵の色 (16 色)。陰影は [Dot.light] / [Dot.dark] で作る。
+abstract final class Dot {
+  static const ink = Color(0xFF0E0D12);
+  static const night = Color(0xFF1A1720);
+  static const dither = Color(0xFF221E2C);
+  static const edge = Color(0xFF3A3445);
+  static const dim = Color(0xFF8C86A0);
+  static const white = Color(0xFFF4F0E8);
+  static const brick = Color(0xFFD8492E);
+  static const mustard = Color(0xFFF0B23C);
+  static const mint = Color(0xFF4DBE8C);
+  static const teal = Color(0xFF39A9B8);
+  static const sky = Color(0xFF4A8BE3);
+  static const violet = Color(0xFF8E5BD6);
+  static const steel = Color(0xFF8A8698);
+  static const orange = Color(0xFFFF8A3D);
+  static const rose = Color(0xFFFF6FBF);
+  static const blush = Color(0xFFFFB3DD);
+  static const ice = Color(0xFF9FE8F0);
+
+  /// 敵弾 (赤い弾は避けるしかない)。
+  static const bullet = Color(0xFFFF8A3D);
+  static const bulletRed = Color(0xFFFF3B5C);
+
+  /// 1 ドットの大きさ (盤面の論理 px)。
+  static const px = 4.0;
+
+  static Color light(Color c) => Color.lerp(c, white, 0.45)!;
+  static Color dark(Color c) => Color.lerp(c, ink, 0.5)!;
 }
 
 Color withAlpha(Color c, double a) => c.withValues(alpha: (c.a * a).clamp(0.0, 1.0));

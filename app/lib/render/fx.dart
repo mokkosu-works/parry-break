@@ -84,7 +84,7 @@ class FxState {
   FxJudge? judge;
   FxBanner? banner;
   double shake = 0, flash = 0;
-  Color flashColor = Palette.white;
+  Color flashColor = Dot.white;
 
   /// ボールごとの軌跡 (ステップごとの位置)。
   final trails = <int, List<Offset>>{};
@@ -118,7 +118,7 @@ class FxState {
 
   void _shake(double v) => shake = math.max(shake, reduceEffects ? v * 0.3 : v);
 
-  void _flash(double v, [Color color = Palette.white]) {
+  void _flash(double v, [Color color = Dot.white]) {
     flash = math.max(flash, reduceEffects ? math.min(v, 0.08) : v);
     flashColor = color;
   }
@@ -126,13 +126,13 @@ class FxState {
   void _callout(Callout e) {
     final (color, size) = switch (e.channel) {
       CalloutChannel.collapse => (
-          const [Palette.white, Palette.yellow, Palette.magenta][e.level],
-          const [32.0, 38.0, 46.0][e.level]
+          const [Dot.white, Dot.mustard, Dot.rose][e.level],
+          const [32.0, 40.0, 48.0][e.level]
         ),
-      CalloutChannel.chainBlast => (Palette.orange, 32.0),
-      CalloutChannel.multiParry => (Palette.cyan, 28.0),
-      CalloutChannel.ricochet => (Palette.cyan, 30.0),
-      CalloutChannel.overdriveFinish => (Palette.magenta, 30.0),
+      CalloutChannel.chainBlast => (Dot.orange, 32.0),
+      CalloutChannel.multiParry => (Dot.ice, 32.0),
+      CalloutChannel.ricochet => (Dot.ice, 32.0),
+      CalloutChannel.overdriveFinish => (Dot.rose, 32.0),
     };
     // 同じ種類のコールアウトが表示中なら、新しく出さずに書き換える
     final cur = callouts.where((c) => c.channel == e.channel).lastOrNull;
@@ -169,46 +169,45 @@ class FxState {
         _callout(e);
       case Popup(:final x, :final y, :final text, :final kind, :final amount):
         final (color, size) = switch (kind) {
-          PopupKind.score => (Palette.white, amount >= 2000 ? 15.0 : 11.0),
-          PopupKind.returnedScore => (Palette.yellow, amount >= 2000 ? 15.0 : 11.0),
-          PopupKind.chain => (Palette.white, 14.0),
-          PopupKind.ricochet => (Palette.cyan, 13.0),
-          PopupKind.chainBlast => (Palette.orange, 15.0),
-          PopupKind.graze => (const Color(0xFFE0E6FF), 10.0),
-          PopupKind.noDamage => (Palette.gray, 11.0),
-          PopupKind.coreDamage => (Palette.yellow, 16.0),
+          PopupKind.score => (Dot.white, amount >= 2000 ? 24.0 : 16.0),
+          PopupKind.returnedScore => (Dot.mustard, amount >= 2000 ? 24.0 : 16.0),
+          PopupKind.chain => (Dot.white, 16.0),
+          PopupKind.ricochet => (Dot.ice, 16.0),
+          PopupKind.chainBlast => (Dot.orange, 24.0),
+          PopupKind.graze => (Dot.ice, 16.0),
+          PopupKind.noDamage => (Dot.dim, 16.0),
+          PopupKind.coreDamage => (Dot.mustard, 24.0),
         };
         popup(x, y, text, color, size);
       case ParrySucceeded(:final grade, :final target, :final x, :final y):
         final just = grade == ParryGrade.just, perfect = grade != ParryGrade.good;
-        final col = just ? Palette.justPink : perfect ? Palette.yellow : Palette.cyan;
+        final col = just ? Dot.rose : perfect ? Dot.mustard : Dot.ice;
         judge = FxJudge(just ? 'JUST!!' : grade.name.toUpperCase(), col, big: just);
         burst(x, y, just ? 40 : perfect ? 28 : 14, col, just ? 520 : perfect ? 420 : 280);
         ring(x, Field.paddleY, just ? 110 : perfect ? 70 : 40, col, just ? 5 : 3);
         _shake(target == ParryTarget.ball ? (just ? 12 : perfect ? 9 : 5) : 4);
-        if (just) _flash(0.15, const Color(0xFFFF9CF5));
+        if (just) _flash(0.15, Dot.blush);
       case ParryMissed():
-        judge = FxJudge('MISS', Palette.gray);
+        judge = FxJudge('MISS', Dot.dim);
       case BlockDestroyed(:final block, :final cx, :final cy, :final cause, :final points):
         final returned = cause == DestroyCause.bullet;
-        popup(cx, cy, '+${formatScore(points)}', returned ? Palette.yellow : Palette.white,
-            points >= 2000 ? 15 : 11);
+        popup(cx, cy, '+${formatScore(points)}', returned ? Dot.mustard : Dot.white, points >= 2000 ? 24 : 16);
         burst(cx, cy, cause == DestroyCause.pierce || cause == DestroyCause.blast ? 14 : 9, blockColor(block), 240);
       case KeystoneBroken(:final x, :final y):
-        ring(x, y, 100, Palette.white, 4);
+        ring(x, y, 100, Dot.white, 4);
         _shake(6);
       case CoreDamaged(:final x, :final y):
         burst(x, y, 18, Palette.blocks['C']!, 320);
         _shake(8);
       case BlockRepaired(:final block, :final x, :final y):
         burst(x, y, 8, blockColor(block), 160);
-        ring(x, y, 34, Palette.cyan, 2);
+        ring(x, y, 34, Dot.ice, 2);
       case CoreDestroyed(:final x, :final y):
         burst(x, y, 60, Palette.blocks['C']!, 520);
-        burst(x, y, 30, Palette.white, 300);
+        burst(x, y, 30, Dot.white, 300);
         ring(x, y, 160, Palette.blocks['C']!, 6);
         _shake(18);
-        _flash(0.3, const Color(0xFFFFF3B0));
+        _flash(0.3, Dot.mustard);
       case CollapseStarted(:final count):
         _shake(math.min(16, 4 + count * 0.4));
       case BlockFell(:final block, :final x, :final y, :final originX):
@@ -224,31 +223,31 @@ class FxState {
         trails.clear();
       case BlastExploded(:final x, :final y, :final r, :final kind):
         final big = kind == BlastKind.breaker;
-        ring(x, y, r, big ? Palette.justPink : kind == BlastKind.phantom ? Palette.magenta : Palette.orange, big ? 7 : 4);
-        burst(x, y, big ? 50 : 24, big ? const Color(0xFFFFD0FB) : const Color(0xFFFFB347), big ? 520 : 360);
+        ring(x, y, r, big ? Dot.blush : kind == BlastKind.phantom ? Dot.rose : Dot.orange, big ? 7 : 4);
+        burst(x, y, big ? 50 : 24, big ? Dot.blush : Dot.orange, big ? 520 : 360);
         _shake(big ? 16 : 9);
       case BreakerTriggered():
-        _flash(0.2, const Color(0xFFFFB8F7));
+        _flash(0.2, Dot.blush);
       case PlayerHurt(:final x):
-        judge = FxJudge('HIT!', Palette.red);
-        burst(x, Field.paddleY, 20, Palette.red, 300);
+        judge = FxJudge('HIT!', Dot.bulletRed);
+        burst(x, Field.paddleY, 20, Dot.bulletRed, 300);
         _shake(12);
-        _flash(0.25, const Color(0xFFFF2040));
+        _flash(0.25, Dot.bulletRed);
       case Grazed(:final x):
-        burst(x, Field.paddleY + 6, 6, Palette.white, 200);
+        burst(x, Field.paddleY + 6, 6, Dot.white, 200);
       case OverdriveStarted():
         _flash(0.5);
         _shake(14);
       case BossPhaseChanged():
         _shake(16);
-        _flash(0.3, const Color(0xFFFF8040));
+        _flash(0.3, Dot.orange);
       case LaserFired():
         _shake(6);
       case GameOver():
         final b = world.ball;
-        burst(b.x, math.min(b.y, Field.height - 10), 40, Palette.white, 400);
+        burst(b.x, math.min(b.y, Field.height - 10), 40, Dot.white, 400);
         _shake(20);
-        _flash(0.4, const Color(0xFFFF2040));
+        _flash(0.4, Dot.bulletRed);
       default:
         break;
     }
