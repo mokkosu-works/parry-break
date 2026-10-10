@@ -313,16 +313,16 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       ColoredBox(color: withAlpha(Dot.ink, 0.8)),
       Center(
         child: rc != null
-            ? PixelTitle('${rc.ceil()}', size: 96, color: Palette.cyan)
+            ? PixelTitle('${rc.ceil()}', size: 96, color: Palette.accent)
             : SingleChildScrollView(
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const PixelTitle('PAUSED', size: 56, color: Palette.cyan),
+                  const PixelTitle('PAUSED', size: 56, color: Palette.accent),
                   const SizedBox(height: 30),
                   Wrap(spacing: 14, runSpacing: 12, alignment: WrapAlignment.center, children: [
                     PixelButton(label: 'RESUME', filled: true, icon: Icons.play_arrow, onPressed: _ctl.requestResume),
                     PixelButton(label: 'RETRY', icon: Icons.replay, onPressed: _retry),
                     PixelButton(label: 'SETTINGS', icon: Icons.tune, onPressed: _openSettings),
-                    PixelButton(label: 'TITLE', color: Palette.magenta, icon: Icons.home, onPressed: _toTitle),
+                    PixelButton(label: 'TITLE', color: Palette.accent2, icon: Icons.home, onPressed: _toTitle),
                   ]),
                 ]),
               ),
@@ -393,10 +393,10 @@ class _RoundIcon extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               color: Dot.night,
-              border: Border.all(color: Palette.cyan, width: 3),
+              border: Border.all(color: Palette.accent, width: 3),
               boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
             ),
-            child: Icon(icon, color: Palette.cyan),
+            child: Icon(icon, color: Palette.accent),
           ),
         ),
       );

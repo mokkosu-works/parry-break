@@ -28,7 +28,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   _Tab _tab = _Tab.controls;
 
   static const _colors = {
-    _Tab.controls: Palette.cyan,
+    _Tab.controls: Palette.accent,
     _Tab.sound: Palette.yellow,
     _Tab.display: Palette.justPink,
     _Tab.other: Palette.pale,
@@ -66,7 +66,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Row(children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back, color: Palette.cyan),
+                    icon: const Icon(Icons.arrow_back, color: Palette.accent),
                     tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   ),
                   const SizedBox(width: 10),
@@ -74,7 +74,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: PixelTitle(l.menuSettings, size: 26, color: Palette.cyan),
+                      child: PixelTitle(l.menuSettings, size: 26, color: Palette.accent),
                     ),
                   ),
                 ]),
@@ -86,28 +86,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       SizedBox(
                         width: tabW,
                         child: SingleChildScrollView(
-                          child: Column(children: [
-                            for (final t in tabs)
-                              _TabButton(
-                                label: names[t]!,
-                                color: _colors[t]!,
-                                selected: t == tab,
-                                onTap: () => setState(() => _tab = t),
-                              ),
-                          ]),
+                          child: PixelWindow(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Column(children: [
+                              for (final t in tabs)
+                                _TabButton(
+                                  label: names[t]!,
+                                  color: _colors[t]!,
+                                  selected: t == tab,
+                                  onTap: () => setState(() => _tab = t),
+                                ),
+                            ]),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: withAlpha(Dot.night, 0.9),
-                            border: Border(
-                              top: BorderSide(color: color, width: 4),
-                              left: const BorderSide(color: Palette.hudLine, width: 2),
-                              right: const BorderSide(color: Palette.hudLine, width: 2),
-                              bottom: const BorderSide(color: Palette.hudLine, width: 2),
-                            ),
+                            color: withAlpha(Dot.ink, 0.92),
+                            border: Border.all(color: Palette.hudLine, width: 3),
+                            boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(6, 6))],
                           ),
                           child: ListView(
                             key: PageStorageKey(tab),
@@ -288,6 +287,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 class _TabButton extends StatelessWidget {
   const _TabButton({required this.label, required this.color, required this.selected, required this.onTap});
   final String label;
+
+  /// 見出しごとの色 (選んでいるときの ▶ の色)。
   final Color color;
   final bool selected;
   final VoidCallback onTap;
@@ -299,27 +300,23 @@ class _TabButton extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            height: 54,
-            margin: const EdgeInsets.only(bottom: 6),
-            padding: const EdgeInsets.only(left: 16, right: 8),
-            alignment: Alignment.centerLeft,
-            decoration: BoxDecoration(
-              color: selected ? color : Dot.night,
-              border: Border(left: BorderSide(color: selected ? Dot.light(color) : withAlpha(color, 0.4), width: 6)),
-            ),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1,
-                color: selected ? Dot.ink : withAlpha(Palette.pale, 0.6),
+          child: SizedBox(
+            height: 48,
+            child: Row(children: [
+              SizedBox(width: 30, child: selected ? Center(child: BlinkCursor(color: color, size: 16)) : null),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: selected ? Palette.white : Palette.gray,
+                    shadows: selected ? hardShadow(17) : null,
+                  ),
+                ),
               ),
-            ),
+            ]),
           ),
         ),
       );

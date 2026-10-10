@@ -203,7 +203,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
                       child: Center(
                         child: Opacity(
                           opacity: _stage(0.25, 0.6),
-                          child: _MenuWindow(
+                          child: PixelWindow(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -263,27 +263,6 @@ class _Shade extends StatelessWidget {
       );
 }
 
-/// メニューを囲む、RPG の窓のような二重枠。
-class _MenuWindow extends StatelessWidget {
-  const _MenuWindow({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: withAlpha(Dot.ink, 0.92),
-          border: Border.all(color: Dot.white, width: 3),
-          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(6, 6))],
-        ),
-        child: Container(
-          margin: const EdgeInsets.all(4),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(border: Border.all(color: Dot.dim, width: 2)),
-          child: child,
-        ),
-      );
-}
-
 /// メニューの 1 項目。選ぶと ▶ が点滅し、決めた瞬間は項目が反転する。
 class _MenuItem extends StatelessWidget {
   const _MenuItem({
@@ -316,7 +295,7 @@ class _MenuItem extends StatelessWidget {
             height: entry.primary ? 58 : 46,
             child: Stack(alignment: Alignment.centerLeft, children: [
               if (firing) const Positioned.fill(child: ColoredBox(color: Palette.yellow)),
-              if (selected && !firing) const Positioned(left: 10, child: _Cursor()),
+              if (selected && !firing) const Positioned(left: 10, child: BlinkCursor()),
               Padding(
                 padding: const EdgeInsets.only(left: 34, right: 16),
                 child: Row(children: [
@@ -347,42 +326,6 @@ class _MenuItem extends StatelessWidget {
   }
 }
 
-/// 選択中の項目の ▶ (点滅する)。
-class _Cursor extends StatefulWidget {
-  const _Cursor();
-
-  @override
-  State<_Cursor> createState() => _CursorState();
-}
-
-class _CursorState extends State<_Cursor> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
-
-  @override
-  void initState() {
-    super.initState();
-    _c.repeat();
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final still = MediaQuery.disableAnimationsOf(context);
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (_, _) => Opacity(
-        opacity: still || _c.value < 0.6 ? 1 : 0,
-        child: const Text('▶', style: TextStyle(fontFamily: kJpFont, fontSize: 18, color: Palette.yellow, height: 1)),
-      ),
-    );
-  }
-}
-
 /// 左下のハイスコア表示 (アーケードの計器風)。
 class _HiScore extends StatelessWidget {
   const _HiScore({required this.record});
@@ -392,9 +335,9 @@ class _HiScore extends StatelessWidget {
   Widget build(BuildContext context) {
     const tab = [FontFeature.tabularFigures()];
     return Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-      Container(width: 3, height: 44, color: Palette.magenta, margin: const EdgeInsets.only(right: 12)),
+      Container(width: 3, height: 44, color: Palette.accent2, margin: const EdgeInsets.only(right: 12)),
       Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text('HI-SCORE', style: pixelFont(10, color: withAlpha(Palette.magenta, 0.9), letterSpacing: 4)),
+        Text('HI-SCORE', style: pixelFont(10, color: withAlpha(Palette.accent2, 0.9), letterSpacing: 4)),
         const SizedBox(height: 2),
         Text(formatScore(record.bestScore),
             style: pixelFont(28, weight: 900, letterSpacing: 2).copyWith(fontFeatures: tab)),

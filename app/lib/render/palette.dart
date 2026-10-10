@@ -7,11 +7,11 @@ abstract final class Palette {
   static const hudLine = Dot.edge;
   static const hudLabel = Dot.dim;
 
-  /// 主な強調色 (選択中・押せるもの)。
-  static const cyan = Dot.teal;
+  /// 主な強調色 (選択中・押せるもの・見出し)。
+  static const accent = Dot.brick;
 
-  /// 二番目の強調色 (見出し・OVERDRIVE)。
-  static const magenta = Dot.rose;
+  /// 二番目の強調色 (ハイスコア・もう一方のボタン)。
+  static const accent2 = Dot.mustard;
   static const yellow = Dot.mustard;
   static const orange = Dot.orange;
   static const red = Dot.bulletRed;
@@ -21,7 +21,7 @@ abstract final class Palette {
   static const justPink = Dot.rose;
 
   /// ブロックの色。通常ブロックは高さの段で変わる。
-  static const normalTiers = [Dot.teal, Dot.violet, Dot.mustard];
+  static const normalTiers = [Dot.orange, Dot.violet, Dot.mustard];
   static const blocks = <String, Color>{
     'T': Dot.brick,
     'R': Dot.mint,
@@ -36,8 +36,8 @@ abstract final class Palette {
   };
 
   /// ヒート段階 (1〜4, OVERDRIVE) の色。
-  static const heatBar = [Dot.sky, Dot.teal, Dot.mint, Dot.mustard];
-  static const multColor = [Dot.white, Dot.ice, Dot.mint, Dot.mustard, Dot.rose];
+  static const heatBar = [Dot.sky, Dot.mint, Dot.mustard, Dot.orange];
+  static const multColor = [Dot.white, Dot.peach, Dot.mint, Dot.mustard, Dot.rose];
 }
 
 /// 盤面のドット絵の色 (16 色)。陰影は [Dot.light] / [Dot.dark] で作る。
@@ -51,14 +51,14 @@ abstract final class Dot {
   static const brick = Color(0xFFF2381F);
   static const mustard = Color(0xFFFFC414);
   static const mint = Color(0xFF14E08A);
-  static const teal = Color(0xFF0FCBE0);
   static const sky = Color(0xFF2E7BFF);
   static const violet = Color(0xFF9A45FF);
   static const steel = Color(0xFFA6A2BC);
   static const orange = Color(0xFFFF7A0F);
   static const rose = Color(0xFFFF2FA8);
   static const blush = Color(0xFFFF9ADB);
-  static const ice = Color(0xFF6EF7FF);
+  /// 撃ち返した弾・GOOD・跳弾など、こちらの手柄の淡い色。
+  static const peach = Color(0xFFFFC9A8);
 
   /// OVERDRIVE 中の地・床・HUD (パレットを入れ替えて、ひと目で分かるようにする)。
   static const odBg = Color(0xFF3A0532);

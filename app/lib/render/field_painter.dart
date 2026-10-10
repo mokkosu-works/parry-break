@@ -242,7 +242,7 @@ class FieldPainter extends CustomPainter {
       if (u.dead) continue;
       final x = _lerp(u.prevX, u.x), y = _lerp(u.prevY, u.y);
       final c = switch (u) {
-        Bullet(hostile: false, :final red) => red ? Dot.mustard : Dot.ice,
+        Bullet(hostile: false, :final red) => red ? Dot.mustard : Dot.peach,
         Bullet(kind: BulletKind.shard) => Dot.steel,
         Bullet(kind: BulletKind.shrapnel) => Dot.orange,
         Bullet(:final red) => red ? Dot.bulletRed : Dot.bullet,
@@ -278,7 +278,7 @@ class FieldPainter extends CustomPainter {
             ? Dot.blush
             : pierce
                 ? Dot.mustard
-                : const [Dot.white, Dot.white, Dot.ice, Dot.teal][st];
+                : const [Dot.white, Dot.white, Dot.peach, Dot.peach][st];
     final tr = fx.trails[b.id] ?? const <Offset>[];
     // 残像: 古いものほど小さく暗い (3 段階)
     for (var i = 0; i < tr.length; i++) {
@@ -422,7 +422,7 @@ class FieldPainter extends CustomPainter {
     if (w.od) {
       _marquee();
     } else if (w.stage >= 2) {
-      _edgeBands(w.stage == 3 ? Dot.mustard : Dot.teal, 0.3, (_t * 4).floor().isEven ? 3 : 2);
+      _edgeBands(w.stage == 3 ? Dot.mustard : Dot.orange, 0.3, (_t * 4).floor().isEven ? 3 : 2);
     }
     if (w.isDanger) _edgeBands(Dot.bulletRed, 0.45, (_t * 7).floor().isEven ? 4 : 2);
   }

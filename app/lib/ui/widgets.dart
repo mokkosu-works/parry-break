@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../render/palette.dart';
+import '../render/pixel.dart';
 
 /// 英数字のドット文字。
 const kPixelFont = 'Silkscreen';
@@ -34,14 +35,14 @@ ThemeData buildTheme() {
   final base = ThemeData(
     brightness: Brightness.dark,
     fontFamily: kJpFont,
-    colorScheme: const ColorScheme.dark(primary: Palette.cyan, secondary: Palette.magenta, surface: Dot.night),
+    colorScheme: const ColorScheme.dark(primary: Palette.accent, secondary: Palette.accent2, surface: Dot.night),
     scaffoldBackgroundColor: Dot.ink,
     useMaterial3: true,
   );
   const square = RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: Dot.edge, width: 2));
   return base.copyWith(
     sliderTheme: base.sliderTheme.copyWith(
-      activeTrackColor: Palette.cyan,
+      activeTrackColor: Palette.accent,
       inactiveTrackColor: Dot.edge,
       thumbColor: Dot.white,
       trackHeight: 4,
@@ -51,7 +52,7 @@ ThemeData buildTheme() {
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Dot.white : Dot.dim),
-      trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Palette.cyan : Dot.night),
+      trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Palette.accent : Dot.night),
       trackOutlineColor: const WidgetStatePropertyAll(Dot.edge),
     ),
     dialogTheme: const DialogThemeData(backgroundColor: Dot.night, shape: square),
@@ -128,7 +129,7 @@ class PixelButton extends StatefulWidget {
     super.key,
     required this.label,
     required this.onPressed,
-    this.color = Palette.cyan,
+    this.color = Palette.accent,
     this.filled = false,
     this.icon,
     this.fontSize = 18,
@@ -189,6 +190,83 @@ class _PixelButtonState extends State<PixelButton> {
       ),
     );
   }
+}
+
+/// RPG の窓のような二重枠 (外は白、内は灰色)。メニューを囲む。
+class PixelWindow extends StatelessWidget {
+  const PixelWindow({super.key, required this.child, this.padding = const EdgeInsets.symmetric(vertical: 10)});
+  final Widget child;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: withAlpha(Dot.ink, 0.92),
+          border: Border.all(color: Dot.white, width: 3),
+          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(6, 6))],
+        ),
+        child: Container(
+          margin: const EdgeInsets.all(4),
+          padding: padding,
+          decoration: BoxDecoration(border: Border.all(color: Dot.dim, width: 2)),
+          child: child,
+        ),
+      );
+}
+
+/// 選んでいる項目に付ける ▶ (点滅する。動きを減らす設定では点けたまま)。
+class BlinkCursor extends StatefulWidget {
+  const BlinkCursor({super.key, this.color = Palette.yellow, this.size = 18});
+  final Color color;
+  final double size;
+
+  @override
+  State<BlinkCursor> createState() => _BlinkCursorState();
+}
+
+class _BlinkCursorState extends State<BlinkCursor> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+
+  @override
+  void initState() {
+    super.initState();
+    _c.repeat();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.disableAnimationsOf(context);
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, _) => Opacity(
+        opacity: still || _c.value < 0.6 ? 1 : 0,
+        // フォントに ▶ がないので、ドットで描く
+        child: CustomPaint(size: Size.square(widget.size), painter: _CursorPainter(widget.color)),
+      ),
+    );
+  }
+}
+
+class _CursorPainter extends CustomPainter {
+  _CursorPainter(this.color);
+  final Color color;
+
+  static final _sprite = DotSprite(['#...', '##..', '###.', '####', '###.', '##..', '#...']);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = (size.height / 7).floorToDouble() / Dot.px;
+    _sprite.drawCentered(canvas, size.width / 2, size.height / 2, color, scale: scale);
+  }
+
+  @override
+  bool shouldRepaint(_CursorPainter old) => old.color != color;
 }
 
 /// メニュー画面の背景: 遠くの星がゆっくり流れ、足元は市松のディザ。
@@ -291,7 +369,7 @@ class ScreenFrame extends StatelessWidget {
                 Row(children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back, color: Palette.cyan),
+                    icon: const Icon(Icons.arrow_back, color: Palette.accent),
                     tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   ),
                   const SizedBox(width: 8),

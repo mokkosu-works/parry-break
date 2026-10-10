@@ -19,7 +19,7 @@ List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
       topic: HelpTopic.move,
       title: l.helpMoveTitle,
       body: zones ? l.helpMoveZones : l.helpMoveRail,
-      color: Palette.cyan,
+      color: Dot.sky,
     ),
     (
       topic: HelpTopic.parry,
@@ -90,7 +90,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                           children: [
                             IconButton(
                               onPressed: () => Navigator.of(context).maybePop(),
-                              icon: const Icon(Icons.arrow_back, color: Palette.cyan),
+                              icon: const Icon(Icons.arrow_back, color: Palette.accent),
                               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                             ),
                             const SizedBox(width: 10),
@@ -98,7 +98,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
-                                child: PixelTitle(l.menuHowToPlay, size: 26, color: Palette.cyan),
+                                child: PixelTitle(l.menuHowToPlay, size: 26, color: Palette.accent),
                               ),
                             ),
                             Text('${_index + 1}'.padLeft(2, '0'), style: pixelFont(22, color: page.color, weight: 900)),
@@ -124,7 +124,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                             IconButton(
                               onPressed: _index == 0 ? null : () => _go(_index - 1, pages.length),
                               icon: const Icon(Icons.chevron_left),
-                              color: Palette.cyan,
+                              color: Palette.accent,
                               disabledColor: withAlpha(Palette.pale, 0.2),
                               tooltip: l.helpPrev,
                             ),

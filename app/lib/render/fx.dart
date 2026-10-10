@@ -130,8 +130,8 @@ class FxState {
           const [32.0, 40.0, 48.0][e.level]
         ),
       CalloutChannel.chainBlast => (Dot.orange, 32.0),
-      CalloutChannel.multiParry => (Dot.ice, 32.0),
-      CalloutChannel.ricochet => (Dot.ice, 32.0),
+      CalloutChannel.multiParry => (Dot.peach, 32.0),
+      CalloutChannel.ricochet => (Dot.peach, 32.0),
       CalloutChannel.overdriveFinish => (Dot.rose, 32.0),
     };
     // 同じ種類のコールアウトが表示中なら、新しく出さずに書き換える
@@ -172,16 +172,16 @@ class FxState {
           PopupKind.score => (Dot.white, amount >= 2000 ? 24.0 : 16.0),
           PopupKind.returnedScore => (Dot.mustard, amount >= 2000 ? 24.0 : 16.0),
           PopupKind.chain => (Dot.white, 16.0),
-          PopupKind.ricochet => (Dot.ice, 16.0),
+          PopupKind.ricochet => (Dot.peach, 16.0),
           PopupKind.chainBlast => (Dot.orange, 24.0),
-          PopupKind.graze => (Dot.ice, 16.0),
+          PopupKind.graze => (Dot.peach, 16.0),
           PopupKind.noDamage => (Dot.dim, 16.0),
           PopupKind.coreDamage => (Dot.mustard, 24.0),
         };
         popup(x, y, text, color, size);
       case ParrySucceeded(:final grade, :final target, :final x, :final y):
         final just = grade == ParryGrade.just, perfect = grade != ParryGrade.good;
-        final col = just ? Dot.rose : perfect ? Dot.mustard : Dot.ice;
+        final col = just ? Dot.rose : perfect ? Dot.mustard : Dot.peach;
         judge = FxJudge(just ? 'JUST!!' : grade.name.toUpperCase(), col, big: just);
         burst(x, y, just ? 40 : perfect ? 28 : 14, col, just ? 520 : perfect ? 420 : 280);
         ring(x, Field.paddleY, just ? 110 : perfect ? 70 : 40, col, just ? 5 : 3);
@@ -201,7 +201,7 @@ class FxState {
         _shake(8);
       case BlockRepaired(:final block, :final x, :final y):
         burst(x, y, 8, blockColor(block), 160);
-        ring(x, y, 34, Dot.ice, 2);
+        ring(x, y, 34, Dot.peach, 2);
       case CoreDestroyed(:final x, :final y):
         burst(x, y, 60, Palette.blocks['C']!, 520);
         burst(x, y, 30, Dot.white, 300);

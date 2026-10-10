@@ -114,7 +114,7 @@ class _ResultOverlayState extends State<ResultOverlay>
     final title = stage == null
         ? 'GAME OVER'
         : (win ? 'STAGE CLEAR' : 'STAGE FAILED');
-    final color = win ? Palette.cyan : Palette.red;
+    final color = win ? Palette.yellow : Palette.red;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -153,7 +153,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                                   if (stage != null) ...[
                                     PixelTag(
                                       'STAGE ${stage.id}',
-                                      color: Palette.cyan,
+                                      color: Palette.accent,
                                     ),
                                     const SizedBox(width: 10),
                                   ],
@@ -218,7 +218,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                                 ),
                               PixelButton(
                                 label: 'TITLE',
-                                color: Palette.magenta,
+                                color: Palette.accent2,
                                 icon: Icons.home,
                                 onPressed: widget.onTitle,
                               ),
@@ -254,7 +254,7 @@ class _ResultOverlayState extends State<ResultOverlay>
             children: [
               Text(
                 'SCORE',
-                style: pixelFont(13, color: Palette.cyan, letterSpacing: 6),
+                style: pixelFont(13, color: Palette.accent, letterSpacing: 6),
               ),
               const SizedBox(height: 4),
               FittedBox(
@@ -265,20 +265,20 @@ class _ResultOverlayState extends State<ResultOverlay>
                   style: pixelFont(84, weight: 900, letterSpacing: 2).copyWith(
                     fontFeatures: tab,
                     height: 1,
-                    shadows: hardShadow(84, color: Dot.dark(Palette.cyan)),
+                    shadows: hardShadow(84, color: Dot.dark(Palette.accent)),
                   ),
                 ),
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Container(width: 3, height: 30, color: Palette.magenta),
+                  Container(width: 3, height: 30, color: Palette.accent2),
                   const SizedBox(width: 10),
                   Text(
                     'HI-SCORE',
                     style: pixelFont(
                       11,
-                      color: withAlpha(Palette.magenta, 0.9),
+                      color: withAlpha(Palette.accent2, 0.9),
                       letterSpacing: 4,
                     ),
                   ),

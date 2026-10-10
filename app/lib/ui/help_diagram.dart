@@ -138,7 +138,7 @@ class _DiagramPainter extends CustomPainter {
   static Float32List? _grid;
   static final _ballSprite = DotSprite(['.##.', '####', '####', '.##.']);
 
-  void _paddle(double x, {Color col = Palette.cyan, bool parry = false}) {
+  void _paddle(double x, {Color col = Dot.sky, bool parry = false}) {
     bevelRect(_c, Rect.fromLTWH(x - paddleW / 2, paddleY, paddleW, paddleH + 2), col);
     if (parry) {
       final rx = paddleW / 2 + 15;
@@ -229,7 +229,7 @@ class _DiagramPainter extends CustomPainter {
 
   /// 操作する場所を示す。領域方式なら左右の半分、レールなら左右の余白の帯とボタン。
   void _zones({required bool left, required bool lit}) {
-    final col = left ? Palette.cyan : Palette.yellow;
+    final col = left ? Dot.sky : Palette.accent;
     if (controls == ControlScheme.zones) {
       final r = left ? const Rect.fromLTWH(0, 0, w / 2, h) : const Rect.fromLTWH(w / 2, 0, w / 2, h);
       _c.drawRect(r, _fill..color = withAlpha(col, lit ? 0.16 : 0.07));
@@ -260,8 +260,8 @@ class _DiagramPainter extends CustomPainter {
     final Offset f;
     if (controls == ControlScheme.zones) {
       f = Offset(150 + k * 80, 200);
-      _arrow(Offset(f.dx - 34, f.dy), Offset(f.dx - 70, f.dy), withAlpha(Palette.cyan, 0.8));
-      _arrow(Offset(f.dx + 34, f.dy), Offset(f.dx + 70, f.dy), withAlpha(Palette.cyan, 0.8));
+      _arrow(Offset(f.dx - 34, f.dy), Offset(f.dx - 70, f.dy), withAlpha(Dot.sky, 0.8));
+      _arrow(Offset(f.dx + 34, f.dy), Offset(f.dx + 70, f.dy), withAlpha(Dot.sky, 0.8));
     } else {
       final r = _rail;
       f = _vertical ? Offset(r.center.dx, r.center.dy - k * 100) : Offset(r.center.dx + k * 80, r.center.dy);
@@ -297,7 +297,7 @@ class _DiagramPainter extends CustomPainter {
         );
       }
     }
-    _paddle(hitX, col: hitNow ? Palette.yellow : Palette.cyan, parry: hitNow);
+    _paddle(hitX, col: hitNow ? Palette.yellow : Dot.sky, parry: hitNow);
     if (hitNow) {
       final k = _span(t, 0.5, 0.62);
       _ring(hit, 20 + k * 70, Palette.yellow, 1 - k);
@@ -328,7 +328,7 @@ class _DiagramPainter extends CustomPainter {
       if (t > 0.15 && t < 0.85) {
         _ball(Offset(cx, y), col: Palette.yellow, trail: [for (var i = 1; i < 8; i++) Offset(cx, y + i * 12)]);
       }
-      _paddle(cx, col: t < 0.3 ? Palette.yellow : Palette.cyan, parry: t < 0.3);
+      _paddle(cx, col: t < 0.3 ? Palette.yellow : Dot.sky, parry: t < 0.3);
       if (t < 0.6) _label('PERFECT', cx, paddleY - 60, Palette.yellow, size: 26);
     } else {
       const hit = Offset(cx, 120);
@@ -345,7 +345,7 @@ class _DiagramPainter extends CustomPainter {
         _ball(p, col: Palette.justPink);
       }
       if (k > 0 && k < 1) _ring(hit, k * 170, Palette.justPink, 1 - k);
-      _paddle(cx, col: t < 0.2 ? Palette.justPink : Palette.cyan, parry: t < 0.2);
+      _paddle(cx, col: t < 0.2 ? Palette.justPink : Dot.sky, parry: t < 0.2);
       if (t < 0.6) _label('JUST', cx, paddleY - 60, Palette.justPink, size: 26);
     }
   }
@@ -447,17 +447,17 @@ class _DiagramPainter extends CustomPainter {
     _ball(const Offset(330, 230));
     if (paused) {
       _c.drawRect(const Rect.fromLTWH(0, 53, w, h - 53), _fill..color = withAlpha(Dot.ink, 0.7));
-      _label('PAUSED', w / 2, 200, Palette.cyan, size: 30);
+      _label('PAUSED', w / 2, 200, Palette.accent, size: 30);
     }
     final b = Rect.fromCenter(center: btn, width: 40, height: 36);
-    _c.drawRect(b, _fill..color = withAlpha(Palette.cyan, pressed ? 0.5 : 0.15));
-    pixelFrame(_c, b, Palette.cyan, d: 3);
+    _c.drawRect(b, _fill..color = withAlpha(Palette.accent, pressed ? 0.5 : 0.15));
+    pixelFrame(_c, b, Palette.accent, d: 3);
     for (final dx in [-6.0, 6.0]) {
       _c.drawRect(Rect.fromCenter(center: btn + Offset(dx, 0), width: 5, height: 16), _fill..color = Palette.white);
     }
     if (_t > 0.2 && _t < 0.4) _arrow(const Offset(480, 110), const Offset(540, 56), withAlpha(Palette.pale, 0.7));
     _finger(btn + const Offset(-10, 46), down: pressed);
-    if (pressed) _ring(btn, 24 + _span(_t, 0.35, 0.45) * 30, Palette.cyan, 1 - _span(_t, 0.35, 0.45));
+    if (pressed) _ring(btn, 24 + _span(_t, 0.35, 0.45) * 30, Palette.accent, 1 - _span(_t, 0.35, 0.45));
   }
 
   @override
