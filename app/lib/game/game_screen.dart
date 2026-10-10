@@ -245,7 +245,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
           final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context), rail: rail);
           return Stack(children: [
             Positioned.fill(child: TouchInput(controller: _ctl, layout: layout, settings: settings)),
-            Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field(settings))),
+            Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field())),
             // レール方式だけ、左右の余白に操作を置く (領域方式は画面の左右半分をタッチするので置かない)
             if (rail) ...[
               // 左の余白: 移動
@@ -289,26 +289,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     );
   }
 
-  Widget _field(Settings settings) {
-    final paint = RepaintBoundary(child: CustomPaint(painter: _painter, size: Size.infinite));
-    return ValueListenableBuilder(
-      valueListenable: _ctl.frame,
-      builder: (_, _, child) {
-        final w = _ctl.world;
-        final invert = w.od && w.phase == WorldPhase.playing && !settings.reduceEffects && !_ctl.paused;
-        // OVERDRIVE 中は画面の色を反転する (ブラウザ版の invert(1) hue-rotate(180deg))
-        return invert ? ColorFiltered(colorFilter: _odInvert, child: child) : child!;
-      },
-      child: paint,
-    );
-  }
-
-  static const _odInvert = ColorFilter.matrix([
-    0.574, -1.43, -0.144, 0, 255, //
-    -0.426, -0.43, -0.144, 0, 255,
-    -0.426, -1.43, 0.856, 0, 255,
-    0, 0, 0, 1, 0,
-  ]);
+  /// 盤面。OVERDRIVE の見せ方 (色の入れ替えと電飾) は FieldPainter が描く。
+  Widget _field() => RepaintBoundary(child: CustomPaint(painter: _painter, size: Size.infinite));
 
   Widget _pauseOverlay(AppLocalizations l) {
     final rc = _ctl.resumeCountdown;

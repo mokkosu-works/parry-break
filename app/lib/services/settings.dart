@@ -43,7 +43,7 @@ class Settings {
   final bool haptics;
   final GraphicsQuality quality;
 
-  /// フラッシュ・画面反転・画面の揺れを弱める。
+  /// フラッシュ・点滅・画面の揺れを弱める。
   final bool reduceEffects;
 
   /// 'ja' / 'en'。null なら端末の言語。

@@ -252,7 +252,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsReduceEffectsHelp =>
-      'Tones down flashes, screen inversion and shake';
+      'Tones down flashes, blinking and shake';
 
   @override
   String get settingsLanguage => 'Language';

@@ -429,9 +429,10 @@ class FieldPainter extends CustomPainter {
 
   /// OVERDRIVE 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
   /// 残り 2 秒を切ると全体が点滅して、終わりが近いことを知らせる。
+  /// 「刺激を弱める」設定では、色をゆっくり送り、点滅はしない。
   void _marquee() {
-    final w = world;
-    if (w.odTime < 2 && (_t * 8).floor().isEven) return;
+    final w = world, calm = fx.reduceEffects;
+    if (!calm && w.odTime < 2 && (_t * 8).floor().isEven) return;
     const step = 24.0, inset = _d * 2;
     final pts = <List<double>>[[], [], []];
     var k = 0;
@@ -448,7 +449,7 @@ class FieldPainter extends CustomPainter {
     for (var y = _h - inset; y > Field.topY + inset; y -= step) {
       put(inset, y);
     }
-    final phase = (_t * 12).floor();
+    final phase = (_t * (calm ? 3 : 12)).floor();
     final cols = [Dot.white, Dot.rose, Dot.dark(Dot.rose)];
     for (var i = 0; i < 3; i++) {
       drawDots(_c, Float32List.fromList(pts[i]), cols[(i + phase) % 3], size: _d * 2);
