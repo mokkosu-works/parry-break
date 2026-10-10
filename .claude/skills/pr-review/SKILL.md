@@ -111,7 +111,7 @@ gh pr diff <番号>
 
 - `permissions` を広げた、シークレットをログに出しうる(`echo`、`set -x`)、フォークの PR でシークレットを使う → 不具合
 - マージの条件(`.github/scripts/merge-if-approved.sh` の Approve・ジョブの結果・`needs-fix` / `hold`・`--match-head-commit`、`pr.yml` / `merge.yml` の `if`)を緩めた → 意図した変更か必ず確かめる
-- `implement.yml` の Claude に許すツール(`--allowedTools`)を広げた → 意図した変更か必ず確かめる
+- `implement.yml`・`pr.yml` の `fix` の Claude に許すツール(`--allowedTools`)を広げた、`fix` の自動修正の回数の上限(`MAX_FIXES`)を上げた・数え方を変えた → 意図した変更か必ず確かめる
 
 ## 3. 重さを決める
 
@@ -138,7 +138,7 @@ gh pr diff <番号>
    - `[要修正]` が 1 つでもある: `gh pr edit <番号> --add-label needs-fix`
    - ない: `gh pr edit <番号> --remove-label needs-fix`(付いていなくてもそのまま実行してよい)
 
-コードは直さない。push もしない(直すのは `@claude` の依頼か人)。
+コードは直さない。push もしない。`needs-fix` を付けると、`pr.yml` の `fix` ジョブが `[要修正]` の指摘を 1 つずつ確かめ、妥当なものを直す(`.claude/skills/pr-fix/SKILL.md`)。そのため `[要修正]` の指摘には、どのファイルの何行で何が起きるかを、確かめられる形で書く。
 
 ### 手元(Claude Code)で呼ばれたとき
 
