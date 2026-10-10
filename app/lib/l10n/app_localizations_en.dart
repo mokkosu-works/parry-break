@@ -193,6 +193,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearBoss => 'GOAL: DESTROY ALL CORES';
 
   @override
+  String get settingsTabControls => 'CONTROLS';
+
+  @override
+  String get settingsTabSound => 'SOUND';
+
+  @override
+  String get settingsTabDisplay => 'DISPLAY';
+
+  @override
+  String get settingsTabOther => 'OTHER';
+
+  @override
   String get settingsControls => 'Controls';
 
   @override

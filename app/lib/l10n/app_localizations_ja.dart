@@ -191,6 +191,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get clearBoss => '目標: コアをすべて破壊';
 
   @override
+  String get settingsTabControls => '操作';
+
+  @override
+  String get settingsTabSound => 'サウンド';
+
+  @override
+  String get settingsTabDisplay => '表示';
+
+  @override
+  String get settingsTabOther => 'その他';
+
+  @override
   String get settingsControls => '操作方法';
 
   @override

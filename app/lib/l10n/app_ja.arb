@@ -135,6 +135,10 @@
     }
   },
   "clearBoss": "目標: コアをすべて破壊",
+  "settingsTabControls": "操作",
+  "settingsTabSound": "サウンド",
+  "settingsTabDisplay": "表示",
+  "settingsTabOther": "その他",
   "settingsControls": "操作方法",
   "controlsZones": "画面の左右",
   "controlsRailH": "レール（横）",

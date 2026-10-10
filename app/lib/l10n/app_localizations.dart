@@ -404,6 +404,30 @@ abstract class AppLocalizations {
   /// **'目標: コアをすべて破壊'**
   String get clearBoss;
 
+  /// No description provided for @settingsTabControls.
+  ///
+  /// In ja, this message translates to:
+  /// **'操作'**
+  String get settingsTabControls;
+
+  /// No description provided for @settingsTabSound.
+  ///
+  /// In ja, this message translates to:
+  /// **'サウンド'**
+  String get settingsTabSound;
+
+  /// No description provided for @settingsTabDisplay.
+  ///
+  /// In ja, this message translates to:
+  /// **'表示'**
+  String get settingsTabDisplay;
+
+  /// No description provided for @settingsTabOther.
+  ///
+  /// In ja, this message translates to:
+  /// **'その他'**
+  String get settingsTabOther;
+
   /// No description provided for @settingsControls.
   ///
   /// In ja, this message translates to:
