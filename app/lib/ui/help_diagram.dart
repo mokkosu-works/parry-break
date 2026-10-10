@@ -232,7 +232,7 @@ class _DiagramPainter extends CustomPainter {
     final col = left ? Dot.sky : Palette.accent;
     if (controls == ControlScheme.zones) {
       final r = left ? const Rect.fromLTWH(0, 0, w / 2, h) : const Rect.fromLTWH(w / 2, 0, w / 2, h);
-      _c.drawRect(r, _fill..color = withAlpha(col, lit ? 0.16 : 0.07));
+      _c.drawRect(r, _fill..color = withAlpha(Dot.white, lit ? 0.07 : 0.03));
       _stroke
         ..color = withAlpha(Palette.pale, 0.35)
         ..strokeWidth = 2;
@@ -240,7 +240,7 @@ class _DiagramPainter extends CustomPainter {
         _c.drawLine(Offset(w / 2, y), Offset(w / 2, y + 8), _stroke);
       }
     } else if (left) {
-      _c.drawRect(_rail, _fill..color = withAlpha(col, lit ? 0.2 : 0.1));
+      _c.drawRect(_rail, _fill..color = withAlpha(Dot.white, lit ? 0.1 : 0.04));
       pixelFrame(_c, _rail, withAlpha(col, 0.7), d: 3);
     } else {
       pixelDisc(_c, _parryButton.dx, _parryButton.dy + 4, 8.5, Dot.dark(col), d: 4);
@@ -447,7 +447,7 @@ class _DiagramPainter extends CustomPainter {
     _ball(const Offset(330, 230));
     if (paused) {
       _c.drawRect(const Rect.fromLTWH(0, 53, w, h - 53), _fill..color = withAlpha(Dot.ink, 0.7));
-      _label('PAUSED', w / 2, 200, Palette.accent, size: 30);
+      _label('PAUSED', w / 2, 200, Palette.yellow, size: 30);
     }
     final b = Rect.fromCenter(center: btn, width: 40, height: 36);
     _c.drawRect(b, _fill..color = withAlpha(Palette.accent, pressed ? 0.5 : 0.15));

@@ -27,12 +27,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   _Tab _tab = _Tab.controls;
 
-  static const _colors = {
-    _Tab.controls: Palette.accent,
-    _Tab.sound: Palette.yellow,
-    _Tab.display: Palette.justPink,
-    _Tab.other: Palette.pale,
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +41,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (ads.privacyOptionsRequired || s.debugMode) _Tab.other,
     ];
     final tab = tabs.contains(_tab) ? _tab : _Tab.controls;
-    final color = _colors[tab]!;
+    const color = Palette.accent;
     final names = {
       _Tab.controls: l.settingsTabControls,
       _Tab.sound: l.settingsTabSound,
@@ -74,7 +68,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: PixelTitle(l.menuSettings, size: 26, color: Palette.accent),
+                      child: PixelTitle(l.menuSettings, size: 26, color: Palette.yellow, shadow: Dot.brick),
                     ),
                   ),
                 ]),
@@ -92,7 +86,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               for (final t in tabs)
                                 _TabButton(
                                   label: names[t]!,
-                                  color: _colors[t]!,
                                   selected: t == tab,
                                   onTap: () => setState(() => _tab = t),
                                 ),
@@ -285,11 +278,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
 /// 左の分類の見出し。選んでいるものは色の帯と明るい地で示す。
 class _TabButton extends StatelessWidget {
-  const _TabButton({required this.label, required this.color, required this.selected, required this.onTap});
+  const _TabButton({required this.label, required this.selected, required this.onTap});
   final String label;
-
-  /// 見出しごとの色 (選んでいるときの ▶ の色)。
-  final Color color;
   final bool selected;
   final VoidCallback onTap;
 
@@ -303,7 +293,7 @@ class _TabButton extends StatelessWidget {
           child: SizedBox(
             height: 48,
             child: Row(children: [
-              SizedBox(width: 30, child: selected ? Center(child: BlinkCursor(color: color, size: 16)) : null),
+              SizedBox(width: 30, child: selected ? const Center(child: BlinkCursor(size: 16)) : null),
               Expanded(
                 child: Text(
                   label,

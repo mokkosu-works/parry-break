@@ -10,7 +10,7 @@ import 'help_diagram.dart';
 import 'widgets.dart';
 
 /// 遊び方の 1 ページ分の中身。
-typedef HelpPage = ({HelpTopic topic, String title, String body, Color color});
+typedef HelpPage = ({HelpTopic topic, String title, String body});
 
 List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
   final zones = controls == ControlScheme.zones;
@@ -19,18 +19,16 @@ List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
       topic: HelpTopic.move,
       title: l.helpMoveTitle,
       body: zones ? l.helpMoveZones : l.helpMoveRail,
-      color: Dot.sky,
     ),
     (
       topic: HelpTopic.parry,
       title: l.helpParryTitle,
       body: zones ? l.helpParryZones : l.helpParryRail,
-      color: Palette.yellow,
     ),
-    (topic: HelpTopic.timing, title: l.helpTimingTitle, body: l.helpTimingBody, color: Palette.justPink),
-    (topic: HelpTopic.chain, title: l.helpChainTitle, body: l.helpChainBody, color: Palette.orange),
-    (topic: HelpTopic.over, title: l.helpOverTitle, body: l.helpOverBody, color: Palette.red),
-    (topic: HelpTopic.pause, title: l.helpPauseTitle, body: l.helpPauseBody, color: Palette.pale),
+    (topic: HelpTopic.timing, title: l.helpTimingTitle, body: l.helpTimingBody),
+    (topic: HelpTopic.chain, title: l.helpChainTitle, body: l.helpChainBody),
+    (topic: HelpTopic.over, title: l.helpOverTitle, body: l.helpOverBody),
+    (topic: HelpTopic.pause, title: l.helpPauseTitle, body: l.helpPauseBody),
   ];
 }
 
@@ -67,7 +65,6 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     final s = ref.watch(settingsProvider);
     final pages = helpPages(l, s.controls);
     final last = _index == pages.length - 1;
-    final page = pages[_index];
     return Scaffold(
       body: CallbackShortcuts(
         bindings: {
@@ -98,10 +95,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
-                                child: PixelTitle(l.menuHowToPlay, size: 26, color: Palette.accent),
+                                child: PixelTitle(l.menuHowToPlay, size: 26, color: Palette.yellow, shadow: Dot.brick),
                               ),
                             ),
-                            Text('${_index + 1}'.padLeft(2, '0'), style: pixelFont(22, color: page.color, weight: 900)),
+                            Text('${_index + 1}'.padLeft(2, '0'), style: pixelFont(22, color: Palette.yellow, weight: 900)),
                             Text(
                               ' / ${pages.length.toString().padLeft(2, '0')}',
                               style: pixelFont(14, color: withAlpha(Palette.pale, 0.5), weight: 700),
@@ -137,14 +134,13 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                                   margin: const EdgeInsets.symmetric(horizontal: 4),
                                   width: i == _index ? 26 : 10,
                                   height: 6,
-                                  color: i == _index ? page.color : withAlpha(Palette.pale, i < _index ? 0.5 : 0.18),
+                                  color: i == _index ? Palette.accent : withAlpha(Palette.pale, i < _index ? 0.5 : 0.18),
                                 ),
                               ),
                             const Spacer(),
                             PixelButton(
                               label: last ? l.back : l.helpNext,
                               filled: last,
-                              color: page.color,
                               onPressed: () => _go(_index + 1, pages.length),
                             ),
                           ],
@@ -180,10 +176,10 @@ class _Page extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(page.title,
-                style: pixelFont(compact ? 22 : 30, color: page.color, weight: 900, letterSpacing: 2)
-                    .copyWith(shadows: hardShadow(compact ? 22 : 30, color: Dot.dark(page.color)))),
+                style: pixelFont(compact ? 22 : 30, color: Palette.yellow, weight: 900, letterSpacing: 2)
+                    .copyWith(shadows: hardShadow(compact ? 22 : 30, color: Dot.brick))),
             Container(
-                margin: EdgeInsets.symmetric(vertical: compact ? 10 : 14), width: 48, height: 3, color: page.color),
+                margin: EdgeInsets.symmetric(vertical: compact ? 10 : 14), width: 48, height: 4, color: Palette.accent),
             // 改行ごとに 1 つの段落にする
             for (final line in page.body.split('\n'))
               Padding(

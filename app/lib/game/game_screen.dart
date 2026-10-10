@@ -313,10 +313,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       ColoredBox(color: withAlpha(Dot.ink, 0.8)),
       Center(
         child: rc != null
-            ? PixelTitle('${rc.ceil()}', size: 96, color: Palette.accent)
+            ? PixelTitle('${rc.ceil()}', size: 96, color: Palette.yellow, shadow: Dot.brick)
             : SingleChildScrollView(
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const PixelTitle('PAUSED', size: 56, color: Palette.accent),
+                  const PixelTitle('PAUSED', size: 56, color: Palette.yellow, shadow: Dot.brick),
                   const SizedBox(height: 30),
                   Wrap(spacing: 14, runSpacing: 12, alignment: WrapAlignment.center, children: [
                     PixelButton(label: 'RESUME', filled: true, icon: Icons.play_arrow, onPressed: _ctl.requestResume),
