@@ -174,11 +174,15 @@ class AdMobAds implements AdsService {
   Future<void> init() async {
     _lifecycle ??= AppLifecycleListener(onResume: () => unawaited(onResume()));
     // 同意の画面は猶予に関係なく最初の起動で出す。審査ではトラッキング許可のダイアログが出ることを確かめられるため
-    await _gatherConsent();
-    // ATT は SDK を初期化する (IDFA を読む) 前に聞く
-    await _sdk.requestTracking();
-    await _start();
-    _initDone = true;
+    try {
+      await _gatherConsent();
+      // ATT は SDK を初期化する (IDFA を読む) 前に聞く
+      await _sdk.requestTracking();
+      await _start();
+    } finally {
+      // 途中で例外が出ても、前面に戻ったときのやり直しは効くようにする
+      _initDone = true;
+    }
   }
 
   /// アプリが前面に戻ったとき。起動時に同意の更新や初期化でつまずいていたら、やり直す。
@@ -229,7 +233,7 @@ class AdMobAds implements AdsService {
     _preload();
   }
 
-  void _preload() {
+  void _preload({bool fromRetryTimer = false}) {
     if (!_ready || _loading || !_policy.pastGrace) return;
     if (_ad != null) {
       if (!_expired) return;
@@ -237,6 +241,8 @@ class AdMobAds implements AdsService {
     }
     // 再試行を待っている間は、その時刻まで待つ
     if (_retry?.isActive ?? false) return;
+    // 再試行を使い切っていても、結果画面や前面復帰など外からの呼び出しでは最初の間隔からやり直す
+    if (!fromRetryTimer) _failures = 0;
     unawaited(_load());
   }
 
@@ -249,7 +255,7 @@ class AdMobAds implements AdsService {
     } on Object catch (e) {
       debugPrint('interstitial load failed: $e');
       if (_failures < retryDelays.length) {
-        _retry = _timer(retryDelays[_failures], _preload);
+        _retry = _timer(retryDelays[_failures], () => _preload(fromRetryTimer: true));
       }
       _failures++;
     } finally {
