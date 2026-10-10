@@ -42,46 +42,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpMoveTitle => 'MOVE';
 
   @override
-  String get helpMoveZones => 'Drag on the left half of the screen';
+  String get helpMoveZones =>
+      'Drag on the left half of the screen to move the paddle';
 
   @override
-  String get helpMoveRail => 'Drag the rail on the left';
+  String get helpMoveRail => 'Drag the rail on the left to move the paddle';
 
   @override
   String get helpParryTitle => 'LAUNCH / PARRY';
 
   @override
   String get helpParryZones =>
-      'Tap the right half just as the ball or bullet hits';
+      'Tap the right half to launch the ball\nTap just as the ball or an enemy shot hits the paddle to knock it back hard (parry)';
 
   @override
-  String get helpParryRail => 'Press PARRY just as the ball or bullet hits';
+  String get helpParryRail =>
+      'Press PARRY to launch the ball\nPress it just as the ball or an enemy shot hits the paddle to knock it back hard (parry)';
 
   @override
   String get helpTimingTitle => 'TIMING';
 
   @override
-  String get helpTimingBody => 'PERFECT → Pierce\nJUST → Shockwave';
+  String get helpTimingBody =>
+      'The closer to the moment of impact, the stronger the hit\nPERFECT: the ball pierces through blocks\nJUST (even closer): its next hit sends out a shockwave that breaks nearby blocks';
 
   @override
   String get helpChainTitle => 'CHAIN';
 
   @override
   String get helpChainBody =>
-      'White keystone → Collapse\nOrange explosive → Chain blast';
+      'White blocks (keystones) hold up the blocks attached to them. Break one and the whole cluster falls\nOrange striped blocks (explosives) blow up their surroundings, setting off nearby explosives in turn';
 
   @override
   String get helpOverTitle => 'GAME OVER';
 
   @override
   String get helpOverBody =>
-      'Don\'t drop the ball\nKeep blocks above the warning line';
+      'The run ends if the ball falls off the bottom\nIt also ends if the blocks reach the red dotted warning line';
 
   @override
   String get helpPauseTitle => 'PAUSE';
 
   @override
-  String get helpPauseBody => 'Tap Ⅱ at the top right';
+  String get helpPauseBody => 'Tap Ⅱ at the top right to pause';
+
+  @override
+  String get helpPrev => 'PREV';
+
+  @override
+  String get helpNext => 'NEXT';
 
   @override
   String get paused => 'PAUSED';
@@ -182,6 +191,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearBoss => 'GOAL: DESTROY ALL CORES';
+
+  @override
+  String get settingsTabControls => 'CONTROLS';
+
+  @override
+  String get settingsTabSound => 'SOUND';
+
+  @override
+  String get settingsTabDisplay => 'DISPLAY';
+
+  @override
+  String get settingsTabOther => 'OTHER';
 
   @override
   String get settingsControls => 'Controls';
