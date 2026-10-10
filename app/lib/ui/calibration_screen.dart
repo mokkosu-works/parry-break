@@ -7,8 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../input/input_clock.dart';
 import '../l10n/app_localizations.dart';
 import '../render/palette.dart';
+import '../render/pixel.dart';
 import '../services/settings.dart';
 import 'widgets.dart';
+import 'pixel_icons.dart';
 
 /// 判定タイミングの測定。一定の間隔で縮むリングが目標の輪に重なる瞬間にタップしてもらい、
 /// 「見えてから押すまで」の平均の遅れ (画面の表示遅延 + タッチの入力遅延) を測る。
@@ -101,13 +103,13 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: Wrap(spacing: 16, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                if (r >= 0) Text(l.calibrationResult('$r'), style: orbitron(20, color: Palette.cyan)),
-                NeonButton(label: l.calibrationRetry, icon: Icons.replay, onPressed: _restart),
+                if (r >= 0) Text(l.calibrationResult('$r'), style: pixelFont(20, color: Palette.main)),
+                PixelButton(label: l.calibrationRetry, icon: PixelIcons.replay, onPressed: _restart),
                 if (r >= 0)
-                  NeonButton(
+                  PixelButton(
                     label: l.calibrationApply,
                     filled: true,
-                    icon: Icons.check,
+                    icon: PixelIcons.check,
                     onPressed: () {
                       ref.read(settingsProvider.notifier).update((s) => s.copyWith(timingOffsetMs: r));
                       Navigator.of(context).pop();
@@ -137,24 +139,21 @@ class _BeatPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
     final r = math.min(size.width, size.height) * 0.22;
-    canvas.drawCircle(c, r, Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..color = Palette.cyan);
+    // ドットの輪: 真ん中が的、外から縮んでくる輪が拍
+    int n(double rad) => math.max(12, (rad * 2 * math.pi / 14).round());
+    drawDots(canvas, ringDots(c.dx, c.dy, r, n(r)), Palette.sub, size: 6);
     for (var i = 0; i < beats; i++) {
       final dt = beatTime(i) - now;
       if (dt < -0.15 || dt > interval * 1.5) continue;
       if (dt >= 0) {
-        canvas.drawCircle(c, r * (1 + dt / interval * 1.6), Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3
-          ..color = withAlpha(Palette.magenta, (1 - dt / (interval * 1.5)).clamp(0, 1)));
+        final rad = r * (1 + dt / interval * 1.6);
+        drawDots(canvas, ringDots(c.dx, c.dy, rad, n(rad)), dt < interval * 0.75 ? Palette.main : Dot.dark(Palette.main), size: 5);
       } else {
-        canvas.drawCircle(c, r, Paint()..color = withAlpha(Palette.yellow, (1 + dt / 0.15) * 0.6));
+        pixelDisc(canvas, c.dx, c.dy, r / 6, withAlpha(Palette.yellow, 0.6), d: 6);
       }
     }
     final tp = TextPainter(
-      text: TextSpan(text: '$hits / $beats', style: orbitron(18, color: Palette.pale)),
+      text: TextSpan(text: '$hits / $beats', style: pixelFont(18, color: Palette.pale)),
       textDirection: TextDirection.ltr,
     )..layout();
     tp.paint(canvas, c - Offset(tp.width / 2, tp.height / 2));

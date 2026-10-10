@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.2+4
+version: 1.1.0+5
 
 environment:
   sdk: ^3.13.5
@@ -71,13 +71,16 @@ flutter:
     - assets/stages/
 
   fonts:
-    - family: Orbitron
+    # 英数字のドット文字
+    - family: Silkscreen
       fonts:
-        - asset: assets/fonts/Orbitron.ttf
-    # Web 版で日本語を表示するためのフォント (使っている文字だけ。tools/subset_jp_font.sh で作る)
-    - family: NotoSansJP
+        - asset: assets/fonts/Silkscreen-Regular.ttf
+        - asset: assets/fonts/Silkscreen-Bold.ttf
+          weight: 700
+    # 日本語のドット文字 (使っている文字だけ。tools/subset_jp_font.sh で作る)
+    - family: DotGothic16
       fonts:
-        - asset: assets/fonts/NotoSansJP-subset.ttf
+        - asset: assets/fonts/DotGothic16-subset.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

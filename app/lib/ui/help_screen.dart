@@ -8,8 +8,9 @@ import '../services/settings.dart';
 import 'arcade.dart';
 import 'help_diagram.dart';
 import 'widgets.dart';
+import 'pixel_icons.dart';
 
-/// 遊び方の 1 ページ分の中身。
+/// 遊び方の 1 ページ分の中身。[color] はページの色で、ゲームの中で同じ意味を持つ色にする。
 typedef HelpPage = ({HelpTopic topic, String title, String body, Color color});
 
 List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
@@ -19,18 +20,18 @@ List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
       topic: HelpTopic.move,
       title: l.helpMoveTitle,
       body: zones ? l.helpMoveZones : l.helpMoveRail,
-      color: Palette.cyan,
+      color: Palette.accent, // パドル
     ),
     (
       topic: HelpTopic.parry,
       title: l.helpParryTitle,
       body: zones ? l.helpParryZones : l.helpParryRail,
-      color: Palette.yellow,
+      color: Palette.yellow, // パリィを受け付けている間のパドル
     ),
-    (topic: HelpTopic.timing, title: l.helpTimingTitle, body: l.helpTimingBody, color: Palette.justPink),
-    (topic: HelpTopic.chain, title: l.helpChainTitle, body: l.helpChainBody, color: Palette.orange),
-    (topic: HelpTopic.over, title: l.helpOverTitle, body: l.helpOverBody, color: Palette.red),
-    (topic: HelpTopic.pause, title: l.helpPauseTitle, body: l.helpPauseBody, color: Palette.pale),
+    (topic: HelpTopic.timing, title: l.helpTimingTitle, body: l.helpTimingBody, color: Dot.mint),
+    (topic: HelpTopic.chain, title: l.helpChainTitle, body: l.helpChainBody, color: Dot.orange), // 爆発ブロック
+    (topic: HelpTopic.over, title: l.helpOverTitle, body: l.helpOverBody, color: Palette.red), // 危険ライン
+    (topic: HelpTopic.pause, title: l.helpPauseTitle, body: l.helpPauseBody, color: Dot.white),
   ];
 }
 
@@ -76,11 +77,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         },
         child: Focus(
           autofocus: true,
-          child: NeonBackground(
+          child: DotBackground(
             animate: false,
             child: Stack(
               children: [
-                const Positioned.fill(child: Scanlines()),
                 SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
@@ -91,7 +91,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                           children: [
                             IconButton(
                               onPressed: () => Navigator.of(context).maybePop(),
-                              icon: const Icon(Icons.arrow_back, color: Palette.cyan),
+                              icon: PixelIcon(PixelIcons.back, color: Palette.sub),
                               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                             ),
                             const SizedBox(width: 10),
@@ -99,13 +99,13 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
-                                child: ChromaticTitle(l.menuHowToPlay, size: 26, color: Palette.cyan),
+                                child: PixelTitle(l.menuHowToPlay, size: 26, color: Palette.yellow, shadow: Dot.brick),
                               ),
                             ),
-                            Text('${_index + 1}'.padLeft(2, '0'), style: orbitron(22, color: page.color, weight: 900)),
+                            Text('${_index + 1}'.padLeft(2, '0'), style: pixelFont(22, color: page.color, weight: 900)),
                             Text(
                               ' / ${pages.length.toString().padLeft(2, '0')}',
-                              style: orbitron(14, color: withAlpha(Palette.pale, 0.5), weight: 700),
+                              style: pixelFont(14, color: withAlpha(Palette.pale, 0.5), weight: 700),
                             ),
                           ],
                         ),
@@ -124,8 +124,8 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                           children: [
                             IconButton(
                               onPressed: _index == 0 ? null : () => _go(_index - 1, pages.length),
-                              icon: const Icon(Icons.chevron_left),
-                              color: Palette.cyan,
+                              icon: PixelIcon(PixelIcons.chevronLeft),
+                              color: Palette.sub,
                               disabledColor: withAlpha(Palette.pale, 0.2),
                               tooltip: l.helpPrev,
                             ),
@@ -142,9 +142,9 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                                 ),
                               ),
                             const Spacer(),
-                            SlashButton(
+                            PixelButton(
                               label: last ? l.back : l.helpNext,
-                              primary: last,
+                              filled: last,
                               color: page.color,
                               onPressed: () => _go(_index + 1, pages.length),
                             ),
@@ -181,10 +181,10 @@ class _Page extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(page.title,
-                style: orbitron(compact ? 22 : 30, color: page.color, weight: 900, letterSpacing: 2)
-                    .copyWith(shadows: [Shadow(color: withAlpha(page.color, 0.6), blurRadius: 12)])),
+                style: pixelFont(compact ? 22 : 30, color: page.color, weight: 900, letterSpacing: 2)
+                    .copyWith(shadows: hardShadow(compact ? 22 : 30, color: Dot.dark(page.color)))),
             Container(
-                margin: EdgeInsets.symmetric(vertical: compact ? 10 : 14), width: 48, height: 3, color: page.color),
+                margin: EdgeInsets.symmetric(vertical: compact ? 10 : 14), width: 48, height: 4, color: page.color),
             // 改行ごとに 1 つの段落にする
             for (final line in page.body.split('\n'))
               Padding(

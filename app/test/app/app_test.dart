@@ -15,6 +15,7 @@ import 'package:parry_break/services/content.dart';
 import 'package:parry_break/services/records.dart';
 import 'package:parry_break/services/settings.dart';
 import 'package:parry_break/ui/help_screen.dart';
+import 'package:parry_break/ui/pixel_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/helpers.dart';
@@ -30,7 +31,11 @@ final _campaign = Campaign.fromJson(
     jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
 
 Future<void> _loadFonts() async {
-  await (FontLoader('Orbitron')..addFont(rootBundle.load('assets/fonts/Orbitron.ttf'))).load();
+  await (FontLoader('DotGothic16')..addFont(rootBundle.load('assets/fonts/DotGothic16-subset.ttf'))).load();
+  await (FontLoader('Silkscreen')
+        ..addFont(rootBundle.load('assets/fonts/Silkscreen-Regular.ttf'))
+        ..addFont(rootBundle.load('assets/fonts/Silkscreen-Bold.ttf')))
+      .load();
   if (!_shots) return;
   // 画面写真の文字を読めるようにする (テストの標準フォントは四角で描かれる)
   for (final f in ['Roboto', 'MaterialIcons']) {
@@ -152,7 +157,7 @@ void main() {
     expect(find.byType(GameScreen), findsOneWidget); // Space がタイトルのボタンを押していない
     await _shot(tester, '03_playing');
 
-    await tester.tap(find.byIcon(Icons.pause));
+    await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.pause));
     await _frames(tester, 0.2);
     expect(find.text('PAUSED'), findsWidgets);
     await _shot(tester, '04_paused');
@@ -239,7 +244,7 @@ void main() {
     await tester.tap(find.text('SETTINGS'));
     await _frames(tester, 0.5);
     expect(audio.titlePlaying, isTrue); // メニュー画面でも続く
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.back));
     await _frames(tester, 0.5);
 
     await tester.tap(find.text('ENDLESS'));
@@ -323,9 +328,7 @@ void main() {
     await _frames(tester, 0.5);
     expect(find.text('START'), findsOneWidget);
     await _shot(tester, '07_stage_detail');
-    await tester.tap(find.text('BACK'));
-    await _frames(tester, 0.3);
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.back));
     await _frames(tester, 0.5);
     await tester.tap(find.text('SETTINGS'));
     await _frames(tester, 0.5);

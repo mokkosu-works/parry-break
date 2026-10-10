@@ -521,7 +521,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsReduceEffectsHelp.
   ///
   /// In ja, this message translates to:
-  /// **'フラッシュ・画面の反転・揺れを抑えます'**
+  /// **'フラッシュ・点滅・揺れを抑えます'**
   String get settingsReduceEffectsHelp;
 
   /// No description provided for @settingsLanguage.

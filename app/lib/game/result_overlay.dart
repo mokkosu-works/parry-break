@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../core/core.dart';
@@ -8,6 +6,7 @@ import '../render/palette.dart';
 import '../ui/arcade.dart';
 import '../ui/stage_text.dart';
 import '../ui/widgets.dart';
+import '../ui/pixel_icons.dart';
 
 /// 結果画面に出す内容。
 class ResultData {
@@ -116,7 +115,8 @@ class _ResultOverlayState extends State<ResultOverlay>
     final title = stage == null
         ? 'GAME OVER'
         : (win ? 'STAGE CLEAR' : 'STAGE FAILED');
-    final color = win ? Palette.cyan : Palette.red;
+    // 勝ちはメインカラー (黄)、負けはアクセントカラー (赤)
+    final color = win ? Palette.main : Palette.sub;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -125,14 +125,16 @@ class _ResultOverlayState extends State<ResultOverlay>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          const ColoredBox(color: Color(0xE005040F)),
-          const Scanlines(),
+          ColoredBox(color: withAlpha(Dot.ink, 0.88)),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: SizedBox(
+                // 後ろの盤面が透けて読みにくくならないよう、窓の中に置く
+                child: PixelWindow(
+                  padding: const EdgeInsets.fromLTRB(28, 22, 28, 26),
+                  child: SizedBox(
                   width: 1000,
                   height: 470,
                   child: AnimatedBuilder(
@@ -140,7 +142,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                     builder: (context, _) => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 見出し (後ろに斜めの帯)
+                        // 見出し (後ろに帯)
                         _in(
                           0,
                           0.16,
@@ -151,17 +153,18 @@ class _ResultOverlayState extends State<ResultOverlay>
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  ChromaticTitle(title, size: 64, color: color),
+                                  const SizedBox(width: 16),
+                                  PixelTitle(title, size: 64, color: color),
                                   const SizedBox(width: 26),
                                   if (stage != null) ...[
-                                    SlashTag(
+                                    PixelTag(
                                       'STAGE ${stage.id}',
-                                      color: Palette.cyan,
+                                      color: Palette.sub,
                                     ),
                                     const SizedBox(width: 10),
                                   ],
                                   if (!win)
-                                    SlashTag(d.reason, color: Palette.red),
+                                    PixelTag(d.reason, color: Palette.sub),
                                 ],
                               ),
                             ),
@@ -175,14 +178,11 @@ class _ResultOverlayState extends State<ResultOverlay>
                             children: [
                               Expanded(flex: 11, child: _score(d)),
                               Container(
-                                width: 1,
                                 margin: const EdgeInsets.symmetric(
                                   horizontal: 28,
                                 ),
-                                color: withAlpha(
-                                  Palette.pale,
-                                  0.18 * _p(0.3, 0.5),
-                                ),
+                                width: 2,
+                                color: withAlpha(Dot.edge, _p(0.3, 0.5)),
                               ),
                               Expanded(
                                 flex: 9,
@@ -201,28 +201,28 @@ class _ResultOverlayState extends State<ResultOverlay>
                             runSpacing: 10,
                             children: [
                               if (widget.onNext != null)
-                                SlashButton(
+                                PixelButton(
                                   label: 'NEXT STAGE',
-                                  primary: true,
-                                  icon: Icons.skip_next,
+                                  filled: true,
+                                  icon: PixelIcons.skipNext,
                                   onPressed: widget.onNext,
                                 ),
-                              SlashButton(
+                              PixelButton(
                                 label: 'RETRY',
-                                primary: widget.onNext == null,
-                                icon: Icons.replay,
+                                filled: widget.onNext == null,
+                                icon: PixelIcons.replay,
                                 onPressed: widget.onRetry,
                               ),
                               if (widget.onStageSelect != null)
-                                SlashButton(
+                                PixelButton(
                                   label: 'STAGES',
-                                  icon: Icons.grid_view,
+                                  icon: PixelIcons.grid,
                                   onPressed: widget.onStageSelect,
                                 ),
-                              SlashButton(
+                              PixelButton(
                                 label: 'TITLE',
-                                color: Palette.magenta,
-                                icon: Icons.home,
+                                color: Palette.gray,
+                                icon: PixelIcons.home,
                                 onPressed: widget.onTitle,
                               ),
                             ],
@@ -231,6 +231,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                       ],
                     ),
                   ),
+                ),
                 ),
               ),
             ),
@@ -257,7 +258,7 @@ class _ResultOverlayState extends State<ResultOverlay>
             children: [
               Text(
                 'SCORE',
-                style: orbitron(13, color: Palette.cyan, letterSpacing: 6),
+                style: pixelFont(16, color: Palette.pale, letterSpacing: 4),
               ),
               const SizedBox(height: 4),
               FittedBox(
@@ -265,35 +266,30 @@ class _ResultOverlayState extends State<ResultOverlay>
                 alignment: Alignment.centerLeft,
                 child: Text(
                   formatScore(shown),
-                  style: orbitron(84, weight: 900, letterSpacing: 2).copyWith(
+                  style: pixelFont(84, weight: 900, letterSpacing: 2).copyWith(
                     fontFeatures: tab,
                     height: 1,
-                    shadows: [
-                      Shadow(
-                        color: withAlpha(Palette.cyan, 0.8),
-                        blurRadius: 22,
-                      ),
-                    ],
+                    shadows: hardShadow(84),
                   ),
                 ),
               ),
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Container(width: 3, height: 30, color: Palette.magenta),
+                  Container(width: 4, height: 30, color: Palette.main),
                   const SizedBox(width: 10),
                   Text(
                     'HI-SCORE',
-                    style: orbitron(
-                      11,
-                      color: withAlpha(Palette.magenta, 0.9),
+                    style: pixelFont(
+                      14,
+                      color: Palette.main,
                       letterSpacing: 4,
                     ),
                   ),
                   const SizedBox(width: 14),
                   Text(
                     formatScore(d.bestScore),
-                    style: orbitron(
+                    style: pixelFont(
                       22,
                       weight: 900,
                     ).copyWith(fontFeatures: tab),
@@ -304,14 +300,11 @@ class _ResultOverlayState extends State<ResultOverlay>
                 const SizedBox(height: 22),
                 Opacity(
                   opacity: stampT.clamp(0.0, 1.0),
-                  child: Transform.rotate(
-                    angle: -0.08,
+                  // 大きく出て 1 段ずつ縮む (ドット絵らしく、なめらかには縮めない)
+                  child: Transform.scale(
+                    scale: 1 + ((1 - stampT.clamp(0.0, 1.0)) * 3).ceil() * 0.4,
                     alignment: Alignment.centerLeft,
-                    child: Transform.scale(
-                      scale: 2.4 - 1.4 * stampT,
-                      alignment: Alignment.centerLeft,
-                      child: const _Stamp('NEW RECORD'),
-                    ),
+                    child: const _Stamp('NEW RECORD'),
                   ),
                 ),
               ],
@@ -394,19 +387,10 @@ class _ResultOverlayState extends State<ResultOverlay>
       opacity: t.clamp(0.0, 1.0),
       child: Row(
         children: [
+          // 取った星は大きく出て 1 段で収まる
           Transform.scale(
-            scale: got ? 0.4 + 0.6 * t : 1,
-            child: Transform.rotate(
-              angle: got ? (1 - t) * math.pi : 0,
-              child: Icon(
-                got ? Icons.star_rounded : Icons.star_outline_rounded,
-                size: 38,
-                color: got ? Palette.yellow : withAlpha(Palette.gray, 0.7),
-                shadows: got
-                    ? const [Shadow(color: Palette.yellow, blurRadius: 16)]
-                    : null,
-              ),
-            ),
+            scale: got && t < 0.6 ? 1.4 : 1,
+            child: SizedBox(width: 40, child: Center(child: PixelStar(got: got, size: 36, shadow: true))),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -414,9 +398,7 @@ class _ResultOverlayState extends State<ResultOverlay>
               text,
               style: TextStyle(
                 fontSize: 19,
-                fontWeight: FontWeight.w600,
                 color: got ? Palette.white : withAlpha(Palette.pale, 0.5),
-                fontFamilyFallback: kFontFallback,
               ),
             ),
           ),
@@ -442,23 +424,18 @@ class _Stamp extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
     decoration: BoxDecoration(
-      border: Border.all(color: Palette.yellow, width: 3),
-      color: withAlpha(Palette.yellow, 0.12),
-      boxShadow: [
-        BoxShadow(color: withAlpha(Palette.yellow, 0.45), blurRadius: 18),
-      ],
+      color: Palette.yellow,
+      border: Border.all(color: Dot.light(Palette.yellow), width: 3),
+      boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
     ),
     child: Text(
       text,
-      style: orbitron(22, color: Palette.yellow, weight: 900, letterSpacing: 4)
-          .copyWith(
-            shadows: const [Shadow(color: Palette.yellow, blurRadius: 10)],
-          ),
+      style: pixelFont(22, color: Dot.ink, weight: 900, letterSpacing: 4),
     ),
   );
 }
 
-/// 背景の斜めの帯 (見出しの色)。
+/// 見出しの後ろの帯 (見出しの色)。濃さは 3 段の帯で、下に 1 ドットの線。
 class _Backdrop extends CustomPainter {
   _Backdrop(this.color);
   final Color color;
@@ -466,23 +443,12 @@ class _Backdrop extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final h = size.height, w = size.width * 0.75;
-    final band = Path()
-      ..moveTo(-40, 0)
-      ..lineTo(w, 0)
-      ..lineTo(w - h * 0.5, h)
-      ..lineTo(-40, h)
-      ..close();
-    canvas.drawPath(
-      band,
-      Paint()
-        ..shader = LinearGradient(
-          colors: [withAlpha(color, 0.18), withAlpha(color, 0)],
-        ).createShader(Rect.fromLTWH(0, 0, w, h)),
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(-40, h, w - h * 0.5 + 40, 2),
-      Paint()..color = withAlpha(color, 0.55),
-    );
+    final p = Paint()..isAntiAlias = false;
+    for (var i = 0; i < 3; i++) {
+      p.color = withAlpha(color, 0.2 - i * 0.06);
+      canvas.drawRect(Rect.fromLTWH(w * i / 3, 0, w / 3, h), p);
+    }
+    canvas.drawRect(Rect.fromLTWH(0, h, w, 4), p..color = withAlpha(color, 0.7));
   }
 
   @override

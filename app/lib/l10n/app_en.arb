@@ -70,7 +70,7 @@
   "qualityHigh": "High",
   "qualityLow": "Low (battery saver)",
   "settingsReduceEffects": "Reduce flashing",
-  "settingsReduceEffectsHelp": "Tones down flashes, screen inversion and shake",
+  "settingsReduceEffectsHelp": "Tones down flashes, blinking and shake",
   "settingsLanguage": "Language",
   "settingsAdPrivacy": "Ad privacy settings",
   "settingsDebugMode": "Debug mode",
