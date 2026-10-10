@@ -74,7 +74,10 @@ class InterstitialPolicy {
   bool get due {
     if (!pastGrace || _countToday >= dailyCap) return false;
     final last = _prefs.getInt(_lastShownKey);
-    return last == null || _now().difference(DateTime.fromMillisecondsSinceEpoch(last)) >= minGap;
+    if (last == null) return true;
+    final gap = _now().difference(DateTime.fromMillisecondsSinceEpoch(last));
+    // 端末の時計が戻されて前回が未来になったときは、時計が追いつくまで出せなくならないよう、出してよいとする
+    return gap.isNegative || gap >= minGap;
   }
 
   void recordShown() {
@@ -90,6 +93,9 @@ abstract class AdsService {
   /// 起動後に呼ぶ。同意を集め (EU の同意画面、iOS のトラッキング許可)、出せる時期なら広告を読み込んでおく。
   Future<void> init();
 
+  /// 結果画面が出たときに呼ぶ。戻るときに出せるよう、広告を読み込んでおく。
+  void preload();
+
   /// 結果画面からタイトルなどへ戻るときに呼ぶ。出してよければ出し、閉じられるまで待つ。
   Future<void> showInterstitialIfDue();
 
@@ -103,6 +109,8 @@ class DisabledAds implements AdsService {
   @override
   Future<void> init() async {}
   @override
+  void preload() {}
+  @override
   Future<void> showInterstitialIfDue() async {}
   @override
   bool get privacyOptionsRequired => false;
@@ -110,11 +118,58 @@ class DisabledAds implements AdsService {
   Future<void> showPrivacyOptions() async {}
 }
 
+/// 読み込み済みのインタースティシャル。
+abstract class LoadedInterstitial {
+  /// 出して、閉じられる (または出せずに終わる) まで待つ。終わったら破棄する。
+  /// 画面に出たときに [onShown] を呼ぶ。
+  Future<void> show({required VoidCallback onShown});
+
+  void dispose();
+}
+
+/// 広告の SDK (UMP・ATT・AdMob) の呼び出し。テストでは偽物に差し替える。
+abstract class AdsSdk {
+  /// 同意の情報を更新し、同意が必要な地域 (EU など) なら同意画面を出す。更新できたら true。
+  Future<bool> gatherConsent();
+
+  Future<bool> privacyOptionsRequired();
+
+  /// iOS のトラッキング許可のダイアログを出す (まだ聞いていなければ)。
+  Future<void> requestTracking();
+
+  Future<bool> canRequestAds();
+
+  Future<void> initialize();
+
+  /// 読み込めなければ例外を投げる。
+  Future<LoadedInterstitial> loadInterstitial();
+
+  Future<void> showPrivacyOptions();
+}
+
 class AdMobAds implements AdsService {
-  AdMobAds(this._policy);
+  AdMobAds(this._policy, {AdsSdk? sdk, DateTime Function()? now, Timer Function(Duration, void Function())? timer})
+    : _sdk = sdk ?? GoogleAdsSdk(),
+      _now = now ?? DateTime.now,
+      _timer = timer ?? Timer.new;
+
   final InterstitialPolicy _policy;
-  bool _ready = false, _loading = false;
-  InterstitialAd? _ad;
+  final AdsSdk _sdk;
+  final DateTime Function() _now;
+  final Timer Function(Duration, void Function()) _timer;
+
+  /// 読み込んだ広告はおよそ 1 時間で期限が切れて出せなくなるので、少し手前で読み込み直す。
+  static const maxAge = Duration(minutes: 50);
+
+  /// 読み込みに失敗したときの再試行の間隔。使い切ったら、次に [preload] が呼ばれるまで試さない。
+  static const retryDelays = [Duration(seconds: 30), Duration(minutes: 1), Duration(minutes: 2), Duration(minutes: 4)];
+
+  bool _initDone = false, _consentUpdated = false, _starting = false, _ready = false, _loading = false;
+  LoadedInterstitial? _ad;
+  DateTime? _loadedAt;
+  int _failures = 0;
+  Timer? _retry;
+  AppLifecycleListener? _lifecycle;
 
   @override
   bool privacyOptionsRequired = false;
@@ -122,39 +177,140 @@ class AdMobAds implements AdsService {
   @override
   Future<void> init() async {
     _policy.markLaunch();
+    _lifecycle ??= AppLifecycleListener(onResume: () => unawaited(onResume()));
     // 同意の画面は猶予の間も最初の起動で出す。審査ではトラッキング許可のダイアログが出ることを確かめられるため
     await _gatherConsent();
     // ATT は SDK を初期化する (IDFA を読む) 前に聞く
-    await _requestTracking();
-    if (!await ConsentInformation.instance.canRequestAds()) return;
-    await MobileAds.instance.initialize();
-    _ready = true;
-    _load();
+    await _sdk.requestTracking();
+    await _start();
+    _initDone = true;
   }
 
-  /// 同意が必要な地域 (EU など) なら同意画面を出す。
-  Future<void> _gatherConsent() {
-    final done = Completer<void>();
-    ConsentInformation.instance.requestConsentInfoUpdate(ConsentRequestParameters(), () async {
-      await ConsentForm.loadAndShowConsentFormIfRequired((e) {
-        if (e != null) debugPrint('consent form failed: ${e.message}');
-      });
-      privacyOptionsRequired = await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() ==
-          PrivacyOptionsRequirementStatus.required;
-      done.complete();
-    }, (e) {
-      // 失敗しても、前回までの同意で広告を出せることがある (canRequestAds で確かめる)
-      debugPrint('consent update failed: ${e.message}');
-      done.complete();
-    });
+  /// アプリが前面に戻ったとき。起動時に同意の更新や初期化でつまずいていたら、やり直す。
+  @visibleForTesting
+  Future<void> onResume() async {
+    if (_ready) {
+      preload();
+      return;
+    }
+    // 同意画面や ATT のダイアログを閉じたときにも呼ばれるので、起動時の処理が終わるまでは何もしない
+    if (!_initDone || _starting) return;
+    if (!_consentUpdated) await _gatherConsent();
+    await _start();
+  }
+
+  Future<void> _gatherConsent() async {
+    // 失敗しても、前回までの同意で広告を出せることがある (canRequestAds で確かめる)
+    _consentUpdated = await _sdk.gatherConsent();
+    if (_consentUpdated) privacyOptionsRequired = await _sdk.privacyOptionsRequired();
+  }
+
+  Future<void> _start() async {
+    if (_ready || _starting) return;
+    _starting = true;
+    try {
+      if (!await _sdk.canRequestAds()) return;
+      await _sdk.initialize();
+      _ready = true;
+    } on Object catch (e) {
+      debugPrint('ads initialize failed: $e');
+    } finally {
+      _starting = false;
+    }
+    preload();
+  }
+
+  bool get _expired => _loadedAt != null && _now().difference(_loadedAt!) >= maxAge;
+
+  void _discard() {
+    _ad?.dispose();
+    _ad = null;
+    _loadedAt = null;
+  }
+
+  @override
+  void preload() {
+    if (!_ready || _loading || !_policy.pastGrace) return;
+    if (_ad != null) {
+      if (!_expired) return;
+      _discard();
+    }
+    // 再試行を待っている間は、その時刻まで待つ
+    if (_retry?.isActive ?? false) return;
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    _loading = true;
+    try {
+      _ad = await _sdk.loadInterstitial();
+      _loadedAt = _now();
+      _failures = 0;
+    } on Object catch (e) {
+      debugPrint('interstitial load failed: $e');
+      if (_failures < retryDelays.length) {
+        _retry = _timer(retryDelays[_failures], preload);
+      }
+      _failures++;
+    } finally {
+      _loading = false;
+    }
+  }
+
+  @override
+  Future<void> showInterstitialIfDue() async {
+    if (_expired) _discard();
+    final ad = _ad;
+    if (ad == null || !_policy.due) {
+      preload();
+      return;
+    }
+    _ad = null;
+    _loadedAt = null;
+    await ad.show(onShown: _policy.recordShown);
+    preload();
+  }
+
+  @override
+  Future<void> showPrivacyOptions() => _sdk.showPrivacyOptions();
+
+  @visibleForTesting
+  void dispose() {
+    _lifecycle?.dispose();
+    _retry?.cancel();
+    _discard();
+  }
+}
+
+class GoogleAdsSdk implements AdsSdk {
+  @override
+  Future<bool> gatherConsent() {
+    final done = Completer<bool>();
+    ConsentInformation.instance.requestConsentInfoUpdate(
+      ConsentRequestParameters(),
+      () async {
+        await ConsentForm.loadAndShowConsentFormIfRequired((e) {
+          if (e != null) debugPrint('consent form failed: ${e.message}');
+        });
+        done.complete(true);
+      },
+      (e) {
+        debugPrint('consent update failed: ${e.message}');
+        done.complete(false);
+      },
+    );
     return done.future;
   }
 
-  /// iOS のトラッキング許可のダイアログを出す (まだ聞いていなければ)。
-  ///
+  @override
+  Future<bool> privacyOptionsRequired() async =>
+      await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() ==
+      PrivacyOptionsRequirementStatus.required;
+
   /// AdMob の IDFA の説明メッセージ (UMP) 任せにすると、メッセージの設定や地域によっては
   /// ダイアログが出ず、審査で指摘される (Guideline 2.1)。UMP がすでに聞いていれば、ここでは何も出ない。
-  Future<void> _requestTracking() async {
+  @override
+  Future<void> requestTracking() async {
     if (defaultTargetPlatform != TargetPlatform.iOS) return;
     try {
       if (await AppTrackingTransparency.trackingAuthorizationStatus != TrackingStatus.notDetermined) return;
@@ -173,49 +329,55 @@ class AdMobAds implements AdsService {
     if (binding.lifecycleState == AppLifecycleState.resumed) return Future.value();
     final done = Completer<void>();
     late final AppLifecycleListener listener;
-    listener = AppLifecycleListener(onResume: () {
-      listener.dispose();
-      done.complete();
-    });
+    listener = AppLifecycleListener(
+      onResume: () {
+        listener.dispose();
+        done.complete();
+      },
+    );
     return done.future;
   }
 
-  void _load() {
-    if (!_ready || _loading || _ad != null || !_policy.pastGrace) return;
-    _loading = true;
+  @override
+  Future<bool> canRequestAds() => ConsentInformation.instance.canRequestAds();
+
+  @override
+  Future<void> initialize() => MobileAds.instance.initialize();
+
+  @override
+  Future<LoadedInterstitial> loadInterstitial() {
+    final done = Completer<LoadedInterstitial>();
     InterstitialAd.load(
       adUnitId: AdsConfig.interstitial,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          _loading = false;
-          _ad = ad;
-        },
-        onAdFailedToLoad: (e) {
-          // 次に出す機会に読み込み直す
-          _loading = false;
-          debugPrint('interstitial load failed: ${e.message}');
-        },
+        onAdLoaded: (ad) => done.complete(_GoogleInterstitial(ad)),
+        onAdFailedToLoad: (e) => done.completeError(Exception(e.message)),
       ),
     );
+    return done.future;
   }
 
   @override
-  Future<void> showInterstitialIfDue() async {
-    final ad = _ad;
-    if (ad == null || !_policy.due) {
-      _load();
-      return;
-    }
-    _ad = null;
+  Future<void> showPrivacyOptions() => ConsentForm.showPrivacyOptionsForm((e) {
+    if (e != null) debugPrint('privacy options failed: ${e.message}');
+  });
+}
+
+class _GoogleInterstitial implements LoadedInterstitial {
+  _GoogleInterstitial(this._ad);
+  final InterstitialAd _ad;
+
+  @override
+  Future<void> show({required VoidCallback onShown}) async {
     final closed = Completer<void>();
     void close(Ad a) {
       a.dispose();
       if (!closed.isCompleted) closed.complete();
     }
 
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (_) => _policy.recordShown(),
+    _ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (_) => onShown(),
       onAdDismissedFullScreenContent: close,
       onAdFailedToShowFullScreenContent: (a, e) {
         debugPrint('interstitial show failed: ${e.message}');
@@ -223,21 +385,18 @@ class AdMobAds implements AdsService {
       },
     );
     try {
-      await ad.show();
+      await _ad.show();
       await closed.future;
     } on Object catch (e) {
       debugPrint('interstitial show failed: $e');
-      close(ad);
+      close(_ad);
     }
     // 広告を閉じるとシステムバーが戻ることがあるので、全画面に戻す
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    _load();
   }
 
   @override
-  Future<void> showPrivacyOptions() => ConsentForm.showPrivacyOptionsForm((e) {
-        if (e != null) debugPrint('privacy options failed: ${e.message}');
-      });
+  void dispose() => _ad.dispose();
 }
 
 /// 起動時に main で [createAdsService] の結果に差し替える。テストでは何もしない実装のまま。

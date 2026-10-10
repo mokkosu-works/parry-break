@@ -121,7 +121,11 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       final cleared = stage != null && w.phase == WorldPhase.completed;
       final stars = stage?.evaluate(StageResult(cleared: cleared, score: w.score, stats: w.stats));
       _outcome = _Outcome(newBest: false, stars: stars, cleared: cleared);
-    } else if (stage == null) {
+      return;
+    }
+    // 結果画面を見ている間に、戻るときの広告を読み込んでおく
+    ref.read(adsProvider).preload();
+    if (stage == null) {
       final newBest = records.submitEndless(score: w.score, wave: w.wave.number, stats: w.stats);
       lb.submit(Board.endlessScore, w.score);
       lb.submit(Board.endlessWave, w.wave.number);
