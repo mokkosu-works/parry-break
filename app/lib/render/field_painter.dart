@@ -68,7 +68,7 @@ class FieldPainter extends CustomPainter {
     canvas.save();
     canvas.scale(size.width / _w);
     canvas.clipRect(const Rect.fromLTWH(0, 0, _w, _h));
-    canvas.drawRect(const Rect.fromLTWH(0, 0, _w, _h), pixelPaint(Dot.ink));
+    canvas.drawRect(const Rect.fromLTWH(0, 0, _w, _h), pixelPaint(w.od ? Dot.odBg : Dot.ink));
     canvas.save();
     if (fx.shake > 0) {
       // 揺れもドット単位で動かす
@@ -139,7 +139,20 @@ class FieldPainter extends CustomPainter {
   // ---- 背景・盤面 ---------------------------------------------------------
 
   void _background() {
-    if (highQuality) _floor.draw(_c, Dot.dither);
+    final od = world.od;
+    if (highQuality) _floor.draw(_c, od ? Dot.odDither : Dot.dither);
+    if (od) {
+      // OVERDRIVE: 速く流れる線 (加速している感じ)
+      final p = pixelPaint(Dot.odDither);
+      final off = (_t * 900) % 240;
+      for (var x = 60.0; x < _w; x += 90) {
+        final y0 = off - 240 + (x * 7) % 240;
+        for (var y = y0; y < _h; y += 240) {
+          _c.drawRect(Rect.fromLTWH(x, y, _d, 48), p);
+        }
+      }
+      return;
+    }
     // 遠くの星のような点 (ゆっくり流れる)
     final p = pixelPaint(Dot.night);
     final off = (_t * 12) % 96;
@@ -152,7 +165,7 @@ class FieldPainter extends CustomPainter {
   }
 
   void _field() {
-    _c.drawRect(const Rect.fromLTWH(0, 0, _w, Field.topY), pixelPaint(Dot.night));
+    _c.drawRect(const Rect.fromLTWH(0, 0, _w, Field.topY), pixelPaint(world.od ? Dot.odHud : Dot.night));
     _c.drawRect(const Rect.fromLTWH(0, Field.topY - _d, _w, _d), pixelPaint(Dot.edge));
     final danger = world.isDanger;
     final col = danger ? ((_t * 7).floor().isEven ? Dot.bulletRed : Dot.brick) : Dot.dark(Dot.brick);
@@ -406,12 +419,40 @@ class FieldPainter extends CustomPainter {
   void _edgeFx() {
     final w = world;
     if (w.phase != WorldPhase.playing) return;
-    final st = w.od ? 4 : w.stage;
-    if (st >= 2) {
-      final c = st == 4 ? Dot.rose : st == 3 ? Dot.mustard : Dot.teal;
-      _edgeBands(c, 0.3, (_t * 4).floor().isEven ? 3 : 2);
+    if (w.od) {
+      _marquee();
+    } else if (w.stage >= 2) {
+      _edgeBands(w.stage == 3 ? Dot.mustard : Dot.teal, 0.3, (_t * 4).floor().isEven ? 3 : 2);
     }
     if (w.isDanger) _edgeBands(Dot.bulletRed, 0.45, (_t * 7).floor().isEven ? 4 : 2);
+  }
+
+  /// OVERDRIVE 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
+  /// 残り 2 秒を切ると全体が点滅して、終わりが近いことを知らせる。
+  void _marquee() {
+    final w = world;
+    if (w.odTime < 2 && (_t * 8).floor().isEven) return;
+    const step = 24.0, inset = _d * 2;
+    final pts = <List<double>>[[], [], []];
+    var k = 0;
+    void put(double x, double y) => pts[k++ % 3].addAll([x, y]);
+    for (var x = inset; x < _w - inset; x += step) {
+      put(x, Field.topY + inset);
+    }
+    for (var y = Field.topY + inset; y < _h - inset; y += step) {
+      put(_w - inset, y);
+    }
+    for (var x = _w - inset; x > inset; x -= step) {
+      put(x, _h - inset);
+    }
+    for (var y = _h - inset; y > Field.topY + inset; y -= step) {
+      put(inset, y);
+    }
+    final phase = (_t * 12).floor();
+    final cols = [Dot.white, Dot.rose, Dot.dark(Dot.rose)];
+    for (var i = 0; i < 3; i++) {
+      drawDots(_c, Float32List.fromList(pts[i]), cols[(i + phase) % 3], size: _d * 2);
+    }
   }
 
   /// 画面の左右と下の端に、外側ほど濃い段階の帯を描く (発光の代わり)。

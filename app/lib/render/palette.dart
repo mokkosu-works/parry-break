@@ -56,6 +56,11 @@ abstract final class Dot {
   static const blush = Color(0xFFFFB3DD);
   static const ice = Color(0xFF9FE8F0);
 
+  /// OVERDRIVE 中の地・床・HUD (パレットを入れ替えて、ひと目で分かるようにする)。
+  static const odBg = Color(0xFF2A0E26);
+  static const odDither = Color(0xFF4A1A42);
+  static const odHud = Color(0xFF3E1236);
+
   /// 敵弾 (赤い弾は避けるしかない)。
   static const bullet = Color(0xFFFF8A3D);
   static const bulletRed = Color(0xFFFF3B5C);
