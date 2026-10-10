@@ -233,7 +233,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       repaint: _ctl.frame,
     );
     return Scaffold(
-      backgroundColor: const Color(0xFF030208),
+      backgroundColor: Dot.ink,
       body: Focus(
         focusNode: _focus,
         autofocus: true,
@@ -310,20 +310,19 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   Widget _pauseOverlay(AppLocalizations l) {
     final rc = _ctl.resumeCountdown;
     return Stack(fit: StackFit.expand, children: [
-      const ColoredBox(color: Color(0xCC05040F)),
-      const Scanlines(),
+      ColoredBox(color: withAlpha(Dot.ink, 0.8)),
       Center(
         child: rc != null
-            ? ChromaticTitle('${rc.ceil()}', size: 96, color: Palette.cyan)
+            ? PixelTitle('${rc.ceil()}', size: 96, color: Palette.cyan)
             : SingleChildScrollView(
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const ChromaticTitle('PAUSED', size: 56, color: Palette.cyan),
+                  const PixelTitle('PAUSED', size: 56, color: Palette.cyan),
                   const SizedBox(height: 30),
                   Wrap(spacing: 14, runSpacing: 12, alignment: WrapAlignment.center, children: [
-                    SlashButton(label: 'RESUME', primary: true, icon: Icons.play_arrow, onPressed: _ctl.requestResume),
-                    SlashButton(label: 'RETRY', icon: Icons.replay, onPressed: _retry),
-                    SlashButton(label: 'SETTINGS', icon: Icons.tune, onPressed: _openSettings),
-                    SlashButton(label: 'TITLE', color: Palette.magenta, icon: Icons.home, onPressed: _toTitle),
+                    PixelButton(label: 'RESUME', filled: true, icon: Icons.play_arrow, onPressed: _ctl.requestResume),
+                    PixelButton(label: 'RETRY', icon: Icons.replay, onPressed: _retry),
+                    PixelButton(label: 'SETTINGS', icon: Icons.tune, onPressed: _openSettings),
+                    PixelButton(label: 'TITLE', color: Palette.magenta, icon: Icons.home, onPressed: _toTitle),
                   ]),
                 ]),
               ),
@@ -370,7 +369,7 @@ class StarLine extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 3),
         child: Row(children: [
-          Icon(achieved ? Icons.star : Icons.star_border, color: achieved ? Palette.yellow : Palette.gray, size: 24),
+          PixelStar(got: achieved, size: 22),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: TextStyle(color: achieved ? Palette.white : Palette.gray, fontSize: 15))),
         ]),
@@ -393,12 +392,11 @@ class _RoundIcon extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF0B1523),
-              border: Border.all(color: Palette.cyan),
-              boxShadow: [BoxShadow(color: withAlpha(Palette.cyan, 0.35), blurRadius: 12)],
+              color: Dot.night,
+              border: Border.all(color: Palette.cyan, width: 3),
+              boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
             ),
-            child: Icon(icon, color: const Color(0xFFA8FFFF)),
+            child: Icon(icon, color: Palette.cyan),
           ),
         ),
       );

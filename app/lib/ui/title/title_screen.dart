@@ -14,7 +14,6 @@ import '../../services/content.dart';
 import '../../services/leaderboard.dart';
 import '../../services/records.dart';
 import '../../services/settings.dart';
-import '../arcade.dart';
 import '../help_screen.dart';
 import '../settings_screen.dart';
 import '../stage_select_screen.dart';
@@ -163,17 +162,9 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
         autofocus: true,
         onKeyEvent: (_, e) => _onKey(entries, e),
         child: Stack(fit: StackFit.expand, children: [
-          // 奥に傾けたデモプレイ
-          Transform(
-            alignment: const Alignment(0, -0.2),
-            transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.0011)
-              ..rotateX(-0.62)
-              ..scaleByDouble(1.3, 1.3, 1, 1),
-            child: Opacity(opacity: 0.5, child: AttractDemo(animate: !still)),
-          ),
+          // 後ろで流れるデモプレイ (ドットが歪まないよう、傾けずに暗くして置く)
+          Opacity(opacity: 0.4, child: AttractDemo(animate: !still)),
           const _Shade(),
-          const Scanlines(),
           SafeArea(
             child: LayoutBuilder(builder: (context, c) {
               final logoSize = math.min(c.maxWidth * 0.085, c.maxHeight * 0.17);
@@ -209,25 +200,29 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
                     // 右: メニュー
                     Expanded(
                       flex: 7,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (var i = 0; i < entries.length; i++)
-                            Opacity(
-                              opacity: _stage(0.25 + i * 0.07, 0.6 + i * 0.07),
-                              child: Transform.translate(
-                                offset: Offset(50 * (1 - _stage(0.25 + i * 0.07, 0.6 + i * 0.07)), 0),
-                                child: _MenuItem(
-                                  entry: entries[i],
-                                  selected: i == _selected,
-                                  firing: _firing == i,
-                                  onHover: () => _select(i),
-                                  onTap: () => _activate(entries, i),
-                                ),
-                              ),
+                      child: Center(
+                        child: Opacity(
+                          opacity: _stage(0.25, 0.6),
+                          child: _MenuWindow(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (var i = 0; i < entries.length; i++)
+                                  Opacity(
+                                    opacity: _stage(0.25 + i * 0.07, 0.6 + i * 0.07),
+                                    child: _MenuItem(
+                                      entry: entries[i],
+                                      selected: i == _selected,
+                                      firing: _firing == i,
+                                      onHover: () => _select(i),
+                                      onTap: () => _activate(entries, i),
+                                    ),
+                                  ),
+                              ],
                             ),
-                        ],
+                          ),
+                        ),
                       ),
                     ),
                   ]),
@@ -244,7 +239,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
                 onTap: _tapVersion,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Text('VER 1.0.0', style: orbitron(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
+                  child: Text('VER 1.0.0', style: pixelFont(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
                 ),
               ),
             ),
@@ -255,41 +250,41 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
   }
 }
 
-/// 文字を読みやすくするための陰影 (左はロゴ、右はメニューの後ろを暗く、四隅を落とす)。
+/// 文字を読みやすくするための暗幕 (デモの上に重ねる。ロゴ側を濃くする)。
 class _Shade extends StatelessWidget {
   const _Shade();
 
   @override
-  Widget build(BuildContext context) => const IgnorePointer(
-        child: Stack(fit: StackFit.expand, children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xE607060F), Color(0x6607060F), Color(0x3307060F), Color(0xCC07060F)],
-                stops: [0, 0.45, 0.62, 1],
-              ),
-            ),
-          ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF07060F), Color(0x0007060F), Color(0x0007060F), Color(0xF207060F)],
-                stops: [0, 0.22, 0.7, 1],
-              ),
-            ),
-          ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(radius: 1.1, colors: [Color(0x00000000), Color(0x99000000)], stops: [0.6, 1]),
-            ),
-          ),
+  Widget build(BuildContext context) => IgnorePointer(
+        child: Row(children: [
+          Expanded(flex: 11, child: ColoredBox(color: withAlpha(Dot.ink, 0.7))),
+          Expanded(flex: 7, child: ColoredBox(color: withAlpha(Dot.ink, 0.45))),
         ]),
       );
 }
 
-/// メニューの 1 項目。選ぶと斜めの光の帯が出る。
+/// メニューを囲む、RPG の窓のような二重枠。
+class _MenuWindow extends StatelessWidget {
+  const _MenuWindow({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: withAlpha(Dot.ink, 0.92),
+          border: Border.all(color: Dot.white, width: 3),
+          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(6, 6))],
+        ),
+        child: Container(
+          margin: const EdgeInsets.all(4),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(border: Border.all(color: Dot.dim, width: 2)),
+          child: child,
+        ),
+      );
+}
+
+/// メニューの 1 項目。選ぶと ▶ が点滅し、決めた瞬間は項目が反転する。
 class _MenuItem extends StatelessWidget {
   const _MenuItem({
     required this.entry,
@@ -305,8 +300,8 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = entry.primary ? 27.0 : 21.0;
-    final color = selected ? Palette.white : withAlpha(Palette.white, 0.58);
+    final size = entry.primary ? 24.0 : 18.0;
+    final color = firing ? Dot.ink : selected ? Palette.white : Palette.gray;
     return Semantics(
       button: true,
       label: entry.label,
@@ -320,15 +315,10 @@ class _MenuItem extends StatelessWidget {
           child: SizedBox(
             height: entry.primary ? 58 : 46,
             child: Stack(alignment: Alignment.centerLeft, children: [
-              Positioned.fill(
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 160),
-                  opacity: selected ? 1 : 0,
-                  child: CustomPaint(painter: _SlashBar(bright: firing, primary: entry.primary)),
-                ),
-              ),
+              if (firing) const Positioned.fill(child: ColoredBox(color: Palette.yellow)),
+              if (selected && !firing) const Positioned(left: 10, child: _Cursor()),
               Padding(
-                padding: const EdgeInsets.only(left: 30, right: 12),
+                padding: const EdgeInsets.only(left: 34, right: 16),
                 child: Row(children: [
                   Flexible(
                     child: FittedBox(
@@ -336,16 +326,15 @@ class _MenuItem extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         entry.label,
-                        style: orbitron(size, color: color, weight: 800, letterSpacing: 3).copyWith(
-                          shadows: selected ? [Shadow(color: Palette.cyan, blurRadius: entry.primary ? 16 : 10)] : null,
-                        ),
+                        style: pixelFont(size, color: color, weight: 800, letterSpacing: 2)
+                            .copyWith(shadows: selected && !firing ? hardShadow(size) : null),
                       ),
                     ),
                   ),
                   if (entry.meta.isNotEmpty) ...[
                     const SizedBox(width: 12),
                     Text(entry.meta,
-                        style: orbitron(10, color: selected ? Palette.cyan : withAlpha(Palette.pale, 0.45), letterSpacing: 2)
+                        style: pixelFont(10, color: firing ? Dot.ink : selected ? Palette.yellow : Palette.gray, letterSpacing: 2)
                             .copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
                   ],
                 ]),
@@ -358,49 +347,40 @@ class _MenuItem extends StatelessWidget {
   }
 }
 
-/// 選択中の項目の後ろに引く、斜めに切った光の帯。
-class _SlashBar extends CustomPainter {
-  _SlashBar({required this.bright, required this.primary});
-  final bool bright, primary;
+/// 選択中の項目の ▶ (点滅する)。
+class _Cursor extends StatefulWidget {
+  const _Cursor();
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final h = size.height, slant = h * 0.45;
-    final band = Path()
-      ..moveTo(slant, 4)
-      ..lineTo(size.width, 4)
-      ..lineTo(size.width - slant, h - 4)
-      ..lineTo(0, h - 4)
-      ..close();
-    canvas.drawPath(
-      band,
-      Paint()
-        ..shader = LinearGradient(colors: [
-          withAlpha(Palette.cyan, bright ? 0.7 : (primary ? 0.32 : 0.22)),
-          withAlpha(Palette.cyan, 0),
-        ]).createShader(Offset.zero & size),
-    );
-    // 左端の鋭いエッジと、矢印
-    final edge = Path()
-      ..moveTo(slant, 4)
-      ..lineTo(slant + 5, 4)
-      ..lineTo(5, h - 4)
-      ..lineTo(0, h - 4)
-      ..close();
-    canvas.drawPath(edge, Paint()..color = bright ? Palette.white : Palette.cyan);
-    final cy = h / 2;
-    canvas.drawPath(
-      Path()
-        ..moveTo(14, cy - 5)
-        ..lineTo(21, cy)
-        ..lineTo(14, cy + 5)
-        ..close(),
-      Paint()..color = Palette.white,
-    );
+  State<_Cursor> createState() => _CursorState();
+}
+
+class _CursorState extends State<_Cursor> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+
+  @override
+  void initState() {
+    super.initState();
+    _c.repeat();
   }
 
   @override
-  bool shouldRepaint(_SlashBar old) => old.bright != bright || old.primary != primary;
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.disableAnimationsOf(context);
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, _) => Opacity(
+        opacity: still || _c.value < 0.6 ? 1 : 0,
+        child: const Text('▶', style: TextStyle(fontFamily: kJpFont, fontSize: 18, color: Palette.yellow, height: 1)),
+      ),
+    );
+  }
 }
 
 /// 左下のハイスコア表示 (アーケードの計器風)。
@@ -414,16 +394,16 @@ class _HiScore extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
       Container(width: 3, height: 44, color: Palette.magenta, margin: const EdgeInsets.only(right: 12)),
       Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text('HI-SCORE', style: orbitron(10, color: withAlpha(Palette.magenta, 0.9), letterSpacing: 4)),
+        Text('HI-SCORE', style: pixelFont(10, color: withAlpha(Palette.magenta, 0.9), letterSpacing: 4)),
         const SizedBox(height: 2),
         Text(formatScore(record.bestScore),
-            style: orbitron(28, weight: 900, letterSpacing: 2).copyWith(fontFeatures: tab)),
+            style: pixelFont(28, weight: 900, letterSpacing: 2).copyWith(fontFeatures: tab)),
       ]),
       const SizedBox(width: 22),
       Padding(
         padding: const EdgeInsets.only(bottom: 4),
         child: Text('MAX WAVE ${record.bestWave.toString().padLeft(2, '0')}',
-            style: orbitron(11, color: withAlpha(Palette.pale, 0.7), letterSpacing: 3).copyWith(fontFeatures: tab)),
+            style: pixelFont(11, color: withAlpha(Palette.pale, 0.7), letterSpacing: 3).copyWith(fontFeatures: tab)),
       ),
     ]);
   }

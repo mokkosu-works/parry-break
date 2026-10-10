@@ -56,10 +56,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     };
 
     return Scaffold(
-      body: NeonBackground(
+      body: DotBackground(
         animate: false,
         child: Stack(children: [
-          const Positioned.fill(child: Scanlines()),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
@@ -75,7 +74,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: ChromaticTitle(l.menuSettings, size: 26, color: Palette.cyan),
+                      child: PixelTitle(l.menuSettings, size: 26, color: Palette.cyan),
                     ),
                   ),
                 ]),
@@ -102,12 +101,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       Expanded(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: const Color(0xB30D0B1C),
+                            color: withAlpha(Dot.night, 0.9),
                             border: Border(
-                              top: BorderSide(color: color, width: 2),
-                              left: const BorderSide(color: Palette.hudLine),
-                              right: const BorderSide(color: Palette.hudLine),
-                              bottom: const BorderSide(color: Palette.hudLine),
+                              top: BorderSide(color: color, width: 4),
+                              left: const BorderSide(color: Palette.hudLine, width: 2),
+                              right: const BorderSide(color: Palette.hudLine, width: 2),
+                              bottom: const BorderSide(color: Palette.hudLine, width: 2),
                             ),
                           ),
                           child: ListView(
@@ -307,8 +306,8 @@ class _TabButton extends StatelessWidget {
             padding: const EdgeInsets.only(left: 16, right: 8),
             alignment: Alignment.centerLeft,
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [withAlpha(color, selected ? 0.28 : 0.04), withAlpha(color, 0)]),
-              border: Border(left: BorderSide(color: selected ? color : withAlpha(color, 0.25), width: 4)),
+              color: selected ? color : Dot.night,
+              border: Border(left: BorderSide(color: selected ? Dot.light(color) : withAlpha(color, 0.4), width: 6)),
             ),
             child: Text(
               label,
@@ -318,9 +317,7 @@ class _TabButton extends StatelessWidget {
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1,
-                color: selected ? Palette.white : withAlpha(Palette.pale, 0.6),
-                shadows: selected ? [Shadow(color: color, blurRadius: 10)] : null,
-                fontFamilyFallback: kFontFallback,
+                color: selected ? Dot.ink : withAlpha(Palette.pale, 0.6),
               ),
             ),
           ),
@@ -342,14 +339,12 @@ class _Row extends StatelessWidget {
       Text(label,
           style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: enabled ? Palette.white : Palette.gray,
-              fontFamilyFallback: kFontFallback)),
+              color: enabled ? Palette.white : Palette.gray)),
       if (help != null) ...[
         const SizedBox(height: 3),
         Text(help!,
             style: TextStyle(
-                fontSize: 12, height: 1.4, color: withAlpha(Palette.pale, 0.55), fontFamilyFallback: kFontFallback)),
+                fontSize: 12, height: 1.4, color: withAlpha(Palette.pale, 0.55))),
       ],
     ]);
     return Padding(
@@ -372,7 +367,7 @@ class _Row extends StatelessWidget {
   }
 }
 
-/// 斜めに切った枠。選んでいるものは色で塗る。
+/// 四角い枠。選んでいるものは陰影の付いたブロックとして塗る。
 class _SlantPainter extends CustomPainter {
   _SlantPainter({required this.color, required this.on});
   final Color color;
@@ -380,27 +375,26 @@ class _SlantPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const s = 10.0;
-    final path = Path()
-      ..moveTo(s, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width - s, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final r = Offset.zero & size;
+    final p = Paint()..isAntiAlias = false;
     if (on) {
-      canvas.drawPath(
-          path,
-          Paint()
-            ..color = withAlpha(color, 0.4)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 8));
+      const d = 3.0;
+      canvas.drawRect(r, p..color = color);
+      p.color = Dot.light(color);
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, d), p);
+      canvas.drawRect(Rect.fromLTWH(0, 0, d, size.height), p);
+      p.color = Dot.dark(color);
+      canvas.drawRect(Rect.fromLTWH(0, size.height - d, size.width, d), p);
+      canvas.drawRect(Rect.fromLTWH(size.width - d, d, d, size.height - d), p);
+      return;
     }
-    canvas.drawPath(path, Paint()..color = on ? withAlpha(color, 0.3) : const Color(0x33000000));
-    canvas.drawPath(
-        path,
-        Paint()
+    canvas.drawRect(r, p..color = Dot.night);
+    canvas.drawRect(
+        r.deflate(1),
+        p
           ..style = PaintingStyle.stroke
-          ..strokeWidth = on ? 1.5 : 1
-          ..color = on ? color : withAlpha(Palette.pale, 0.25));
+          ..strokeWidth = 2
+          ..color = withAlpha(Palette.pale, 0.3));
   }
 
   @override
@@ -439,9 +433,7 @@ class _Choice<T> extends StatelessWidget {
                         child: Text(label,
                             style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: k == value ? FontWeight.w800 : FontWeight.w500,
-                                color: k == value ? Palette.white : withAlpha(Palette.pale, 0.65),
-                                fontFamilyFallback: kFontFallback)),
+                                color: k == value ? Dot.ink : withAlpha(Palette.pale, 0.65))),
                       ),
                     ),
                   ),
@@ -533,7 +525,7 @@ class _Meter extends StatelessWidget {
                   width: 76,
                   child: Text(format(value),
                       textAlign: TextAlign.right,
-                      style: orbitron(17, color: col, weight: 800)
+                      style: pixelFont(17, color: col, weight: 800)
                           .copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
                 ),
               ]),
@@ -553,27 +545,25 @@ class _MeterPainter extends CustomPainter {
     const gap = 3.0;
     final w = (size.width - gap * (_bars - 1)) / _bars;
     final lit = (k * _bars).round();
-    final on = Paint()..color = color;
-    final off = Paint()..color = withAlpha(Palette.pale, 0.12);
-    final glow = Paint()
-      ..color = withAlpha(color, 0.45)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final on = Paint()
+      ..color = color
+      ..isAntiAlias = false;
+    final top = Paint()
+      ..color = Dot.light(color)
+      ..isAntiAlias = false;
+    final off = Paint()
+      ..color = Dot.edge
+      ..isAntiAlias = false;
     for (var i = 0; i < _bars; i++) {
-      // 右へ行くほど少し高くする
-      final h = size.height * (0.45 + 0.4 * i / (_bars - 1));
-      final x = i * (w + gap);
-      final r = Rect.fromLTWH(x, (size.height - h) / 2 + 2, w, h - 4);
-      final path = Path()
-        ..moveTo(r.left + math.min(3, w / 3), r.top)
-        ..lineTo(r.right, r.top)
-        ..lineTo(r.right - math.min(3, w / 3), r.bottom)
-        ..lineTo(r.left, r.bottom)
-        ..close();
+      // 右へ行くほど 1 段ずつ高くする (4 段)
+      final h = size.height * (0.4 + 0.15 * (i * 4 ~/ _bars));
+      final x = (i * (w + gap)).floorToDouble();
+      final r = Rect.fromLTWH(x, (size.height - h).floorToDouble(), w.floorToDouble(), h.floorToDouble());
       if (i < lit) {
-        canvas.drawPath(path, glow);
-        canvas.drawPath(path, on);
+        canvas.drawRect(r, on);
+        canvas.drawRect(Rect.fromLTWH(r.left, r.top, r.width, 3), top);
       } else {
-        canvas.drawPath(path, off);
+        canvas.drawRect(r, off);
       }
     }
   }
@@ -622,7 +612,7 @@ class _SmallButton extends StatelessWidget {
                 if (icon != null) ...[Icon(icon, size: 16, color: color), const SizedBox(width: 6)],
                 Text(label,
                     style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w700, color: color, fontFamilyFallback: kFontFallback)),
+                        fontSize: 14, color: color)),
               ]),
             ),
           ),

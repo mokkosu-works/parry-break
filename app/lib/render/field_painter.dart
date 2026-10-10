@@ -571,7 +571,7 @@ class FieldPainter extends CustomPainter {
     if (open < 0.7) return;
     _bigTxt(title, _w / 2, 360, 40, color, shadow: color == Dot.white ? Dot.edge : Dot.dark(color));
     if (sub != null && sub.isNotEmpty) {
-      _txt(sub, _w / 2, 400, 15, Dot.white, family: TextCache.system);
+      _txt(sub, _w / 2, 400, 15, Dot.white, family: TextCache.jp);
     }
   }
 
@@ -629,7 +629,7 @@ class FieldPainter extends CustomPainter {
       _txt('SCORE', _w / 2 - 220, y + 10, 16, Dot.dim, align: TextAlignH.left);
       _txt(formatScore(fx.dispScore), _w / 2 + 220, y + 10, 24, Dot.white, align: TextAlignH.right);
     }
-    if (w.wave.ending) _txt(l10n.endingSub, _w / 2, y + 60, 16, Dot.rose, family: TextCache.system);
+    if (w.wave.ending) _txt(l10n.endingSub, _w / 2, y + 60, 16, Dot.rose, family: TextCache.jp);
   }
 
   @override

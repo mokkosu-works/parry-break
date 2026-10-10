@@ -28,9 +28,9 @@ class StageSelectScreen extends ConsumerWidget {
     return ScreenFrame(
       title: l.menuStages,
       actions: [
-        const Icon(Icons.star, color: Palette.yellow),
+        const PixelStar(got: true, size: 22),
         const SizedBox(width: 4),
-        Text('$gotStars / $totalStars', style: orbitron(16)),
+        Text('$gotStars / $totalStars', style: pixelFont(16)),
         const SizedBox(width: 8),
       ],
       child: ListView(
@@ -39,7 +39,7 @@ class StageSelectScreen extends ConsumerWidget {
           for (final ch in campaign.chapters) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
-              child: Text(ch.title.of(lang), style: orbitron(18, color: Palette.magenta, weight: 800)),
+              child: Text(ch.title.of(lang), style: pixelFont(18, color: Palette.magenta, weight: 800)),
             ),
             Wrap(spacing: 10, runSpacing: 10, children: [
               for (final st in ch.stages)
@@ -61,9 +61,8 @@ class StageSelectScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF16152A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Palette.cyan)),
-        title: Text('${st.id}  $title', style: orbitron(20, weight: 800)),
+        shape: const RoundedRectangleBorder(side: BorderSide(color: Palette.cyan, width: 3)),
+        title: Text('${st.id}  $title', style: pixelFont(20, weight: 800)),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(goalText(l, st), style: const TextStyle(color: Palette.cyan, fontSize: 15)),
@@ -72,13 +71,13 @@ class StageSelectScreen extends ConsumerWidget {
               StarLine(achieved: rec.hasStar(i), text: starText(l, st.stars[i])),
             if (rec.bestScore > 0) ...[
               const SizedBox(height: 8),
-              Text('BEST  ${formatScore(rec.bestScore)}', style: orbitron(15, color: Palette.pale)),
+              Text('BEST  ${formatScore(rec.bestScore)}', style: pixelFont(15, color: Palette.pale)),
             ],
           ]),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l.back)),
-          NeonButton(
+          PixelButton(
             label: 'START',
             filled: true,
             icon: Icons.play_arrow,
@@ -112,21 +111,19 @@ class _StageTile extends StatelessWidget {
     final c = record.cleared ? Palette.cyan : unlocked ? Palette.pale : Palette.gray;
     return Opacity(
       opacity: unlocked ? 1 : 0.45,
-      child: InkWell(
+      child: GestureDetector(
         onTap: unlocked ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
         child: Container(
           width: 148,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFF16152A),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: withAlpha(c, 0.8)),
-            boxShadow: record.cleared ? [BoxShadow(color: withAlpha(Palette.cyan, 0.25), blurRadius: 12)] : null,
+            color: Dot.night,
+            border: Border.all(color: c, width: record.cleared ? 3 : 2),
+            boxShadow: unlocked ? const [BoxShadow(color: Colors.black, offset: Offset(4, 4))] : null,
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Text(stage.id, style: orbitron(18, color: c, weight: 900)),
+              Text(stage.id, style: pixelFont(18, color: c, weight: 900)),
               const Spacer(),
               if (!unlocked) const Icon(Icons.lock, size: 16, color: Palette.gray),
             ]),
@@ -134,9 +131,7 @@ class _StageTile extends StatelessWidget {
             Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: Palette.white)),
             const SizedBox(height: 6),
             Row(children: [
-              for (var i = 0; i < stage.stars.length; i++)
-                Icon(record.hasStar(i) ? Icons.star : Icons.star_border,
-                    size: 18, color: record.hasStar(i) ? Palette.yellow : Palette.gray),
+              for (var i = 0; i < stage.stars.length; i++) PixelStar(got: record.hasStar(i)),
             ]),
           ]),
         ),

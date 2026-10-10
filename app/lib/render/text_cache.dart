@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 enum TextAlignH { left, center, right }
@@ -11,13 +10,11 @@ class TextCache {
   final int capacity;
   final LinkedHashMap<String, TextPainter> _cache = LinkedHashMap();
 
-  static const orbitron = 'Orbitron';
-
-  /// 盤面のドット文字 (英数字のみ)。
+  /// 英数字のドット文字。日本語は [jp] で補う。
   static const pixel = 'Silkscreen';
 
-  /// 端末の標準フォント (日本語の説明文など)。
-  static const system = 'system';
+  /// 日本語のドット文字 (説明文など)。
+  static const jp = 'DotGothic16';
 
   TextPainter get(String text, double size, Color color, {double weight = 700, double glow = 0, String? family}) {
     final key = '$text|${size.toStringAsFixed(1)}|${color.toARGB32()}|$weight|$glow|$family';
@@ -30,8 +27,8 @@ class TextCache {
       text: TextSpan(
         text: text,
         style: TextStyle(
-          fontFamily: family == system ? (kIsWeb ? 'NotoSansJP' : null) : family ?? orbitron,
-          fontFamilyFallback: kIsWeb ? const ['NotoSansJP'] : null,
+          fontFamily: family ?? pixel,
+          fontFamilyFallback: const [jp],
           fontSize: size,
           color: color,
           fontWeight: FontWeight.values[((weight / 100).round() - 1).clamp(0, 8)],

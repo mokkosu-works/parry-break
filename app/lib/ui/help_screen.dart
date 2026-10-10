@@ -76,11 +76,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         },
         child: Focus(
           autofocus: true,
-          child: NeonBackground(
+          child: DotBackground(
             animate: false,
             child: Stack(
               children: [
-                const Positioned.fill(child: Scanlines()),
                 SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
@@ -99,13 +98,13 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
-                                child: ChromaticTitle(l.menuHowToPlay, size: 26, color: Palette.cyan),
+                                child: PixelTitle(l.menuHowToPlay, size: 26, color: Palette.cyan),
                               ),
                             ),
-                            Text('${_index + 1}'.padLeft(2, '0'), style: orbitron(22, color: page.color, weight: 900)),
+                            Text('${_index + 1}'.padLeft(2, '0'), style: pixelFont(22, color: page.color, weight: 900)),
                             Text(
                               ' / ${pages.length.toString().padLeft(2, '0')}',
-                              style: orbitron(14, color: withAlpha(Palette.pale, 0.5), weight: 700),
+                              style: pixelFont(14, color: withAlpha(Palette.pale, 0.5), weight: 700),
                             ),
                           ],
                         ),
@@ -142,9 +141,9 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                                 ),
                               ),
                             const Spacer(),
-                            SlashButton(
+                            PixelButton(
                               label: last ? l.back : l.helpNext,
-                              primary: last,
+                              filled: last,
                               color: page.color,
                               onPressed: () => _go(_index + 1, pages.length),
                             ),
@@ -181,8 +180,8 @@ class _Page extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(page.title,
-                style: orbitron(compact ? 22 : 30, color: page.color, weight: 900, letterSpacing: 2)
-                    .copyWith(shadows: [Shadow(color: withAlpha(page.color, 0.6), blurRadius: 12)])),
+                style: pixelFont(compact ? 22 : 30, color: page.color, weight: 900, letterSpacing: 2)
+                    .copyWith(shadows: hardShadow(compact ? 22 : 30, color: Dot.dark(page.color)))),
             Container(
                 margin: EdgeInsets.symmetric(vertical: compact ? 10 : 14), width: 48, height: 3, color: page.color),
             // 改行ごとに 1 つの段落にする

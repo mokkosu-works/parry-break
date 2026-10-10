@@ -159,7 +159,7 @@ app/
   assets/
     stages/endless.json               # エンドレス: 手作り配置・説明・自動生成の解禁・ボス
     stages/campaign.json              # ステージモード: 章・ステージ・星の条件
-    fonts/Orbitron.ttf
+    fonts/                            # Silkscreen(英数字)、DotGothic16(日本語。使っている文字だけ)
   branding/icons/                     # アイコンの元画像(flutter_launcher_icons で各サイズを作る)
   test/core/                          # コアの単体テスト。golden/layouts.json はブラウザ版から書き出した配置
   test/app/                           # 画面のテスト(偽の時刻でアプリ全体を動かす)と画面写真
@@ -168,7 +168,7 @@ app/
   test/services/                      # 記録・広告のテスト
   integration_test/                   # 実機・エミュレーターで動かすテスト(flutter drive)
 tools/
-  subset_jp_font.sh  # 日本語フォントを使っている文字だけに絞る
+  subset_jp_font.sh  # 日本語のドット文字 (DotGothic16) を使っている文字だけに絞る
 ```
 
 ### 5.4 コアの主要な型

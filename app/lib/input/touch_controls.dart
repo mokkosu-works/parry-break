@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import '../core/core.dart';
 import '../game/game_controller.dart';
 import '../render/palette.dart';
+import '../render/pixel.dart';
 import '../services/settings.dart';
+import '../ui/widgets.dart';
 
 /// 盤面と左右の余白の配置。盤面 (1200×720) はセーフエリアの中で、左右に親指の操作エリアを残して最大化する。
 class FieldLayout {
@@ -163,24 +165,15 @@ class _Rail extends StatelessWidget {
       height: h,
       child: Stack(clipBehavior: Clip.none, children: [
         Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF09202A),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: withAlpha(Palette.cyan, 0.6)),
-            boxShadow: [BoxShadow(color: withAlpha(Palette.cyan, 0.2), blurRadius: 12)],
-          ),
+          decoration: BoxDecoration(color: Dot.night, border: Border.all(color: withAlpha(Palette.cyan, 0.7), width: 3)),
         ),
         Positioned(
           left: vertical ? -3 : pos - 10,
           top: vertical ? pos - 10 : -3,
-          child: Container(
+          child: SizedBox(
             width: vertical ? 28 : 20,
             height: vertical ? 20 : 28,
-            decoration: BoxDecoration(
-              color: const Color(0xFFB8FFFF),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: const [BoxShadow(color: Palette.cyan, blurRadius: 10)],
-            ),
+            child: const BevelBox(color: Palette.cyan, child: SizedBox.expand()),
           ),
         ),
       ]),
@@ -202,23 +195,21 @@ class ParryButton extends StatelessWidget {
       builder: (_, _, _) {
         final active = controller.world.parry.active;
         final c = active ? Palette.yellow : Palette.magenta;
-        return Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: withAlpha(const Color(0xFF251024), interactive ? 1 : 0.5),
-            border: Border.all(color: withAlpha(c, interactive ? 1 : 0.5), width: 2),
-            boxShadow: [BoxShadow(color: withAlpha(c, active ? 0.8 : 0.35), blurRadius: active ? 24 : 14)],
+        return Opacity(
+          opacity: interactive ? 1 : 0.5,
+          child: CustomPaint(
+            size: Size.square(size),
+            painter: _ParryButtonPainter(c, pressed: active),
+            child: SizedBox.square(
+              dimension: size,
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.only(top: active ? size / 18 : 0),
+                  child: Text('PARRY', style: pixelFont(size * 0.16, color: Dot.ink)),
+                ),
+              ),
+            ),
           ),
-          alignment: Alignment.center,
-          child: Text('PARRY',
-              style: TextStyle(
-                fontFamily: 'Orbitron',
-                fontSize: size * 0.17,
-                color: withAlpha(const Color(0xFFFFB8ED), interactive ? 1 : 0.6),
-                fontWeight: FontWeight.w800,
-              )),
         );
       },
     );
@@ -231,6 +222,27 @@ class ParryButton extends StatelessWidget {
   }
 }
 
+/// ドットで描いた丸いボタン。押している間は影の分だけ沈む。
+class _ParryButtonPainter extends CustomPainter {
+  _ParryButtonPainter(this.color, {required this.pressed});
+  final Color color;
+  final bool pressed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final d = size.width / 18, cx = size.width / 2, cy = size.height / 2;
+    const r = 8.0;
+    final sink = pressed ? d : 0.0;
+    if (!pressed) pixelDisc(canvas, cx, cy + d, r, Dot.ink, d: d);
+    pixelDisc(canvas, cx, cy + sink, r, Dot.dark(color), d: d);
+    pixelDisc(canvas, cx, cy + sink - d / 2, r - 0.6, color, d: d);
+    pixelDisc(canvas, cx - d * 2, cy + sink - d * 3, 2, Dot.light(color), d: d);
+  }
+
+  @override
+  bool shouldRepaint(_ParryButtonPainter old) => old.color != color || old.pressed != pressed;
+}
+
 /// 領域方式の移動の目安 (左の余白)。
 class MoveHint extends StatelessWidget {
   const MoveHint({super.key});
@@ -240,11 +252,7 @@ class MoveHint extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.swap_horiz, color: withAlpha(Palette.cyan, 0.55), size: 36),
           const SizedBox(height: 6),
-          Container(
-            width: 56,
-            height: 4,
-            decoration: BoxDecoration(color: withAlpha(Palette.cyan, 0.35), borderRadius: BorderRadius.circular(2)),
-          ),
+          Container(width: 56, height: 4, color: withAlpha(Palette.cyan, 0.35)),
         ]),
       );
 }

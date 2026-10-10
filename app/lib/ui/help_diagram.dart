@@ -1,10 +1,12 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
 import '../core/core.dart';
 import '../render/block_painters.dart';
 import '../render/palette.dart';
+import '../render/pixel.dart';
 import '../render/text_cache.dart';
 import '../services/settings.dart';
 
@@ -126,64 +128,41 @@ class _DiagramPainter extends CustomPainter {
 
   void _field() {
     _c.drawRect(const Rect.fromLTWH(0, 0, w, h), _fill..color = Palette.bg);
-    _stroke
-      ..color = const Color(0x0E4DFCFF)
-      ..strokeWidth = 1;
-    for (var x = 0.0; x <= w; x += 60) {
-      _c.drawLine(Offset(x, 0), Offset(x, h), _stroke);
-    }
-    for (var y = 0.0; y <= h; y += 24) {
-      _c.drawLine(Offset(0, y), Offset(w, y), _stroke);
-    }
+    _grid ??= Float32List.fromList([
+      for (var y = 12.0; y < h; y += 24)
+        for (var x = 30.0; x < w; x += 60) ...[x, y],
+    ]);
+    drawDots(_c, _grid!, Dot.night);
   }
 
-  void _glow(Offset p, double r, Color col, [double a = 0.35]) {
-    _c.drawCircle(
-      p,
-      r,
-      _fill
-        ..shader = RadialGradient(colors: [withAlpha(col, a), withAlpha(col, 0)])
-            .createShader(Rect.fromCircle(center: p, radius: r)),
-    );
-    _fill.shader = null;
-  }
+  static Float32List? _grid;
+  static final _ballSprite = DotSprite(['.##.', '####', '####', '.##.']);
 
   void _paddle(double x, {Color col = Palette.cyan, bool parry = false}) {
-    _glow(Offset(x, paddleY + paddleH / 2), 90, col, parry ? 0.45 : 0.22);
-    _c.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(x - paddleW / 2, paddleY, paddleW, paddleH), const Radius.circular(7)),
-      _fill..color = col,
-    );
-    _c.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(x - paddleW / 2 + 6, paddleY + 3, paddleW - 12, 3),
-        const Radius.circular(2),
-      ),
-      _fill..color = const Color(0xB3FFFFFF),
-    );
+    bevelRect(_c, Rect.fromLTWH(x - paddleW / 2, paddleY, paddleW, paddleH + 2), col);
     if (parry) {
-      _c.drawArc(
-        Rect.fromCenter(center: Offset(x, paddleY + 2), width: paddleW + 30, height: 40),
-        math.pi,
-        math.pi,
-        false,
-        _stroke
-          ..color = Palette.yellow
-          ..strokeWidth = 3,
-      );
+      final rx = paddleW / 2 + 15;
+      final n = (rx / 5).round();
+      drawDots(
+          _c,
+          Float32List.fromList([
+            for (var i = 0; i < n; i++) ...[
+              x + math.cos(math.pi + math.pi * i / (n - 1)) * rx,
+              paddleY + 2 + math.sin(math.pi + math.pi * i / (n - 1)) * 20,
+            ],
+          ]),
+          Palette.yellow);
     }
   }
 
   void _ball(Offset p, {Color col = Palette.white, List<Offset> trail = const []}) {
+    // 残像: 古いものほど小さく暗い
     for (var i = 0; i < trail.length; i++) {
-      _c.drawCircle(
-        trail[i],
-        ballR * (1 - i / trail.length),
-        _fill..color = withAlpha(col, 0.35 * (1 - i / trail.length)),
-      );
+      final k = 1 - i / trail.length;
+      final s = k > 0.66 ? 12.0 : k > 0.33 ? 8.0 : 4.0;
+      _c.drawRect(Rect.fromCenter(center: trail[i], width: s, height: s), _fill..color = k > 0.33 ? Dot.dark(col) : Dot.edge);
     }
-    _glow(p, 30, col, 0.5);
-    _c.drawCircle(p, ballR, _fill..color = col);
+    _ballSprite.drawCentered(_c, p.dx, p.dy, col);
   }
 
   void _block(String type, double x, double y, {int hp = 1, double alpha = 1, int tier = -1}) {
@@ -200,8 +179,10 @@ class _DiagramPainter extends CustomPainter {
     if (alpha < 1) _c.restore();
   }
 
-  void _label(String s, double x, double y, Color col, {double size = 22}) =>
-      text.draw(_c, s, x, y, size, col, weight: 900, glow: 10);
+  void _label(String s, double x, double y, Color col, {double size = 22}) {
+    text.draw(_c, s, x + size / 8, y + size / 8, size, Dot.dark(col), weight: 900);
+    text.draw(_c, s, x, y, size, col, weight: 900);
+  }
 
   /// 指の位置。[down] なら押している。
   void _finger(Offset p, {bool down = true}) {
@@ -216,13 +197,8 @@ class _DiagramPainter extends CustomPainter {
     if (down) _c.drawCircle(p, 8, _fill..color = const Color(0xE6FFFFFF));
   }
 
-  void _ring(Offset p, double r, Color col, double a) => _c.drawCircle(
-        p,
-        r,
-        _stroke
-          ..color = withAlpha(col, a.clamp(0.0, 1.0))
-          ..strokeWidth = 3,
-      );
+  void _ring(Offset p, double r, Color col, double a) => drawDots(
+      _c, ringDots(p.dx, p.dy, r, math.max(10, (r * 2 * math.pi / 12).round())), withAlpha(col, a.clamp(0.0, 1.0)));
 
   void _arrow(Offset from, Offset to, Color col) {
     _stroke
@@ -264,26 +240,12 @@ class _DiagramPainter extends CustomPainter {
         _c.drawLine(Offset(w / 2, y), Offset(w / 2, y + 8), _stroke);
       }
     } else if (left) {
-      _c.drawRRect(
-        RRect.fromRectAndRadius(_rail, const Radius.circular(14)),
-        _fill..color = withAlpha(col, lit ? 0.2 : 0.1),
-      );
-      _c.drawRRect(
-        RRect.fromRectAndRadius(_rail, const Radius.circular(14)),
-        _stroke
-          ..color = withAlpha(col, 0.6)
-          ..strokeWidth = 2,
-      );
+      _c.drawRect(_rail, _fill..color = withAlpha(col, lit ? 0.2 : 0.1));
+      pixelFrame(_c, _rail, withAlpha(col, 0.7), d: 3);
     } else {
-      _c.drawCircle(_parryButton, 34, _fill..color = withAlpha(col, lit ? 0.45 : 0.12));
-      _c.drawCircle(
-        _parryButton,
-        34,
-        _stroke
-          ..color = col
-          ..strokeWidth = 2,
-      );
-      text.draw(_c, 'PARRY', _parryButton.dx, _parryButton.dy, 12, lit ? Palette.white : col, weight: 800);
+      pixelDisc(_c, _parryButton.dx, _parryButton.dy + 4, 8.5, Dot.dark(col), d: 4);
+      pixelDisc(_c, _parryButton.dx, _parryButton.dy, 8.5, lit ? col : withAlpha(col, 0.35), d: 4);
+      text.draw(_c, 'PARRY', _parryButton.dx, _parryButton.dy, 12, lit ? Dot.ink : col, weight: 800);
     }
   }
 
@@ -421,7 +383,7 @@ class _DiagramPainter extends CustomPainter {
           _block(i.isEven ? 'B' : 'N', xs[i], y);
         } else if (i.isEven) {
           final k = _span(t, at, at + 0.25);
-          _glow(Offset(xs[i] + 30, y + 12), 70, Palette.orange, 0.6 * (1 - k));
+          if (k < 0.3) pixelDisc(_c, xs[i] + 30, y + 12, 6, Palette.orange, d: 4);
           _ring(Offset(xs[i] + 30, y + 12), 20 + k * 70, Palette.orange, 1 - k);
         }
       }
@@ -484,13 +446,12 @@ class _DiagramPainter extends CustomPainter {
     _paddle(300);
     _ball(const Offset(330, 230));
     if (paused) {
-      _c.drawRect(const Rect.fromLTWH(0, 53, w, h - 53), _fill..color = const Color(0xB307060F));
+      _c.drawRect(const Rect.fromLTWH(0, 53, w, h - 53), _fill..color = withAlpha(Dot.ink, 0.7));
       _label('PAUSED', w / 2, 200, Palette.cyan, size: 30);
     }
-    _c.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromCenter(center: btn, width: 40, height: 36), const Radius.circular(6)),
-      _fill..color = withAlpha(Palette.cyan, pressed ? 0.5 : 0.15),
-    );
+    final b = Rect.fromCenter(center: btn, width: 40, height: 36);
+    _c.drawRect(b, _fill..color = withAlpha(Palette.cyan, pressed ? 0.5 : 0.15));
+    pixelFrame(_c, b, Palette.cyan, d: 3);
     for (final dx in [-6.0, 6.0]) {
       _c.drawRect(Rect.fromCenter(center: btn + Offset(dx, 0), width: 5, height: 16), _fill..color = Palette.white);
     }

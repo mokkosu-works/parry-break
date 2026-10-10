@@ -1,20 +1,24 @@
 import 'dart:ui';
 
-/// 色 (ブラウザ版と同じ値)。
+/// 画面の色。値はすべて 16 色のパレット [Dot] から取る (名前は役割を表す)。
 abstract final class Palette {
-  static const bg = Color(0xFF07060F);
-  static const hudBg = Color(0xFF0D0B1C);
-  static const hudLine = Color(0xFF2A2550);
-  static const hudLabel = Color(0xFF7A74B0);
-  static const cyan = Color(0xFF4DFCFF);
-  static const magenta = Color(0xFFFF4DD8);
-  static const yellow = Color(0xFFFFE14D);
-  static const orange = Color(0xFFFF9A3D);
-  static const red = Color(0xFFFF4060);
-  static const white = Color(0xFFFFFFFF);
-  static const pale = Color(0xFFCFD6FF);
-  static const gray = Color(0xFF8A8AA0);
-  static const justPink = Color(0xFFFF6BF0);
+  static const bg = Dot.ink;
+  static const hudBg = Dot.night;
+  static const hudLine = Dot.edge;
+  static const hudLabel = Dot.dim;
+
+  /// 主な強調色 (選択中・押せるもの)。
+  static const cyan = Dot.teal;
+
+  /// 二番目の強調色 (見出し・OVERDRIVE)。
+  static const magenta = Dot.rose;
+  static const yellow = Dot.mustard;
+  static const orange = Dot.orange;
+  static const red = Dot.bulletRed;
+  static const white = Dot.white;
+  static const pale = Color(0xFFD9D5EA);
+  static const gray = Dot.dim;
+  static const justPink = Dot.rose;
 
   /// ブロックの色。通常ブロックは高さの段で変わる。
   static const normalTiers = [Dot.teal, Dot.violet, Dot.mustard];

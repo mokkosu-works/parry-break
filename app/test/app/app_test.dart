@@ -30,7 +30,7 @@ final _campaign = Campaign.fromJson(
     jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
 
 Future<void> _loadFonts() async {
-  await (FontLoader('Orbitron')..addFont(rootBundle.load('assets/fonts/Orbitron.ttf'))).load();
+  await (FontLoader('DotGothic16')..addFont(rootBundle.load('assets/fonts/DotGothic16-subset.ttf'))).load();
   await (FontLoader('Silkscreen')
         ..addFont(rootBundle.load('assets/fonts/Silkscreen-Regular.ttf'))
         ..addFont(rootBundle.load('assets/fonts/Silkscreen-Bold.ttf')))
