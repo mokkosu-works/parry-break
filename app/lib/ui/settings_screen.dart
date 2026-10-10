@@ -11,6 +11,8 @@ import '../services/settings.dart';
 import 'arcade.dart';
 import 'calibration_screen.dart';
 import 'widgets.dart';
+import 'pixel_icons.dart';
+import '../render/pixel.dart';
 
 enum _Tab { controls, sound, display, other }
 
@@ -60,7 +62,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Row(children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back, color: Palette.accent),
+                    icon: PixelIcon(PixelIcons.back, color: Palette.accent),
                     tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   ),
                   const SizedBox(width: 10),
@@ -168,7 +170,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 6),
               _SmallButton(
                 label: l.calibrate,
-                icon: Icons.timer_outlined,
+                icon: PixelIcons.timer,
                 color: color,
                 onTap: () => Navigator.of(context).push(fadeRoute<void>(const CalibrationScreen())),
               ),
@@ -492,7 +494,7 @@ class _Meter extends StatelessWidget {
               onIncrease: enabled ? () => _step(1) : null,
               onDecrease: enabled ? () => _step(-1) : null,
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                _StepButton(icon: Icons.remove, color: col, onTap: enabled && value > min ? () => _step(-1) : null),
+                _StepButton(icon: PixelIcons.minus, color: col, onTap: enabled && value > min ? () => _step(-1) : null),
                 SizedBox(
                   width: (outer.maxWidth - 176).clamp(60.0, 240.0),
                   child: LayoutBuilder(builder: (context, c) {
@@ -507,7 +509,7 @@ class _Meter extends StatelessWidget {
                     );
                   }),
                 ),
-                _StepButton(icon: Icons.add, color: col, onTap: enabled && value < max ? () => _step(1) : null),
+                _StepButton(icon: PixelIcons.plus, color: col, onTap: enabled && value < max ? () => _step(1) : null),
                 SizedBox(
                   width: 76,
                   child: Text(format(value),
@@ -561,14 +563,14 @@ class _MeterPainter extends CustomPainter {
 
 class _StepButton extends StatelessWidget {
   const _StepButton({required this.icon, required this.color, required this.onTap});
-  final IconData icon;
+  final DotSprite icon;
   final Color color;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => IconButton(
         onPressed: onTap,
-        icon: Icon(icon, size: 18),
+        icon: PixelIcon(icon, size: 18),
         color: color,
         disabledColor: withAlpha(Palette.pale, 0.2),
         constraints: const BoxConstraints(minWidth: 40, minHeight: 44),
@@ -580,7 +582,7 @@ class _StepButton extends StatelessWidget {
 class _SmallButton extends StatelessWidget {
   const _SmallButton({required this.label, required this.color, required this.onTap, this.icon});
   final String label;
-  final IconData? icon;
+  final DotSprite? icon;
   final Color color;
   final VoidCallback onTap;
 
@@ -596,7 +598,7 @@ class _SmallButton extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 40, minWidth: 64),
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                if (icon != null) ...[Icon(icon, size: 16, color: color), const SizedBox(width: 6)],
+                if (icon != null) ...[PixelIcon(icon!, size: 16, color: color), const SizedBox(width: 6)],
                 Text(label,
                     style: TextStyle(
                         fontSize: 14, color: color)),

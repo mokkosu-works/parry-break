@@ -186,15 +186,10 @@ class _DiagramPainter extends CustomPainter {
 
   /// 指の位置。[down] なら押している。
   void _finger(Offset p, {bool down = true}) {
-    if (down) _c.drawCircle(p, 26, _fill..color = const Color(0x33FFFFFF));
-    _c.drawCircle(
-      p,
-      16,
-      _stroke
-        ..color = const Color(0xE6FFFFFF)
-        ..strokeWidth = 3,
-    );
-    if (down) _c.drawCircle(p, 8, _fill..color = const Color(0xE6FFFFFF));
+    // ドットの丸: 押しているときは薄い輪と芯を足す
+    if (down) pixelDisc(_c, p.dx, p.dy, 6.5, withAlpha(Dot.white, 0.2), d: 4);
+    drawDots(_c, ringDots(p.dx, p.dy, 16, 16), withAlpha(Dot.white, 0.9));
+    if (down) pixelDisc(_c, p.dx, p.dy, 2, withAlpha(Dot.white, 0.9), d: 4);
   }
 
   void _ring(Offset p, double r, Color col, double a) => drawDots(

@@ -10,6 +10,7 @@ import '../render/palette.dart';
 import '../render/pixel.dart';
 import '../services/settings.dart';
 import 'widgets.dart';
+import 'pixel_icons.dart';
 
 /// 判定タイミングの測定。一定の間隔で縮むリングが目標の輪に重なる瞬間にタップしてもらい、
 /// 「見えてから押すまで」の平均の遅れ (画面の表示遅延 + タッチの入力遅延) を測る。
@@ -103,12 +104,12 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
               padding: const EdgeInsets.only(bottom: 16),
               child: Wrap(spacing: 16, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
                 if (r >= 0) Text(l.calibrationResult('$r'), style: pixelFont(20, color: Palette.accent)),
-                PixelButton(label: l.calibrationRetry, icon: Icons.replay, onPressed: _restart),
+                PixelButton(label: l.calibrationRetry, icon: PixelIcons.replay, onPressed: _restart),
                 if (r >= 0)
                   PixelButton(
                     label: l.calibrationApply,
                     filled: true,
-                    icon: Icons.check,
+                    icon: PixelIcons.check,
                     onPressed: () {
                       ref.read(settingsProvider.notifier).update((s) => s.copyWith(timingOffsetMs: r));
                       Navigator.of(context).pop();

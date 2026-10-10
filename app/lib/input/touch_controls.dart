@@ -8,6 +8,7 @@ import '../render/palette.dart';
 import '../render/pixel.dart';
 import '../services/settings.dart';
 import '../ui/widgets.dart';
+import '../ui/pixel_icons.dart';
 
 /// 盤面と左右の余白の配置。盤面 (1200×720) はセーフエリアの中で、左右に親指の操作エリアを残して最大化する。
 class FieldLayout {
@@ -165,7 +166,7 @@ class _Rail extends StatelessWidget {
       height: h,
       child: Stack(clipBehavior: Clip.none, children: [
         Container(
-          decoration: BoxDecoration(color: Dot.night, border: Border.all(color: withAlpha(Palette.accent, 0.7), width: 3)),
+          decoration: BoxDecoration(color: Dot.night, border: Border.all(color: withAlpha(Dot.sky, 0.7), width: 3)),
         ),
         Positioned(
           left: vertical ? -3 : pos - 10,
@@ -173,7 +174,7 @@ class _Rail extends StatelessWidget {
           child: SizedBox(
             width: vertical ? 28 : 20,
             height: vertical ? 20 : 28,
-            child: const BevelBox(color: Palette.accent, child: SizedBox.expand()),
+            child: const BevelBox(color: Dot.sky, child: SizedBox.expand()),
           ),
         ),
       ]),
@@ -236,7 +237,9 @@ class _ParryButtonPainter extends CustomPainter {
     if (!pressed) pixelDisc(canvas, cx, cy + d, r, Dot.ink, d: d);
     pixelDisc(canvas, cx, cy + sink, r, Dot.dark(color), d: d);
     pixelDisc(canvas, cx, cy + sink - d / 2, r - 0.6, color, d: d);
-    pixelDisc(canvas, cx - d * 2, cy + sink - d * 3, 2, Dot.light(color), d: d);
+    // 左上のつや (文字に重ならない位置)
+    canvas.drawRect(Rect.fromLTWH(cx - d * 5, cy + sink - d * 6, d * 2, d), Paint()..color = Dot.light(color));
+    canvas.drawRect(Rect.fromLTWH(cx - d * 6, cy + sink - d * 5, d, d * 2), Paint()..color = Dot.light(color));
   }
 
   @override
@@ -250,9 +253,9 @@ class MoveHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) => IgnorePointer(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.swap_horiz, color: withAlpha(Palette.accent, 0.55), size: 36),
+          PixelIcon(PixelIcons.swap, color: withAlpha(Dot.sky, 0.7), size: 35),
           const SizedBox(height: 6),
-          Container(width: 56, height: 4, color: withAlpha(Palette.accent, 0.35)),
+          Container(width: 56, height: 4, color: withAlpha(Dot.sky, 0.45)),
         ]),
       );
 }

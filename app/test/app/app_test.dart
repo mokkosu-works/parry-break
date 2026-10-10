@@ -15,6 +15,7 @@ import 'package:parry_break/services/content.dart';
 import 'package:parry_break/services/records.dart';
 import 'package:parry_break/services/settings.dart';
 import 'package:parry_break/ui/help_screen.dart';
+import 'package:parry_break/ui/pixel_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/helpers.dart';
@@ -156,7 +157,7 @@ void main() {
     expect(find.byType(GameScreen), findsOneWidget); // Space がタイトルのボタンを押していない
     await _shot(tester, '03_playing');
 
-    await tester.tap(find.byIcon(Icons.pause));
+    await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.pause));
     await _frames(tester, 0.2);
     expect(find.text('PAUSED'), findsWidgets);
     await _shot(tester, '04_paused');
@@ -243,7 +244,7 @@ void main() {
     await tester.tap(find.text('SETTINGS'));
     await _frames(tester, 0.5);
     expect(audio.titlePlaying, isTrue); // メニュー画面でも続く
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.back));
     await _frames(tester, 0.5);
 
     await tester.tap(find.text('ENDLESS'));
@@ -329,7 +330,7 @@ void main() {
     await _shot(tester, '07_stage_detail');
     await tester.tap(find.text('BACK'));
     await _frames(tester, 0.3);
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.back));
     await _frames(tester, 0.5);
     await tester.tap(find.text('SETTINGS'));
     await _frames(tester, 0.5);

@@ -10,6 +10,7 @@ import '../services/content.dart';
 import '../services/records.dart';
 import 'stage_text.dart';
 import 'widgets.dart';
+import 'pixel_icons.dart';
 
 /// ステージ選択。章ごとにステージを並べ、選ぶと目標と星の条件を出す。
 class StageSelectScreen extends ConsumerWidget {
@@ -76,11 +77,11 @@ class StageSelectScreen extends ConsumerWidget {
           ]),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l.back)),
+          PixelButton(label: l.back, color: Palette.gray, fontSize: 14, onPressed: () => Navigator.of(ctx).pop()),
           PixelButton(
             label: 'START',
             filled: true,
-            icon: Icons.play_arrow,
+            icon: PixelIcons.play,
             onPressed: () {
               Navigator.of(ctx).pop();
               Navigator.of(context).push(fadeRoute<void>(GameScreen(stage: st)));
@@ -125,7 +126,7 @@ class _StageTile extends StatelessWidget {
             Row(children: [
               Text(stage.id, style: pixelFont(18, color: c, weight: 900)),
               const Spacer(),
-              if (!unlocked) const Icon(Icons.lock, size: 16, color: Palette.gray),
+              if (!unlocked) PixelIcon(PixelIcons.lock, size: 16, color: Palette.gray),
             ]),
             const SizedBox(height: 4),
             Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: Palette.white)),

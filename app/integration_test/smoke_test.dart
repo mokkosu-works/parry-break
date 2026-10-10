@@ -21,6 +21,7 @@ import 'package:parry_break/services/leaderboard.dart';
 import 'package:parry_break/services/settings.dart';
 import 'package:parry_break/ui/stage_select_screen.dart';
 import 'package:parry_break/ui/title/title_screen.dart';
+import 'package:parry_break/ui/pixel_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -97,7 +98,7 @@ void main() {
     await shot(t, '03_endless');
 
     // 一時停止してタイトルに戻る
-    await t.tap(find.byIcon(Icons.pause));
+    await t.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.pause));
     await wait(t, 0.5);
     expect(find.text('PAUSED'), findsWidgets); // 色ずれの演出で重ねて描くので複数ある
     await shot(t, '04_paused');

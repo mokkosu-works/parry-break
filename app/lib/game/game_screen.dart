@@ -21,6 +21,8 @@ import '../ui/arcade.dart';
 import '../ui/widgets.dart';
 import 'game_controller.dart';
 import 'result_overlay.dart';
+import '../ui/pixel_icons.dart';
+import '../render/pixel.dart';
 
 /// プレイ画面。[stage] があればステージモード、なければエンドレス。
 class GameScreen extends ConsumerStatefulWidget {
@@ -274,7 +276,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                 left: false,
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: _RoundIcon(icon: Icons.pause, onTap: _ctl.finished ? null : _ctl.pause, label: l.paused),
+                  child: _RoundIcon(icon: PixelIcons.pause, onTap: _ctl.finished ? null : _ctl.pause, label: l.paused),
                 ),
               ),
             ),
@@ -319,10 +321,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                   const PixelTitle('PAUSED', size: 56, color: Palette.yellow, shadow: Dot.brick),
                   const SizedBox(height: 30),
                   Wrap(spacing: 14, runSpacing: 12, alignment: WrapAlignment.center, children: [
-                    PixelButton(label: 'RESUME', filled: true, icon: Icons.play_arrow, onPressed: _ctl.requestResume),
-                    PixelButton(label: 'RETRY', icon: Icons.replay, onPressed: _retry),
-                    PixelButton(label: 'SETTINGS', icon: Icons.tune, onPressed: _openSettings),
-                    PixelButton(label: 'TITLE', color: Palette.accent2, icon: Icons.home, onPressed: _toTitle),
+                    PixelButton(label: 'RESUME', filled: true, icon: PixelIcons.play, onPressed: _ctl.requestResume),
+                    PixelButton(label: 'RETRY', icon: PixelIcons.replay, onPressed: _retry),
+                    PixelButton(label: 'SETTINGS', icon: PixelIcons.tune, onPressed: _openSettings),
+                    PixelButton(label: 'TITLE', color: Palette.accent2, icon: PixelIcons.home, onPressed: _toTitle),
                   ]),
                 ]),
               ),
@@ -378,7 +380,7 @@ class StarLine extends StatelessWidget {
 
 class _RoundIcon extends StatelessWidget {
   const _RoundIcon({required this.icon, required this.onTap, required this.label});
-  final IconData icon;
+  final DotSprite icon;
   final VoidCallback? onTap;
   final String label;
 
@@ -391,12 +393,13 @@ class _RoundIcon extends StatelessWidget {
           child: Container(
             width: 52,
             height: 52,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Dot.night,
               border: Border.all(color: Palette.accent, width: 3),
               boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
             ),
-            child: Icon(icon, color: Palette.accent),
+            child: PixelIcon(icon, size: 21, color: Palette.accent),
           ),
         ),
       );

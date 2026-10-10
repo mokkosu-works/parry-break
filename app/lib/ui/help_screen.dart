@@ -8,6 +8,7 @@ import '../services/settings.dart';
 import 'arcade.dart';
 import 'help_diagram.dart';
 import 'widgets.dart';
+import 'pixel_icons.dart';
 
 /// 遊び方の 1 ページ分の中身。[color] はページの色で、ゲームの中で同じ意味を持つ色にする。
 typedef HelpPage = ({HelpTopic topic, String title, String body, Color color});
@@ -90,7 +91,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                           children: [
                             IconButton(
                               onPressed: () => Navigator.of(context).maybePop(),
-                              icon: const Icon(Icons.arrow_back, color: Palette.accent),
+                              icon: PixelIcon(PixelIcons.back, color: Palette.accent),
                               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                             ),
                             const SizedBox(width: 10),
@@ -123,7 +124,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                           children: [
                             IconButton(
                               onPressed: _index == 0 ? null : () => _go(_index - 1, pages.length),
-                              icon: const Icon(Icons.chevron_left),
+                              icon: PixelIcon(PixelIcons.chevronLeft),
                               color: Palette.accent,
                               disabledColor: withAlpha(Palette.pale, 0.2),
                               tooltip: l.helpPrev,

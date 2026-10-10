@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../render/palette.dart';
 import '../render/pixel.dart';
+import 'pixel_icons.dart';
 
 /// 英数字のドット文字。
 const kPixelFont = 'Silkscreen';
@@ -139,7 +140,7 @@ class PixelButton extends StatefulWidget {
   final VoidCallback? onPressed;
   final Color color;
   final bool filled;
-  final IconData? icon;
+  final DotSprite? icon;
   final double fontSize;
 
   @override
@@ -162,7 +163,7 @@ class _PixelButtonState extends State<PixelButton> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (widget.icon != null) ...[Icon(widget.icon, color: widget.filled ? fg : c, size: widget.fontSize + 4), const SizedBox(width: 8)],
+          if (widget.icon != null) ...[PixelIcon(widget.icon!, color: widget.filled ? fg : c, size: widget.fontSize + 4), const SizedBox(width: 8)],
           Flexible(
             child: Text(widget.label, textAlign: TextAlign.center, style: pixelFont(widget.fontSize, color: fg)),
           ),
@@ -369,7 +370,7 @@ class ScreenFrame extends StatelessWidget {
                 Row(children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back, color: Palette.accent),
+                    icon: PixelIcon(PixelIcons.back, color: Palette.accent),
                     tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   ),
                   const SizedBox(width: 8),

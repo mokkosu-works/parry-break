@@ -6,6 +6,7 @@ import '../render/palette.dart';
 import '../ui/arcade.dart';
 import '../ui/stage_text.dart';
 import '../ui/widgets.dart';
+import '../ui/pixel_icons.dart';
 
 /// 結果画面に出す内容。
 class ResultData {
@@ -201,25 +202,25 @@ class _ResultOverlayState extends State<ResultOverlay>
                                 PixelButton(
                                   label: 'NEXT STAGE',
                                   filled: true,
-                                  icon: Icons.skip_next,
+                                  icon: PixelIcons.skipNext,
                                   onPressed: widget.onNext,
                                 ),
                               PixelButton(
                                 label: 'RETRY',
                                 filled: widget.onNext == null,
-                                icon: Icons.replay,
+                                icon: PixelIcons.replay,
                                 onPressed: widget.onRetry,
                               ),
                               if (widget.onStageSelect != null)
                                 PixelButton(
                                   label: 'STAGES',
-                                  icon: Icons.grid_view,
+                                  icon: PixelIcons.grid,
                                   onPressed: widget.onStageSelect,
                                 ),
                               PixelButton(
                                 label: 'TITLE',
                                 color: Palette.accent2,
-                                icon: Icons.home,
+                                icon: PixelIcons.home,
                                 onPressed: widget.onTitle,
                               ),
                             ],
