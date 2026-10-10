@@ -17,26 +17,35 @@ void main() {
     now = DateTime(2026, 10, 4, 12);
   });
 
-  test('最初の起動から 24 時間は出さない', () {
+  /// 猶予 (結果画面 3 回) を抜けた状態にする。
+  InterstitialPolicy played() {
     final p = policy();
-    expect(p.due, isFalse); // 起動を記録する前
-    p.markLaunch();
-    now = now.add(const Duration(hours: 23, minutes: 59));
-    expect(p.due, isFalse);
-    now = now.add(const Duration(minutes: 1));
+    for (var i = 0; i <= p.freeResults; i++) {
+      p.recordResult();
+    }
+    return p;
+  }
+
+  test('結果画面を 3 回見るまでは出さず、4 回目から出せる', () {
+    final p = policy();
+    for (var i = 0; i < 3; i++) {
+      p.recordResult();
+      expect(p.due, isFalse, reason: '${i + 1} 回目');
+    }
+    p.recordResult();
     expect(p.due, isTrue);
   });
 
-  test('2 回目以降の起動で最初の起動の時刻を上書きしない', () {
-    policy().markLaunch();
-    now = now.add(const Duration(hours: 25));
-    policy().markLaunch();
-    expect(policy().pastGrace, isTrue);
+  test('猶予を抜けたら数えるのをやめる', () {
+    final p = played();
+    for (var i = 0; i < 10; i++) {
+      p.recordResult();
+    }
+    expect(prefs.getInt('ads.results'), 4);
   });
 
   test('前回から 3 分あける', () {
-    final p = policy()..markLaunch();
-    now = now.add(const Duration(days: 1));
+    final p = played();
     p.recordShown();
     now = now.add(const Duration(minutes: 2, seconds: 59));
     expect(p.due, isFalse);
@@ -45,7 +54,7 @@ void main() {
   });
 
   test('1 日 8 回まで。日付が変わると数え直す', () {
-    final p = policy()..markLaunch();
+    final p = played();
     now = DateTime(2026, 10, 5, 13);
     for (var i = 0; i < InterstitialPolicy.dailyCap; i++) {
       expect(p.due, isTrue, reason: '$i 回目');
@@ -57,14 +66,15 @@ void main() {
     expect(p.due, isTrue);
   });
 
-  test('猶予なしの設定 (デバッグビルド) では初回の起動から出せる', () {
-    final p = InterstitialPolicy(prefs, now: () => now, grace: Duration.zero)..markLaunch();
+  test('猶予なしの設定 (デバッグビルド) では最初の結果画面から出せる', () {
+    final p = InterstitialPolicy(prefs, now: () => now, freeResults: 0);
+    expect(p.due, isFalse);
+    p.recordResult();
     expect(p.due, isTrue);
   });
 
   test('端末の時計が戻されて前回が未来になっても出せる', () {
-    final p = policy()..markLaunch();
-    now = now.add(const Duration(days: 2));
+    final p = played();
     p.recordShown();
     now = now.subtract(const Duration(hours: 1));
     expect(p.due, isTrue);
@@ -75,9 +85,10 @@ void main() {
     late List<(Duration, void Function())> timers;
     late AdMobAds ads;
 
-    AdMobAds create({Duration grace = Duration.zero}) {
+    /// [fresh] が false なら、猶予を抜けた状態で始める。
+    AdMobAds create({bool fresh = false}) {
       final a = AdMobAds(
-        InterstitialPolicy(prefs, now: () => now, grace: grace),
+        fresh ? policy() : played(),
         sdk: sdk,
         now: () => now,
         timer: (d, f) {
@@ -118,12 +129,16 @@ void main() {
       expect(sdk.loads, 2);
     });
 
-    test('猶予の間は読み込まず、猶予が明けたら結果画面で読み込んで戻るときに出せる', () async {
-      ads = create(grace: const Duration(hours: 24));
+    test('猶予の間は読み込まず、猶予を抜けた結果画面で読み込んで、戻るときに出せる', () async {
+      ads = create(fresh: true);
       await start();
+      for (var i = 0; i < 3; i++) {
+        ads.onResult();
+        await pumpEventQueue();
+        await ads.showInterstitialIfDue();
+      }
       expect(sdk.loads, 0);
-      now = now.add(const Duration(hours: 24));
-      ads.preload(); // 結果画面が出たとき
+      ads.onResult();
       await pumpEventQueue();
       expect(sdk.loads, 1);
       await ads.showInterstitialIfDue();
@@ -158,7 +173,7 @@ void main() {
       expect(timers, hasLength(AdMobAds.retryDelays.length));
       // 使い切った後も、結果画面ではもう一度試す
       sdk.failLoads = 0;
-      ads.preload();
+      ads.onResult();
       await pumpEventQueue();
       await ads.showInterstitialIfDue();
       expect(sdk.shown, 1);

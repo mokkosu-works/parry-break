@@ -33,36 +33,32 @@ abstract final class AdsConfig {
 
 /// インタースティシャルを出してよいかの判定 (頻度の制限)。
 ///
-/// - 最初の起動から [grace] の間は出さない (初日のプレイヤーには広告を見せない。同意の画面は最初の起動で出す)
+/// - 結果画面を [freeResults] 回見るまでは出さない (遊び始めのプレイヤーには広告を見せない。同意の画面は最初の起動で出す)
 /// - 前回から [minGap] 以上あける
 /// - 1 日 [dailyCap] 回まで
 class InterstitialPolicy {
-  InterstitialPolicy(this._prefs, {DateTime Function()? now, this.grace = const Duration(hours: 24)})
-      : _now = now ?? DateTime.now;
+  InterstitialPolicy(this._prefs, {DateTime Function()? now, this.freeResults = 3}) : _now = now ?? DateTime.now;
 
   final SharedPreferences _prefs;
   final DateTime Function() _now;
-  final Duration grace;
+  final int freeResults;
   static const minGap = Duration(minutes: 3);
   static const dailyCap = 8;
 
-  static const _firstLaunchKey = 'ads.firstLaunch';
+  static const _resultsKey = 'ads.results';
   static const _lastShownKey = 'ads.lastShown';
   static const _dayKey = 'ads.day';
   static const _dayCountKey = 'ads.dayCount';
 
-  /// 起動時に呼ぶ。最初の起動の時刻を覚える。
-  void markLaunch() {
-    if (_prefs.getInt(_firstLaunchKey) == null) {
-      _prefs.setInt(_firstLaunchKey, _now().millisecondsSinceEpoch);
-    }
+  int get _results => _prefs.getInt(_resultsKey) ?? 0;
+
+  /// 結果画面が出たときに呼ぶ。猶予を抜けたら、それ以上は数えない。
+  void recordResult() {
+    if (!pastGrace) _prefs.setInt(_resultsKey, _results + 1);
   }
 
-  bool get pastGrace {
-    final first = _prefs.getInt(_firstLaunchKey);
-    if (first == null) return false;
-    return _now().difference(DateTime.fromMillisecondsSinceEpoch(first)) >= grace;
-  }
+  /// 猶予を抜けたか。[freeResults] 回目の結果画面までは出さず、その次の結果画面から出せる。
+  bool get pastGrace => _results > freeResults;
 
   String get _today {
     final d = _now();
@@ -93,8 +89,8 @@ abstract class AdsService {
   /// 起動後に呼ぶ。同意を集め (EU の同意画面、iOS のトラッキング許可)、出せる時期なら広告を読み込んでおく。
   Future<void> init();
 
-  /// 結果画面が出たときに呼ぶ。戻るときに出せるよう、広告を読み込んでおく。
-  void preload();
+  /// 結果画面が出たときに呼ぶ (デバッグモードのプレイを除く)。回数を数え、戻るときに出せるよう広告を読み込んでおく。
+  void onResult();
 
   /// 結果画面からタイトルなどへ戻るときに呼ぶ。出してよければ出し、閉じられるまで待つ。
   Future<void> showInterstitialIfDue();
@@ -109,7 +105,7 @@ class DisabledAds implements AdsService {
   @override
   Future<void> init() async {}
   @override
-  void preload() {}
+  void onResult() {}
   @override
   Future<void> showInterstitialIfDue() async {}
   @override
@@ -161,7 +157,7 @@ class AdMobAds implements AdsService {
   /// 読み込んだ広告はおよそ 1 時間で期限が切れて出せなくなるので、少し手前で読み込み直す。
   static const maxAge = Duration(minutes: 50);
 
-  /// 読み込みに失敗したときの再試行の間隔。使い切ったら、次に [preload] が呼ばれるまで試さない。
+  /// 読み込みに失敗したときの再試行の間隔。使い切ったら、次に結果画面が出るか前面に戻るまで試さない。
   static const retryDelays = [Duration(seconds: 30), Duration(minutes: 1), Duration(minutes: 2), Duration(minutes: 4)];
 
   bool _initDone = false, _consentUpdated = false, _starting = false, _ready = false, _loading = false;
@@ -176,9 +172,8 @@ class AdMobAds implements AdsService {
 
   @override
   Future<void> init() async {
-    _policy.markLaunch();
     _lifecycle ??= AppLifecycleListener(onResume: () => unawaited(onResume()));
-    // 同意の画面は猶予の間も最初の起動で出す。審査ではトラッキング許可のダイアログが出ることを確かめられるため
+    // 同意の画面は猶予に関係なく最初の起動で出す。審査ではトラッキング許可のダイアログが出ることを確かめられるため
     await _gatherConsent();
     // ATT は SDK を初期化する (IDFA を読む) 前に聞く
     await _sdk.requestTracking();
@@ -190,7 +185,7 @@ class AdMobAds implements AdsService {
   @visibleForTesting
   Future<void> onResume() async {
     if (_ready) {
-      preload();
+      _preload();
       return;
     }
     // 同意画面や ATT のダイアログを閉じたときにも呼ばれるので、起動時の処理が終わるまでは何もしない
@@ -217,7 +212,7 @@ class AdMobAds implements AdsService {
     } finally {
       _starting = false;
     }
-    preload();
+    _preload();
   }
 
   bool get _expired => _loadedAt != null && _now().difference(_loadedAt!) >= maxAge;
@@ -229,7 +224,12 @@ class AdMobAds implements AdsService {
   }
 
   @override
-  void preload() {
+  void onResult() {
+    _policy.recordResult();
+    _preload();
+  }
+
+  void _preload() {
     if (!_ready || _loading || !_policy.pastGrace) return;
     if (_ad != null) {
       if (!_expired) return;
@@ -249,7 +249,7 @@ class AdMobAds implements AdsService {
     } on Object catch (e) {
       debugPrint('interstitial load failed: $e');
       if (_failures < retryDelays.length) {
-        _retry = _timer(retryDelays[_failures], preload);
+        _retry = _timer(retryDelays[_failures], _preload);
       }
       _failures++;
     } finally {
@@ -262,13 +262,13 @@ class AdMobAds implements AdsService {
     if (_expired) _discard();
     final ad = _ad;
     if (ad == null || !_policy.due) {
-      preload();
+      _preload();
       return;
     }
     _ad = null;
     _loadedAt = null;
     await ad.show(onShown: _policy.recordShown);
-    preload();
+    _preload();
   }
 
   @override
@@ -405,6 +405,6 @@ final adsProvider = Provider<AdsService>((ref) => DisabledAds());
 AdsService createAdsService(SharedPreferences prefs) {
   final mobile = defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android;
   if (!AdsConfig.enabled || kIsWeb || !mobile) return DisabledAds();
-  // デバッグビルドでは初日の猶予を外し、すぐに広告を確かめられるようにする
-  return AdMobAds(InterstitialPolicy(prefs, grace: kDebugMode ? Duration.zero : const Duration(hours: 24)));
+  // デバッグビルドでは猶予を外し、すぐに広告を確かめられるようにする
+  return AdMobAds(InterstitialPolicy(prefs, freeResults: kDebugMode ? 0 : 3));
 }

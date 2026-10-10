@@ -124,7 +124,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       return;
     }
     // 結果画面を見ている間に、戻るときの広告を読み込んでおく
-    ref.read(adsProvider).preload();
+    ref.read(adsProvider).onResult();
     if (stage == null) {
       final newBest = records.submitEndless(score: w.score, wave: w.wave.number, stats: w.stats);
       lb.submit(Board.endlessScore, w.score);
