@@ -86,17 +86,16 @@ class EndlessContent {
 sealed class StarCondition {
   const StarCondition();
 
-  static StarCondition fromJson(Map<String, Object?> j) {
-    final type = j['type'] as String;
-    if (type == 'clear') return const ClearStar();
-    if (type == 'noHit') return const NoHitStar();
-    final v = j['value'] as num;
-    return switch (type) {
-      'time' => TimeStar(v.toDouble()),
-      'score' => StatStar(StatKind.score, v.toInt()),
-      _ => StatStar(StatKind.values.byName(type), v.toInt()),
-    };
-  }
+  /// `{"type": ..., "value": ...}` から読む。`clear` / `noHit` は `value` を持たない。
+  ///
+  /// 形が合わない、または `type` が [StatKind] にない場合は例外を投げる。
+  static StarCondition fromJson(Map<String, Object?> j) => switch (j) {
+        {'type': 'clear'} => const ClearStar(),
+        {'type': 'noHit'} => const NoHitStar(),
+        {'type': 'time', 'value': final num v} => TimeStar(v.toDouble()),
+        {'type': final String type, 'value': final num v} => StatStar(StatKind.values.byName(type), v.toInt()),
+        _ => throw FormatException('invalid star condition: $j'),
+      };
 
   bool achieved(StageResult r);
 }
@@ -157,8 +156,11 @@ class LocalizedText {
   const LocalizedText(this.values);
   final Map<String, String> values;
 
-  factory LocalizedText.fromJson(Object? j) =>
-      LocalizedText(j is Map ? Map<String, String>.from(j) : {'en': '${j ?? ''}'});
+  /// 言語ごとの Map から読む。文字列 1 つだけなら英語として扱う。
+  factory LocalizedText.fromJson(Object? j) => LocalizedText(switch (j) {
+        final Map<Object?, Object?> m => Map<String, String>.from(m),
+        _ => {'en': '${j ?? ''}'},
+      });
 
   String of(String lang) => values[lang] ?? values['en'] ?? values.values.firstOrNull ?? '';
 }
@@ -230,25 +232,19 @@ class Campaign {
   }
 
   static WaveSpec _wave(int number, Map<String, Object?> w, EndlessContent endless) {
-    final WaveContent content;
-    var difficulty = (w['difficulty'] as num?)?.toInt();
-    if (w['rows'] != null) {
-      content = LayoutContent(List<String>.from(w['rows'] as List),
-          legend: Map<String, String>.from((w['legend'] as Map?) ?? const {}));
-    } else if (w['endless'] != null) {
-      final n = (w['endless'] as num).toInt();
-      content = endless.layoutFor(n);
-      difficulty ??= n;
-    } else if (w['boss'] != null) {
-      final i = (w['boss'] as num).toInt();
-      content = BossContent(endless.bosses[i]);
-      difficulty ??= (i + 1) * endless.bossEvery;
-    } else {
-      throw const FormatException('wave needs rows, endless or boss');
-    }
+    // 中身と、`difficulty` を省いたときの難易度
+    final (WaveContent content, int defaultDifficulty) = switch (w) {
+      {'rows': final List<Object?> rows} => (
+          LayoutContent(List<String>.from(rows), legend: Map<String, String>.from((w['legend'] as Map?) ?? const {})),
+          1,
+        ),
+      {'endless': final num n} => (endless.layoutFor(n.toInt()), n.toInt()),
+      {'boss': final num i} => (BossContent(endless.bosses[i.toInt()]), (i.toInt() + 1) * endless.bossEvery),
+      _ => throw const FormatException('wave needs rows, endless or boss'),
+    };
     return WaveSpec(
       number: number,
-      difficulty: difficulty ?? 1,
+      difficulty: (w['difficulty'] as num?)?.toInt() ?? defaultDifficulty,
       content: content,
       clear: ClearCondition.fromJson(w['clear'] as Map<String, Object?>?),
       introKey: w['intro'] as String?,

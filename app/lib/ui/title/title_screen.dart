@@ -76,7 +76,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
     final firstTime = records.endless.bestScore == 0 && records.stages.isEmpty;
     final stars = content.campaign.stages.fold(0, (s, st) => s + records.stage(st.id).starCount);
     final totalStars = content.campaign.stages.fold(0, (s, st) => s + st.stars.length);
-    void push(Widget w) => nav.push(fadeRoute(w));
+    void push(Widget w) => nav.push(fadeRoute<void>(w));
     return [
       if (firstTime)
         _MenuEntry('START', () => push(GameScreen(stage: content.campaign.stages.first)),
@@ -133,15 +133,15 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
 
   KeyEventResult _onKey(List<_MenuEntry> entries, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
-    final k = e.logicalKey;
-    if (k == LogicalKeyboardKey.arrowDown) {
-      _select((_selected + 1) % entries.length);
-    } else if (k == LogicalKeyboardKey.arrowUp) {
-      _select((_selected - 1 + entries.length) % entries.length);
-    } else if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.space) {
-      _activate(entries, _selected);
-    } else {
-      return KeyEventResult.ignored;
+    switch (e.logicalKey) {
+      case LogicalKeyboardKey.arrowDown:
+        _select((_selected + 1) % entries.length);
+      case LogicalKeyboardKey.arrowUp:
+        _select((_selected - 1 + entries.length) % entries.length);
+      case LogicalKeyboardKey.enter || LogicalKeyboardKey.space:
+        _activate(entries, _selected);
+      default:
+        return KeyEventResult.ignored;
     }
     return KeyEventResult.handled;
   }

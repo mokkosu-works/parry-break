@@ -46,6 +46,9 @@ class StageRecord {
 
   int get starCount => stars.where((s) => s).length;
 
+  /// [index] 番目の星を達成したか。記録より後に足した条件は未達成として扱う。
+  bool hasStar(int index) => index < stars.length && stars[index];
+
   Map<String, Object?> toJson() => {'cleared': cleared, 'bestScore': bestScore, 'stars': stars};
 
   factory StageRecord.fromJson(Map<String, Object?> j) => StageRecord(
@@ -135,7 +138,7 @@ class RecordsNotifier extends Notifier<Records> {
   bool submitStage(String id, StageResult result, List<bool> stars) {
     final old = state.stage(id);
     final merged = [
-      for (var i = 0; i < stars.length; i++) stars[i] || (i < old.stars.length && old.stars[i]),
+      for (var i = 0; i < stars.length; i++) stars[i] || old.hasStar(i),
     ];
     final newBest = result.cleared && result.score > old.bestScore;
     _save(Records(endless: state.endless, stages: {
