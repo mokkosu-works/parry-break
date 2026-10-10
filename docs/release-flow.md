@@ -50,7 +50,8 @@ Approve するときに見るもの: Claude のレビューの所見(最後の�
 
 | 場面 | どうなるか |
 | --- | --- |
-| `needs-fix` が付いた | Claude のレビューが直すべき問題を見つけた。PR に `@claude 指摘を直して` とコメントすると Claude が直して push し、再レビューで問題がなければ外れる。そのあと Approve する |
+| `needs-fix` が付いた | Claude のレビューが直すべき問題を見つけた。`pr.yml` の `fix` で Claude が指摘を 1 つずつ確かめ、妥当なものを直して push する。再レビューで問題がなければ外れるので、そのあと Approve する。妥当でないと判断した指摘には、スレッドに理由が返る(`needs-fix` は付いたまま)。読んで納得すればラベルを外して Approve、直すなら `@claude 指摘を直して` とコメントする |
+| 自動修正が止まった | 続けての自動修正は 2 回まで(人が push すると数え直す)。それでも `[要修正]` が残れば止まってコメントする。`@claude` で頼むか手で直す |
 | ラベルを外した | 自動では再実行されない。Approve し直す(すでに Approve していても、もう一度 Approve すればよい) |
 | 自分で作った PR | GitHub の決まりで、作者は自分の PR を Approve できない。チェックがすべて通ったのを見て、PR の画面で **Squash and merge** を押す |
 | Issue から作った PR が下書き | Claude がエミュレーターでの確認や完了条件を満たせなかった、または PR を作らずに終わった(ワークフローが代わりに作る)。本文の先頭に理由がある。直してほしいことを `@claude` でコメントするか、閉じる |
@@ -71,7 +72,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | --- | --- | --- |
 | `check.yml` | 下の2つから呼ぶ | `flutter analyze`、`flutter test` |
 | `implement.yml` | Issue のコメントの `@claude` | Android エミュレーターを起動し、Claude が Issue を実装・テストし、エミュレーターで確かめて `dev` 向けの PR を作る(`.claude/skills/implement-issue/SKILL.md`)。撮った画面は実行の Artifacts に残る |
-| `pr.yml` | PR の作成・更新 | チェック、エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)、Claude のレビュー。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
+| `pr.yml` | PR の作成・更新 | チェック、エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)、Claude のレビュー。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
 | `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` のジョブがすべて通っていれば squash でマージする |
 | `claude.yml` | PR のコメントの `@claude` | Claude が依頼に応える(レビューの指摘の修正など) |
 | `release.yml` | `main` への push(手動実行も可) | バージョン名のタグがまだなければ、チェックのあと両 OS をビルドしてテスト配信し、タグと GitHub Release を作る |
@@ -132,6 +133,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | --- | --- | --- |
 | Issue の実装 | `implement.yml`(Issue に `@claude` とコメント)+ `.claude/skills/implement-issue/SKILL.md` | 実装・単体テスト・Android エミュレーターでの確認(スモークテストと、完了条件を確かめる `integration_test/issue_<番号>_test.dart`、撮った画面を Claude が見る)をして、`dev` 向けの PR を作る。「先に聞いてほしい」項目が残っていれば、実装せずに Issue で質問する。手元でも `/implement-issue <番号>` で同じことができる |
 | PR のレビュー | `pr.yml`(`anthropics/claude-code-action`)+ `.claude/skills/pr-review/SKILL.md` | 不具合・テストの漏れ・設計書との食い違い・完了条件を満たしているかを見る。直すべき問題があれば `needs-fix` を付けて、マージを止める。観点と重さの基準はスキルに書く。手元でも `/pr-review <番号>` で同じレビューができる |
+| 指摘の自動修正 | `pr.yml` の `fix` + `.claude/skills/pr-fix/SKILL.md` | `needs-fix` が付いたら、`[要修正]` の指摘を 1 つずつ確かめる(コードを追う・落ちるテストを書く)。妥当なものだけ直してコミットし、ワークフローが `flutter analyze` / `flutter test` を通してから Claude の GitHub アプリのトークンで push する(再レビューが動く)。妥当でない・人の判断が要る指摘は、スレッドに理由を返して人に回す。続けて 2 回まで。`main` 向けの PR では動かない。手元でも `/pr-fix <番号>` で同じことができる |
 | PR での依頼 | `claude.yml`(PR に `@claude` を付けてコメント) | 指摘の修正 |
 | リリース準備 | `.claude/skills/release/SKILL.md`(`/release`) | 第3章の手順 4〜7。Claude Code(ターミナル・Web・アプリ)で実行する |
 | リリース準備の定期実行 | Claude Code のルーティン(claude.ai/code の Routines) | 例: 隔週の月曜に `/release` を実行する。前回のタグから出す価値のある変更がなければ何もしない |
@@ -213,4 +215,3 @@ CI のマシンには Xcode のアカウントがないので、配布用の証�
 | Android の段階的公開 | いまは最初から全員に出す。利用者が増えたら、`promote` で一部(例: 20%)に出し、クラッシュ率を見て割合を上げる形に戻す。クラッシュの収集(Crashlytics など)を入れてから |
 | ブランチの保護 | GitHub Pro にするか公開リポジトリにすれば、`main` / `dev` を「PR 必須・Approve 必須・`check` / `e2e` / `review` 必須」にできる。そのときは `merge-if-approved.sh` を GitHub の auto-merge に置き換えられる |
 | iOS シミュレータでの確認 | Issue の実装の確認は Android エミュレーターだけ。iOS だけの処理(ATT・Game Center)は実機確認(第8章)で見る。macOS のマシンの時間に余裕ができたら、`implement.yml` に iOS シミュレータを足す |
-| 指摘の自動修正 | `needs-fix` が付いたら、人が `@claude` で頼む。回数の上限を決めて、自動で直させる形にもできる |
