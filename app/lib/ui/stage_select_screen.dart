@@ -70,12 +70,15 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
                   title: chapter.title.of(lang),
                   index: chapterIndex,
                   count: campaign.chapters.length,
-                  onChange: (i) => setState(() {
-                    _chapter = i;
-                    // めくった章のうち、遊べる最後のステージを選ぶ
-                    final stages = campaign.chapters[i].stages;
-                    _selected = (stages.lastWhere(unlocked, orElse: () => stages.first)).id;
-                  }),
+                  onChange: (i) {
+                    ref.read(audioProvider).play('count');
+                    setState(() {
+                      _chapter = i;
+                      // めくった章のうち、遊べる最後のステージを選ぶ
+                      final stages = campaign.chapters[i].stages;
+                      _selected = (stages.lastWhere(unlocked, orElse: () => stages.first)).id;
+                    });
+                  },
                 ),
                 const SizedBox(height: 10),
                 Expanded(
