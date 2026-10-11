@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:parry_break/app/providers.dart';
 import 'package:parry_break/audio/audio_service.dart';
 import 'package:parry_break/core/core.dart';
@@ -60,6 +61,8 @@ Future<void> _pumpApp(WidgetTester tester,
     ..physicalSize = size * dpr
     ..devicePixelRatio = dpr;
   addTearDown(tester.view.reset);
+  PackageInfo.setMockInitialValues(
+      appName: 'PARRY BREAK', packageName: 'parry_break', version: '9.8.7', buildNumber: '1', buildSignature: '');
   SharedPreferences.setMockInitialValues({
     'settings.v1': jsonEncode(const Settings(language: 'en').toJson()),
     ...prefs,
@@ -339,8 +342,9 @@ void main() {
   testWidgets('デバッグモード: 版番号を 3 回タップで入り、未クリアのステージを遊べ、記録は残さない', (tester) async {
     await _pumpApp(tester);
     await _frames(tester, 2.4);
+    // 版番号はアプリの版 (pubspec.yaml の version) を出す
     for (var i = 0; i < 3; i++) {
-      await tester.tap(find.text('VER 1.0.0'));
+      await tester.tap(find.text('VER 9.8.7'));
       await _frames(tester, 0.1);
     }
     expect(find.text('Debug mode ON'), findsOneWidget);
