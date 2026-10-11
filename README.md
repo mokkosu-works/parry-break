@@ -39,3 +39,9 @@ flutter run              # 複数ある場合は番号で選ぶ。-d <デバイ�
 ```
 
 `flutter run` の実行中に使えるキー: `r` ホットリロード、`R` ホットリスタート、`q` 終了。
+
+## ライセンス
+
+Copyright (c) 2026 Wataru Yamauchi. All rights reserved.
+
+オープンソースではない。著作権者の書面による許可なく、このリポジトリの全部または一部を複製・改変・再配布・他の製品に使うことを禁じる。詳しくは [LICENSE](LICENSE) を参照。
