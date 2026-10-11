@@ -14,7 +14,7 @@ Endless: Survive 60 waves and the loop beyond, with a boss fortress every 10 wav
 Stages: Short 1-2 minute stages rated with up to three stars. Chapter 1 teaches the basics.
 
 - ONE BALL, NO CONTINUES
-Drop the ball or let the blocks reach the warning line and it's over.
+Drop the ball or let the blocks reach the dead line and it's over.
 
 - BUILT TO PLAY WELL
 - Drag on the left half to move, tap the right half to parry, or switch to rail controls
