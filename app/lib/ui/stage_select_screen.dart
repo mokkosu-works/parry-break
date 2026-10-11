@@ -30,8 +30,9 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
   /// 開いたときに選んでおくステージ: 開いていて、まだクリアしていない最初のステージ。
   /// なければ (全部クリア) 最後のステージ。
   StageDef _initial(Campaign c, Records r, bool debug) {
+    if (!debug) return r.nextStage(c) ?? c.stages.last;
     for (final st in c.stages) {
-      if ((debug || r.isUnlocked(c, st)) && !r.stage(st.id).cleared) return st;
+      if (!r.stage(st.id).cleared) return st;
     }
     return c.stages.last;
   }

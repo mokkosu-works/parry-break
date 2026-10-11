@@ -73,6 +73,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
     final lb = ref.read(leaderboardProvider);
     final nav = Navigator.of(context);
     final firstTime = records.endless.bestScore == 0 && records.stages.isEmpty;
+    final next = firstTime ? null : records.nextStage(content.campaign);
     final stars = content.campaign.stages.fold(0, (s, st) => s + records.stage(st.id).starCount);
     final totalStars = content.campaign.stages.fold(0, (s, st) => s + st.stars.length);
     void push(Widget w) => nav.push(fadeRoute<void>(w));
@@ -80,7 +81,8 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
       if (firstTime)
         _MenuEntry('START', () => push(GameScreen(stage: content.campaign.stages.first)),
             meta: 'TUTORIAL  1-1', primary: true),
-      _MenuEntry('ENDLESS', () => push(const GameScreen()), meta: 'SCORE ATTACK', primary: !firstTime),
+      if (next != null) _MenuEntry('CONTINUE', () => push(GameScreen(stage: next)), meta: 'STAGE  ${next.id}', primary: true),
+      _MenuEntry('ENDLESS', () => push(const GameScreen()), meta: 'SCORE ATTACK', primary: !firstTime && next == null),
       _MenuEntry('STAGES', () => push(const StageSelectScreen()), meta: '$stars / $totalStars STARS'),
       _MenuEntry('HOW TO PLAY', () => push(const HelpScreen())),
       _MenuEntry('SETTINGS', () => push(const SettingsScreen())),
