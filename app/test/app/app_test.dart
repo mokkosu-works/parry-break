@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:parry_break/app/providers.dart';
 import 'package:parry_break/audio/audio_service.dart';
 import 'package:parry_break/core/core.dart';
@@ -60,6 +61,8 @@ Future<void> _pumpApp(WidgetTester tester,
     ..physicalSize = size * dpr
     ..devicePixelRatio = dpr;
   addTearDown(tester.view.reset);
+  PackageInfo.setMockInitialValues(
+      appName: 'PARRY BREAK', packageName: 'parry_break', version: '9.8.7', buildNumber: '1', buildSignature: '');
   SharedPreferences.setMockInitialValues({
     'settings.v1': jsonEncode(const Settings(language: 'en').toJson()),
     ...prefs,
@@ -174,6 +177,28 @@ void main() {
     expect(find.text('START'), findsOneWidget);
     expect(find.text('TUTORIAL  1-1'), findsOneWidget);
     await _shot(tester, '09_title_phone_first');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('タイトル: 2 回目からは CONTINUE で次のステージを遊べ、全部クリアしたら出ない', (tester) async {
+    await _pumpApp(tester, prefs: {
+      'records': jsonEncode(const Records(stages: {'1-1': StageRecord(cleared: true)}).toJson()),
+    });
+    await _frames(tester, 2.4);
+    expect(find.text('START'), findsNothing);
+    expect(find.text('STAGE  1-2'), findsOneWidget);
+    await tester.tap(find.text('CONTINUE'));
+    await _frames(tester, 0.8);
+    expect(find.byWidgetPredicate((w) => w is GameScreen && w.stage?.id == '1-2'), findsOneWidget);
+    await _frames(tester, 1);
+
+    await _pumpApp(tester, prefs: {
+      'records': jsonEncode(Records(stages: {
+        for (final st in _campaign.stages) st.id: const StageRecord(cleared: true),
+      }).toJson()),
+    });
+    await _frames(tester, 2.4);
+    expect(find.text('CONTINUE'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -339,8 +364,9 @@ void main() {
   testWidgets('デバッグモード: 版番号を 3 回タップで入り、未クリアのステージを遊べ、記録は残さない', (tester) async {
     await _pumpApp(tester);
     await _frames(tester, 2.4);
+    // 版番号はアプリの版 (pubspec.yaml の version) を出す
     for (var i = 0; i < 3; i++) {
-      await tester.tap(find.text('VER 1.0.0'));
+      await tester.tap(find.text('VER 9.8.7'));
       await _frames(tester, 0.1);
     }
     expect(find.text('Debug mode ON'), findsOneWidget);

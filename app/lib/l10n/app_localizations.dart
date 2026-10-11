@@ -221,7 +221,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpOverBody.
   ///
   /// In ja, this message translates to:
-  /// **'ボールを画面の下に落とすと終わり\nブロックが赤い点線(警告ライン)まで下りてきても終わり'**
+  /// **'ボールを画面の下に落とすと終わり\nブロックが赤い点線(デッドライン)まで下りてきても終わり'**
   String get helpOverBody;
 
   /// No description provided for @helpPauseTitle.
@@ -689,7 +689,7 @@ abstract class AppLocalizations {
   /// No description provided for @introSurvive.
   ///
   /// In ja, this message translates to:
-  /// **'ブロックを警告線まで下ろさずに耐え抜け'**
+  /// **'ブロックをデッドラインまで下ろさずに耐え抜け'**
   String get introSurvive;
 
   /// No description provided for @introScore.

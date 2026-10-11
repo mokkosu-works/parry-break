@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../app/providers.dart';
 import '../../audio/audio_service.dart';
@@ -47,11 +48,17 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
   int _verTaps = 0;
   DateTime _lastVerTap = DateTime(0);
 
+  /// 右下に出す版番号 (pubspec.yaml の version の X.Y.Z)。読めるまでは空。
+  String _version = '';
+
   @override
   void initState() {
     super.initState();
     _intro.forward();
     _audio.setMenuMusic(true);
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _version = info.version);
+    });
   }
 
   // dispose では ref を読めないので、ここで握っておく
@@ -73,6 +80,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
     final lb = ref.read(leaderboardProvider);
     final nav = Navigator.of(context);
     final firstTime = records.endless.bestScore == 0 && records.stages.isEmpty;
+    final next = firstTime ? null : records.nextStage(content.campaign);
     final stars = content.campaign.stages.fold(0, (s, st) => s + records.stage(st.id).starCount);
     final totalStars = content.campaign.stages.fold(0, (s, st) => s + st.stars.length);
     void push(Widget w) => nav.push(fadeRoute<void>(w));
@@ -80,7 +88,8 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
       if (firstTime)
         _MenuEntry('START', () => push(GameScreen(stage: content.campaign.stages.first)),
             meta: 'TUTORIAL  1-1', primary: true),
-      _MenuEntry('ENDLESS', () => push(const GameScreen()), meta: 'SCORE ATTACK', primary: !firstTime),
+      if (next != null) _MenuEntry('CONTINUE', () => push(GameScreen(stage: next)), meta: 'STAGE  ${next.id}', primary: true),
+      _MenuEntry('ENDLESS', () => push(const GameScreen()), meta: 'SCORE ATTACK', primary: !firstTime && next == null),
       _MenuEntry('STAGES', () => push(const StageSelectScreen()), meta: '$stars / $totalStars STARS'),
       _MenuEntry('HOW TO PLAY', () => push(const HelpScreen())),
       _MenuEntry('SETTINGS', () => push(const SettingsScreen())),
@@ -239,7 +248,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
                 onTap: _tapVersion,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Text('VER 1.0.0', style: pixelFont(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
+                  child: Text('VER $_version', style: pixelFont(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
                 ),
               ),
             ),

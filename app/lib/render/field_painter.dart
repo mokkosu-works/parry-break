@@ -49,6 +49,9 @@ class FieldPainter extends CustomPainter {
   final bool attract;
 
   static const _w = Field.width, _h = Field.height, _d = Dot.px;
+
+  /// HUD の右端に置くポーズボタンの場所 (盤面の座標)。ボタンそのものは game_screen.dart が重ねる。
+  static const pauseButton = Rect.fromLTWH(_w - 56, 6, 44, 44);
   static final _floor = DitherFloor(const Rect.fromLTWH(0, 440, _w, _h - 440));
   final _rnd = math.Random();
 
@@ -171,7 +174,7 @@ class FieldPainter extends CustomPainter {
     final col = danger ? ((_t * 7).floor().isEven ? Dot.bulletRed : Dot.brick) : Dot.dark(Dot.brick);
     _dashedLine(0, Field.warnY, _w, 16, 8, -_t * 32, col);
     if (attract) return;
-    _txt('WARNING LINE', _w - 16, Field.warnY - 18, 16, danger ? Dot.bulletRed : Dot.brick, align: TextAlignH.right);
+    _txt('DEAD LINE', _w - 16, Field.warnY - 18, 16, danger ? Dot.bulletRed : Dot.brick, align: TextAlignH.right);
   }
 
   void _magnetField(Block b) {
@@ -518,7 +521,7 @@ class FieldPainter extends CustomPainter {
       }
     }
     final m = w.mult, mc = Palette.multColor[st];
-    _bigTxt('×$m', _w - 16, 34, 32, mc, align: TextAlignH.right);
+    _bigTxt('×$m', pauseButton.left - 16, 34, 32, mc, align: TextAlignH.right);
     if (boss != null) {
       final hp = w.bossHp;
       const bw2 = 360.0, x = _w / 2 - bw2 / 2, y = Field.topY + 6;

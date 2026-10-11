@@ -48,7 +48,7 @@ PARRY BREAK は、ブロック崩しの「受けて守る」パドルを「弾�
 ・ステージ: 1面1〜2分の短いステージを、星3つの評価で攻略します。第1章は基本を覚えるチュートリアルです。
 
 ■ ボール1個、ミスは即ゲームオーバー
-コンティニューはありません。ボールを落とすか、ブロックが警告線まで下りてきたら終わりです。
+コンティニューはありません。ボールを落とすか、ブロックがデッドラインまで下りてきたら終わりです。
 
 ■ 遊びやすさ
 ・左半分ドラッグで移動、右半分タップでパリィ。操作レール方式にも切り替えられます
@@ -86,7 +86,7 @@ Endless: Survive 60 waves and the loop beyond, with a boss fortress every 10 wav
 Stages: Short 1-2 minute stages rated with up to three stars. Chapter 1 teaches the basics.
 
 - ONE BALL, NO CONTINUES
-Drop the ball or let the blocks reach the warning line and it's over.
+Drop the ball or let the blocks reach the dead line and it's over.
 
 - BUILT TO PLAY WELL
 - Drag on the left half to move, tap the right half to parry, or switch to rail controls
@@ -102,7 +102,7 @@ Play Games サービスを有効にしたら、`- Google Play Games leaderboards
 | 種類 | サイズ | 枚数 | 用意するもの |
 | --- | --- | --- | --- |
 | アプリのアイコン | 512 × 512、PNG(32 ビット) | 1 | `app/branding/icons/icon-512.png`。いまは透過なしの PNG なので、受け付けられなければ透過ありで書き出し直す |
-| フィーチャー グラフィック | 1024 × 500、JPEG か 24 ビット PNG(透過なし) | 1 | ストアのページの一番上に出る横長の画像。タイトル画面のスクリーンショット(`05_title.png`)の、左上 (48, 200) から 1024 × 500 を切り出したもの |
+| フィーチャー グラフィック | 1024 × 500、JPEG か 24 ビット PNG(透過なし) | 1 | ストアのページの一番上に出る横長の画像。タイトル画面のスクリーンショット(`05_title.png`)から、ロゴが入るように 1024 × 500 を切り出したもの |
 | スマートフォンのスクリーンショット | 長い辺が短い辺の2倍以内、320〜3840 px | 2〜8 | **未作成**。ゲームは横画面で 1920 × 1080 以上を4枚以上にすると、おすすめに載りやすい |
 
 App Store 用のスクリーンショット(`integration_test/store_screenshots_test.dart`)は iPhone の縦横比が 2:1 を超える(2868 × 1320 など)ため、そのままでは使えない。iPad 用(4:3)は使える。Android のエミュレーターで同じテストを動かすか、16:9 に切り出す。
