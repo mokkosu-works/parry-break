@@ -390,7 +390,7 @@ class _DiagramPainter extends CustomPainter {
   }
 
   void _over() {
-    // 前半: ボールが下へ抜ける。後半: ブロックが警告線まで下りてくる
+    // 前半: ボールが下へ抜ける。後半: ブロックがデッドラインまで下りてくる
     final first = _t < 0.5;
     final t = first ? _span(_t, 0, 0.5) : _span(_t, 0.5, 1);
     const warnY = 230.0;
@@ -415,7 +415,7 @@ class _DiagramPainter extends CustomPainter {
       _paddle(300);
       if (reached) {
         _c.drawRect(const Rect.fromLTWH(0, 0, w, h), _fill..color = withAlpha(Palette.red, 0.12));
-        _label('WARNING LINE', w / 2, warnY + 26, Palette.red);
+        _label('DEAD LINE', w / 2, warnY + 26, Palette.red);
       }
     }
   }

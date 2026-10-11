@@ -78,7 +78,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpOverBody =>
-      'The run ends if the ball falls off the bottom\nIt also ends if the blocks reach the red dotted warning line';
+      'The run ends if the ball falls off the bottom\nIt also ends if the blocks reach the red dotted dead line';
 
   @override
   String get helpPauseTitle => 'PAUSE';
@@ -344,7 +344,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introPierce => 'A PERFECT PARRY MAKES A PIERCING SHOT';
 
   @override
-  String get introSurvive => 'HOLD THE BLOCKS ABOVE THE WARNING LINE';
+  String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
 
   @override
   String get introScore => 'REACH THE TARGET SCORE';

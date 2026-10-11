@@ -235,7 +235,7 @@ class World {
     return math.min(tuning.maxSpeed, s * tuning.stageSpeed[stage]);
   }
 
-  /// ブロックが警告ラインに 3 秒以内に届きそうか (画面端を赤く光らせる)。
+  /// ブロックがデッドラインに 3 秒以内に届きそうか (画面端を赤く光らせる)。
   bool get isDanger {
     if (phase != WorldPhase.playing || blocks.isEmpty) return false;
     final b = boss;

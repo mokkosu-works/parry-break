@@ -76,7 +76,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpOverTitle => 'ゲームオーバー';
 
   @override
-  String get helpOverBody => 'ボールを画面の下に落とすと終わり\nブロックが赤い点線(警告ライン)まで下りてきても終わり';
+  String get helpOverBody => 'ボールを画面の下に落とすと終わり\nブロックが赤い点線(デッドライン)まで下りてきても終わり';
 
   @override
   String get helpPauseTitle => '一時停止';
@@ -339,7 +339,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introPierce => 'PERFECT でパリィすると貫通弾。まとめて撃ち抜け';
 
   @override
-  String get introSurvive => 'ブロックを警告線まで下ろさずに耐え抜け';
+  String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
 
   @override
   String get introScore => '目標スコアに到達すればクリア';

@@ -174,7 +174,7 @@ class FieldPainter extends CustomPainter {
     final col = danger ? ((_t * 7).floor().isEven ? Dot.bulletRed : Dot.brick) : Dot.dark(Dot.brick);
     _dashedLine(0, Field.warnY, _w, 16, 8, -_t * 32, col);
     if (attract) return;
-    _txt('WARNING LINE', _w - 16, Field.warnY - 18, 16, danger ? Dot.bulletRed : Dot.brick, align: TextAlignH.right);
+    _txt('DEAD LINE', _w - 16, Field.warnY - 18, 16, danger ? Dot.bulletRed : Dot.brick, align: TextAlignH.right);
   }
 
   void _magnetField(Block b) {

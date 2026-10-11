@@ -48,7 +48,7 @@ PARRY BREAK は、ブロック崩しの「受けて守る」パドルを「弾�
 ・ステージ: 1面1〜2分の短いステージを、星3つの評価で攻略します。第1章は基本を覚えるチュートリアルです。
 
 ■ ボール1個、ミスは即ゲームオーバー
-コンティニューはありません。ボールを落とすか、ブロックが警告線まで下りてきたら終わりです。
+コンティニューはありません。ボールを落とすか、ブロックがデッドラインまで下りてきたら終わりです。
 
 ■ 遊びやすさ
 ・左半分ドラッグで移動、右半分タップでパリィ。操作レール方式にも切り替えられます
@@ -86,7 +86,7 @@ Endless: Survive 60 waves and the loop beyond, with a boss fortress every 10 wav
 Stages: Short 1-2 minute stages rated with up to three stars. Chapter 1 teaches the basics.
 
 - ONE BALL, NO CONTINUES
-Drop the ball or let the blocks reach the warning line and it's over.
+Drop the ball or let the blocks reach the dead line and it's over.
 
 - BUILT TO PLAY WELL
 - Drag on the left half to move, tap the right half to parry, or switch to rail controls
