@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../app/providers.dart';
 import '../../audio/audio_service.dart';
@@ -47,11 +48,17 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
   int _verTaps = 0;
   DateTime _lastVerTap = DateTime(0);
 
+  /// 右下に出す版番号 (pubspec.yaml の version の X.Y.Z)。読めるまでは空。
+  String _version = '';
+
   @override
   void initState() {
     super.initState();
     _intro.forward();
     _audio.setMenuMusic(true);
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _version = info.version);
+    });
   }
 
   // dispose では ref を読めないので、ここで握っておく
@@ -239,7 +246,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
                 onTap: _tapVersion,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Text('VER 1.0.0', style: pixelFont(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
+                  child: Text('VER $_version', style: pixelFont(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
                 ),
               ),
             ),
