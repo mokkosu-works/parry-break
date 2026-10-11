@@ -180,6 +180,28 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('タイトル: 2 回目からは CONTINUE で次のステージを遊べ、全部クリアしたら出ない', (tester) async {
+    await _pumpApp(tester, prefs: {
+      'records': jsonEncode(const Records(stages: {'1-1': StageRecord(cleared: true)}).toJson()),
+    });
+    await _frames(tester, 2.4);
+    expect(find.text('START'), findsNothing);
+    expect(find.text('STAGE  1-2'), findsOneWidget);
+    await tester.tap(find.text('CONTINUE'));
+    await _frames(tester, 0.8);
+    expect(find.byWidgetPredicate((w) => w is GameScreen && w.stage?.id == '1-2'), findsOneWidget);
+    await _frames(tester, 1);
+
+    await _pumpApp(tester, prefs: {
+      'records': jsonEncode(Records(stages: {
+        for (final st in _campaign.stages) st.id: const StageRecord(cleared: true),
+      }).toJson()),
+    });
+    await _frames(tester, 2.4);
+    expect(find.text('CONTINUE'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('タッチ操作: 左半分のドラッグで移動、右半分のタップで発射', (tester) async {
     await _pumpApp(tester, home: const GameScreen());
     await _frames(tester, 1.2);

@@ -9,7 +9,7 @@ abstract final class Field {
   static const double paddleY = 670;
   static const double paddleH = 14;
 
-  /// 警告ライン: パドルの上 120px。
+  /// デッドライン: パドルの上 120px。
   static const double warnY = paddleY - 120;
 
   static const double ballR = 8;

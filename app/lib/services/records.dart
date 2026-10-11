@@ -83,6 +83,14 @@ class Records {
     return false;
   }
 
+  /// 次に遊ぶステージ: 開いていて、まだクリアしていない最初のステージ。全部クリアしたら null。
+  StageDef? nextStage(Campaign c) {
+    for (final st in c.stages) {
+      if (isUnlocked(c, st) && !stage(st.id).cleared) return st;
+    }
+    return null;
+  }
+
   Map<String, Object?> toJson() => {
         'version': version,
         'endless': endless.toJson(),
