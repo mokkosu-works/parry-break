@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +24,6 @@ import '../ui/widgets.dart';
 import 'game_controller.dart';
 import 'result_overlay.dart';
 import '../ui/pixel_icons.dart';
-import '../render/pixel.dart';
 
 /// プレイ画面。[stage] があればステージモード、なければエンドレス。
 class GameScreen extends ConsumerStatefulWidget {
@@ -270,15 +271,14 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                 ),
               ),
             ],
-            Positioned(
-              right: 0,
-              top: 0,
-              child: SafeArea(
-                left: false,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: _RoundIcon(icon: PixelIcons.pause, onTap: _ctl.finished ? null : _ctl.pause, label: l.paused),
-                ),
+            // ポーズ: HUD の右端 (見た目は小さく、押せる範囲は 44pt 以上にする)
+            Positioned.fromRect(
+              rect: _hitRect(layout.toScreen(FieldPainter.pauseButton)),
+              child: _PauseButton(
+                size: FieldPainter.pauseButton.width * layout.scale,
+                dot: Dot.px * layout.scale,
+                onTap: _ctl.finished ? null : _ctl.pause,
+                label: l.paused,
               ),
             ),
             if (_ctl.paused && !_ctl.finished) Positioned.fill(child: _pauseOverlay(l)),
@@ -287,6 +287,11 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
         }),
       ),
     );
+  }
+
+  static Rect _hitRect(Rect r) {
+    const min = 44.0;
+    return Rect.fromCenter(center: r.center, width: math.max(min, r.width), height: math.max(min, r.height));
   }
 
   /// 盤面。OVERDRIVE の見せ方 (色の入れ替えと電飾) は FieldPainter が描く。
@@ -361,9 +366,12 @@ class StarLine extends StatelessWidget {
       );
 }
 
-class _RoundIcon extends StatelessWidget {
-  const _RoundIcon({required this.icon, required this.onTap, required this.label});
-  final DotSprite icon;
+/// HUD の右端のポーズボタン。HUD の線の色の 1 ドットの枠だけを描く (OVERDRIVE で HUD の色が変わっても馴染むよう、塗らない)。
+class _PauseButton extends StatelessWidget {
+  const _PauseButton({required this.size, required this.dot, required this.onTap, required this.label});
+
+  /// 見た目の大きさと、1 ドットの大きさ (画面の px)。
+  final double size, dot;
   final VoidCallback? onTap;
   final String label;
 
@@ -372,17 +380,19 @@ class _RoundIcon extends StatelessWidget {
         button: true,
         label: label,
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          child: Container(
-            width: 52,
-            height: 52,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Dot.night,
-              border: Border.all(color: Palette.sub, width: 3),
-              boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+          child: Center(
+            child: Container(
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                border: Border.all(color: Palette.hudLine, width: dot.roundToDouble().clamp(1, 8)),
+              ),
+              // スマホでもアイコンの 1 ドットが 2pt 以上になるようにする
+              child: PixelIcon(PixelIcons.pause, size: math.max(size * 0.5, 14), color: Palette.hudLabel),
             ),
-            child: PixelIcon(icon, size: 21, color: Palette.sub),
           ),
         ),
       );

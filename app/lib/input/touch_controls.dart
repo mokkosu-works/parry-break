@@ -14,23 +14,23 @@ class FieldLayout {
   FieldLayout._(this.screen, this.field, this.scale);
 
   /// [rail] はレール方式 (左右の余白に、押せるレールと PARRY ボタンを置く)。
-  /// 領域方式では左右に操作を置かないので、右上のポーズボタンの分だけ空けて盤面を大きくする。
+  /// 領域方式では左右に操作を置かないので、盤面をいっぱいに広げる (ポーズボタンは HUD の中に置く)。
   factory FieldLayout.compute(Size size, EdgeInsets pad, {required bool rail}) {
     final avail = Rect.fromLTRB(pad.left, pad.top, size.width - pad.right, size.height - pad.bottom);
-    final side = rail ? (avail.width * 0.13).clamp(80.0, 150.0) : pauseGutter;
+    final side = rail ? (avail.width * 0.13).clamp(80.0, 150.0) : 0.0;
     final scale = math.max(0.1, math.min((avail.width - side * 2) / Field.width, avail.height / Field.height));
     final field = Rect.fromCenter(center: avail.center, width: Field.width * scale, height: Field.height * scale);
     return FieldLayout._(size, field, scale);
   }
-
-  /// 領域方式で左右に空ける幅 (右上のポーズボタンが盤面に重ならないため)。
-  static const pauseGutter = 68.0;
 
   final Size screen;
   final Rect field;
 
   /// 盤面の 1 単位あたりの画面のピクセル数。
   final double scale;
+
+  /// 盤面の座標の [r] を、画面の座標にする。
+  Rect toScreen(Rect r) => Rect.fromLTWH(field.left + r.left * scale, field.top + r.top * scale, r.width * scale, r.height * scale);
 
   Rect get left => Rect.fromLTRB(0, 0, field.left, screen.height);
   Rect get right => Rect.fromLTRB(field.right, 0, screen.width, screen.height);
