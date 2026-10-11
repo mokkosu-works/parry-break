@@ -169,6 +169,7 @@ app/
   integration_test/                   # 実機・エミュレーターで動かすテスト(flutter drive)
 tools/
   subset_jp_font.sh  # 日本語のドット文字 (DotGothic16) を使っている文字だけに絞る
+  make_icons.py      # アプリのアイコンと起動画面の画像をドット絵で描く
 ```
 
 ### 5.4 コアの主要な型
@@ -326,7 +327,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 | 暗号化 | `ITSAppUsesNonExemptEncryption = false`(輸出コンプライアンスの質問が出ない) |
 | Game Center | `ios/Runner/Runner.entitlements`(`com.apple.developer.game-center`)を Runner の全構成に設定済み |
 | ランキング | `LeaderboardConfig.iosEnabled = true`。ID は `com.watsuwo.parrybreak.endless_score` / `.endless_wave` / `.stages_total`。Android は `androidEnabled = false` のまま |
-| アイコン・起動画面 | `branding/icons/` の画像から `dart run flutter_launcher_icons`、`dart run flutter_native_splash:create` で作り直せる |
+| アイコン・起動画面 | 16 色のドット絵で、`python3 tools/make_icons.py` が描く(元画像の `branding/icons/` と、iOS / Android / Web の各サイズをまとめて書き出す)。元画像だけ変えたときは `dart run flutter_launcher_icons`、`dart run flutter_native_splash:create` でも作り直せる |
 | ポリシー・サポート | 別のリポジトリ `watsuwo/watsuwo.github.io` の `parry-break/privacy.html` と `parry-break/support.html` を GitHub Pages で公開している(https://watsuwo.github.io/parry-break/privacy と https://watsuwo.github.io/parry-break/support)。広告(AdMob)の `app-ads.txt` も同じリポジトリにある |
 
 ### 9.2 iOS の公開手順
