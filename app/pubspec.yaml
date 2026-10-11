@@ -119,20 +119,20 @@ flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
-  adaptive_icon_background: "#07060F"
+  adaptive_icon_background: "#07060A"
   adaptive_icon_foreground: branding/icons/icon-maskable-512.png
   web:
     generate: true
     image_path: branding/icons/icon-512.png
-    background_color: "#07060F"
-    theme_color: "#07060F"
+    background_color: "#07060A"
+    theme_color: "#07060A"
 
 # 起動画面: dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#07060F"
+  color: "#07060A"
   image: branding/icons/icon-512.png
   android_12:
-    color: "#07060F"
+    color: "#07060A"
     image: branding/icons/icon-512.png
   fullscreen: true
   web: false
