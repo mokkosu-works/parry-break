@@ -144,7 +144,7 @@ void main() {
 
   testWidgets('タイトル → エンドレスを始めて遊び、ポーズして再開できる', (tester) async {
     await _pumpApp(tester, prefs: {
-      'records': jsonEncode(const Records(endless: EndlessRecord(bestScore: 123456, bestWave: 7)).toJson()),
+      'records': jsonEncode(const Records(endless: EndlessRecord(bestScore: 123456, bestRound: 7)).toJson()),
     });
     await _frames(tester, 2.4);
     await _shot(tester, '01_title');
@@ -152,7 +152,7 @@ void main() {
     await tester.tap(find.text('ENDLESS'));
     await _frames(tester, 0.8);
     expect(find.byType(GameScreen), findsOneWidget);
-    await _shot(tester, '02_wave_start');
+    await _shot(tester, '02_round_start');
     await _frames(tester, 0.4);
 
     await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
@@ -234,7 +234,7 @@ void main() {
       ..maxStreak = 17;
     w.stats
       ..just = 9
-      ..graze = 23
+      ..nearMiss = 23
       ..bestCollapse = 31
       ..bestBlast = 4
       ..bestRicochet = 12;

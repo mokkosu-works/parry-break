@@ -14,16 +14,16 @@ enum ParryTarget { ball, bullet }
 
 enum DestroyCause { ball, pierce, phantom, blast, bullet }
 
-enum BannerKind { wave, boss, overdrive, bossPhase, timeOver }
+enum BannerKind { round, boss, overdrive, bossPhase, timeOver }
 
 enum CalloutChannel { collapse, chainBlast, multiParry, ricochet, overdriveFinish }
 
-enum PopupKind { score, returnedScore, chain, ricochet, chainBlast, graze, noDamage, coreDamage }
+enum PopupKind { score, returnedScore, chain, ricochet, chainBlast, nearMiss, noDamage, coreDamage }
 
 // ---- ラウンド ----------------------------------------------------------
 
-final class WaveStarted extends GameEvent {
-  const WaveStarted({required this.number, required this.loop, this.bossIndex, this.introKey});
+final class RoundStarted extends GameEvent {
+  const RoundStarted({required this.number, required this.loop, this.bossIndex, this.introKey});
   final int number, loop;
   final int? bossIndex;
 
@@ -35,8 +35,8 @@ final class CountdownFinished extends GameEvent {
   const CountdownFinished();
 }
 
-final class WaveCleared extends GameEvent {
-  const WaveCleared({required this.bonuses, required this.remaining, required this.ending});
+final class RoundCleared extends GameEvent {
+  const RoundCleared({required this.bonuses, required this.remaining, required this.ending});
   final List<Bonus> bonuses;
 
   /// 消えずに残っていたブロック (崩れ落ちる演出用)。
@@ -45,9 +45,9 @@ final class WaveCleared extends GameEvent {
 }
 
 final class GameOver extends GameEvent {
-  const GameOver({required this.reason, required this.score, required this.wave, required this.stats});
+  const GameOver({required this.reason, required this.score, required this.round, required this.stats});
   final String reason;
-  final int score, wave;
+  final int score, round;
   final RunStats stats;
 }
 
@@ -124,8 +124,8 @@ final class PlayerHurt extends GameEvent {
   final double x;
 }
 
-final class Grazed extends GameEvent {
-  const Grazed(this.x);
+final class NearMissed extends GameEvent {
+  const NearMissed(this.x);
   final double x;
 }
 

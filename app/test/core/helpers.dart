@@ -11,8 +11,8 @@ final endlessContent =
 final endlessMode = EndlessMode(endlessContent);
 
 /// 指定した配置の 1 ラウンドだけのモード。
-class SingleWaveMode extends GameMode {
-  const SingleWaveMode(this.rows, {this.difficulty = 1});
+class SingleRoundMode extends GameMode {
+  const SingleRoundMode(this.rows, {this.difficulty = 1});
   final List<String> rows;
   final int difficulty;
 
@@ -20,8 +20,8 @@ class SingleWaveMode extends GameMode {
   String get recordKey => 'test';
 
   @override
-  WaveSpec? waveAt(int number) => number == 1
-      ? WaveSpec(number: 1, difficulty: difficulty, content: LayoutContent(rows))
+  RoundSpec? roundAt(int number) => number == 1
+      ? RoundSpec(number: 1, difficulty: difficulty, content: LayoutContent(rows))
       : null;
 }
 

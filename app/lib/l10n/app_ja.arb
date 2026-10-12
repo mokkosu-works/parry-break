@@ -8,8 +8,8 @@
   "menuRanking": "ランキング",
   "back": "戻る",
   "bestScore": "最高スコア",
-  "waveN": "ラウンド {n}",
-  "@waveN": {
+  "roundN": "ラウンド {n}",
+  "@roundN": {
     "placeholders": {
       "n": {
         "type": "String"
@@ -101,8 +101,8 @@
       }
     }
   },
-  "starGraze": "GRAZE を {value} 回決める",
-  "@starGraze": {
+  "starNearMiss": "NEAR MISS を {value} 回決める",
+  "@starNearMiss": {
     "placeholders": {
       "value": {
         "type": "String"
@@ -184,7 +184,7 @@
   "tapToStart": "タップで開始",
   "rankingUnavailable": "ランキングは現在利用できません",
   "rankingEndlessScore": "エンドレス: スコア",
-  "rankingEndlessWave": "エンドレス: 到達ラウンド",
+  "rankingEndlessRound": "エンドレス: 到達ラウンド",
   "rankingStages": "ステージ: 合計スコア",
   "introKeystone": "NEW: 要石 — 壊すと、支えていたブロックが崩れ落ちる",
   "introTurret": "NEW: 砲台 — 弾をパリィで撃ち返せ",

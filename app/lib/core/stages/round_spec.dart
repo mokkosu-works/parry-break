@@ -1,15 +1,15 @@
 import 'boss_def.dart';
 
 /// 1 ラウンドの中身。配置 ([LayoutContent]) かボス ([BossContent]) のどちらか。
-sealed class WaveContent {
-  const WaveContent();
+sealed class RoundContent {
+  const RoundContent();
 }
 
 /// グリッド配置のラウンド。
 ///
 /// [rows] は 1 行 14 文字の文字列で、`.` は空き。それ以外の文字は [legend] で
 /// ブロックの種類 ID に読み替える (legend にない文字はそのまま ID として扱う)。
-final class LayoutContent extends WaveContent {
+final class LayoutContent extends RoundContent {
   const LayoutContent(this.rows, {this.legend = const {}});
   final List<String> rows;
   final Map<String, String> legend;
@@ -20,7 +20,7 @@ final class LayoutContent extends WaveContent {
   }
 }
 
-final class BossContent extends WaveContent {
+final class BossContent extends RoundContent {
   const BossContent(this.boss);
   final BossDef boss;
 }
@@ -55,8 +55,8 @@ final class SurviveClear extends ClearCondition {
 }
 
 /// 1 ラウンドの定義。ゲームモードが番号ごとに作る。
-class WaveSpec {
-  const WaveSpec({
+class RoundSpec {
+  const RoundSpec({
     required this.number,
     required this.difficulty,
     required this.content,
@@ -82,7 +82,7 @@ class WaveSpec {
 
   final ClearCondition clear;
 
-  final WaveContent content;
+  final RoundContent content;
 
   /// 新ギミックの説明の翻訳キー。
   final String? introKey;
@@ -96,7 +96,7 @@ class WaveSpec {
   /// 反射ブロック・砲台の初期タイマーに使う固定シード (ブラウザ版と同じ式)。
   int get seed => number * 131 + 7;
 
-  WaveSpec copyWith({int? number, int? loop, double? loopMul, String? introKey, bool? ending}) => WaveSpec(
+  RoundSpec copyWith({int? number, int? loop, double? loopMul, String? introKey, bool? ending}) => RoundSpec(
         number: number ?? this.number,
         difficulty: difficulty,
         content: content,

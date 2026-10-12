@@ -9,7 +9,7 @@ List<Block> coresOf(World w) => w.blocks.where((b) => b.type == bossCoreId).toLi
 
 /// エンドレスの [index] 体目のボス戦を始める (カウントダウンは済ませる)。
 World bossWorld(int index) {
-  final w = World(mode: endlessMode)..start(fromWave: (index + 1) * endlessContent.bossEvery);
+  final w = World(mode: endlessMode)..start(fromRound: (index + 1) * endlessContent.bossEvery);
   run(w, 1.1);
   return w;
 }
@@ -169,7 +169,7 @@ void main() {
     hitPaddle(w);
     expect(w.heat, 0);
 
-    final n = testWorld(const SingleWaveMode(['NNNNNNNNNNNNNN']));
+    final n = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
     run(n, 1.1);
     n.heat = 300;
     hitPaddle(n);

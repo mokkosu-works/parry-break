@@ -65,7 +65,7 @@ extension _ParrySystem on World {
     b.vy = -math.cos(a) * b.speed;
     if (!launched) {
       launched = true;
-      waveTime = 0;
+      roundTime = 0;
     }
     b.flight = 0;
     emit(const BallLaunched());

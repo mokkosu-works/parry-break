@@ -75,7 +75,7 @@ abstract class BlockBehavior {
   void onDestroyed(World w, Block b, double cx, double cy) {}
 
   /// ラウンド開始時に、配置の順番で呼ばれる (砲台の初期タイマーなど)。
-  void onWaveStart(World w, Block b) {}
+  void onRoundStart(World w, Block b) {}
 
   /// 崩落して落ち始めた (得点の加算後に呼ばれる)。
   void onFell(World w, Block b, double cx, double cy) {}

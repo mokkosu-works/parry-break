@@ -146,11 +146,11 @@ abstract class AppLocalizations {
   /// **'最高スコア'**
   String get bestScore;
 
-  /// No description provided for @waveN.
+  /// No description provided for @roundN.
   ///
   /// In ja, this message translates to:
   /// **'ラウンド {n}'**
-  String waveN(String n);
+  String roundN(String n);
 
   /// No description provided for @helpMoveTitle.
   ///
@@ -368,11 +368,11 @@ abstract class AppLocalizations {
   /// **'撃ち返した弾でブロックを {value} 個壊す'**
   String starReturnKills(String value);
 
-  /// No description provided for @starGraze.
+  /// No description provided for @starNearMiss.
   ///
   /// In ja, this message translates to:
-  /// **'GRAZE を {value} 回決める'**
-  String starGraze(String value);
+  /// **'NEAR MISS を {value} 回決める'**
+  String starNearMiss(String value);
 
   /// No description provided for @starRicochet.
   ///
@@ -614,11 +614,11 @@ abstract class AppLocalizations {
   /// **'エンドレス: スコア'**
   String get rankingEndlessScore;
 
-  /// No description provided for @rankingEndlessWave.
+  /// No description provided for @rankingEndlessRound.
   ///
   /// In ja, this message translates to:
   /// **'エンドレス: 到達ラウンド'**
-  String get rankingEndlessWave;
+  String get rankingEndlessRound;
 
   /// No description provided for @rankingStages.
   ///

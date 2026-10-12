@@ -25,7 +25,7 @@ extension _BulletSystem on World {
       }
       if (u.hostile) {
         final pw = paddleWidth, px = p.x - pw / 2;
-        if (rectDist(u.x, u.y, px, Field.paddleY, pw, Field.paddleH) <= u.r + tuning.grazeDist) u.near = true;
+        if (rectDist(u.x, u.y, px, Field.paddleY, pw, Field.paddleH) <= u.r + tuning.nearMissDist) u.near = true;
         if (u.vy > 0 && circleRect(u.x, u.y, u.r, px, Field.paddleY, pw, Field.paddleH)) {
           final grade = _judgeContact(tcB);
           if (grade != null) {
@@ -34,9 +34,9 @@ extension _BulletSystem on World {
             bullets.removeAt(i);
             _hurt();
           }
-        } else if (u.near && !u.grazed && u.y > Field.paddleY + Field.paddleH + u.r && p.invuln <= 0) {
-          u.grazed = true;
-          _graze(u);
+        } else if (u.near && !u.nearMissed && u.y > Field.paddleY + Field.paddleH + u.r && p.invuln <= 0) {
+          u.nearMissed = true;
+          _nearMiss(u);
         }
         continue;
       }
@@ -74,13 +74,13 @@ extension _BulletSystem on World {
   }
 
   /// かすり: 敵弾がパドルに当たらず、近くを通り過ぎた。
-  void _graze(Bullet u) {
-    stats.graze++;
+  void _nearMiss(Bullet u) {
+    stats.nearMiss++;
     addHeat(8);
     final v = 50 * mult;
     score += v;
-    emit(Grazed(u.x));
-    emit(Popup(u.x, Field.paddleY - 8, 'GRAZE', PopupKind.graze, amount: v));
+    emit(NearMissed(u.x));
+    emit(Popup(u.x, Field.paddleY - 8, 'NEAR MISS', PopupKind.nearMiss, amount: v));
   }
 
   /// 敵弾を撃ち返す。赤い弾はコアへ、それ以外は発射元 (なければ最寄りのブロック) へ向かう。
@@ -88,7 +88,7 @@ extension _BulletSystem on World {
     u
       ..hostile = false
       ..y = Field.paddleY - u.r - 1;
-    final sp = tuning.returnSpeed * wave.loopMul;
+    final sp = tuning.returnSpeed * round.loopMul;
     Vec2? to;
     if (u.red) {
       u.target = _nearestCore(u.x, u.y);

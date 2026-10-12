@@ -137,7 +137,7 @@ class BossPatternRegistry {
   });
 }
 
-double _bulletSpeed(World w, Boss b) => (230 + b.index * 15) * w.wave.loopMul * w.difficulty.bulletSpeed;
+double _bulletSpeed(World w, Boss b) => (230 + b.index * 15) * w.round.loopMul * w.difficulty.bulletSpeed;
 
 /// 扇状の弾幕 (赤い弾を含む)。コアが複数あるときは 1 つずつ順番に撃つ。
 class FanPattern extends BossPattern {

@@ -32,8 +32,8 @@ abstract class GunBlock extends BlockBehavior {
 
   /// 最初の発射までの時間をラウンドの固定シードでばらつかせる。
   @override
-  void onWaveStart(World w, Block b) {
-    final ti = w.tuning.turretInterval(w.wave.difficulty, w.wave.loopMul);
+  void onRoundStart(World w, Block b) {
+    final ti = w.tuning.turretInterval(w.round.difficulty, w.round.loopMul);
     b.fireT = 1.6 + ti * (0.3 + w.rng.next() * 1.2);
   }
 
@@ -41,14 +41,14 @@ abstract class GunBlock extends BlockBehavior {
   double interval(World w) {
     final boss = w.boss;
     final base = boss != null
-        ? math.max(1.8, 3.6 - boss.index * 0.12) / w.wave.loopMul
-        : w.tuning.turretInterval(w.wave.difficulty, w.wave.loopMul);
+        ? math.max(1.8, 3.6 - boss.index * 0.12) / w.round.loopMul
+        : w.tuning.turretInterval(w.round.difficulty, w.round.loopMul);
     return base * intervalScale / w.difficulty.fireRate;
   }
 
   /// 敵弾の基準の速さ (px/秒)。
   double bulletSpeed(World w) =>
-      w.tuning.bulletSpeed(w.wave.difficulty, w.wave.loopMul) * w.difficulty.bulletSpeed;
+      w.tuning.bulletSpeed(w.round.difficulty, w.round.loopMul) * w.difficulty.bulletSpeed;
 
   /// パドルを狙う角度。[lead] はパドルの移動先を予測する割合 (0 なら今の位置)。
   double aimAtPaddle(World w, double x, double y, double sp, {double lead = 0}) {
@@ -91,7 +91,7 @@ class TurretBlock extends GunBlock {
 
   @override
   double fire(World w, Block b, double x, double y) {
-    final difficulty = w.wave.difficulty;
+    final difficulty = w.round.difficulty;
     final sp = bulletSpeed(w);
     final ang = aimAtPaddle(w, x, y, sp, lead: difficulty >= 12 ? 0.6 : 0);
     w.fireBullet(x, y, ang, sp, source: b);

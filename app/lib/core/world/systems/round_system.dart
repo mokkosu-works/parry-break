@@ -1,11 +1,11 @@
 part of '../world.dart';
 
 /// ラウンドの開始・進行・クリア・ゲームオーバー。
-extension _WaveSystem on World {
-  void _loadWave(WaveSpec spec) {
+extension _RoundSystem on World {
+  void _loadRound(RoundSpec spec) {
     _finishCascade();
     _finishBlastChain();
-    wave = spec;
+    round = spec;
     tuning = spec.tuning.isEmpty ? baseTuning : baseTuning.copyWith(spec.tuning);
     rng = Mulberry32(spec.seed);
     aux = Mulberry32(spec.seed * 7 + 1);
@@ -31,12 +31,12 @@ extension _WaveSystem on World {
         _buildBoss(c.boss);
     }
     for (final b in List.of(blocks)) {
-      b.behavior.onWaveStart(this, b);
+      b.behavior.onRoundStart(this, b);
     }
     _initSupport();
     ball = Ball(x: paddle.x, y: Field.paddleY - Field.ballR - 1, speed: targetSpeed, attached: true);
     countdown = tuning.countdown;
-    waveTime = 0;
+    roundTime = 0;
     launched = false;
     lastBlockHit = -9;
     lastContact = const Contact(-9, used: true);
@@ -45,10 +45,10 @@ extension _WaveSystem on World {
     phase = WorldPhase.playing;
     lowest = 0;
     final b = boss;
-    emit(WaveStarted(number: spec.number, loop: spec.loop, bossIndex: b?.index, introKey: spec.introKey));
+    emit(RoundStarted(number: spec.number, loop: spec.loop, bossIndex: b?.index, introKey: spec.introKey));
     emit(b != null
         ? Banner(BannerKind.boss, value: b.index + 1)
-        : Banner(BannerKind.wave, value: spec.number, introKey: spec.introKey));
+        : Banner(BannerKind.round, value: spec.number, introKey: spec.introKey));
   }
 
   void _updatePlay(double dt) {
@@ -82,7 +82,7 @@ extension _WaveSystem on World {
     }
     final active = countdown <= 0;
     if (active) {
-      waveTime += dt;
+      roundTime += dt;
       stats.playTime += dt;
       if (boss != null) {
         _updateBoss(dt);
@@ -132,13 +132,13 @@ extension _WaveSystem on World {
         ? !blocks.any((b) => b.type == bossCoreId)
         : !blocks.any((b) => b.behavior.clearable);
     final cleared = annihilated ||
-        switch (wave.clear) {
+        switch (round.clear) {
           AnnihilateClear() => false,
           ScoreClear(:final target) => score >= target,
-          SurviveClear(:final seconds) => waveTime >= seconds,
+          SurviveClear(:final seconds) => roundTime >= seconds,
         };
     if (cleared) {
-      _waveClear();
+      _roundClear();
       return;
     }
     var low = 0.0;
@@ -149,7 +149,7 @@ extension _WaveSystem on World {
     if (low >= Field.warnY) _gameOver(boss?.plunge ?? false ? 'TIME OVER' : 'BLOCKS BREACHED');
   }
 
-  void _waveClear() {
+  void _roundClear() {
     final m = mult, bon = <Bonus>[];
     final b = boss;
     if (b != null) bon.add(Bonus('BOSS DESTROYED', 50000 + b.time.floor() * 500));
@@ -157,10 +157,10 @@ extension _WaveSystem on World {
     if (b == null) {
       final dist = math.max(0.0, Field.warnY - lowest).round();
       bon.add(Bonus('DISTANCE ${dist}px', dist * 20));
-      if (waveTime <= 10) bon.add(Bonus('ANNIHILATION  ×$m', 20000 * m));
+      if (roundTime <= 10) bon.add(Bonus('ANNIHILATION  ×$m', 20000 * m));
     }
     if (streak > 0) bon.add(Bonus('NO-MISS CHAIN $streak', streak * 500));
-    if (wave.ending) bon.add(const Bonus('ALL ROUNDS CLEAR', 1000000));
+    if (round.ending) bon.add(const Bonus('ALL ROUNDS CLEAR', 1000000));
     for (final x in bon) {
       score += x.points;
     }
@@ -176,18 +176,18 @@ extension _WaveSystem on World {
     if (phantoms.isNotEmpty) _popPhantoms();
     phase = WorldPhase.clearing;
     clearT = 0;
-    emit(WaveCleared(bonuses: bon, remaining: remaining, ending: wave.ending));
+    emit(RoundCleared(bonuses: bon, remaining: remaining, ending: round.ending));
   }
 
   void _updateClear(double dt) {
     clearT += dt;
-    if (clearT <= (wave.ending ? 5 : 2.8)) return;
-    final next = mode.waveAt(wave.number + 1);
+    if (clearT <= (round.ending ? 5 : 2.8)) return;
+    final next = mode.roundAt(round.number + 1);
     if (next == null) {
       phase = WorldPhase.completed;
       emit(StageCompleted(score: score));
     } else {
-      _loadWave(next);
+      _loadRound(next);
     }
   }
 
@@ -202,6 +202,6 @@ extension _WaveSystem on World {
     lasers = [];
     _finishCascade();
     _finishBlastChain();
-    emit(GameOver(reason: reason, score: score, wave: wave.number, stats: stats));
+    emit(GameOver(reason: reason, score: score, round: round.number, stats: stats));
   }
 }

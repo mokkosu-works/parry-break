@@ -9,16 +9,16 @@ import 'settings.dart';
 class EndlessRecord {
   const EndlessRecord({
     this.bestScore = 0,
-    this.bestWave = 0,
+    this.bestRound = 0,
     this.bestCollapse = 0,
     this.bestBlast = 0,
     this.bestRicochet = 0,
   });
-  final int bestScore, bestWave, bestCollapse, bestBlast, bestRicochet;
+  final int bestScore, bestRound, bestCollapse, bestBlast, bestRicochet;
 
   Map<String, Object?> toJson() => {
         'bestScore': bestScore,
-        'bestWave': bestWave,
+        'bestRound': bestRound,
         'bestCollapse': bestCollapse,
         'bestBlast': bestBlast,
         'bestRicochet': bestRicochet,
@@ -28,7 +28,7 @@ class EndlessRecord {
     int i(String k) => (j[k] as num?)?.toInt() ?? 0;
     return EndlessRecord(
       bestScore: i('bestScore'),
-      bestWave: i('bestWave'),
+      bestRound: i('bestRound'),
       bestCollapse: i('bestCollapse'),
       bestBlast: i('bestBlast'),
       bestRicochet: i('bestRicochet'),
@@ -143,13 +143,13 @@ class RecordsNotifier extends Notifier<Records> {
   }
 
   /// エンドレスの結果を記録する。最高スコアを更新したら true。
-  bool submitEndless({required int score, required int wave, required RunStats stats}) {
+  bool submitEndless({required int score, required int round, required RunStats stats}) {
     final e = state.endless;
     final newBest = score > e.bestScore;
     _save(Records(
       endless: EndlessRecord(
         bestScore: math.max(e.bestScore, score),
-        bestWave: math.max(e.bestWave, wave),
+        bestRound: math.max(e.bestRound, round),
         bestCollapse: math.max(e.bestCollapse, stats.bestCollapse),
         bestBlast: math.max(e.bestBlast, stats.bestBlast),
         bestRicochet: math.max(e.bestRicochet, stats.bestRicochet),

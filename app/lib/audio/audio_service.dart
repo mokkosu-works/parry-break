@@ -155,11 +155,11 @@ class SoLoudAudio implements AudioService {
         play('coreDie');
       case BulletMirrored():
         play('mirror');
-      case WaveCleared():
+      case RoundCleared():
         play('clear');
       case BossPhaseChanged():
         play('phase');
-      case WaveStarted(:final bossIndex):
+      case RoundStarted(:final bossIndex):
         if (bossIndex != null) play('alarm');
       case BossTimeOver():
         play('alarm');
@@ -182,8 +182,8 @@ class SoLoudAudio implements AudioService {
         } else {
           play('blast', gap: 0.05);
         }
-      case Grazed():
-        play('graze', gap: 0.04);
+      case NearMissed():
+        play('nearMiss', gap: 0.04);
       case RicochetBonus():
         play('ricochet');
       case PhantomsSpawned():

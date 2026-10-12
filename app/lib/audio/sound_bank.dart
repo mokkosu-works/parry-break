@@ -169,7 +169,7 @@ final Map<String, (double, _Def)> _sfx = {
       s.tone(880, 0.4, 'sawtooth', 0.08, f2: 110);
     }
   ),
-  'graze': (0.05, (s) => s.tone(3200, 0.03, 'square', 0.03)),
+  'nearMiss': (0.05, (s) => s.tone(3200, 0.03, 'square', 0.03)),
   'ricochet': (
     0.3,
     (s) {

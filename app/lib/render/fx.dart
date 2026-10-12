@@ -160,7 +160,7 @@ class FxState {
   /// コアのイベントを演出にする。
   void handle(GameEvent e) {
     switch (e) {
-      case WaveStarted():
+      case RoundStarted():
         trails.clear();
         debris.removeWhere((d) => !d.dropped);
       case Banner(:final kind, :final value, :final introKey):
@@ -174,7 +174,7 @@ class FxState {
           PopupKind.chain => (Dot.white, 16.0),
           PopupKind.ricochet => (Dot.peach, 16.0),
           PopupKind.chainBlast => (Dot.orange, 24.0),
-          PopupKind.graze => (Dot.peach, 16.0),
+          PopupKind.nearMiss => (Dot.peach, 16.0),
           PopupKind.noDamage => (Dot.dim, 16.0),
           PopupKind.coreDamage => (Dot.mustard, 24.0),
         };
@@ -215,7 +215,7 @@ class FxState {
         _drop(d);
         debris.add(d);
         burst(x + block.w / 2, y + block.h / 2, 5, d.color, 160);
-      case WaveCleared(:final remaining):
+      case RoundCleared(:final remaining):
         for (final b in remaining) {
           debris.add(FxDebris(b.x + world.form.ox, b.y + world.form.oy, b.w, b.h, blockColor(b),
               delay: _r(0.05, 0.5), originX: Field.width / 2));
@@ -233,7 +233,7 @@ class FxState {
         burst(x, Field.paddleY, 20, Dot.bulletRed, 300);
         _shake(12);
         _flash(0.25, Dot.bulletRed);
-      case Grazed(:final x):
+      case NearMissed(:final x):
         burst(x, Field.paddleY + 6, 6, Dot.white, 200);
       case OverdriveStarted():
         _flash(0.5);

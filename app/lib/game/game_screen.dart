@@ -130,9 +130,9 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     // 結果画面を見ている間に、戻るときの広告を読み込んでおく
     ref.read(adsProvider).onResult();
     if (stage == null) {
-      final newBest = records.submitEndless(score: w.score, wave: w.wave.number, stats: w.stats);
+      final newBest = records.submitEndless(score: w.score, round: w.round.number, stats: w.stats);
       lb.submit(Board.endlessScore, w.score);
-      lb.submit(Board.endlessWave, w.wave.number);
+      lb.submit(Board.endlessRound, w.round.number);
       _outcome = _Outcome(newBest: newBest);
     } else {
       final cleared = w.phase == WorldPhase.completed;
@@ -328,13 +328,13 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       key: ValueKey(_runId),
       data: ResultData(
         score: w.score,
-        wave: w.wave.number,
+        round: w.round.number,
         maxChain: w.maxStreak,
         stats: w.stats,
         reason: w.overReason,
         newBest: o?.newBest ?? false,
         bestScore: stage == null ? records.endless.bestScore : records.stage(stage.id, widget.difficulty).bestScore,
-        bestWave: records.endless.bestWave,
+        bestRound: records.endless.bestRound,
         stage: stage,
         difficulty: widget.difficulty,
         cleared: cleared,

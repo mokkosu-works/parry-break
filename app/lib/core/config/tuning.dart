@@ -29,7 +29,7 @@ class Tuning {
     this.odMaxSpeed = 1000,
     this.odStartSpeedCap = 900,
     this.minAngleDeg = 15,
-    this.grazeDist = 22,
+    this.nearMissDist = 22,
     this.blastRadius = 84,
     this.breakerRadius = 120,
     this.phantomMax = 6,
@@ -38,13 +38,13 @@ class Tuning {
     this.magnetRadius = 140,
     this.magnetAccel = 220,
     this.descentBase = 4.5,
-    this.descentPerWave = 0.18,
+    this.descentPerRound = 0.18,
     this.descentMax = 13,
     this.turretIntervalBase = 2.8,
-    this.turretIntervalPerWave = 0.04,
+    this.turretIntervalPerRound = 0.04,
     this.turretIntervalMin = 1.2,
     this.bulletSpeedBase = 300,
-    this.bulletSpeedPerWave = 4,
+    this.bulletSpeedPerRound = 4,
     this.bulletSpeedMax = 560,
     this.returnSpeed = 620,
     this.mirrorReturnSpeed = 340,
@@ -80,15 +80,15 @@ class Tuning {
   final double maxSpeed, odMaxSpeed, odStartSpeedCap, minAngleDeg;
 
   // 各種半径・距離
-  final double grazeDist, blastRadius, breakerRadius, phantomBlastRadius;
+  final double nearMissDist, blastRadius, breakerRadius, phantomBlastRadius;
   final int phantomMax;
   final double phantomLife;
   final double magnetRadius, magnetAccel;
 
   // 難易度の式の係数
-  final double descentBase, descentPerWave, descentMax;
-  final double turretIntervalBase, turretIntervalPerWave, turretIntervalMin;
-  final double bulletSpeedBase, bulletSpeedPerWave, bulletSpeedMax;
+  final double descentBase, descentPerRound, descentMax;
+  final double turretIntervalBase, turretIntervalPerRound, turretIntervalMin;
+  final double bulletSpeedBase, bulletSpeedPerRound, bulletSpeedMax;
   final double returnSpeed, mirrorReturnSpeed;
   final double countdown;
 
@@ -101,15 +101,15 @@ class Tuning {
 
   /// ブロック群の降下速度 (px/秒)。
   double descentSpeed(int difficulty, double loopMul) =>
-      math.min(descentMax, descentBase + descentPerWave * (difficulty - 1)) * loopMul;
+      math.min(descentMax, descentBase + descentPerRound * (difficulty - 1)) * loopMul;
 
   /// 砲台の発射間隔 (秒)。
   double turretInterval(int difficulty, double loopMul) =>
-      math.max(turretIntervalMin, turretIntervalBase - turretIntervalPerWave * difficulty) / loopMul;
+      math.max(turretIntervalMin, turretIntervalBase - turretIntervalPerRound * difficulty) / loopMul;
 
   /// 砲台の弾速 (px/秒)。
   double bulletSpeed(int difficulty, double loopMul) =>
-      math.min(bulletSpeedMax, bulletSpeedBase + bulletSpeedPerWave * (difficulty - 1)) * loopMul;
+      math.min(bulletSpeedMax, bulletSpeedBase + bulletSpeedPerRound * (difficulty - 1)) * loopMul;
 
   /// JSON の値で一部を上書きした Tuning を返す (ステージデータの `tuning`)。
   Tuning copyWith(Map<String, Object?> o) {
@@ -137,7 +137,7 @@ class Tuning {
       odMaxSpeed: d('odMaxSpeed', odMaxSpeed),
       odStartSpeedCap: d('odStartSpeedCap', odStartSpeedCap),
       minAngleDeg: d('minAngleDeg', minAngleDeg),
-      grazeDist: d('grazeDist', grazeDist),
+      nearMissDist: d('nearMissDist', nearMissDist),
       blastRadius: d('blastRadius', blastRadius),
       breakerRadius: d('breakerRadius', breakerRadius),
       phantomMax: (o['phantomMax'] as num?)?.toInt() ?? phantomMax,
@@ -146,13 +146,13 @@ class Tuning {
       magnetRadius: d('magnetRadius', magnetRadius),
       magnetAccel: d('magnetAccel', magnetAccel),
       descentBase: d('descentBase', descentBase),
-      descentPerWave: d('descentPerWave', descentPerWave),
+      descentPerRound: d('descentPerRound', descentPerRound),
       descentMax: d('descentMax', descentMax),
       turretIntervalBase: d('turretIntervalBase', turretIntervalBase),
-      turretIntervalPerWave: d('turretIntervalPerWave', turretIntervalPerWave),
+      turretIntervalPerRound: d('turretIntervalPerRound', turretIntervalPerRound),
       turretIntervalMin: d('turretIntervalMin', turretIntervalMin),
       bulletSpeedBase: d('bulletSpeedBase', bulletSpeedBase),
-      bulletSpeedPerWave: d('bulletSpeedPerWave', bulletSpeedPerWave),
+      bulletSpeedPerRound: d('bulletSpeedPerRound', bulletSpeedPerRound),
       bulletSpeedMax: d('bulletSpeedMax', bulletSpeedMax),
       returnSpeed: d('returnSpeed', returnSpeed),
       mirrorReturnSpeed: d('mirrorReturnSpeed', mirrorReturnSpeed),

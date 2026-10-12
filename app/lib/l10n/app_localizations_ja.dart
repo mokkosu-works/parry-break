@@ -34,7 +34,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bestScore => '最高スコア';
 
   @override
-  String waveN(String n) {
+  String roundN(String n) {
     return 'ラウンド $n';
   }
 
@@ -165,8 +165,8 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String starGraze(String value) {
-    return 'GRAZE を $value 回決める';
+  String starNearMiss(String value) {
+    return 'NEAR MISS を $value 回決める';
   }
 
   @override
@@ -301,7 +301,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rankingEndlessScore => 'エンドレス: スコア';
 
   @override
-  String get rankingEndlessWave => 'エンドレス: 到達ラウンド';
+  String get rankingEndlessRound => 'エンドレス: 到達ラウンド';
 
   @override
   String get rankingStages => 'ステージ: 合計スコア';

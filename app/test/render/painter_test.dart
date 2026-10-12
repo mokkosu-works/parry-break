@@ -59,7 +59,7 @@ void main() {
   });
 
   testWidgets('OVERDRIVE 中のボス戦 (フェーズ3・レーザー・分身弾・弾幕)', (tester) async {
-    final w = World(mode: endlessMode)..start(fromWave: 20);
+    final w = World(mode: endlessMode)..start(fromRound: 20);
     final fx = FxState(w);
     _run(w, fx, 1.2);
     final core = w.blocks.firstWhere((b) => b.type == bossCoreId);
@@ -80,7 +80,7 @@ void main() {
   });
 
   testWidgets('崩落の最中 (ひび・落下・コールアウト・瓦礫)', (tester) async {
-    final w = World(mode: endlessMode)..start(fromWave: 23);
+    final w = World(mode: endlessMode)..start(fromRound: 23);
     final fx = FxState(w);
     _run(w, fx, 1.2);
     final keystones = w.blocks.where((b) => b.type == 'K').toList();
@@ -93,7 +93,7 @@ void main() {
   });
 
   testWidgets('ラウンドクリアの画面', (tester) async {
-    final w = World(mode: endlessMode)..start(fromWave: 6);
+    final w = World(mode: endlessMode)..start(fromRound: 6);
     final fx = FxState(w);
     _run(w, fx, 1.2);
     for (final b in w.blocks.where((b) => b.behavior.clearable).toList()) {
@@ -101,6 +101,6 @@ void main() {
     }
     _run(w, fx, 1.6);
     expect(w.phase, WorldPhase.clearing);
-    await _paint(tester, w, fx, 'p3_wave_clear');
+    await _paint(tester, w, fx, 'p3_round_clear');
   });
 }

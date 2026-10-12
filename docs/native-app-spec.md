@@ -28,7 +28,7 @@ Oct 4, 2026 · @watsuwo
 | システム | ヒート / OVERDRIVE、崩落(支点からの幅優先探索)、誘爆、ブレイカー、分身弾、グレイズ、跳弾、ロックオンレーザー、ボスのフェーズ移行 |
 | 演出・音 | Canvas の shadowBlur によるグロー、CSS filter による OVERDRIVE の画面反転、WebAudio の合成音(効果音約30種、ヒート段階で変化する16ステップの BGM) |
 | UI | DOM のタイトル・遊び方・日英切替、左の操作レール(横/縦切替)、PARRY / ポーズボタン |
-| 保存 | localStorage(`ro_best` / `ro_bestwave` / `ro_language` / `ro_control_axis`) |
+| 保存 | localStorage(`ro_best` / `ro_bestround` / `ro_language` / `ro_control_axis`) |
 | 状態 | すべてグローバルの `G` に集まっている。マルチボールは `G.ball` を差し替えて処理している |
 
 ## 3. ネイティブ化で直す・変える仕様
@@ -140,9 +140,9 @@ app/
       blocks/     block_behavior.dart(抽象 + BlockRegistry), standard_blocks.dart(登録一覧),
                   normal / turret / reflector(反射・磁力) / splitter / mirror / wall / keystone / explosive / core_block.dart
       world/      world.dart(状態・公開操作・step)
-        systems/  wave_system / ball_system / parry_system / block_system / collapse_system /
+        systems/  round_system / ball_system / parry_system / block_system / collapse_system /
                   bullet_system / boss_system.dart(World の part。システムごとに分割)
-      stages/     wave_spec.dart(WaveSpec + クリア条件), procedural_generator.dart,
+      stages/     round_spec.dart(RoundSpec + クリア条件), procedural_generator.dart,
                   boss_def.dart(BossDef + 攻撃パターン + BossPatternRegistry),
                   content.dart(JSON の読み込み: EndlessContent / Campaign / StageDef / 星の条件)
       modes/      game_mode.dart(GameMode + EndlessMode + StageMode)
@@ -188,7 +188,7 @@ abstract class BlockBehavior {
   void onBlast(World w, Block b, {required bool breaker});
   bool onReturnedBullet(World w, Block b, Bullet u);            // 弾が消えるなら true
   void onDestroyed(World w, Block b, double cx, double cy) {}   // 誘爆・分裂など
-  void onWaveStart(World w, Block b) {}                         // 砲台の初期タイマー
+  void onRoundStart(World w, Block b) {}                         // 砲台の初期タイマー
   void onFell(World w, Block b, double cx, double cy) {}        // 崩落した爆薬の爆発
   void update(World w, Block b, double dt) {}                   // 砲台の発射
   void influenceBall(World w, Block b, Ball ball, double dt) {} // 磁力
@@ -197,16 +197,16 @@ abstract class BlockBehavior {
 // 1回のプレイの進め方 (core/modes/game_mode.dart)
 abstract class GameMode {
   String get recordKey;                 // 記録・ランキングの保存先
-  WaveSpec? waveAt(int number);         // null ならモード終了 (ステージクリア)
+  RoundSpec? roundAt(int number);         // null ならモード終了 (ステージクリア)
 }
 
-// ラウンド (core/stages/wave_spec.dart): 中身 (配置 / ボス)、難易度、周回倍率、クリア条件、Tuning の上書き
+// ラウンド (core/stages/round_spec.dart): 中身 (配置 / ボス)、難易度、周回倍率、クリア条件、Tuning の上書き
 // ボスの攻撃 (core/stages/boss_def.dart): BossPattern を実装して BossPatternRegistry に登録する
 
 // コアが発行する出来事 (core/events/game_event.dart)。描画・音・振動・統計が購読する
 sealed class GameEvent {}
-// WaveStarted, ParrySucceeded, BlockDestroyed, CollapseStarted, BlockFell, BlastExploded,
-// PlayerHurt, OverdriveStarted, BossPhaseChanged, WaveCleared, GameOver, StageCompleted … (約40種)
+// RoundStarted, ParrySucceeded, BlockDestroyed, CollapseStarted, BlockFell, BlastExploded,
+// PlayerHurt, OverdriveStarted, BossPhaseChanged, RoundCleared, GameOver, StageCompleted … (約40種)
 ```
 
 System は `World` が決まった順に呼ぶ(入力 → パドル → パリィの窓 → 降下 / ボス → ヒート → ボール → 砲台 → 弾 → レーザー → 爆発 → 崩落 → クリア判定)。この順序はブラウザ版の `updatePlay` に合わせる。
@@ -217,7 +217,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 
 ```json
 {
-  "wavesPerLoop": 60, "bossEvery": 10, "loopSpeedup": 0.15, "loopIntro": "intro.loop",
+  "roundsPerLoop": 60, "bossEvery": 10, "loopSpeedup": 0.15, "loopIntro": "intro.loop",
   "generator": { "unlock": { "N": 1, "K": 2, "T": 4, "B": 6, "R": 8, "M": 14, "S": 20, "X": 26 } },
   "handcrafted": {
     "2": { "rows": ["...K......K...", "...N......N...", ".NNNNN..NNNNN.", ".NNNNN..NNNNN.", "..NNN....NNN.."],
@@ -239,9 +239,9 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
     "id": "ch01", "title": { "ja": "第1章 基礎訓練", "en": "CHAPTER 1  BASICS" },
     "stages": [{
       "id": "1-7", "title": { "ja": "防衛線", "en": "HOLD THE LINE" },
-      "waves": [{ "endless": 11, "intro": "intro.survive",
+      "rounds": [{ "endless": 11, "intro": "intro.survive",
                   "clear": { "type": "survive", "value": 40 }, "tuning": { "descentBase": 7 } }],
-      "stars": [{ "type": "clear" }, { "type": "graze", "value": 5 }, { "type": "noHit" }]
+      "stars": [{ "type": "clear" }, { "type": "nearMiss", "value": 5 }, { "type": "noHit" }]
     }]
   }]
 }
@@ -249,7 +249,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 
 - ラウンドは `rows`(配置を直接書く。`legend` で文字をブロック ID に読み替え可)/ `endless`(エンドレスの W 番号の中身)/ `boss`(ボス番号)のどれかで書く。共通で `difficulty`・`clear`・`tuning`・`intro` を書ける。
 - クリア条件 `clear.type`: `annihilate`(既定。ボス戦はコア全破壊)/ `score` / `survive`。
-- 星 `stars[].type`: `clear` / `noHit` / `time`(秒以内)/ `score` / `just` / `perfect` / `collapse` / `chainBlast` / `returnKills` / `graze` / `ricochet`。
+- 星 `stars[].type`: `clear` / `noHit` / `time`(秒以内)/ `score` / `just` / `perfect` / `collapse` / `chainBlast` / `returnKills` / `nearMiss` / `ricochet`。
 - 自動生成(`genLayout`)は Dart に移植した。解禁ラウンドは JSON、形の候補・出現率・上限数はコード(`procedural_generator.dart`)にある。mulberry32 は 32bit 整数演算を再現しており、ブラウザ版と同じ配置になることをテストで保証している。
 
 ### 5.6 拡張の手順
@@ -339,7 +339,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
    | ID | 内容 | 名前 |
    | --- | --- | --- |
    | `com.watsuwo.parrybreak.endless_score` | エンドレスの最終スコア | エンドレス: スコア / Endless: Score |
-   | `com.watsuwo.parrybreak.endless_wave` | エンドレスの到達ラウンド | エンドレス: 到達ラウンド / Endless: Wave |
+   | `com.watsuwo.parrybreak.endless_wave` | エンドレスの到達ラウンド | エンドレス: 到達ラウンド / Endless: Round |
    | `com.watsuwo.parrybreak.stages_total` | 全ステージの最高スコアの合計 | ステージ: 合計スコア / Stages: Total Score |
 
 4. **ビルドとアップロード**: `cd app && flutter build ipa --release`。できた `build/ios/archive/Runner.xcarchive` を Xcode の Organizer で開き、Distribute App → App Store Connect でアップロードする。2回目以降は `pubspec.yaml` の `version` のビルド番号(`+` の後ろ)を上げる。

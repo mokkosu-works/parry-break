@@ -1,6 +1,6 @@
 {
  "version": 1,
- "_comment": "ステージモードの定義。ラウンドは rows(直接配置) / endless(エンドレスの W番号) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet",
+ "_comment": "ステージモードの定義。ラウンドは rows(直接配置) / endless(エンドレスの W番号) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, nearMiss, ricochet",
  "chapters": [
   {
    "id": "ch01",
@@ -15,7 +15,7 @@
       "ja": "はじめの一撃",
       "en": "FIRST STRIKE"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 1,
        "intro": "intro.parry",
@@ -44,7 +44,7 @@
       "ja": "要石を砕け",
       "en": "KEYSTONE"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 2
       }
@@ -69,7 +69,7 @@
       "ja": "撃ち抜け",
       "en": "PIERCE"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "NNNNNNNNNNNNNN",
@@ -106,7 +106,7 @@
       "ja": "撃ち返せ",
       "en": "TURRET"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 4
       }
@@ -130,7 +130,7 @@
       "ja": "連鎖爆破",
       "en": "CHAIN BLAST"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 6
       }
@@ -155,7 +155,7 @@
       "ja": "乱反射",
       "en": "REFLECTOR"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 8
       }
@@ -179,7 +179,7 @@
       "ja": "スコアラッシュ",
       "en": "SCORE RUSH"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 9,
        "intro": "intro.score",
@@ -209,7 +209,7 @@
       "ja": "防衛線を死守せよ",
       "en": "HOLD THE LINE"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 11,
        "intro": "intro.survive",
@@ -227,7 +227,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 5
       },
       {
@@ -241,7 +241,7 @@
       "ja": "磁力の罠",
       "en": "MAGNET"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 14
       }
@@ -265,7 +265,7 @@
       "ja": "鋼鉄の要塞",
       "en": "FORTRESS"
      },
-     "waves": [
+     "rounds": [
       {
        "boss": 0
       }
@@ -299,7 +299,7 @@
       "ja": "限界突破",
       "en": "OVERDRIVE"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         ".NNNNNNNNNNNN.",
@@ -335,7 +335,7 @@
       "ja": "二連戦",
       "en": "DOUBLE BILL"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 15
       },
@@ -363,7 +363,7 @@
       "ja": "崩落連鎖",
       "en": "CASCADE"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..K...KK...K..",
@@ -396,7 +396,7 @@
       "ja": "分裂の嵐",
       "en": "SPLITTER"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 20
       }
@@ -421,7 +421,7 @@
       "ja": "磁場",
       "en": "MAGNETIC FIELD"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "NNNNNNNNNNNNNN",
@@ -453,7 +453,7 @@
       "ja": "鏡の迷宮",
       "en": "MIRROR"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 26
       }
@@ -477,7 +477,7 @@
       "ja": "撃ち返し合戦",
       "en": "RETURN FIRE"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "T..T......T..T",
@@ -507,7 +507,7 @@
       "ja": "一攫千金",
       "en": "HIGH ROLLER"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 27,
        "intro": "intro.score",
@@ -537,7 +537,7 @@
       "ja": "持久戦",
       "en": "ENDURANCE"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 28,
        "intro": "intro.survive",
@@ -552,7 +552,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 15
       },
       {
@@ -566,7 +566,7 @@
       "ja": "砲火の要塞",
       "en": "GUN FORTRESS"
      },
-     "waves": [
+     "rounds": [
       {
        "boss": 1
       }
@@ -600,7 +600,7 @@
       "ja": "火薬庫",
       "en": "POWDER KEG"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..BBB....BBB..",
@@ -632,7 +632,7 @@
       "ja": "要石の塔",
       "en": "KEYSTONE TOWER"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "...KK....KK...",
@@ -665,7 +665,7 @@
       "ja": "総力戦",
       "en": "ALL OUT"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 32
       }
@@ -690,7 +690,7 @@
       "ja": "鏡の回廊",
       "en": "MIRROR HALL"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..T..XXXX..T..",
@@ -722,7 +722,7 @@
       "ja": "大量得点",
       "en": "JACKPOT"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..BB..KK..BB..",
@@ -759,7 +759,7 @@
       "ja": "十字砲火",
       "en": "CROSSFIRE"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 35
       }
@@ -783,7 +783,7 @@
       "ja": "反射の檻",
       "en": "RICOCHET CAGE"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "R.T..R..R..T.R",
@@ -814,7 +814,7 @@
       "ja": "背水の陣",
       "en": "NO RETREAT"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 38,
        "intro": "intro.survive",
@@ -829,7 +829,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 25
       },
       {
@@ -843,7 +843,7 @@
       "ja": "三連戦",
       "en": "TRIPLE BILL"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 33
       },
@@ -874,7 +874,7 @@
       "ja": "弾幕の要塞",
       "en": "CURTAIN FORTRESS"
      },
-     "waves": [
+     "rounds": [
       {
        "boss": 2
       }
@@ -908,7 +908,7 @@
       "ja": "拡散砲台",
       "en": "SPREAD"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "...F......F...",
@@ -939,7 +939,7 @@
       "ja": "扇と鏡",
       "en": "FAN & MIRROR"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..F..X..X..F..",
@@ -969,7 +969,7 @@
       "ja": "連射砲台",
       "en": "GATLING"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "G............G",
@@ -1001,7 +1001,7 @@
       "ja": "火薬砲台",
       "en": "POWDER GUNS"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         ".F..BBBBBB..F.",
@@ -1033,7 +1033,7 @@
       "ja": "全方位砲台",
       "en": "RING"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "...O......O...",
@@ -1051,7 +1051,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 10
       },
       {
@@ -1066,7 +1066,7 @@
       "ja": "輪舞",
       "en": "RONDO"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "O.....KK.....O",
@@ -1098,7 +1098,7 @@
       "ja": "集中砲火",
       "en": "FOCUS FIRE"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "F....G..G....F",
@@ -1122,7 +1122,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 20
       },
       {
@@ -1136,7 +1136,7 @@
       "ja": "弾幕の壁",
       "en": "BULLET WALL"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "G...G....G...G",
@@ -1152,7 +1152,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 20
       },
       {
@@ -1166,7 +1166,7 @@
       "ja": "砲列",
       "en": "GUN LINE"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 41
       },
@@ -1201,7 +1201,7 @@
       "ja": "鏡の城",
       "en": "MIRROR CASTLE"
      },
-     "waves": [
+     "rounds": [
       {
        "boss": 3
       }
@@ -1235,7 +1235,7 @@
       "ja": "回転砲台",
       "en": "SPIRAL"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..Z........Z..",
@@ -1252,7 +1252,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 15
       },
       {
@@ -1267,7 +1267,7 @@
       "ja": "渦と鏡",
       "en": "SPIRAL MIRROR"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..X..Z..Z..X..",
@@ -1283,7 +1283,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 25
       },
       {
@@ -1298,7 +1298,7 @@
       "ja": "狙撃砲台",
       "en": "SNIPER"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "P............P",
@@ -1329,7 +1329,7 @@
       "ja": "鏡の狙撃手",
       "en": "MIRROR SNIPE"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..P..XXXX..P..",
@@ -1360,7 +1360,7 @@
       "ja": "狙撃戦",
       "en": "SNIPER DUEL"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "P...P....P...P",
@@ -1399,7 +1399,7 @@
       "ja": "磁力弾幕",
       "en": "MAGNET STORM"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..O...GG...O..",
@@ -1431,7 +1431,7 @@
       "ja": "弾幕の海",
       "en": "SEA OF BULLETS"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "O....Z..Z....O",
@@ -1456,7 +1456,7 @@
        "value": 1000000
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 30
       }
      ]
@@ -1467,7 +1467,7 @@
       "ja": "総砲撃",
       "en": "FULL VOLLEY"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "T.Z..P..P..Z.T",
@@ -1498,7 +1498,7 @@
       "ja": "二連戦・改",
       "en": "DOUBLE BILL EX"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 49
       },
@@ -1532,7 +1532,7 @@
       "ja": "再生要塞",
       "en": "REGEN FORTRESS"
      },
-     "waves": [
+     "rounds": [
       {
        "boss": 4
       }
@@ -1566,7 +1566,7 @@
       "ja": "全砲門開放",
       "en": "ALL GUNS"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "P...F.OO.G...P",
@@ -1597,7 +1597,7 @@
       "ja": "誘爆回廊",
       "en": "MINEFIELD"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         ".G..BBBBBB..G.",
@@ -1629,7 +1629,7 @@
       "ja": "回転要塞",
       "en": "SPIRAL FORT"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "##Z...##...Z##",
@@ -1645,7 +1645,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 30
       },
       {
@@ -1660,7 +1660,7 @@
       "ja": "要石の砲塔",
       "en": "KEYSTONE TOWERS"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..K..O..O..K..",
@@ -1692,7 +1692,7 @@
       "ja": "狙撃の十字路",
       "en": "SNIPER CROSSING"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "P.T..XXXX..T.P",
@@ -1722,7 +1722,7 @@
       "ja": "荒稼ぎ",
       "en": "BIG HAUL"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "..O..G..G..O..",
@@ -1762,7 +1762,7 @@
       "ja": "籠城戦",
       "en": "HOLD THE FORT"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "O..F..PP..F..O",
@@ -1787,7 +1787,7 @@
        "type": "clear"
       },
       {
-       "type": "graze",
+       "type": "nearMiss",
        "value": 40
       },
       {
@@ -1801,7 +1801,7 @@
       "ja": "大砲列",
       "en": "GRAND BATTERY"
      },
-     "waves": [
+     "rounds": [
       {
        "rows": [
         "F..G..PP..G..F",
@@ -1832,7 +1832,7 @@
       "ja": "三連戦・改",
       "en": "TRIPLE BILL EX"
      },
-     "waves": [
+     "rounds": [
       {
        "endless": 49
       },
@@ -1869,7 +1869,7 @@
       "ja": "爆炎の要塞",
       "en": "BOMB FORTRESS"
      },
-     "waves": [
+     "rounds": [
       {
        "boss": 5
       }

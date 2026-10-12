@@ -16,14 +16,14 @@ String starText(AppLocalizations l, StarCondition s) => switch (s) {
           StatKind.collapse => l.starCollapse('$value'),
           StatKind.chainBlast => l.starChainBlast('$value'),
           StatKind.returnKills => l.starReturnKills('$value'),
-          StatKind.graze => l.starGraze('$value'),
+          StatKind.nearMiss => l.starNearMiss('$value'),
           StatKind.ricochet => l.starRicochet('$value'),
         },
     };
 
 /// ステージの目標 (最後のラウンドのクリア条件)。
 String goalText(AppLocalizations l, StageDef s) {
-  final w = s.waves.last;
+  final w = s.rounds.last;
   return switch (w.clear) {
     AnnihilateClear() => w.boss != null ? l.clearBoss : l.clearAnnihilate,
     ScoreClear(:final target) => l.clearScore(formatScore(target)),
