@@ -1,6 +1,5 @@
-・New CONTINUE button on the title screen jumps straight into your next stage
-・The app icon and launch screen are now pixel art to match the game
-・The pause button is smaller and sits at the right end of the score bar
-・The red dotted line that ends the run when blocks reach it is now called the DEAD LINE
-・Turning chapters in stage select now plays a sound
-・Fixed the title screen showing an old version number
+・Three new chapters in Stage mode (FIRESTORM, BULLET HELL, STEEL RAIN) with three new bosses. Every chapter now has 10 stages, 60 in all
+・Choose EASY, NORMAL or HARD in Stage mode. HARD is bullet hell: more bullets, and broken blocks shoot back. Records are kept per difficulty
+・Five new turrets: spread, gatling, ring, spiral and sniper
+・How to Play has new pages for HEAT / OVERDRIVE and GRAZE / RICOCHET
+・Each section of play is now called a ROUND

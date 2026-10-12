@@ -11,7 +11,7 @@ Break a white keystone and every block it was holding comes crashing down. Orang
 
 - TWO MODES
 Endless: Survive 60 rounds and the loop beyond, with a boss fortress every 10 rounds.
-Stages: Short 1-2 minute stages rated with up to three stars. Chapter 1 teaches the basics.
+Stages: 60 short 1-2 minute stages across 6 chapters, rated with up to three stars. Pick EASY, NORMAL or HARD; HARD turns up the bullet hell. Chapter 1 teaches the basics.
 
 - ONE BALL, NO CONTINUES
 Drop the ball or let the blocks reach the dead line and it's over.

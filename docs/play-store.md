@@ -45,7 +45,7 @@ PARRY BREAK は、ブロック崩しの「受けて守る」パドルを「弾�
 
 ■ 2つのモード
 ・エンドレス: 60ラウンドとその先のループに挑むスコアアタック。10ラウンドごとにボス要塞が待ち受けます。
-・ステージ: 1面1〜2分の短いステージを、星3つの評価で攻略します。第1章は基本を覚えるチュートリアルです。
+・ステージ: 全6章60ステージ。1面1〜2分の短いステージを、星3つの評価で攻略します。難易度は EASY / NORMAL / HARD から選べ、HARD は弾幕が激しくなります。第1章は基本を覚えるチュートリアルです。
 
 ■ ボール1個、ミスは即ゲームオーバー
 コンティニューはありません。ボールを落とすか、ブロックがデッドラインまで下りてきたら終わりです。
@@ -83,7 +83,7 @@ Break a white keystone and every block it was holding comes crashing down. Orang
 
 - TWO MODES
 Endless: Survive 60 rounds and the loop beyond, with a boss fortress every 10 rounds.
-Stages: Short 1-2 minute stages rated with up to three stars. Chapter 1 teaches the basics.
+Stages: 60 short 1-2 minute stages across 6 chapters, rated with up to three stars. Pick EASY, NORMAL or HARD; HARD turns up the bullet hell. Chapter 1 teaches the basics.
 
 - ONE BALL, NO CONTINUES
 Drop the ball or let the blocks reach the dead line and it's over.
