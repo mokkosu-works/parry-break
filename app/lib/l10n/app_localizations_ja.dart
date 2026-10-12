@@ -73,6 +73,20 @@ class AppLocalizationsJa extends AppLocalizations {
       '白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る';
 
   @override
+  String get helpHeatTitle => 'HEAT・OVERDRIVE';
+
+  @override
+  String get helpHeatBody =>
+      'パリィや敵弾の撃ち返しを決めると、上の HEAT メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると OVERDRIVE。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、HEAT は下がる';
+
+  @override
+  String get helpGrazeTitle => 'GRAZE・RICOCHET';
+
+  @override
+  String get helpGrazeBody =>
+      'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。HEAT が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点';
+
+  @override
   String get helpOverTitle => 'ゲームオーバー';
 
   @override

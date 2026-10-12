@@ -74,6 +74,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'White blocks (keystones) hold up the blocks attached to them. Break one and the whole cluster falls\nOrange striped blocks (explosives) blow up their surroundings, setting off nearby explosives in turn';
 
   @override
+  String get helpHeatTitle => 'HEAT / OVERDRIVE';
+
+  @override
+  String get helpHeatBody =>
+      'Land parries and return enemy shots to fill the HEAT meter at the top. Each stage raises your score multiplier (×1 → ×2 → ×4 → ×8) and the ball\'s speed\nFill the meter for OVERDRIVE: for a while the ball pierces blocks and the multiplier is ×16\nGetting hit by an enemy shot lowers HEAT';
+
+  @override
+  String get helpGrazeTitle => 'GRAZE / RICOCHET';
+
+  @override
+  String get helpGrazeBody =>
+      'GRAZE: dodge an enemy shot by a hair, without letting it hit the paddle. It raises HEAT\nRICOCHET: break 8 or more blocks before the ball returns to the paddle. The more you break, the higher the score';
+
+  @override
   String get helpOverTitle => 'GAME OVER';
 
   @override
