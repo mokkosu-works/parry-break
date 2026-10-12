@@ -81,7 +81,7 @@ extension _CollapseSystem on World {
       for (var j = 0; j < k; j++) {
         final b = list[(aux.next() * list.length).floor()];
         _spawnHostile(b.x + form.ox + b.w / 2, b.y + form.oy + b.h, aux.range(-50, 50),
-            aux.range(170, 240) * wave.loopMul, BulletKind.shard);
+            aux.range(170, 240) * round.loopMul, BulletKind.shard);
       }
     }
     if (list.length >= 14) slowmo = math.max(slowmo, 0.35);

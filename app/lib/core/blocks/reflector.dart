@@ -32,7 +32,7 @@ abstract class ToughBlock extends BlockBehavior {
   }
 }
 
-/// 反射ブロック。当たるとボールの角度が ±25〜45° ずれる (ウェーブごとの固定シード)。
+/// 反射ブロック。当たるとボールの角度が ±25〜45° ずれる (ラウンドごとの固定シード)。
 class ReflectorBlock extends ToughBlock {
   const ReflectorBlock();
 

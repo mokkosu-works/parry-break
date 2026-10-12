@@ -1,1 +1,1 @@
-breakout,brick breaker,parry,bullet hell,arcade,score attack,shooter,hardcore,reflex,boss,timing
+block,bricks,ball,paddle,shmup,shooter,boss,score,attack,hardcore,reflex,timing,retro,pixel,offline

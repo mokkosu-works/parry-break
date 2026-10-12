@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/config/difficulty.dart';
+
 /// 端末に保存する設定 (docs/native-app-spec.md 3.3)。
 enum ControlScheme {
   /// 画面の左半分をドラッグして移動、右半分をタップしてパリィ。
@@ -29,6 +31,7 @@ class Settings {
     this.reduceEffects = false,
     this.language,
     this.debugMode = false,
+    this.difficulty = Difficulty.normal,
   });
 
   final ControlScheme controls;
@@ -52,6 +55,9 @@ class Settings {
   /// 開発者向け: 全ステージを開け、結果を記録・ランキングに残さない。タイトルの版番号を 3 回タップで切り替える。
   final bool debugMode;
 
+  /// ステージモードで最後に選んだ難易度。
+  final Difficulty difficulty;
+
   Settings copyWith({
     ControlScheme? controls,
     double? sensitivity,
@@ -63,6 +69,7 @@ class Settings {
     bool? reduceEffects,
     String? Function()? language,
     bool? debugMode,
+    Difficulty? difficulty,
   }) =>
       Settings(
         controls: controls ?? this.controls,
@@ -75,6 +82,7 @@ class Settings {
         reduceEffects: reduceEffects ?? this.reduceEffects,
         language: language != null ? language() : this.language,
         debugMode: debugMode ?? this.debugMode,
+        difficulty: difficulty ?? this.difficulty,
       );
 
   Map<String, Object?> toJson() => {
@@ -88,6 +96,7 @@ class Settings {
         'reduceEffects': reduceEffects,
         'language': language,
         'debugMode': debugMode,
+        'difficulty': difficulty.name,
       };
 
   factory Settings.fromJson(Map<String, Object?> j) {
@@ -107,6 +116,7 @@ class Settings {
       reduceEffects: j['reduceEffects'] as bool? ?? d.reduceEffects,
       language: switch (j['language']) { 'ja' => 'ja', 'en' => 'en', _ => null },
       debugMode: j['debugMode'] as bool? ?? d.debugMode,
+      difficulty: pick(Difficulty.values, j['difficulty'], d.difficulty),
     );
   }
 }

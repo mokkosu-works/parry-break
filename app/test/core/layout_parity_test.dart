@@ -22,11 +22,11 @@ void main() {
   });
 
   test('W1〜59 (ボス以外) の配置がブラウザ版と一致する', () {
-    final waves = golden['waves'] as Map<String, dynamic>;
-    expect(waves.length, 54);
-    for (final e in waves.entries) {
+    final rounds = golden['rounds'] as Map<String, dynamic>;
+    expect(rounds.length, 54);
+    for (final e in rounds.entries) {
       final c = endlessContent.contentFor(int.parse(e.key)) as LayoutContent;
-      expect(c.rows, List<String>.from(e.value as List), reason: 'wave ${e.key}');
+      expect(c.rows, List<String>.from(e.value as List), reason: 'round ${e.key}');
     }
   });
 
@@ -37,11 +37,11 @@ void main() {
     }
   });
 
-  test('エンドレスは 10 ウェーブごとにボス、60 でループする', () {
+  test('エンドレスは 10 ラウンドごとにボス、60 でループする', () {
     final mode = endlessMode;
-    expect(mode.waveAt(10).boss?.index, 0);
-    expect(mode.waveAt(60).ending, isTrue);
-    final w61 = mode.waveAt(61);
+    expect(mode.roundAt(10).boss?.index, 0);
+    expect(mode.roundAt(60).ending, isTrue);
+    final w61 = mode.roundAt(61);
     expect(w61.difficulty, 1);
     expect(w61.loop, 1);
     expect(w61.loopMul, closeTo(1.15, 1e-12));

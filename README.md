@@ -18,6 +18,8 @@ flutter test
 
 各ステージの動作確認には、デバッグモードが使える。タイトル右下の `VER 1.0.0` を 3 回続けてタップすると入り、もう一度 3 回タップするか、設定画面のスイッチで抜ける。デバッグモード中は全ステージの鍵が外れ、プレイ結果は記録にもランキングにも残らない。画面の左下には DEBUG の帯が出る。
 
+難易度 (EASY / NORMAL / HARD) のバランスは、自動プレイで全ステージを遊んだクリア率で確かめられる (`flutter test test/balance/balance_report.dart`。見方は design.md 6章「難易度」)。
+
 ステージは `app/assets/stages/campaign.json`、エンドレスの配置とボスは `app/assets/stages/endless.json` に書く。
 
 ## iOS シミュレータで動かす (macOS)
@@ -39,3 +41,9 @@ flutter run              # 複数ある場合は番号で選ぶ。-d <デバイ�
 ```
 
 `flutter run` の実行中に使えるキー: `r` ホットリロード、`R` ホットリスタート、`q` 終了。
+
+## ライセンス
+
+Copyright (c) 2026 Wataru Yamauchi. All rights reserved.
+
+オープンソースではない。著作権者の書面による許可なく、このリポジトリの全部または一部を複製・改変・再配布・他の製品に使うことを禁じる。詳しくは [LICENSE](LICENSE) を参照。

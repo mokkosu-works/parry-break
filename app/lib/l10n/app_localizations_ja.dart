@@ -34,8 +34,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bestScore => '最高スコア';
 
   @override
-  String waveN(String n) {
-    return 'ウェーブ $n';
+  String roundN(String n) {
+    return 'ラウンド $n';
   }
 
   @override
@@ -71,6 +71,20 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get helpChainBody =>
       '白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る';
+
+  @override
+  String get helpHeatTitle => 'HEAT・OVERDRIVE';
+
+  @override
+  String get helpHeatBody =>
+      'パリィや敵弾の撃ち返しを決めると、上の HEAT メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると OVERDRIVE。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、HEAT は下がる';
+
+  @override
+  String get helpGrazeTitle => 'GRAZE・RICOCHET';
+
+  @override
+  String get helpGrazeBody =>
+      'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。HEAT が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点';
 
   @override
   String get helpOverTitle => 'ゲームオーバー';
@@ -301,7 +315,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rankingEndlessScore => 'エンドレス: スコア';
 
   @override
-  String get rankingEndlessWave => 'エンドレス: 到達ウェーブ';
+  String get rankingEndlessRound => 'エンドレス: 到達ラウンド';
 
   @override
   String get rankingStages => 'ステージ: 合計スコア';
@@ -328,6 +342,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introMirror => 'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す';
 
   @override
+  String get introSpread => 'NEW: 拡散砲台 — 扇状の弾。まとめてパリィで撃ち返せ';
+
+  @override
+  String get introGatling => 'NEW: 連射砲台 — 追いかけてくる連射。リズムよくパリィ';
+
+  @override
+  String get introRing => 'NEW: 全方位砲台 — 輪の弾の隙間をくぐれ';
+
+  @override
+  String get introSpiral => 'NEW: 回転砲台 — 渦巻く弾幕。休む間に攻めろ';
+
+  @override
+  String get introSniper => 'NEW: 狙撃砲台 — 照準線が固まったら速い弾が来る';
+
+  @override
   String introLoop(String loop) {
     return '$loop周目 — スピードアップ';
   }
@@ -337,6 +366,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get introPierce => 'PERFECT でパリィすると貫通弾。まとめて撃ち抜け';
+
+  @override
+  String get introOverdrive => 'PERFECT を重ねてヒートを貯めると OVERDRIVE。全弾貫通で一気に崩せ';
 
   @override
   String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
@@ -361,4 +393,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get endingSub => '次の周回へ — さらに加速する';
+
+  @override
+  String get difficulty => '難易度';
+
+  @override
+  String get difficultyEasy => '弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い';
+
+  @override
+  String get difficultyNormal => '標準の難しさ';
+
+  @override
+  String get difficultyHard => '弾幕モード。弾が増え、壊したブロックが撃ち返してくる';
 }

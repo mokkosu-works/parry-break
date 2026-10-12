@@ -11,7 +11,7 @@ import '../render/text_cache.dart';
 import '../services/settings.dart';
 
 /// 遊び方の図で見せる場面。
-enum HelpTopic { move, parry, timing, chain, over, pause }
+enum HelpTopic { move, parry, timing, chain, heat, graze, over, pause }
 
 /// 遊び方の 1 場面を、本物のブロックの描き方を使って小さな盤面に描き、繰り返し動かす。
 class HelpDiagram extends StatefulWidget {
@@ -88,6 +88,8 @@ class _DiagramPainter extends CustomPainter {
     HelpTopic.parry: 0.5,
     HelpTopic.timing: 0.3,
     HelpTopic.chain: 0.36,
+    HelpTopic.heat: 0.55,
+    HelpTopic.graze: 0.45,
     HelpTopic.over: 0.42,
     HelpTopic.pause: 0.5,
   };
@@ -110,6 +112,10 @@ class _DiagramPainter extends CustomPainter {
         _timing();
       case HelpTopic.chain:
         _chain();
+      case HelpTopic.heat:
+        _heat();
+      case HelpTopic.graze:
+        _graze();
       case HelpTopic.over:
         _over();
       case HelpTopic.pause:
@@ -386,6 +392,95 @@ class _DiagramPainter extends CustomPainter {
         _ball(Offset.lerp(const Offset(160, paddleY - 20), Offset(xs[0] + 30, y + 24 + ballR), _span(t, 0, start))!);
       }
       if (t > start + 0.2) _label('CHAIN BLAST', w / 2, 250, Palette.orange);
+    }
+  }
+
+  void _heat() {
+    // 上の帯 (HUD) のメーターが、パリィのたびに満ちて段階が上がり、満ちると OVERDRIVE になる
+    _c.drawRect(const Rect.fromLTWH(0, 0, w, 64), _fill..color = Palette.hudBg);
+    _c.drawLine(
+      const Offset(0, 64),
+      const Offset(w, 64),
+      _stroke
+        ..color = Palette.hudLine
+        ..strokeWidth = 2,
+    );
+    const stageMin = [0, 100, 250, 450], odHeat = 700.0, mults = [1, 2, 4, 8, 16];
+    final od = _t >= 0.75;
+    final k = _span(_t, 0.05, 0.7);
+    final heat = od ? odHeat : _ease(k) * odHeat;
+    var st = 0;
+    for (var i = 1; i < stageMin.length; i++) {
+      if (heat >= stageMin[i]) st = i;
+    }
+    if (od) st = 4;
+    const bx = 24.0, by = 32.0, cell = 12.0, gap = 4.0, cells = 25;
+    text.draw(_c, od ? 'OVERDRIVE' : 'HEAT LV${st + 1}', bx, 14, 14, od ? Dot.rose : Dot.dim, align: TextAlignH.left);
+    final lit = od ? cells : (cells * heat / odHeat).ceil();
+    for (var i = 0; i < cells; i++) {
+      final r = Rect.fromLTWH(bx + i * (cell + gap), by, cell, 16);
+      if (i >= lit) {
+        _c.drawRect(r, pixelPaint(Dot.dither));
+        continue;
+      }
+      bevelRect(_c, r, od ? ((i + (_t * 40).floor()) % 3 == 0 ? Dot.white : Dot.rose) : Palette.heatBar[st]);
+    }
+    if (!od) {
+      final p = pixelPaint(Dot.dim);
+      for (final m in stageMin.skip(1)) {
+        final i = (cells * m / odHeat).round();
+        _c.drawRect(Rect.fromLTWH(bx + i * (cell + gap) - gap / 2 - 1, by - 4, 2, 24), p);
+      }
+    }
+    text.draw(_c, '×${mults[st]}', w - 24, 36, 30, Palette.multColor[st], weight: 900, align: TextAlignH.right);
+    // 下の盤面: パリィのたびに HEAT が増える
+    const hitX = 300.0;
+    final pulse = (k * 4) % 1;
+    final hit = !od && k < 1 && pulse < 0.25;
+    _paddle(hitX, col: hit ? Palette.yellow : Palette.accent, parry: hit);
+    if (hit) {
+      _ring(const Offset(hitX, paddleY - 10), 20 + pulse * 200, Palette.yellow, 1 - pulse * 4);
+      _label('PARRY!', hitX, paddleY - 70, Palette.yellow);
+    }
+    if (od) {
+      _ball(const Offset(hitX + 90, 190),
+          col: Dot.rose, trail: [for (var i = 1; i < 8; i++) Offset(hitX + 90 - i * 10, 190 + i * 14)]);
+      _label('PIERCE!', hitX - 60, 140, Dot.rose, size: 30);
+    }
+  }
+
+  void _graze() {
+    // 前半: 敵弾がパドルのすぐ横をかすめて GRAZE。後半: 一度の発射で多く壊して RICOCHET
+    final first = _t < 0.5;
+    final t = first ? _span(_t, 0, 0.5) : _span(_t, 0.5, 1);
+    if (first) {
+      const px = 300.0;
+      _paddle(px);
+      final y = -10 + _span(t, 0, 0.8) * (h + 20);
+      const bx = px + paddleW / 2 + 14; // パドルの端から 14px
+      _c.drawRect(
+          Rect.fromCenter(center: Offset(bx, y - 14), width: 6, height: 22), _fill..color = withAlpha(Palette.red, 0.4));
+      pixelDisc(_c, bx, y, 8, Palette.red, d: 4);
+      if (y > paddleY + 7) {
+        final k = _span(t, 0.68, 1);
+        _ring(const Offset(px + paddleW / 2, paddleY + 7), 14 + k * 40, Palette.yellow, 1 - k);
+        _label('GRAZE', px, paddleY - 70 - k * 14, Palette.yellow);
+      }
+    } else {
+      const cx = 300.0;
+      final n = (t * 14).floor();
+      var idx = 0;
+      for (var i = 0; i < 4; i++) {
+        for (var j = 0; j < 5; j++) {
+          if (idx++ >= n * 20 / 14) _block('N', cx - 150 + j * 60, 40.0 + i * 24, tier: i % 3);
+        }
+      }
+      // 塊の中をジグザグに跳ね回る
+      final zig = (t * 7) % 2;
+      final bx = cx - 130 + 260 * (zig < 1 ? zig : 2 - zig);
+      if (t < 0.95) _ball(Offset(bx, 100 + 40 * math.sin(t * 20)), col: Palette.yellow);
+      _paddle(cx);
+      _label('RICOCHET ×${n + 4}', cx, 230, Palette.yellow, size: 26);
     }
   }
 

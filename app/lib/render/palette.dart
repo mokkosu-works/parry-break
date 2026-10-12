@@ -30,6 +30,11 @@ abstract final class Palette {
   static const normalTiers = [Dot.orange, Dot.violet, Dot.mustard];
   static const blocks = <String, Color>{
     'T': Dot.brick,
+    'F': Dot.bulletRed,
+    'G': Dot.brick,
+    'O': Dot.violet,
+    'Z': Dot.rose,
+    'P': Dot.blush,
     'R': Dot.mint,
     'M': Dot.sky,
     'S': Dot.rose,

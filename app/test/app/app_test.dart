@@ -144,7 +144,7 @@ void main() {
 
   testWidgets('タイトル → エンドレスを始めて遊び、ポーズして再開できる', (tester) async {
     await _pumpApp(tester, prefs: {
-      'records': jsonEncode(const Records(endless: EndlessRecord(bestScore: 123456, bestWave: 7)).toJson()),
+      'records': jsonEncode(const Records(endless: EndlessRecord(bestScore: 123456, bestRound: 7)).toJson()),
     });
     await _frames(tester, 2.4);
     await _shot(tester, '01_title');
@@ -152,7 +152,7 @@ void main() {
     await tester.tap(find.text('ENDLESS'));
     await _frames(tester, 0.8);
     expect(find.byType(GameScreen), findsOneWidget);
-    await _shot(tester, '02_wave_start');
+    await _shot(tester, '02_round_start');
     await _frames(tester, 0.4);
 
     await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
@@ -395,4 +395,17 @@ void main() {
     await _shot(tester, '12_help');
     expect(tester.takeException(), isNull);
   });
+
+  for (final size in const [Size(667, 375), Size(1280, 720)]) {
+    testWidgets('遊び方の HEAT / GRAZE のページが ${size.width.toInt()}×${size.height.toInt()} ではみ出さない', (tester) async {
+      await _pumpApp(tester, home: const HelpScreen(), size: size);
+      await _frames(tester, 0.5);
+      for (final title in ['MOVE', 'LAUNCH / PARRY', 'TIMING', 'CHAIN', 'HEAT / OVERDRIVE', 'GRAZE / RICOCHET']) {
+        expect(find.text(title), findsOneWidget, reason: title);
+        expect(tester.takeException(), isNull, reason: '$title がはみ出さない');
+        await tester.tap(find.text('NEXT'));
+        await _frames(tester, 0.5);
+      }
+    });
+  }
 }

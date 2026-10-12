@@ -6,7 +6,7 @@ Google Play Console に入力する内容の下書き。署名とビルドの手
 
 | 項目 | 値 |
 | --- | --- |
-| アプリ名 | PARRY BREAK |
+| アプリ名 | 日本語「PARRY BREAK - パリィ×ブロック崩し」、英語「PARRY BREAK: Brick Breaker」(30字以内。App Store の名前と同じ) |
 | パッケージ名 | `com.watsuwo.parrybreak`(一度アップロードすると変えられない) |
 | デフォルトの言語 | 日本語(英語の翻訳も追加する) |
 | アプリかゲームか | ゲーム |
@@ -44,8 +44,8 @@ PARRY BREAK は、ブロック崩しの「受けて守る」パドルを「弾�
 白い要石を壊すと、支えを失ったブロックがまとめて崩れ落ちます。オレンジの爆薬は周りを巻き込んで誘爆します。一撃で盤面をひっくり返す連鎖を狙ってください。
 
 ■ 2つのモード
-・エンドレス: 60ウェーブとその先のループに挑むスコアアタック。10ウェーブごとにボス要塞が待ち受けます。
-・ステージ: 1面1〜2分の短いステージを、星3つの評価で攻略します。第1章は基本を覚えるチュートリアルです。
+・エンドレス: 60ラウンドとその先のループに挑むスコアアタック。10ラウンドごとにボス要塞が待ち受けます。
+・ステージ: 全6章60ステージ。1面1〜2分の短いステージを、星3つの評価で攻略します。難易度は EASY / NORMAL / HARD から選べ、HARD は弾幕が激しくなります。第1章は基本を覚えるチュートリアルです。
 
 ■ ボール1個、ミスは即ゲームオーバー
 コンティニューはありません。ボールを落とすか、ブロックがデッドラインまで下りてきたら終わりです。
@@ -73,7 +73,7 @@ Parry to attack! One ball, simple controls, and a seriously tough block breaker.
 PARRY BREAK turns the block-breaker paddle from a shield into a weapon. An arcade score attack where you parry instead of just catching.
 
 - PARRY ON IMPACT
-Tap the right half of the screen just as the ball or a bullet hits your paddle. PERFECT timing fires a piercing shot; JUST releases a shockwave. Every bullet you send back is a chance for big points.
+Tap the right half of the screen just as the ball or a bullet hits your paddle. PERFECT timing fires a piercing shot; JUST releases a burst. Every bullet you send back is a chance for big points.
 
 - RISK PAYS
 Parries and returned bullets build up your Heat and your multiplier. Max it out to trigger OVERDRIVE: your ball tears through blocks, and every parry splits off clone balls. Playing safe won't get you far.
@@ -82,8 +82,8 @@ Parries and returned bullets build up your Heat and your multiplier. Max it out 
 Break a white keystone and every block it was holding comes crashing down. Orange explosives take their neighbours with them. Find the chain that flips the whole board.
 
 - TWO MODES
-Endless: Survive 60 waves and the loop beyond, with a boss fortress every 10 waves.
-Stages: Short 1-2 minute stages rated with up to three stars. Chapter 1 teaches the basics.
+Endless: Survive 60 rounds and the loop beyond, with a boss fortress every 10 rounds.
+Stages: 60 short 1-2 minute stages across 6 chapters, rated with up to three stars. Pick EASY, NORMAL or HARD; HARD turns up the bullet hell. Chapter 1 teaches the basics.
 
 - ONE BALL, NO CONTINUES
 Drop the ball or let the blocks reach the dead line and it's over.

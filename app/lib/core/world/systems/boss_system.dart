@@ -25,8 +25,12 @@ extension _BossSystem on World {
       cols: cols,
       amp: math.max(40, (Field.width - cols * Field.cellW) / 2 - 30),
       maxHp: cores * def.coreHp,
-      patterns: [for (final s in def.patterns) bossPatterns.create(s)],
-    );
+      patterns: [
+        for (final s in def.patterns) bossPatterns.create(s),
+        if (difficulty == Difficulty.hard)
+          for (final s in def.hardPatterns) bossPatterns.create(s),
+      ],
+    )..time += difficulty.bossTimeBonus;
   }
 
   void _updateBoss(double dt) {
@@ -49,7 +53,7 @@ extension _BossSystem on World {
     }
     final cores = blocks.where((x) => x.type == bossCoreId).toList();
     if (cores.isEmpty) return;
-    final rate = const [1.0, 1.15, 1.3][b.phase - 1] * (1 + b.index * 0.05) * wave.loopMul;
+    final rate = const [1.0, 1.15, 1.3][b.phase - 1] * (1 + b.index * 0.05) * round.loopMul * difficulty.bossFireRate;
     for (final p in b.patterns) {
       if (b.phase >= p.fromPhase) p.update(this, b, cores, dt, rate);
     }

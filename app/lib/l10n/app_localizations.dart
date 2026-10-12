@@ -146,11 +146,11 @@ abstract class AppLocalizations {
   /// **'最高スコア'**
   String get bestScore;
 
-  /// No description provided for @waveN.
+  /// No description provided for @roundN.
   ///
   /// In ja, this message translates to:
-  /// **'ウェーブ {n}'**
-  String waveN(String n);
+  /// **'ラウンド {n}'**
+  String roundN(String n);
 
   /// No description provided for @helpMoveTitle.
   ///
@@ -211,6 +211,30 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る'**
   String get helpChainBody;
+
+  /// No description provided for @helpHeatTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'HEAT・OVERDRIVE'**
+  String get helpHeatTitle;
+
+  /// No description provided for @helpHeatBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'パリィや敵弾の撃ち返しを決めると、上の HEAT メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると OVERDRIVE。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、HEAT は下がる'**
+  String get helpHeatBody;
+
+  /// No description provided for @helpGrazeTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'GRAZE・RICOCHET'**
+  String get helpGrazeTitle;
+
+  /// No description provided for @helpGrazeBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。HEAT が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点'**
+  String get helpGrazeBody;
 
   /// No description provided for @helpOverTitle.
   ///
@@ -614,11 +638,11 @@ abstract class AppLocalizations {
   /// **'エンドレス: スコア'**
   String get rankingEndlessScore;
 
-  /// No description provided for @rankingEndlessWave.
+  /// No description provided for @rankingEndlessRound.
   ///
   /// In ja, this message translates to:
-  /// **'エンドレス: 到達ウェーブ'**
-  String get rankingEndlessWave;
+  /// **'エンドレス: 到達ラウンド'**
+  String get rankingEndlessRound;
 
   /// No description provided for @rankingStages.
   ///
@@ -668,6 +692,36 @@ abstract class AppLocalizations {
   /// **'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す'**
   String get introMirror;
 
+  /// No description provided for @introSpread.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: 拡散砲台 — 扇状の弾。まとめてパリィで撃ち返せ'**
+  String get introSpread;
+
+  /// No description provided for @introGatling.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: 連射砲台 — 追いかけてくる連射。リズムよくパリィ'**
+  String get introGatling;
+
+  /// No description provided for @introRing.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: 全方位砲台 — 輪の弾の隙間をくぐれ'**
+  String get introRing;
+
+  /// No description provided for @introSpiral.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: 回転砲台 — 渦巻く弾幕。休む間に攻めろ'**
+  String get introSpiral;
+
+  /// No description provided for @introSniper.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: 狙撃砲台 — 照準線が固まったら速い弾が来る'**
+  String get introSniper;
+
   /// No description provided for @introLoop.
   ///
   /// In ja, this message translates to:
@@ -685,6 +739,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'PERFECT でパリィすると貫通弾。まとめて撃ち抜け'**
   String get introPierce;
+
+  /// No description provided for @introOverdrive.
+  ///
+  /// In ja, this message translates to:
+  /// **'PERFECT を重ねてヒートを貯めると OVERDRIVE。全弾貫通で一気に崩せ'**
+  String get introOverdrive;
 
   /// No description provided for @introSurvive.
   ///
@@ -733,6 +793,30 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'次の周回へ — さらに加速する'**
   String get endingSub;
+
+  /// No description provided for @difficulty.
+  ///
+  /// In ja, this message translates to:
+  /// **'難易度'**
+  String get difficulty;
+
+  /// No description provided for @difficultyEasy.
+  ///
+  /// In ja, this message translates to:
+  /// **'弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い'**
+  String get difficultyEasy;
+
+  /// No description provided for @difficultyNormal.
+  ///
+  /// In ja, this message translates to:
+  /// **'標準の難しさ'**
+  String get difficultyNormal;
+
+  /// No description provided for @difficultyHard.
+  ///
+  /// In ja, this message translates to:
+  /// **'弾幕モード。弾が増え、壊したブロックが撃ち返してくる'**
+  String get difficultyHard;
 }
 
 class _AppLocalizationsDelegate

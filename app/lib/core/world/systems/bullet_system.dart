@@ -88,7 +88,7 @@ extension _BulletSystem on World {
     u
       ..hostile = false
       ..y = Field.paddleY - u.r - 1;
-    final sp = tuning.returnSpeed * wave.loopMul;
+    final sp = tuning.returnSpeed * round.loopMul;
     Vec2? to;
     if (u.red) {
       u.target = _nearestCore(u.x, u.y);

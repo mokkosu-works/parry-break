@@ -15,9 +15,10 @@ class GameController extends ChangeNotifier {
     required this.audio,
     required this.haptics,
     required double inputLag,
+    Difficulty difficulty = Difficulty.normal,
     bool reduceEffects = false,
     double Function()? timeSource,
-  })  : world = World(mode: mode, inputLag: inputLag),
+  })  : world = World(mode: mode, difficulty: difficulty, inputLag: inputLag),
         clock = InputClock(source: timeSource) {
     fx = FxState(world, reduceEffects: reduceEffects);
     session = Session(world, onStep: _onStep);
@@ -95,7 +96,7 @@ class GameController extends ChangeNotifier {
       notifyListeners();
     }
     if (!session.paused) {
-      // ステップの外で起きたイベント (ウェーブ開始など) もここで配る
+      // ステップの外で起きたイベント (ラウンド開始など) もここで配る
       session.advance(now).forEach(_dispatch);
       fx.frame(rdt);
       // 終わったプレイが、次のステージの画面の BGM を切り替えないようにする

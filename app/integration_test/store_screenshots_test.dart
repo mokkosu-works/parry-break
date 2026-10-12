@@ -39,7 +39,7 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
   const lang = String.fromEnvironment('lang', defaultValue: 'ja');
-  const playWave = int.fromEnvironment('playWave', defaultValue: 28);
+  const playRound = int.fromEnvironment('playRound', defaultValue: 28);
 
   Future<void> wait(WidgetTester t, double seconds) => t.pump(Duration(milliseconds: (seconds * 1000).round()));
   Future<void> shot(String name) => binding.takeScreenshot(name);
@@ -95,7 +95,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'settings.v1': jsonEncode(Settings(language: lang, timingOffsetMs: 0).toJson()),
       'records': jsonEncode(Records(
-        endless: const EndlessRecord(bestScore: 1284600, bestWave: 27),
+        endless: const EndlessRecord(bestScore: 1284600, bestRound: 27),
         stages: {
           for (var i = 1; i <= 10; i++)
             '1-$i': StageRecord(cleared: true, bestScore: 20000 + i * 3100, stars: [true, i % 3 != 0, i % 4 != 0]),
@@ -129,7 +129,7 @@ void main() {
     // 3. エンドレスのプレイ中 (砲台の弾が飛び交い、ヒートが上がった場面)
     await t.tap(find.text('ENDLESS'));
     await wait(t, 1);
-    var w = world(t)..start(fromWave: playWave);
+    var w = world(t)..start(fromRound: playRound);
     await wait(t, 1.3);
     launch(w);
     await play(t, w, 3);
@@ -138,7 +138,7 @@ void main() {
     await snap(t, w, '03_play');
 
     // 4. ボス戦 (フェーズ3・レーザー・弾幕。OVERDRIVE の手前)
-    w = world(t)..start(fromWave: 20);
+    w = world(t)..start(fromRound: 20);
     await wait(t, 1.3);
     final core = w.blocks.firstWhere((b) => b.type == bossCoreId);
     for (var i = 0; i < 9; i++) {
@@ -151,8 +151,8 @@ void main() {
     await playUntilParry(t, w);
     await snap(t, w, '01_boss');
 
-    // 5. 崩落 (要石を1つだけ残して壊した直後。ウェーブが終わる前に撮る)
-    w = world(t)..start(fromWave: 23);
+    // 5. 崩落 (要石を1つだけ残して壊した直後。ラウンドが終わる前に撮る)
+    w = world(t)..start(fromRound: 23);
     await wait(t, 1.3);
     launch(w);
     await play(t, w, 0.8);

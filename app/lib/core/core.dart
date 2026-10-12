@@ -3,6 +3,7 @@ library;
 
 export 'blocks/block_behavior.dart';
 export 'blocks/standard_blocks.dart';
+export 'config/difficulty.dart';
 export 'config/field.dart';
 export 'config/tuning.dart';
 export 'entities/entities.dart';
@@ -15,5 +16,5 @@ export 'sim/time_sync.dart';
 export 'stages/boss_def.dart';
 export 'stages/content.dart';
 export 'stages/procedural_generator.dart';
-export 'stages/wave_spec.dart';
+export 'stages/round_spec.dart';
 export 'world/world.dart';

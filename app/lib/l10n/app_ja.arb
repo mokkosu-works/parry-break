@@ -8,8 +8,8 @@
   "menuRanking": "ランキング",
   "back": "戻る",
   "bestScore": "最高スコア",
-  "waveN": "ウェーブ {n}",
-  "@waveN": {
+  "roundN": "ラウンド {n}",
+  "@roundN": {
     "placeholders": {
       "n": {
         "type": "String"
@@ -26,6 +26,10 @@
   "helpTimingBody": "当たる瞬間にぴったり合わせるほど、弾き返したボールが強くなる\nPERFECT:ボールがブロックを突き抜けて進む\nJUST(さらにぴったり):次に当たった所で衝撃波が出て、周りのブロックもまとめて壊す",
   "helpChainTitle": "連鎖",
   "helpChainBody": "白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る",
+  "helpHeatTitle": "HEAT・OVERDRIVE",
+  "helpHeatBody": "パリィや敵弾の撃ち返しを決めると、上の HEAT メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると OVERDRIVE。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、HEAT は下がる",
+  "helpGrazeTitle": "GRAZE・RICOCHET",
+  "helpGrazeBody": "GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。HEAT が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点",
   "helpOverTitle": "ゲームオーバー",
   "helpOverBody": "ボールを画面の下に落とすと終わり\nブロックが赤い点線(デッドライン)まで下りてきても終わり",
   "helpPauseTitle": "一時停止",
@@ -184,7 +188,7 @@
   "tapToStart": "タップで開始",
   "rankingUnavailable": "ランキングは現在利用できません",
   "rankingEndlessScore": "エンドレス: スコア",
-  "rankingEndlessWave": "エンドレス: 到達ウェーブ",
+  "rankingEndlessRound": "エンドレス: 到達ラウンド",
   "rankingStages": "ステージ: 合計スコア",
   "introKeystone": "NEW: 要石 — 壊すと、支えていたブロックが崩れ落ちる",
   "introTurret": "NEW: 砲台 — 弾をパリィで撃ち返せ",
@@ -193,6 +197,11 @@
   "introMagnet": "NEW: 磁石 — 近くのボールを引き寄せる",
   "introSplitter": "NEW: 分裂 — 壊すと小さなブロックが飛び散る",
   "introMirror": "NEW: 鏡 — 撃ち返した弾をさらに跳ね返す",
+  "introSpread": "NEW: 拡散砲台 — 扇状の弾。まとめてパリィで撃ち返せ",
+  "introGatling": "NEW: 連射砲台 — 追いかけてくる連射。リズムよくパリィ",
+  "introRing": "NEW: 全方位砲台 — 輪の弾の隙間をくぐれ",
+  "introSpiral": "NEW: 回転砲台 — 渦巻く弾幕。休む間に攻めろ",
+  "introSniper": "NEW: 狙撃砲台 — 照準線が固まったら速い弾が来る",
   "introLoop": "{loop}周目 — スピードアップ",
   "@introLoop": {
     "placeholders": {
@@ -203,6 +212,7 @@
   },
   "introParry": "ボールが当たる瞬間にタップしてパリィ",
   "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
+  "introOverdrive": "PERFECT を重ねてヒートを貯めると OVERDRIVE。全弾貫通で一気に崩せ",
   "introSurvive": "ブロックをデッドラインまで下ろさずに耐え抜け",
   "introScore": "目標スコアに到達すればクリア",
   "bannerBoss": "赤い弾をパリィで撃ち返し、貫通弾でコアを狙え",
@@ -210,5 +220,9 @@
   "bannerPhase2": "鏡のシールド展開 — ロックオンレーザーに注意",
   "bannerPhase3": "要塞が変形 — 弾幕に備えろ",
   "bannerTimeOver": "要塞が急降下してくる",
-  "endingSub": "次の周回へ — さらに加速する"
+  "endingSub": "次の周回へ — さらに加速する",
+  "difficulty": "難易度",
+  "difficultyEasy": "弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い",
+  "difficultyNormal": "標準の難しさ",
+  "difficultyHard": "弾幕モード。弾が増え、壊したブロックが撃ち返してくる"
 }

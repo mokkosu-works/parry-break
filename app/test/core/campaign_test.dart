@@ -21,19 +21,44 @@ void main() {
     }
   });
 
+  test('6 章あり、どの章も 10 ステージで、最後はボス 1〜6 を順に使う', () {
+    expect(campaign.chapters, hasLength(6));
+    for (final (i, ch) in campaign.chapters.indexed) {
+      expect(ch.stages, hasLength(10), reason: ch.id);
+      expect([for (final s in ch.stages) s.id], [for (var k = 1; k <= 10; k++) '${i + 1}-$k'], reason: ch.id);
+      expect(ch.stages.last.rounds.single.boss?.index, i, reason: ch.id);
+      expect(ch.stages.where((s) => s.rounds.any((w) => w.boss != null)), hasLength(1), reason: ch.id);
+    }
+  });
+
+  test('新しい攻撃ブロックは、説明付きのステージで初めて登場する', () {
+    final seen = <String>{};
+    for (final s in campaign.stages) {
+      for (final w in s.rounds) {
+        final c = w.content;
+        if (c is! LayoutContent) continue;
+        final ids = {for (var r = 0; r < c.rows.length; r++) for (var k = 0; k < 14; k++) if (c.rows[r][k] != '.') c.blockIdAt(r, k)};
+        for (final (id, intro) in [('F', 'spread'), ('G', 'gatling'), ('O', 'ring'), ('Z', 'spiral'), ('P', 'sniper')]) {
+          if (ids.contains(id) && seen.add(id)) expect(w.introKey, 'intro.$intro', reason: '${s.id} で $id が初登場');
+        }
+      }
+    }
+    expect(seen, {'F', 'G', 'O', 'Z', 'P'});
+  });
+
   test('エンドレスのボスの番号を指定したステージでも、ボスではなく配置になる', () {
-    final s = campaign.stage('2-1')!; // エンドレスの W20 (分裂の学習ウェーブ)
+    final s = campaign.stage('2-4')!; // エンドレスの R20 (分裂の学習ラウンド)
     final w = World(mode: StageMode(s))..start();
     expect(w.boss, isNull);
     expect(w.blocks.any((b) => b.type == 'S'), isTrue);
   });
 
   test('生存ステージは時間が来たらクリアになり、モードが終わる', () {
-    final s = campaign.stage('1-7')!;
+    final s = campaign.stage('1-8')!; // 防衛線を死守せよ (40 秒耐える)
     final w = World(mode: StageMode(s))..start();
     final events = run(w, 50, before: autopilot(w));
     if (w.phase == WorldPhase.over) return; // 自動操作が先に落とした場合は判定しない
-    expect(events.whereType<WaveCleared>(), hasLength(1));
+    expect(events.whereType<RoundCleared>(), hasLength(1));
     expect(events.whereType<StageCompleted>(), hasLength(1));
     expect(w.phase, WorldPhase.completed);
   });
@@ -65,35 +90,35 @@ void main() {
       expect(() => StarCondition.fromJson({'type': 'unknown', 'value': 3}), throwsArgumentError);
     });
 
-    Campaign one(Map<String, Object?> wave) => Campaign.fromJson({
+    Campaign one(Map<String, Object?> round) => Campaign.fromJson({
           'chapters': [
             {
               'id': 'c',
               'title': 'C',
               'stages': [
-                {'id': 's', 'title': 'S', 'waves': [wave]},
+                {'id': 's', 'title': 'S', 'rounds': [round]},
               ],
             },
           ],
         }, endlessContent);
 
-    test('ウェーブの書き方ごとに中身と既定の難易度が決まる', () {
-      final rows = one({'rows': ['..NN..', '..XX..'], 'legend': {'X': 'T'}}).stage('s')!.waves.single;
+    test('ラウンドの書き方ごとに中身と既定の難易度が決まる', () {
+      final rows = one({'rows': ['..NN..', '..XX..'], 'legend': {'X': 'T'}}).stage('s')!.rounds.single;
       expect(rows.difficulty, 1);
       expect((rows.content as LayoutContent).blockIdAt(1, 2), 'T');
 
-      final fromEndless = one({'endless': 4}).stage('s')!.waves.single;
+      final fromEndless = one({'endless': 4}).stage('s')!.rounds.single;
       expect(fromEndless.difficulty, 4);
       expect(fromEndless.content, isA<LayoutContent>());
 
-      final boss = one({'boss': 0}).stage('s')!.waves.single;
+      final boss = one({'boss': 0}).stage('s')!.rounds.single;
       expect(boss.difficulty, endlessContent.bossEvery);
       expect(boss.boss, same(endlessContent.bosses.first));
 
-      expect(one({'boss': 0, 'difficulty': 3}).stage('s')!.waves.single.difficulty, 3);
+      expect(one({'boss': 0, 'difficulty': 3}).stage('s')!.rounds.single.difficulty, 3);
     });
 
-    test('星を書かないステージはクリアだけ、中身のないウェーブは例外', () {
+    test('星を書かないステージはクリアだけ、中身のないラウンドは例外', () {
       expect(one({'endless': 1}).stage('s')!.stars.single, isA<ClearStar>());
       expect(() => one({'difficulty': 2}), throwsFormatException);
     });

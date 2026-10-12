@@ -9,16 +9,16 @@ import 'settings.dart';
 class EndlessRecord {
   const EndlessRecord({
     this.bestScore = 0,
-    this.bestWave = 0,
+    this.bestRound = 0,
     this.bestCollapse = 0,
     this.bestBlast = 0,
     this.bestRicochet = 0,
   });
-  final int bestScore, bestWave, bestCollapse, bestBlast, bestRicochet;
+  final int bestScore, bestRound, bestCollapse, bestBlast, bestRicochet;
 
   Map<String, Object?> toJson() => {
         'bestScore': bestScore,
-        'bestWave': bestWave,
+        'bestRound': bestRound,
         'bestCollapse': bestCollapse,
         'bestBlast': bestBlast,
         'bestRicochet': bestRicochet,
@@ -28,7 +28,7 @@ class EndlessRecord {
     int i(String k) => (j[k] as num?)?.toInt() ?? 0;
     return EndlessRecord(
       bestScore: i('bestScore'),
-      bestWave: i('bestWave'),
+      bestRound: i('bestRound'),
       bestCollapse: i('bestCollapse'),
       bestBlast: i('bestBlast'),
       bestRicochet: i('bestRicochet'),
@@ -66,19 +66,36 @@ class Records {
 
   static const version = 1;
 
-  StageRecord stage(String id) => stages[id] ?? const StageRecord();
+  /// ステージの記録。難易度ごとに別に持つ (NORMAL のキーはステージ ID のまま)。
+  StageRecord stage(String id, [Difficulty difficulty = Difficulty.normal]) =>
+      stages[stageKey(id, difficulty)] ?? const StageRecord();
 
-  /// ステージを遊べるか: 各章の最初のステージは前の章の最後をクリアすると、
-  /// それ以外は同じ章の 1 つ前をクリアすると開く。
+  static String stageKey(String id, Difficulty difficulty) => '$id${difficulty.recordSuffix}';
+
+  /// どれかの難易度でクリアしたか。
+  bool clearedAny(String id) => Difficulty.values.any((d) => stage(id, d).cleared);
+
+  /// ステージごとの最高スコア (難易度をまたいだ最大) の合計。ランキングに送る。
+  int get stagesTotal {
+    final best = <String, int>{};
+    for (final e in stages.entries) {
+      final id = e.key.split('@').first;
+      best[id] = math.max(best[id] ?? 0, e.value.bestScore);
+    }
+    return best.values.fold(0, (s, v) => s + v);
+  }
+
+  /// ステージを遊べるか: 各章の最初のステージは前の章の最後を、それ以外は同じ章の 1 つ前を
+  /// (どの難易度でもよいので) クリアすると開く。
   bool isUnlocked(Campaign c, StageDef s) {
     for (var ci = 0; ci < c.chapters.length; ci++) {
       final stages = c.chapters[ci].stages;
       final si = stages.indexOf(s);
       if (si < 0) continue;
-      if (si > 0) return stage(stages[si - 1].id).cleared;
+      if (si > 0) return clearedAny(stages[si - 1].id);
       if (ci == 0) return true;
       final prev = c.chapters[ci - 1].stages;
-      return prev.isEmpty || stage(prev.last.id).cleared;
+      return prev.isEmpty || clearedAny(prev.last.id);
     }
     return false;
   }
@@ -86,7 +103,7 @@ class Records {
   /// 次に遊ぶステージ: 開いていて、まだクリアしていない最初のステージ。全部クリアしたら null。
   StageDef? nextStage(Campaign c) {
     for (final st in c.stages) {
-      if (isUnlocked(c, st) && !stage(st.id).cleared) return st;
+      if (isUnlocked(c, st) && !clearedAny(st.id)) return st;
     }
     return null;
   }
@@ -126,13 +143,13 @@ class RecordsNotifier extends Notifier<Records> {
   }
 
   /// エンドレスの結果を記録する。最高スコアを更新したら true。
-  bool submitEndless({required int score, required int wave, required RunStats stats}) {
+  bool submitEndless({required int score, required int round, required RunStats stats}) {
     final e = state.endless;
     final newBest = score > e.bestScore;
     _save(Records(
       endless: EndlessRecord(
         bestScore: math.max(e.bestScore, score),
-        bestWave: math.max(e.bestWave, wave),
+        bestRound: math.max(e.bestRound, round),
         bestCollapse: math.max(e.bestCollapse, stats.bestCollapse),
         bestBlast: math.max(e.bestBlast, stats.bestBlast),
         bestRicochet: math.max(e.bestRicochet, stats.bestRicochet),
@@ -143,15 +160,15 @@ class RecordsNotifier extends Notifier<Records> {
   }
 
   /// ステージの結果を記録する。最高スコアを更新したら true。
-  bool submitStage(String id, StageResult result, List<bool> stars) {
-    final old = state.stage(id);
+  bool submitStage(String id, StageResult result, List<bool> stars, {Difficulty difficulty = Difficulty.normal}) {
+    final old = state.stage(id, difficulty);
     final merged = [
       for (var i = 0; i < stars.length; i++) stars[i] || old.hasStar(i),
     ];
     final newBest = result.cleared && result.score > old.bestScore;
     _save(Records(endless: state.endless, stages: {
       ...state.stages,
-      id: StageRecord(
+      Records.stageKey(id, difficulty): StageRecord(
         cleared: old.cleared || result.cleared,
         bestScore: result.cleared ? math.max(old.bestScore, result.score) : old.bestScore,
         stars: merged,

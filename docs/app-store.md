@@ -6,7 +6,7 @@ App Store Connect に入力する内容。名前・説明文・キーワード�
 
 | 項目 | 値 |
 | --- | --- |
-| 名前 | PARRY BREAK |
+| 名前 | 言語ごとに `name.txt`(日本語「PARRY BREAK - パリィ×ブロック崩し」、英語「PARRY BREAK: Brick Breaker」)。ホーム画面の名前は PARRY BREAK のまま |
 | バンドル ID | `com.watsuwo.parrybreak` |
 | SKU | `parrybreak` |
 | プライマリ言語 | 日本語(英語のローカリゼーションも追加する) |
@@ -27,7 +27,7 @@ App Store Connect に入力する内容。名前・説明文・キーワード�
 | `subtitle.txt` | サブタイトル | 30字 |
 | `promotional_text.txt` | プロモーション用テキスト(審査なしで差し替えられる) | 170字 |
 | `description.txt` | 説明文 | 4000字 |
-| `keywords.txt` | キーワード(カンマ区切り。名前とカテゴリの語は入れない) | 100字 |
+| `keywords.txt` | キーワード(カンマ区切りで空白を入れない。名前・サブタイトル・カテゴリにある語は入れない) | 100字 |
 | `support_url.txt` / `privacy_url.txt` / `marketing_url.txt` | サポート URL / プライバシーポリシー URL / マーケティング URL | |
 | `release_notes.txt` | このバージョンの新機能([release-flow.md](release-flow.md) 第5章) | 4000字 |
 
@@ -40,18 +40,19 @@ iPad にも対応している(`TARGETED_DEVICE_FAMILY = 1,2`)ため、iPhone と
 | 端末 | サイズ(横画面) | シミュレータの例 |
 | --- | --- | --- |
 | iPhone 6.9 インチ | 2868 × 1320 | iPhone 18 Pro Max |
+| iPhone 6.3 インチ | 2622 × 1206 | iPhone 18 Pro |
 | iPad 13 インチ | 2752 × 2064 | iPad Pro 13-inch (M5) |
 
 撮り方: `integration_test/store_screenshots_test.dart` が、シミュレータで実際のアプリを動かして5枚を撮る(ボス戦・崩落・プレイ中・ステージ選択・タイトル。番号は載せる順)。記録は見栄えのよい値を入れた仮のもので、端末の保存データには触らない。
 
 ```sh
 cd app
-open -a Simulator   # iPhone 18 Pro Max と iPad Pro 13-inch (M5) を起動しておく
+open -a Simulator   # 表の3台を起動しておく
 SHOT_DIR=build/store_screenshots/ja/iphone flutter drive -d <デバイス ID> --dart-define=lang=ja \
   --driver=test_driver/integration_test.dart --target=integration_test/store_screenshots_test.dart
 ```
 
-`lang=en` で英語版、`-d` に iPad の ID を渡すと iPad 版になる。PNG は透過の情報を持つので、`sips -s format jpeg` で JPEG にしてから載せる。
+`lang=en` で英語版になり、`-d` に渡す端末の ID でサイズが決まる。6.3 インチの欄は 6.9 インチの画像を受け付けない。縮めるとドット絵がにじむので、端末ごとに撮る。ボス戦はたまに被弾して「HIT!」が写るので、撮ったら目で確かめ、写っていたらその端末だけ撮り直す。PNG は透過の情報を持つので、`sips -s format jpeg` で JPEG にしてから載せる。
 
 ## App のプライバシー
 
