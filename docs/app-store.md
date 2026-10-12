@@ -6,7 +6,7 @@ App Store Connect に入力する内容。名前・説明文・キーワード�
 
 | 項目 | 値 |
 | --- | --- |
-| 名前 | PARRY BREAK |
+| 名前 | 言語ごとに `name.txt`(日本語「PARRY BREAK - パリィ×ブロック崩し」、英語「PARRY BREAK: Brick Breaker」)。ホーム画面の名前は PARRY BREAK のまま |
 | バンドル ID | `com.watsuwo.parrybreak` |
 | SKU | `parrybreak` |
 | プライマリ言語 | 日本語(英語のローカリゼーションも追加する) |
@@ -27,7 +27,7 @@ App Store Connect に入力する内容。名前・説明文・キーワード�
 | `subtitle.txt` | サブタイトル | 30字 |
 | `promotional_text.txt` | プロモーション用テキスト(審査なしで差し替えられる) | 170字 |
 | `description.txt` | 説明文 | 4000字 |
-| `keywords.txt` | キーワード(カンマ区切り。名前とカテゴリの語は入れない) | 100字 |
+| `keywords.txt` | キーワード(カンマ区切りで空白を入れない。名前・サブタイトル・カテゴリにある語は入れない) | 100字 |
 | `support_url.txt` / `privacy_url.txt` / `marketing_url.txt` | サポート URL / プライバシーポリシー URL / マーケティング URL | |
 | `release_notes.txt` | このバージョンの新機能([release-flow.md](release-flow.md) 第5章) | 4000字 |
 

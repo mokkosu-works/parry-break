@@ -6,7 +6,7 @@ Google Play Console に入力する内容の下書き。署名とビルドの手
 
 | 項目 | 値 |
 | --- | --- |
-| アプリ名 | PARRY BREAK |
+| アプリ名 | 日本語「PARRY BREAK - パリィ×ブロック崩し」、英語「PARRY BREAK: Brick Breaker」(30字以内。App Store の名前と同じ) |
 | パッケージ名 | `com.watsuwo.parrybreak`(一度アップロードすると変えられない) |
 | デフォルトの言語 | 日本語(英語の翻訳も追加する) |
 | アプリかゲームか | ゲーム |
