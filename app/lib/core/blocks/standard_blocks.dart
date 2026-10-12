@@ -13,6 +13,11 @@ import 'wall.dart';
 BlockRegistry standardBlocks() => BlockRegistry(const [
       NormalBlock(),
       TurretBlock(),
+      SpreadTurretBlock(),
+      GatlingTurretBlock(),
+      RingTurretBlock(),
+      SpiralTurretBlock(),
+      SniperTurretBlock(),
       ReflectorBlock(),
       MagnetBlock(),
       SplitterBlock(),

@@ -176,6 +176,36 @@
     {
      "id": "1-7",
      "title": {
+      "ja": "スコアラッシュ",
+      "en": "SCORE RUSH"
+     },
+     "waves": [
+      {
+       "endless": 9,
+       "intro": "intro.score",
+       "clear": {
+        "type": "score",
+        "value": 120000
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "score",
+       "value": 200000
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "1-8",
+     "title": {
       "ja": "防衛線を死守せよ",
       "en": "HOLD THE LINE"
      },
@@ -202,36 +232,6 @@
       },
       {
        "type": "noHit"
-      }
-     ]
-    },
-    {
-     "id": "1-8",
-     "title": {
-      "ja": "スコアラッシュ",
-      "en": "SCORE RUSH"
-     },
-     "waves": [
-      {
-       "endless": 9,
-       "intro": "intro.score",
-       "clear": {
-        "type": "score",
-        "value": 120000
-       }
-      }
-     ],
-     "stars": [
-      {
-       "type": "clear"
-      },
-      {
-       "type": "score",
-       "value": 200000
-      },
-      {
-       "type": "time",
-       "value": 60
       }
      ]
     },
@@ -296,12 +296,23 @@
     {
      "id": "2-1",
      "title": {
-      "ja": "分裂の嵐",
-      "en": "SPLITTER"
+      "ja": "限界突破",
+      "en": "OVERDRIVE"
      },
      "waves": [
       {
-       "endless": 20
+       "rows": [
+        ".NNNNNNNNNNNN.",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN",
+        ".NNNNNNNNNNNN."
+       ],
+       "difficulty": 15,
+       "intro": "intro.overdrive",
+       "tuning": {
+        "descentBase": 3
+       }
       }
      ],
      "stars": [
@@ -309,41 +320,17 @@
        "type": "clear"
       },
       {
-       "type": "collapse",
-       "value": 20
+       "type": "perfect",
+       "value": 10
       },
       {
        "type": "time",
-       "value": 50
+       "value": 60
       }
      ]
     },
     {
      "id": "2-2",
-     "title": {
-      "ja": "鏡の迷宮",
-      "en": "MIRROR"
-     },
-     "waves": [
-      {
-       "endless": 26
-      }
-     ],
-     "stars": [
-      {
-       "type": "clear"
-      },
-      {
-       "type": "returnKills",
-       "value": 5
-      },
-      {
-       "type": "noHit"
-      }
-     ]
-    },
-    {
-     "id": "2-3",
      "title": {
       "ja": "二連戦",
       "en": "DOUBLE BILL"
@@ -371,19 +358,22 @@
      ]
     },
     {
-     "id": "2-4",
+     "id": "2-3",
      "title": {
-      "ja": "持久戦",
-      "en": "ENDURANCE"
+      "ja": "崩落連鎖",
+      "en": "CASCADE"
      },
      "waves": [
       {
-       "endless": 28,
-       "intro": "intro.survive",
-       "clear": {
-        "type": "survive",
-        "value": 60
-       }
+       "rows": [
+        "..K...KK...K..",
+        "..N...NN...N..",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN",
+        ".NNNNNNNNNNNN.",
+        "..NNNNNNNNNN.."
+       ],
+       "difficulty": 18
       }
      ],
      "stars": [
@@ -391,8 +381,90 @@
        "type": "clear"
       },
       {
-       "type": "graze",
-       "value": 15
+       "type": "collapse",
+       "value": 24
+      },
+      {
+       "type": "time",
+       "value": 45
+      }
+     ]
+    },
+    {
+     "id": "2-4",
+     "title": {
+      "ja": "分裂の嵐",
+      "en": "SPLITTER"
+     },
+     "waves": [
+      {
+       "endless": 20
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "collapse",
+       "value": 20
+      },
+      {
+       "type": "time",
+       "value": 50
+      }
+     ]
+    },
+    {
+     "id": "2-5",
+     "title": {
+      "ja": "磁場",
+      "en": "MAGNETIC FIELD"
+     },
+     "waves": [
+      {
+       "rows": [
+        "NNNNNNNNNNNNNN",
+        "NN.M..SS..M.NN",
+        "NNNN.NNNN.NNNN",
+        "NSNNNNNNNNNNSN",
+        ".NNNNNNNNNNNN."
+       ],
+       "difficulty": 22
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "ricochet",
+       "value": 10
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "2-6",
+     "title": {
+      "ja": "鏡の迷宮",
+      "en": "MIRROR"
+     },
+     "waves": [
+      {
+       "endless": 26
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 5
       },
       {
        "type": "noHit"
@@ -400,7 +472,37 @@
      ]
     },
     {
-     "id": "2-5",
+     "id": "2-7",
+     "title": {
+      "ja": "撃ち返し合戦",
+      "en": "RETURN FIRE"
+     },
+     "waves": [
+      {
+       "rows": [
+        "T..T......T..T",
+        "NXXNNNNNNNNXXN",
+        "NNNNNNNNNNNNNN",
+        ".NNNNNNNNNNNN."
+       ],
+       "difficulty": 24
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 8
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "2-8",
      "title": {
       "ja": "一攫千金",
       "en": "HIGH ROLLER"
@@ -430,7 +532,36 @@
      ]
     },
     {
-     "id": "2-6",
+     "id": "2-9",
+     "title": {
+      "ja": "持久戦",
+      "en": "ENDURANCE"
+     },
+     "waves": [
+      {
+       "endless": 28,
+       "intro": "intro.survive",
+       "clear": {
+        "type": "survive",
+        "value": 60
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 15
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "2-10",
      "title": {
       "ja": "砲火の要塞",
       "en": "GUN FORTRESS"
@@ -466,31 +597,6 @@
     {
      "id": "3-1",
      "title": {
-      "ja": "総力戦",
-      "en": "ALL OUT"
-     },
-     "waves": [
-      {
-       "endless": 32
-      }
-     ],
-     "stars": [
-      {
-       "type": "clear"
-      },
-      {
-       "type": "collapse",
-       "value": 20
-      },
-      {
-       "type": "time",
-       "value": 60
-      }
-     ]
-    },
-    {
-     "id": "3-2",
-     "title": {
       "ja": "火薬庫",
       "en": "POWDER KEG"
      },
@@ -521,7 +627,134 @@
      ]
     },
     {
+     "id": "3-2",
+     "title": {
+      "ja": "要石の塔",
+      "en": "KEYSTONE TOWER"
+     },
+     "waves": [
+      {
+       "rows": [
+        "...KK....KK...",
+        "...NN....NN...",
+        "..NNNN..NNNN..",
+        ".NNSNNNNNNSNN.",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 32
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "collapse",
+       "value": 20
+      },
+      {
+       "type": "time",
+       "value": 50
+      }
+     ]
+    },
+    {
      "id": "3-3",
+     "title": {
+      "ja": "総力戦",
+      "en": "ALL OUT"
+     },
+     "waves": [
+      {
+       "endless": 32
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "collapse",
+       "value": 20
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "3-4",
+     "title": {
+      "ja": "鏡の回廊",
+      "en": "MIRROR HALL"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..T..XXXX..T..",
+        "NNNRNNNNNNRNNN",
+        "NNXNNNNNNNNXNN",
+        "NNNNNNBBNNNNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 33
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 8
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "3-5",
+     "title": {
+      "ja": "大量得点",
+      "en": "JACKPOT"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..BB..KK..BB..",
+        "NNNNNNNNNNNNNN",
+        "NBNNSNNNNSNNBN",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 34,
+       "intro": "intro.score",
+       "clear": {
+        "type": "score",
+        "value": 450000
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "score",
+       "value": 900000
+      },
+      {
+       "type": "chainBlast",
+       "value": 4
+      }
+     ]
+    },
+    {
+     "id": "3-6",
      "title": {
       "ja": "十字砲火",
       "en": "CROSSFIRE"
@@ -545,7 +778,67 @@
      ]
     },
     {
-     "id": "3-4",
+     "id": "3-7",
+     "title": {
+      "ja": "反射の檻",
+      "en": "RICOCHET CAGE"
+     },
+     "waves": [
+      {
+       "rows": [
+        "R.T..R..R..T.R",
+        "NNNNNNNNNNNNNN",
+        "NRNNMNNNNMNNRN",
+        "NNNNNNNNNNNNNN",
+        ".NNNNRNNRNNNN."
+       ],
+       "difficulty": 36
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "ricochet",
+       "value": 12
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "3-8",
+     "title": {
+      "ja": "背水の陣",
+      "en": "NO RETREAT"
+     },
+     "waves": [
+      {
+       "endless": 38,
+       "intro": "intro.survive",
+       "clear": {
+        "type": "survive",
+        "value": 75
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 25
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "3-9",
      "title": {
       "ja": "三連戦",
       "en": "TRIPLE BILL"
@@ -576,36 +869,7 @@
      ]
     },
     {
-     "id": "3-5",
-     "title": {
-      "ja": "背水の陣",
-      "en": "LAST STAND"
-     },
-     "waves": [
-      {
-       "endless": 38,
-       "intro": "intro.survive",
-       "clear": {
-        "type": "survive",
-        "value": 75
-       }
-      }
-     ],
-     "stars": [
-      {
-       "type": "clear"
-      },
-      {
-       "type": "graze",
-       "value": 25
-      },
-      {
-       "type": "noHit"
-      }
-     ]
-    },
-    {
-     "id": "3-6",
+     "id": "3-10",
      "title": {
       "ja": "弾幕の要塞",
       "en": "CURTAIN FORTRESS"
@@ -626,6 +890,1001 @@
       {
        "type": "time",
        "value": 80
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ch04",
+   "title": {
+    "ja": "第4章 砲火の嵐",
+    "en": "CHAPTER 4  FIRESTORM"
+   },
+   "stages": [
+    {
+     "id": "4-1",
+     "title": {
+      "ja": "拡散砲台",
+      "en": "SPREAD"
+     },
+     "waves": [
+      {
+       "rows": [
+        "...F......F...",
+        "NNNNNNNNNNNNNN",
+        ".NNNNNNNNNNNN.",
+        "..NNNN..NNNN.."
+       ],
+       "difficulty": 30,
+       "intro": "intro.spread"
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 6
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "4-2",
+     "title": {
+      "ja": "扇と鏡",
+      "en": "FAN & MIRROR"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..F..X..X..F..",
+        "NNNNNNNNNNNNNN",
+        "NNXNNNNNNNNXNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 31
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 10
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "4-3",
+     "title": {
+      "ja": "連射砲台",
+      "en": "GATLING"
+     },
+     "waves": [
+      {
+       "rows": [
+        "G............G",
+        "NNNNKNNNNKNNNN",
+        "NNNNNNNNNNNNNN",
+        ".NNN.NNNN.NNN."
+       ],
+       "difficulty": 32,
+       "intro": "intro.gatling"
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "perfect",
+       "value": 10
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "4-4",
+     "title": {
+      "ja": "火薬砲台",
+      "en": "POWDER GUNS"
+     },
+     "waves": [
+      {
+       "rows": [
+        ".F..BBBBBB..F.",
+        "NNBNNNNNNNNBNN",
+        "NNNNNGNNGNNNNN",
+        "NBNNNNNNNNNNBN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 33
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "chainBlast",
+       "value": 4
+      },
+      {
+       "type": "time",
+       "value": 55
+      }
+     ]
+    },
+    {
+     "id": "4-5",
+     "title": {
+      "ja": "全方位砲台",
+      "en": "RING"
+     },
+     "waves": [
+      {
+       "rows": [
+        "...O......O...",
+        "..NNNNNNNNNN..",
+        "NNNNNNNNNNNNNN",
+        "NN..NNNNNN..NN",
+        "NN..........NN"
+       ],
+       "difficulty": 34,
+       "intro": "intro.ring"
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 10
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "4-6",
+     "title": {
+      "ja": "輪舞",
+      "en": "RONDO"
+     },
+     "waves": [
+      {
+       "rows": [
+        "O.....KK.....O",
+        "N.....NN.....N",
+        "NNNNNNNNNNNNNN",
+        "NNNNSNNNNSNNNN",
+        ".NNNNNNNNNNNN."
+       ],
+       "difficulty": 35
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "collapse",
+       "value": 16
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "4-7",
+     "title": {
+      "ja": "集中砲火",
+      "en": "FOCUS FIRE"
+     },
+     "waves": [
+      {
+       "rows": [
+        "F....G..G....F",
+        "NNNNNNNNNNNNNN",
+        "NNBNNNNNNNNBNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 36,
+       "intro": "intro.survive",
+       "clear": {
+        "type": "survive",
+        "value": 50
+       },
+       "tuning": {
+        "descentBase": 4
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 20
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "4-8",
+     "title": {
+      "ja": "弾幕の壁",
+      "en": "BULLET WALL"
+     },
+     "waves": [
+      {
+       "rows": [
+        "G...G....G...G",
+        "NNNNNNNNNNNNNN",
+        "NN#NNNNNNNN#NN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 38
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 20
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "4-9",
+     "title": {
+      "ja": "砲列",
+      "en": "GUN LINE"
+     },
+     "waves": [
+      {
+       "endless": 41
+      },
+      {
+       "rows": [
+        "O..T..FF..T..O",
+        "NNNNNNNNNNNNNN",
+        "NN#NNNKKNNN#NN",
+        "NNNNNNNNNNNNNN",
+        ".G..........G."
+       ],
+       "difficulty": 38
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "just",
+       "value": 4
+      },
+      {
+       "type": "time",
+       "value": 150
+      }
+     ]
+    },
+    {
+     "id": "4-10",
+     "title": {
+      "ja": "鏡の城",
+      "en": "MIRROR CASTLE"
+     },
+     "waves": [
+      {
+       "boss": 3
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "perfect",
+       "value": 12
+      },
+      {
+       "type": "time",
+       "value": 85
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ch05",
+   "title": {
+    "ja": "第5章 弾幕地獄",
+    "en": "CHAPTER 5  BULLET HELL"
+   },
+   "stages": [
+    {
+     "id": "5-1",
+     "title": {
+      "ja": "回転砲台",
+      "en": "SPIRAL"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..Z........Z..",
+        "NNNNNNNNNNNNNN",
+        "NN#NNNNNNNN#NN",
+        ".NNNNNNNNNNNN."
+       ],
+       "difficulty": 40,
+       "intro": "intro.spiral"
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 15
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "5-2",
+     "title": {
+      "ja": "渦と鏡",
+      "en": "SPIRAL MIRROR"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..X..Z..Z..X..",
+        "NNNNNNNNNNNNNN",
+        "NXNNNNNNNNNNXN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 41
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 25
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "5-3",
+     "title": {
+      "ja": "狙撃砲台",
+      "en": "SNIPER"
+     },
+     "waves": [
+      {
+       "rows": [
+        "P............P",
+        "NNNXNNNNNNXNNN",
+        "NNNNNNNNNNNNNN",
+        "..NNNNNNNNNN.."
+       ],
+       "difficulty": 42,
+       "intro": "intro.sniper"
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 6
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "5-4",
+     "title": {
+      "ja": "鏡の狙撃手",
+      "en": "MIRROR SNIPE"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..P..XXXX..P..",
+        "NNNNNNNNNNNNNN",
+        "NRNNNNGGNNNNRN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 43
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 10
+      },
+      {
+       "type": "time",
+       "value": 70
+      }
+     ]
+    },
+    {
+     "id": "5-5",
+     "title": {
+      "ja": "狙撃戦",
+      "en": "SNIPER DUEL"
+     },
+     "waves": [
+      {
+       "rows": [
+        "P...P....P...P",
+        "NNNNNNNNNNNNNN",
+        "NNN##NNNN##NNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 44,
+       "tuning": {
+        "descentBase": 3,
+        "descentMax": 7
+       },
+       "intro": "intro.survive",
+       "clear": {
+        "type": "survive",
+        "value": 50
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 6
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "5-6",
+     "title": {
+      "ja": "磁力弾幕",
+      "en": "MAGNET STORM"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..O...GG...O..",
+        "NNNNNNNNNNNNNN",
+        "NNMNNNNNNNNMNN",
+        "NNNNNNNNNNNNNN",
+        ".NNNN.NN.NNNN."
+       ],
+       "difficulty": 45
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "ricochet",
+       "value": 12
+      },
+      {
+       "type": "time",
+       "value": 70
+      }
+     ]
+    },
+    {
+     "id": "5-7",
+     "title": {
+      "ja": "弾幕の海",
+      "en": "SEA OF BULLETS"
+     },
+     "waves": [
+      {
+       "rows": [
+        "O....Z..Z....O",
+        "NNNNNNNNNNNNNN",
+        "NNSNNNNNNNNSNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 46,
+       "intro": "intro.score",
+       "clear": {
+        "type": "score",
+        "value": 500000
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "score",
+       "value": 1000000
+      },
+      {
+       "type": "graze",
+       "value": 30
+      }
+     ]
+    },
+    {
+     "id": "5-8",
+     "title": {
+      "ja": "総砲撃",
+      "en": "FULL VOLLEY"
+     },
+     "waves": [
+      {
+       "rows": [
+        "T.Z..P..P..Z.T",
+        "NNNNNNNNNNNNNN",
+        "NN#NNKNNKNN#NN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 48
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "just",
+       "value": 5
+      },
+      {
+       "type": "time",
+       "value": 70
+      }
+     ]
+    },
+    {
+     "id": "5-9",
+     "title": {
+      "ja": "二連戦・改",
+      "en": "DOUBLE BILL EX"
+     },
+     "waves": [
+      {
+       "endless": 49
+      },
+      {
+       "rows": [
+        ".Z..P....P..Z.",
+        "NNNNNNNNNNNNNN",
+        "NNMNNNNNNNNMNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 46
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "just",
+       "value": 5
+      },
+      {
+       "type": "time",
+       "value": 140
+      }
+     ]
+    },
+    {
+     "id": "5-10",
+     "title": {
+      "ja": "再生要塞",
+      "en": "REGEN FORTRESS"
+     },
+     "waves": [
+      {
+       "boss": 4
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "perfect",
+       "value": 14
+      },
+      {
+       "type": "time",
+       "value": 90
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ch06",
+   "title": {
+    "ja": "第6章 鋼鉄の雨",
+    "en": "CHAPTER 6  STEEL RAIN"
+   },
+   "stages": [
+    {
+     "id": "6-1",
+     "title": {
+      "ja": "全砲門開放",
+      "en": "ALL GUNS"
+     },
+     "waves": [
+      {
+       "rows": [
+        "P...F.OO.G...P",
+        "NNNNNNNNNNNNNN",
+        "NNNNNNZNNNNNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 50
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 12
+      },
+      {
+       "type": "time",
+       "value": 75
+      }
+     ]
+    },
+    {
+     "id": "6-2",
+     "title": {
+      "ja": "誘爆回廊",
+      "en": "MINEFIELD"
+     },
+     "waves": [
+      {
+       "rows": [
+        ".G..BBBBBB..G.",
+        "NNBNNNNNNNNBNN",
+        "NNNNNOBBONNNNN",
+        "NBNNNNNNNNNNBN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 51
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "chainBlast",
+       "value": 6
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "6-3",
+     "title": {
+      "ja": "回転要塞",
+      "en": "SPIRAL FORT"
+     },
+     "waves": [
+      {
+       "rows": [
+        "##Z...##...Z##",
+        "NNNNNNNNNNNNNN",
+        "NNNNN#NN#NNNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 52
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 30
+      },
+      {
+       "type": "time",
+       "value": 70
+      }
+     ]
+    },
+    {
+     "id": "6-4",
+     "title": {
+      "ja": "要石の砲塔",
+      "en": "KEYSTONE TOWERS"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..K..O..O..K..",
+        "..N..N..N..N..",
+        "FNNNGNNNNGNNNF",
+        "NNNNNNNNNNNNNN",
+        ".NNNNN..NNNNN."
+       ],
+       "difficulty": 53
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "collapse",
+       "value": 24
+      },
+      {
+       "type": "time",
+       "value": 60
+      }
+     ]
+    },
+    {
+     "id": "6-5",
+     "title": {
+      "ja": "狙撃の十字路",
+      "en": "SNIPER CROSSING"
+     },
+     "waves": [
+      {
+       "rows": [
+        "P.T..XXXX..T.P",
+        "NNNNNNNNNNNNNN",
+        "NXNNNNNNNNNNXN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 54
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "returnKills",
+       "value": 12
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "6-6",
+     "title": {
+      "ja": "荒稼ぎ",
+      "en": "BIG HAUL"
+     },
+     "waves": [
+      {
+       "rows": [
+        "..O..G..G..O..",
+        "NNNNNNNNNNNNNN",
+        "NSNNSNNNNSNNSN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 55,
+       "intro": "intro.score",
+       "clear": {
+        "type": "score",
+        "value": 600000
+       },
+       "tuning": {
+        "descentBase": 4,
+        "descentMax": 7
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "score",
+       "value": 1200000
+      },
+      {
+       "type": "ricochet",
+       "value": 20
+      }
+     ]
+    },
+    {
+     "id": "6-7",
+     "title": {
+      "ja": "籠城戦",
+      "en": "HOLD THE FORT"
+     },
+     "waves": [
+      {
+       "rows": [
+        "O..F..PP..F..O",
+        "NNNNNNNNNNNNNN",
+        "NN##NNNNNN##NN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 56,
+       "intro": "intro.survive",
+       "clear": {
+        "type": "survive",
+        "value": 75
+       },
+       "tuning": {
+        "descentBase": 3,
+        "descentMax": 6
+       }
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "graze",
+       "value": 40
+      },
+      {
+       "type": "noHit"
+      }
+     ]
+    },
+    {
+     "id": "6-8",
+     "title": {
+      "ja": "大砲列",
+      "en": "GRAND BATTERY"
+     },
+     "waves": [
+      {
+       "rows": [
+        "F..G..PP..G..F",
+        "NNNNNNNNNNNNNN",
+        "NNNNNOKKONNNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 58
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "just",
+       "value": 6
+      },
+      {
+       "type": "time",
+       "value": 80
+      }
+     ]
+    },
+    {
+     "id": "6-9",
+     "title": {
+      "ja": "三連戦・改",
+      "en": "TRIPLE BILL EX"
+     },
+     "waves": [
+      {
+       "endless": 49
+      },
+      {
+       "rows": [
+        "P.Z.O.GG.O.Z.P",
+        "NXNNNNNNNNNNXN",
+        "NNNNBNNNNBNNNN",
+        "NNNNNNNNNNNNNN"
+       ],
+       "difficulty": 57
+      },
+      {
+       "endless": 56
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "just",
+       "value": 8
+      },
+      {
+       "type": "time",
+       "value": 210
+      }
+     ]
+    },
+    {
+     "id": "6-10",
+     "title": {
+      "ja": "爆炎の要塞",
+      "en": "BLAZE FORTRESS"
+     },
+     "waves": [
+      {
+       "boss": 5
+      }
+     ],
+     "stars": [
+      {
+       "type": "clear"
+      },
+      {
+       "type": "perfect",
+       "value": 16
+      },
+      {
+       "type": "time",
+       "value": 95
       }
      ]
     }

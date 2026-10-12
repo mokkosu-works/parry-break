@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import '../core/core.dart';
 import '../l10n/app_localizations.dart';
+import '../render/palette.dart';
 
 /// 星の条件の説明文。
 String starText(AppLocalizations l, StarCondition s) => switch (s) {
@@ -27,3 +30,9 @@ String goalText(AppLocalizations l, StageDef s) {
     SurviveClear(:final seconds) => l.clearSurvive('${seconds.round()}'),
   };
 }
+
+/// 難易度の色 (EASY 緑 / NORMAL 黄 / HARD 赤)。
+Color difficultyColor(Difficulty d) => d.pick(Dot.mint, Dot.mustard, Dot.bulletRed);
+
+/// 難易度の説明文。
+String difficultyText(AppLocalizations l, Difficulty d) => d.pick(l.difficultyEasy, l.difficultyNormal, l.difficultyHard);

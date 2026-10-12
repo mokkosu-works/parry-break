@@ -328,6 +328,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introMirror => 'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す';
 
   @override
+  String get introSpread => 'NEW: 拡散砲台 — 扇状の弾。まとめてパリィで撃ち返せ';
+
+  @override
+  String get introGatling => 'NEW: 連射砲台 — 追いかけてくる連射。リズムよくパリィ';
+
+  @override
+  String get introRing => 'NEW: 全方位砲台 — 輪の弾の隙間をくぐれ';
+
+  @override
+  String get introSpiral => 'NEW: 回転砲台 — 渦巻く弾幕。休む間に攻めろ';
+
+  @override
+  String get introSniper => 'NEW: 狙撃砲台 — 照準線が固まったら速い弾が来る';
+
+  @override
   String introLoop(String loop) {
     return '$loop周目 — スピードアップ';
   }
@@ -337,6 +352,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get introPierce => 'PERFECT でパリィすると貫通弾。まとめて撃ち抜け';
+
+  @override
+  String get introOverdrive => 'PERFECT を重ねてヒートを貯めると OVERDRIVE。全弾貫通で一気に崩せ';
 
   @override
   String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
@@ -361,4 +379,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get endingSub => '次の周回へ — さらに加速する';
+
+  @override
+  String get difficulty => '難易度';
+
+  @override
+  String get difficultyEasy => '弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い';
+
+  @override
+  String get difficultyNormal => '標準の難しさ';
+
+  @override
+  String get difficultyHard => '弾幕モード。弾が増え、壊したブロックが撃ち返してくる';
 }

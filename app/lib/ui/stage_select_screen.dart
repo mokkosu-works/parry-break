@@ -10,12 +10,14 @@ import '../l10n/app_localizations.dart';
 import '../render/palette.dart';
 import '../services/content.dart';
 import '../services/records.dart';
+import '../services/settings.dart';
 import 'pixel_icons.dart';
 import 'stage_text.dart';
 import 'widgets.dart';
 
 /// ステージ選択。章を 1 つずつめくり、ステージをワールドマップのように点線でつないで並べる。
 /// 選んだステージの目標・星の条件・記録は右の窓に出し、START で遊ぶ。
+/// 難易度は右上で選び、星・クリア・最高スコアは選んだ難易度のものを出す (鍵はどの難易度のクリアでも開く)。
 class StageSelectScreen extends ConsumerStatefulWidget {
   const StageSelectScreen({super.key});
 
@@ -32,7 +34,7 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
   StageDef _initial(Campaign c, Records r, bool debug) {
     if (!debug) return r.nextStage(c) ?? c.stages.last;
     for (final st in c.stages) {
-      if (!r.stage(st.id).cleared) return st;
+      if (!r.clearedAny(st.id)) return st;
     }
     return c.stages.last;
   }
@@ -44,8 +46,10 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
     final campaign = ref.watch(contentProvider).campaign;
     final records = ref.watch(recordsProvider);
     final debug = ref.watch(debugModeProvider);
+    final diff = ref.watch(settingsProvider.select((s) => s.difficulty));
+    StageRecord recordOf(String id) => records.stage(id, diff);
     final totalStars = campaign.stages.fold(0, (s, st) => s + st.stars.length);
-    final gotStars = campaign.stages.fold(0, (s, st) => s + records.stage(st.id).starCount);
+    final gotStars = campaign.stages.fold(0, (s, st) => s + recordOf(st.id).starCount);
 
     final selected = campaign.stage(_selected ?? '') ?? _initial(campaign, records, debug);
     final chapterIndex = _chapter ?? campaign.chapters.indexWhere((c) => c.id == selected.chapterId);
@@ -55,6 +59,15 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
     return ScreenFrame(
       title: l.menuStages,
       actions: [
+        _DifficultyPicker(
+          value: diff,
+          label: l.difficulty,
+          onChanged: (d) {
+            ref.read(audioProvider).play('count');
+            ref.read(settingsProvider.notifier).update((s) => s.copyWith(difficulty: d));
+          },
+        ),
+        const SizedBox(width: 16),
         const PixelStar(got: true, size: 22),
         const SizedBox(width: 6),
         Text('$gotStars / $totalStars', style: pixelFont(16)),
@@ -86,7 +99,7 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
                   child: _StageMap(
                     stages: chapter.stages,
                     selected: selected.id,
-                    recordOf: records.stage,
+                    recordOf: recordOf,
                     unlocked: unlocked,
                     onSelect: (st) => setState(() {
                       _selected = st.id;
@@ -102,9 +115,11 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
               child: _StageDetail(
                 stage: selected,
                 title: selected.title.of(lang),
-                record: records.stage(selected.id),
+                record: recordOf(selected.id),
+                difficulty: diff,
                 unlocked: unlocked(selected),
-                onStart: () => Navigator.of(context).push(fadeRoute<void>(GameScreen(stage: selected))),
+                onStart: () =>
+                    Navigator.of(context).push(fadeRoute<void>(GameScreen(stage: selected, difficulty: diff))),
               ),
             ),
           ]);
@@ -361,12 +376,14 @@ class _StageDetail extends StatelessWidget {
     required this.stage,
     required this.title,
     required this.record,
+    required this.difficulty,
     required this.unlocked,
     required this.onStart,
   });
   final StageDef stage;
   final String title;
   final StageRecord record;
+  final Difficulty difficulty;
   final bool unlocked;
   final VoidCallback onStart;
 
@@ -376,7 +393,11 @@ class _StageDetail extends StatelessWidget {
     return PixelWindow(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('STAGE ${stage.id}', style: pixelFont(14, color: Palette.sub, letterSpacing: 2)),
+        Row(children: [
+          Text('STAGE ${stage.id}', style: pixelFont(14, color: Palette.sub, letterSpacing: 2)),
+          const Spacer(),
+          Text(difficulty.label, style: pixelFont(14, color: difficultyColor(difficulty), letterSpacing: 2)),
+        ]),
         const SizedBox(height: 6),
         Text(title,
             maxLines: 2,
@@ -389,6 +410,8 @@ class _StageDetail extends StatelessWidget {
           child: SingleChildScrollView(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(goalText(l, stage), style: const TextStyle(fontSize: 15, color: Palette.main)),
+              const SizedBox(height: 4),
+              Text(difficultyText(l, difficulty), style: TextStyle(fontSize: 12, color: difficultyColor(difficulty))),
               const SizedBox(height: 10),
               for (var i = 0; i < stage.stars.length; i++)
                 Padding(
@@ -427,4 +450,40 @@ class _StageDetail extends StatelessWidget {
       ]),
     );
   }
+}
+
+/// 難易度の切り替え (EASY / NORMAL / HARD)。選んでいるものは難易度の色で塗る。
+class _DifficultyPicker extends StatelessWidget {
+  const _DifficultyPicker({required this.value, required this.label, required this.onChanged});
+  final Difficulty value;
+  final String label;
+  final ValueChanged<Difficulty> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: label,
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          for (final d in Difficulty.values)
+            Padding(
+              padding: const EdgeInsets.only(left: 6),
+              child: Semantics(
+                button: true,
+                selected: d == value,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onChanged(d),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: d == value ? difficultyColor(d) : Dot.night,
+                      border: Border.all(color: d == value ? difficultyColor(d) : Dot.edge, width: 3),
+                    ),
+                    child: Text(d.label,
+                        style: pixelFont(13, color: d == value ? Dot.ink : Palette.gray, letterSpacing: 1.5)),
+                  ),
+                ),
+              ),
+            ),
+        ]),
+      );
 }

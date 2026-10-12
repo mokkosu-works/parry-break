@@ -20,6 +20,7 @@ class ResultData {
     required this.bestScore,
     required this.bestWave,
     this.stage,
+    this.difficulty = Difficulty.normal,
     this.cleared = false,
     this.achieved,
   });
@@ -29,6 +30,7 @@ class ResultData {
   final String reason;
   final bool newBest, cleared;
   final StageDef? stage;
+  final Difficulty difficulty;
 
   /// 今回達成した星 (ステージのみ)。
   final List<bool>? achieved;
@@ -156,15 +158,26 @@ class _ResultOverlayState extends State<ResultOverlay>
                                   const SizedBox(width: 16),
                                   PixelTitle(title, size: 64, color: color),
                                   const SizedBox(width: 26),
-                                  if (stage != null) ...[
-                                    PixelTag(
-                                      'STAGE ${stage.id}',
-                                      color: Palette.sub,
+                                  // 難易度とミスの理由が並ぶと幅が足りないことがあるので、縮めて収める
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                        if (stage != null) ...[
+                                          PixelTag(
+                                            'STAGE ${stage.id}',
+                                            color: Palette.sub,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          PixelTag(d.difficulty.label, color: difficultyColor(d.difficulty)),
+                                          const SizedBox(width: 10),
+                                        ],
+                                        if (!win)
+                                          PixelTag(d.reason, color: Palette.sub),
+                                      ]),
                                     ),
-                                    const SizedBox(width: 10),
-                                  ],
-                                  if (!win)
-                                    PixelTag(d.reason, color: Palette.sub),
+                                  ),
                                 ],
                               ),
                             ),

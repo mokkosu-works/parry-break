@@ -15,9 +15,10 @@ class GameController extends ChangeNotifier {
     required this.audio,
     required this.haptics,
     required double inputLag,
+    Difficulty difficulty = Difficulty.normal,
     bool reduceEffects = false,
     double Function()? timeSource,
-  })  : world = World(mode: mode, inputLag: inputLag),
+  })  : world = World(mode: mode, difficulty: difficulty, inputLag: inputLag),
         clock = InputClock(source: timeSource) {
     fx = FxState(world, reduceEffects: reduceEffects);
     session = Session(world, onStep: _onStep);
