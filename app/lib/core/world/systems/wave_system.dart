@@ -1,6 +1,6 @@
 part of '../world.dart';
 
-/// ウェーブの開始・進行・クリア・ゲームオーバー。
+/// ラウンドの開始・進行・クリア・ゲームオーバー。
 extension _WaveSystem on World {
   void _loadWave(WaveSpec spec) {
     _finishCascade();
@@ -153,14 +153,14 @@ extension _WaveSystem on World {
     final m = mult, bon = <Bonus>[];
     final b = boss;
     if (b != null) bon.add(Bonus('BOSS DESTROYED', 50000 + b.time.floor() * 500));
-    bon.add(Bonus('WAVE CLEAR  ×$m', 5000 * m));
+    bon.add(Bonus('ROUND CLEAR  ×$m', 5000 * m));
     if (b == null) {
       final dist = math.max(0.0, Field.warnY - lowest).round();
       bon.add(Bonus('DISTANCE ${dist}px', dist * 20));
       if (waveTime <= 10) bon.add(Bonus('ANNIHILATION  ×$m', 20000 * m));
     }
     if (streak > 0) bon.add(Bonus('NO-MISS CHAIN $streak', streak * 500));
-    if (wave.ending) bon.add(const Bonus('ALL WAVES CLEAR', 1000000));
+    if (wave.ending) bon.add(const Bonus('ALL ROUNDS CLEAR', 1000000));
     for (final x in bon) {
       score += x.points;
     }

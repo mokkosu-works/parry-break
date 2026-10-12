@@ -30,7 +30,7 @@ abstract class GunBlock extends BlockBehavior {
   @override
   void onDestroyed(World w, Block b, double cx, double cy) => w.killBulletsOf(b);
 
-  /// 最初の発射までの時間をウェーブの固定シードでばらつかせる。
+  /// 最初の発射までの時間をラウンドの固定シードでばらつかせる。
   @override
   void onWaveStart(World w, Block b) {
     final ti = w.tuning.turretInterval(w.wave.difficulty, w.wave.loopMul);
@@ -80,9 +80,9 @@ abstract class GunBlock extends BlockBehavior {
 
 /// 砲台。0.5 秒の予兆の後、パドルに向けて撃つ。
 ///
-/// - W12 以降: パドルの移動先を予測して撃つ (予測移動量の 60%)
-/// - W30〜39: 2 連射 / W40 以降: 3 方向弾 (ボスの砲台は単発)
-/// - HARD: 3 方向弾 (W40 以降は 5 方向弾)
+/// - R12 以降: パドルの移動先を予測して撃つ (予測移動量の 60%)
+/// - R30〜39: 2 連射 / R40 以降: 3 方向弾 (ボスの砲台は単発)
+/// - HARD: 3 方向弾 (R40 以降は 5 方向弾)
 class TurretBlock extends GunBlock {
   const TurretBlock();
 

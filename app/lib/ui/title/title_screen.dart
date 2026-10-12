@@ -354,7 +354,7 @@ class _HiScore extends StatelessWidget {
       const SizedBox(width: 22),
       Padding(
         padding: const EdgeInsets.only(bottom: 4),
-        child: Text('MAX WAVE ${record.bestWave.toString().padLeft(2, '0')}',
+        child: Text('MAX ROUND ${record.bestWave.toString().padLeft(2, '0')}',
             style: pixelFont(11, color: withAlpha(Palette.pale, 0.7), letterSpacing: 3).copyWith(fontFeatures: tab)),
       ),
     ]);

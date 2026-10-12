@@ -55,7 +55,7 @@ class FxBanner {
   double t = 0;
 }
 
-/// 崩れ落ちるブロック (崩落・ウェーブクリア)。
+/// 崩れ落ちるブロック (崩落・ラウンドクリア)。
 class FxDebris {
   FxDebris(this.x, this.y, this.w, this.h, this.color, {this.delay = 0, this.originX});
   double x, y, vx = 0, vy = 0, rot = 0, vr = 0;

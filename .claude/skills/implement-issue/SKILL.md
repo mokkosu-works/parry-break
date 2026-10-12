@@ -57,7 +57,7 @@ flutter drive -d emulator-5554 --driver=test_driver/integration_test.dart --targ
 
 完了条件のうち画面で確かめられるものを、`app/integration_test/<確かめる内容>_test.dart` に書いて動かす。ファイル名は何を確かめるかがわかる英語の snake_case にし(例: `landscape_on_launch_test.dart`)、1 行目のコメントを `// Issue #<番号>: <確かめること>` にする。
 
-- 書き方は `integration_test/smoke_test.dart`(起動・画面遷移・ボールを出して遊ぶ・撮影)と `integration_test/store_screenshots_test.dart`(記録の差し替え・`World` を直接動かしてボス戦や特定のウェーブを作る・パリィを決める)を真似る。
+- 書き方は `integration_test/smoke_test.dart`(起動・画面遷移・ボールを出して遊ぶ・撮影)と `integration_test/store_screenshots_test.dart`(記録の差し替え・`World` を直接動かしてボス戦や特定のラウンドを作る・パリィを決める)を真似る。
 - 入力は実機と同じ経路を使う: タップは `t.tap(find.text(...))`、パリィは `t.sendKeyEvent(LogicalKeyboardKey.space)`、パドルは `world.input.targetX`。
 - ステージを解禁した状態は、`SharedPreferences.setMockInitialValues` に記録を入れるか、設定の `debugMode: true` で作る。
 - ゲームは毎フレーム動き続けるので `pumpAndSettle` は使わない。`t.pump(Duration(...))` で進める。

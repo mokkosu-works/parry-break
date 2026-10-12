@@ -29,7 +29,7 @@ class AttractDemo extends ConsumerStatefulWidget {
 }
 
 class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProviderStateMixin {
-  /// 見栄えのするウェーブ (要石・爆薬・砲台・鏡面が揃うもの) を順に流す。
+  /// 見栄えのするラウンド (要石・爆薬・砲台・鏡面が揃うもの) を順に流す。
   static const _waves = [23, 6, 26, 12, 21, 3, 17];
   static const _runSeconds = 32.0;
 

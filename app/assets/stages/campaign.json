@@ -1,6 +1,6 @@
 {
  "version": 1,
- "_comment": "ステージモードの定義。ウェーブは rows(直接配置) / endless(エンドレスの W番号) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet",
+ "_comment": "ステージモードの定義。ラウンドは rows(直接配置) / endless(エンドレスの W番号) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet",
  "chapters": [
   {
    "id": "ch01",

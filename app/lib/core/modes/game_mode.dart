@@ -8,11 +8,11 @@ abstract class GameMode {
   /// 記録・ランキングの保存先を表すキー。
   String get recordKey;
 
-  /// [number] 番目 (1 始まり) のウェーブ。モードが終わりなら null。
+  /// [number] 番目 (1 始まり) のラウンド。モードが終わりなら null。
   WaveSpec? waveAt(int number);
 }
 
-/// エンドレス (アーケード): 60 ウェーブを繰り返し、1 周ごとに速くなる。10 ウェーブごとにボス。
+/// エンドレス (アーケード): 60 ラウンドを繰り返し、1 周ごとに速くなる。10 ラウンドごとにボス。
 class EndlessMode extends GameMode {
   const EndlessMode(this.content);
   final EndlessContent content;
@@ -24,7 +24,7 @@ class EndlessMode extends GameMode {
   WaveSpec waveAt(int number) => content.wave(number);
 }
 
-/// ステージモード: ステージに書かれたウェーブを順に遊び、最後をクリアしたら終わり。
+/// ステージモード: ステージに書かれたラウンドを順に遊び、最後をクリアしたら終わり。
 class StageMode extends GameMode {
   const StageMode(this.stage);
   final StageDef stage;

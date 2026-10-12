@@ -3,7 +3,7 @@ import 'dart:math' as math;
 /// ゲームバランスの数値 (design.md 第3〜8章)。
 ///
 /// 既定値はブラウザ版と同じ。ステージごとに一部を上書きできる ([copyWith])。
-/// [difficulty] はウェーブの難易度 (エンドレスではループを除いたウェーブ番号 1〜60)、
+/// [difficulty] はラウンドの難易度 (エンドレスではループを除いたラウンド番号 1〜60)、
 /// [loopMul] は周回ごとの速度倍率 (1 + 0.15 × 周回数)。
 class Tuning {
   const Tuning({

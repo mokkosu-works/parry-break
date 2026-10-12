@@ -3,7 +3,7 @@ import 'package:parry_break/core/core.dart';
 
 import 'helpers.dart';
 
-// W2 の手作り配置: 2 つの吊り下げ型の塊 (要石 + 首 + 13 個)
+// R2 の手作り配置: 2 つの吊り下げ型の塊 (要石 + 首 + 13 個)
 const w2 = [
   '...K......K...',
   '...N......N...',
@@ -126,7 +126,7 @@ void main() {
     });
   });
 
-  test('全ウェーブ (ボスとループを含む) を読み込んで進めても例外が出ない', () {
+  test('全ラウンド (ボスとループを含む) を読み込んで進めても例外が出ない', () {
     for (var n = 1; n <= 61; n++) {
       final w = World(mode: endlessMode)..start(fromWave: n);
       expect(w.blocks, isNotEmpty, reason: 'wave $n');

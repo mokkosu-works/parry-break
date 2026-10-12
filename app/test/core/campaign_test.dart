@@ -47,7 +47,7 @@ void main() {
   });
 
   test('エンドレスのボスの番号を指定したステージでも、ボスではなく配置になる', () {
-    final s = campaign.stage('2-4')!; // エンドレスの W20 (分裂の学習ウェーブ)
+    final s = campaign.stage('2-4')!; // エンドレスの R20 (分裂の学習ラウンド)
     final w = World(mode: StageMode(s))..start();
     expect(w.boss, isNull);
     expect(w.blocks.any((b) => b.type == 'S'), isTrue);
@@ -102,7 +102,7 @@ void main() {
           ],
         }, endlessContent);
 
-    test('ウェーブの書き方ごとに中身と既定の難易度が決まる', () {
+    test('ラウンドの書き方ごとに中身と既定の難易度が決まる', () {
       final rows = one({'rows': ['..NN..', '..XX..'], 'legend': {'X': 'T'}}).stage('s')!.waves.single;
       expect(rows.difficulty, 1);
       expect((rows.content as LayoutContent).blockIdAt(1, 2), 'T');
@@ -118,7 +118,7 @@ void main() {
       expect(one({'boss': 0, 'difficulty': 3}).stage('s')!.waves.single.difficulty, 3);
     });
 
-    test('星を書かないステージはクリアだけ、中身のないウェーブは例外', () {
+    test('星を書かないステージはクリアだけ、中身のないラウンドは例外', () {
       expect(one({'endless': 1}).stage('s')!.stars.single, isA<ClearStar>());
       expect(() => one({'difficulty': 2}), throwsFormatException);
     });

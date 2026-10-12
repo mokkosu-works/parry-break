@@ -20,13 +20,13 @@ class EndlessContent {
   final double loopSpeedup;
   final String? loopIntro;
 
-  /// 自動生成で使うブロックの種類 → 解禁ウェーブ。
+  /// 自動生成で使うブロックの種類 → 解禁ラウンド。
   final Map<String, int> unlock;
 
-  /// 手作りの配置 (新ギミックの学習ウェーブ)。
+  /// 手作りの配置 (新ギミックの学習ラウンド)。
   final Map<int, List<String>> handcrafted;
 
-  /// ウェーブ番号 → 説明の翻訳キー。
+  /// ラウンド番号 → 説明の翻訳キー。
   final Map<int, String> intros;
   final List<BossDef> bosses;
 
@@ -53,7 +53,7 @@ class EndlessContent {
     );
   }
 
-  /// 難易度 [base] (1〜[wavesPerLoop]) のウェーブの中身。
+  /// 難易度 [base] (1〜[wavesPerLoop]) のラウンドの中身。
   WaveContent contentFor(int base) {
     if (base % bossEvery == 0 && bosses.isNotEmpty) {
       return BossContent(bosses[(base ~/ bossEvery - 1).clamp(0, bosses.length - 1)]);
@@ -61,10 +61,10 @@ class EndlessContent {
     return layoutFor(base);
   }
 
-  /// 難易度 [base] の配置 (ボスのウェーブ番号でも、ボスではなく配置を返す)。
+  /// 難易度 [base] の配置 (ボスのラウンド番号でも、ボスではなく配置を返す)。
   LayoutContent layoutFor(int base) => LayoutContent(handcrafted[base] ?? generateLayout(base, unlock: unlock));
 
-  /// エンドレスの [number] 番目のウェーブ。
+  /// エンドレスの [number] 番目のラウンド。
   WaveSpec wave(int number) {
     final base = (number - 1) % wavesPerLoop + 1;
     final loop = (number - 1) ~/ wavesPerLoop;
@@ -191,9 +191,9 @@ class ChapterDef {
 
 /// ステージモードの定義。`assets/stages/campaign.json` から読む。
 ///
-/// ウェーブの書き方:
+/// ラウンドの書き方:
 /// - `{"rows": [...], "legend": {...}}`: 配置を直接書く
-/// - `{"endless": 2}`: エンドレスの W2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)
+/// - `{"endless": 2}`: エンドレスの R2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)
 /// - `{"boss": 0}`: エンドレスの 1 体目のボス
 /// 共通で `difficulty`(既定 1)、`clear`、`tuning`、`intro` を書ける。
 class Campaign {

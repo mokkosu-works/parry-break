@@ -37,7 +37,7 @@ void main() {
     }
   });
 
-  test('エンドレスは 10 ウェーブごとにボス、60 でループする', () {
+  test('エンドレスは 10 ラウンドごとにボス、60 でループする', () {
     final mode = endlessMode;
     expect(mode.waveAt(10).boss?.index, 0);
     expect(mode.waveAt(60).ending, isTrue);

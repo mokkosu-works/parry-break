@@ -23,16 +23,16 @@ part 'systems/boss_system.dart';
 part 'systems/wave_system.dart';
 
 enum WorldPhase {
-  /// ウェーブ進行中。
+  /// ラウンド進行中。
   playing,
 
-  /// ウェーブクリアの演出中 (次のウェーブを待つ)。
+  /// ラウンドクリアの演出中 (次のラウンドを待つ)。
   clearing,
 
   /// ゲームオーバー。
   over,
 
-  /// モードの最後のウェーブをクリアした (ステージモード)。
+  /// モードの最後のラウンドをクリアした (ステージモード)。
   completed,
 }
 
@@ -75,7 +75,7 @@ class World {
   /// 難易度 (弾の量・速さ、パリィの判定の広さなど)。
   final Difficulty difficulty;
 
-  /// 現在のウェーブで有効なバランス値 (ウェーブごとの上書きを反映したもの)。
+  /// 現在のラウンドで有効なバランス値 (ラウンドごとの上書きを反映したもの)。
   Tuning tuning;
 
   /// 判定タイミング補正 (秒)。入力時刻をこの値だけ早めて扱う。
@@ -105,10 +105,10 @@ class World {
   Boss? boss;
   late WaveSpec wave;
 
-  /// ウェーブの固定シードの乱数 (反射ブロック・砲台の初期タイマー。ブラウザ版と同じ系列)。
+  /// ラウンドの固定シードの乱数 (反射ブロック・砲台の初期タイマー。ブラウザ版と同じ系列)。
   late Mulberry32 rng;
 
-  /// ゲーム結果に影響するその他の乱数 (瓦礫・分身弾など)。これもウェーブのシードで決まる。
+  /// ゲーム結果に影響するその他の乱数 (瓦礫・分身弾など)。これもラウンドのシードで決まる。
   late Mulberry32 aux;
 
   double countdown = 0, waveTime = 0;
@@ -153,7 +153,7 @@ class World {
     return out;
   }
 
-  /// 新しいプレイを始める。[fromWave] で途中のウェーブから始められる (テスト・デバッグ用)。
+  /// 新しいプレイを始める。[fromWave] で途中のラウンドから始められる (テスト・デバッグ用)。
   void start({int fromWave = 1}) {
     phase = WorldPhase.playing;
     t = 0;

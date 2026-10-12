@@ -8,7 +8,7 @@
   "menuRanking": "ランキング",
   "back": "戻る",
   "bestScore": "最高スコア",
-  "waveN": "ウェーブ {n}",
+  "waveN": "ラウンド {n}",
   "@waveN": {
     "placeholders": {
       "n": {
@@ -184,7 +184,7 @@
   "tapToStart": "タップで開始",
   "rankingUnavailable": "ランキングは現在利用できません",
   "rankingEndlessScore": "エンドレス: スコア",
-  "rankingEndlessWave": "エンドレス: 到達ウェーブ",
+  "rankingEndlessWave": "エンドレス: 到達ラウンド",
   "rankingStages": "ステージ: 合計スコア",
   "introKeystone": "NEW: 要石 — 壊すと、支えていたブロックが崩れ落ちる",
   "introTurret": "NEW: 砲台 — 弾をパリィで撃ち返せ",

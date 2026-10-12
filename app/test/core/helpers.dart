@@ -10,7 +10,7 @@ final endlessContent =
 
 final endlessMode = EndlessMode(endlessContent);
 
-/// 指定した配置の 1 ウェーブだけのモード。
+/// 指定した配置の 1 ラウンドだけのモード。
 class SingleWaveMode extends GameMode {
   const SingleWaveMode(this.rows, {this.difficulty = 1});
   final List<String> rows;

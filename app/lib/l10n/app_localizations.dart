@@ -149,7 +149,7 @@ abstract class AppLocalizations {
   /// No description provided for @waveN.
   ///
   /// In ja, this message translates to:
-  /// **'ウェーブ {n}'**
+  /// **'ラウンド {n}'**
   String waveN(String n);
 
   /// No description provided for @helpMoveTitle.
@@ -617,7 +617,7 @@ abstract class AppLocalizations {
   /// No description provided for @rankingEndlessWave.
   ///
   /// In ja, this message translates to:
-  /// **'エンドレス: 到達ウェーブ'**
+  /// **'エンドレス: 到達ラウンド'**
   String get rankingEndlessWave;
 
   /// No description provided for @rankingStages.

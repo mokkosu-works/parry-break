@@ -35,7 +35,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String waveN(String n) {
-    return 'ウェーブ $n';
+    return 'ラウンド $n';
   }
 
   @override
@@ -301,7 +301,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rankingEndlessScore => 'エンドレス: スコア';
 
   @override
-  String get rankingEndlessWave => 'エンドレス: 到達ウェーブ';
+  String get rankingEndlessWave => 'エンドレス: 到達ラウンド';
 
   @override
   String get rankingStages => 'ステージ: 合計スコア';

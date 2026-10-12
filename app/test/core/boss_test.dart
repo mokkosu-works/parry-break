@@ -159,7 +159,7 @@ void main() {
     expect(run(w, 0.2).whereType<PlayerHurt>(), hasLength(1));
   }
 
-  test('ボス戦の被弾はヒートを 1 段階下げるだけ。通常のウェーブでは 0 に戻る', () {
+  test('ボス戦の被弾はヒートを 1 段階下げるだけ。通常のラウンドでは 0 に戻る', () {
     final w = bossWorld(0);
     w.heat = 300; // 段階 3
     hitPaddle(w);

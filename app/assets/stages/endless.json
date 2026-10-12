@@ -1,6 +1,6 @@
 {
  "version": 1,
- "_comment": "エンドレス(アーケード)の定義。handcrafted にないウェーブは generator が自動生成する。bosses[i] は W(10×(i+1)) のボス。ボスの sway は左右に揺れる速さ。hard はステージモードの HARD (弾幕) でだけ足す攻撃。",
+ "_comment": "エンドレス(アーケード)の定義。handcrafted にないラウンドは generator が自動生成する。bosses[i] は R(10×(i+1)) のボス。ボスの sway は左右に揺れる速さ。hard はステージモードの HARD (弾幕) でだけ足す攻撃。",
  "wavesPerLoop": 60,
  "bossEvery": 10,
  "loopSpeedup": 0.15,

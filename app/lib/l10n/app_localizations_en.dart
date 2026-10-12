@@ -35,7 +35,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String waveN(String n) {
-    return 'WAVE $n';
+    return 'ROUND $n';
   }
 
   @override
@@ -64,7 +64,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpTimingBody =>
-      'The closer to the moment of impact, the stronger the hit\nPERFECT: the ball pierces through blocks\nJUST (even closer): its next hit sends out a shockwave that breaks nearby blocks';
+      'The closer to the moment of impact, the stronger the hit\nPERFECT: the ball pierces through blocks\nJUST (even closer): its next hit sends out a burst that breaks nearby blocks';
 
   @override
   String get helpChainTitle => 'CHAIN';
@@ -305,7 +305,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rankingEndlessScore => 'Endless: Score';
 
   @override
-  String get rankingEndlessWave => 'Endless: Wave';
+  String get rankingEndlessWave => 'Endless: Round';
 
   @override
   String get rankingStages => 'Stages: Total score';

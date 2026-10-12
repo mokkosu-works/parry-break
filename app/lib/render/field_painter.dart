@@ -12,7 +12,7 @@ import 'palette.dart';
 import 'pixel.dart';
 import 'text_cache.dart';
 
-/// 盤面 (1200×720) を描く。HUD・コールアウト・バナー・ウェーブクリアの表示も含む。
+/// 盤面 (1200×720) を描く。HUD・コールアウト・バナー・ラウンドクリアの表示も含む。
 ///
 /// 見た目は 16 色のドット絵 (1 ドット = [Dot.px])。発光やぼかしは使わず、
 /// 陰影は 1 ドットの縁、影は 1 ドットずらしの硬い影、グラデーションはディザや段階の帯で表す。
@@ -498,7 +498,7 @@ class FieldPainter extends CustomPainter {
     _txt('SCORE', 20, 14, 16, Dot.dim, align: TextAlignH.left);
     _txt(formatScore(fx.dispScore), 20, 38, 24, Dot.white, align: TextAlignH.left);
     final boss = w.boss;
-    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'WAVE', 400, 14, 16, Dot.dim);
+    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND', 400, 14, 16, Dot.dim);
     _txt('${w.wave.number}${w.wave.loop > 0 ? ' L${w.wave.loop + 1}' : ''}', 400, 38, 24, Dot.white);
     final clear = w.wave.clear;
     if (boss != null) {
@@ -574,7 +574,7 @@ class FieldPainter extends CustomPainter {
     }
   }
 
-  /// ウェーブ開始時などの帯。副題は翻訳する。
+  /// ラウンド開始時などの帯。副題は翻訳する。
   void _banner() {
     final b = fx.banner;
     if (b == null || world.phase == WorldPhase.over) return;
@@ -582,7 +582,7 @@ class FieldPainter extends CustomPainter {
     final open = b.t < 0.15 ? b.t / 0.15 : b.t > 1.4 ? math.max(0.0, (1.8 - b.t) / 0.4) : 1.0;
     final h = (90 * open / 24).ceil() * 24.0;
     final (title, sub, color) = switch (b.kind) {
-      BannerKind.wave => ('WAVE ${b.value}', _introText(b.introKey) ?? _goalText(), Dot.white),
+      BannerKind.wave => ('ROUND ${b.value}', _introText(b.introKey) ?? _goalText(), Dot.white),
       BannerKind.boss => ('WARNING', 'BOSS ${b.value}  —  ${l10n.bannerBoss}', Dot.bulletRed),
       BannerKind.overdrive => ('OVERDRIVE', l10n.bannerOverdrive, Dot.rose),
       BannerKind.bossPhase => ('PHASE ${b.value}', b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3, Dot.white),
@@ -639,12 +639,12 @@ class FieldPainter extends CustomPainter {
     if (k < 1) return;
     final last = w.mode.waveAt(w.wave.number + 1) == null;
     final title = w.wave.ending
-        ? 'ALL WAVES CLEAR'
+        ? 'ALL ROUNDS CLEAR'
         : last && w.mode is StageMode
             ? 'STAGE CLEAR'
             : w.boss != null
                 ? 'BOSS DESTROYED'
-                : 'WAVE ${w.wave.number} CLEAR';
+                : 'ROUND ${w.wave.number} CLEAR';
     _bigTxt(title, _w / 2, 220, 40, w.wave.ending ? Dot.rose : Dot.mustard,
         shadow: w.wave.ending ? Dot.violet : Dot.brick);
     final bon = w.bonuses;

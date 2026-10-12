@@ -28,7 +28,7 @@ gh pr diff <番号>
 
 - `package:flutter` や `dart:ui` を import している → 不具合(コアの原則に反し、単体テストで動かせなくなる)
 - `dart:math` の `Random()`、`DateTime.now()`、`Stopwatch`、実時間の `Duration` を使っている → 不具合。乱数は `sim/rng.dart` の `Mulberry32` をシードから作る。時間はステップ数(1/60 秒)で数える
-- `Mulberry32` や `procedural_generator.dart` を変えた、または乱数を引く順番・回数が変わった → 同じウェーブの配置が変わる。`test/core/layout_parity_test.dart`(`golden/layouts.json`)が通るかを CI で確かめる。意図した変更なら、PR の本文に理由があるか
+- `Mulberry32` や `procedural_generator.dart` を変えた、または乱数を引く順番・回数が変わった → 同じラウンドの配置が変わる。`test/core/layout_parity_test.dart`(`golden/layouts.json`)が通るかを CI で確かめる。意図した変更なら、PR の本文に理由があるか
 - 判定の窓(パリィの ±12 / 30 / 100ms)、スコアの倍率、降下速度などの数値をコードに直書きしている → `config/tuning.dart` の Tuning に置く(ステージごとの上書きが効かなくなる)
 - 描画・音・振動を直接呼んでいる → `GameEvent` を発行して購読側で処理する
 - 浮動小数の比較・境界(`<` と `<=`)、1 フレームの取りこぼし、リストを回しながら消す、を変更した箇所で疑う
@@ -56,7 +56,7 @@ gh pr diff <番号>
 
 - デバッグビルドで本番の広告ユニット ID を使う、テスト用 ID がリリースに入る → 不具合(AdMob の規約違反 / 収益が出ない)
 - `AdsConfig` の本番 ID、`Info.plist` の `GADApplicationIdentifier`、`AndroidManifest.xml` の `APPLICATION_ID` を、理由なく変えた
-- `InterstitialPolicy`(結果画面を3回見るまでは出さない・3分あける・1日8回まで)を通さずに広告を出す、プレイ中(ウェーブの途中・ボス戦)に出す → 不具合
+- `InterstitialPolicy`(結果画面を3回見るまでは出さない・3分あける・1日8回まで)を通さずに広告を出す、プレイ中(ラウンドの途中・ボス戦)に出す → 不具合
 - iOS でトラッキング許可(ATT)のダイアログより先に広告を読み込む、同意(UMP)の処理を飛ばす → 審査で落ちる
 - 広告の読み込み・表示の失敗で画面遷移が止まる(`await` したまま戻らない、例外が漏れる) → 不具合(結果画面からタイトルに戻れなくなる)
 

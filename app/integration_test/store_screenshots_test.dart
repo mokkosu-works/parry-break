@@ -151,7 +151,7 @@ void main() {
     await playUntilParry(t, w);
     await snap(t, w, '01_boss');
 
-    // 5. 崩落 (要石を1つだけ残して壊した直後。ウェーブが終わる前に撮る)
+    // 5. 崩落 (要石を1つだけ残して壊した直後。ラウンドが終わる前に撮る)
     w = world(t)..start(fromWave: 23);
     await wait(t, 1.3);
     launch(w);

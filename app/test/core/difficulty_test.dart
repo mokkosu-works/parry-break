@@ -6,7 +6,7 @@ import 'package:parry_break/core/core.dart';
 
 import 'helpers.dart';
 
-/// [rows] の 1 ウェーブを [difficulty] で始め、カウントダウンを済ませた World。
+/// [rows] の 1 ラウンドを [difficulty] で始め、カウントダウンを済ませた World。
 World gunWorld(List<String> rows, Difficulty difficulty, {int level = 30}) {
   final w = World(mode: SingleWaveMode(rows, difficulty: level), difficulty: difficulty, inputLag: 0)..start();
   w.sync
@@ -148,7 +148,7 @@ void main() {
       expect(easy.descentSpeed, lessThan(normal.descentSpeed));
     });
 
-    test('ウェーブごとのバランスの上書きがあっても、難易度の上書きは残る', () {
+    test('ラウンドごとのバランスの上書きがあっても、難易度の上書きは残る', () {
       final mode = SingleWaveMode([_row]);
       final w = World(mode: mode, difficulty: Difficulty.easy)..start();
       expect(w.tuning.parryWindow, Difficulty.easy.tuning['parryWindow']);

@@ -20,7 +20,7 @@ enum CalloutChannel { collapse, chainBlast, multiParry, ricochet, overdriveFinis
 
 enum PopupKind { score, returnedScore, chain, ricochet, chainBlast, graze, noDamage, coreDamage }
 
-// ---- ウェーブ ----------------------------------------------------------
+// ---- ラウンド ----------------------------------------------------------
 
 final class WaveStarted extends GameEvent {
   const WaveStarted({required this.number, required this.loop, this.bossIndex, this.introKey});
@@ -60,7 +60,7 @@ final class Banner extends GameEvent {
   const Banner(this.kind, {this.value = 0, this.introKey});
   final BannerKind kind;
 
-  /// ウェーブ番号・ボス番号・フェーズ番号など。
+  /// ラウンド番号・ボス番号・フェーズ番号など。
   final int value;
   final String? introKey;
 }

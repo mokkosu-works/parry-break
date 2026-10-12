@@ -10,7 +10,7 @@ import 'package:parry_break/render/text_cache.dart';
 
 import '../core/helpers.dart';
 
-/// 盤面の描画を、さまざまな状態 (OVERDRIVE、ボス、崩落、ウェーブクリア) で行う。
+/// 盤面の描画を、さまざまな状態 (OVERDRIVE、ボス、崩落、ラウンドクリア) で行う。
 /// 例外が出ないことを確かめ、`--dart-define=screenshots=true --update-goldens` で画面写真を書き出す。
 const _shots = bool.fromEnvironment('screenshots');
 
@@ -92,7 +92,7 @@ void main() {
     await _paint(tester, w, fx, 'p2_collapse');
   });
 
-  testWidgets('ウェーブクリアの画面', (tester) async {
+  testWidgets('ラウンドクリアの画面', (tester) async {
     final w = World(mode: endlessMode)..start(fromWave: 6);
     final fx = FxState(w);
     _run(w, fx, 1.2);

@@ -332,7 +332,7 @@ class _ResultOverlayState extends State<ResultOverlay>
   Widget _stats(ResultData d) {
     final s = d.stats;
     final items = <(String, String, bool)>[
-      ('WAVE', '${d.wave}', d.wave >= d.bestWave && d.wave > 1),
+      ('ROUND', '${d.wave}', d.wave >= d.bestWave && d.wave > 1),
       ('MAX CHAIN', '${d.maxChain}', false),
       ('JUST', '${s.just}', false),
       ('GRAZE', '${s.graze}', false),
