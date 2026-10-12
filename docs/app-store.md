@@ -40,18 +40,19 @@ iPad にも対応している(`TARGETED_DEVICE_FAMILY = 1,2`)ため、iPhone と
 | 端末 | サイズ(横画面) | シミュレータの例 |
 | --- | --- | --- |
 | iPhone 6.9 インチ | 2868 × 1320 | iPhone 18 Pro Max |
+| iPhone 6.3 インチ | 2622 × 1206 | iPhone 18 Pro |
 | iPad 13 インチ | 2752 × 2064 | iPad Pro 13-inch (M5) |
 
 撮り方: `integration_test/store_screenshots_test.dart` が、シミュレータで実際のアプリを動かして5枚を撮る(ボス戦・崩落・プレイ中・ステージ選択・タイトル。番号は載せる順)。記録は見栄えのよい値を入れた仮のもので、端末の保存データには触らない。
 
 ```sh
 cd app
-open -a Simulator   # iPhone 18 Pro Max と iPad Pro 13-inch (M5) を起動しておく
+open -a Simulator   # 表の3台を起動しておく
 SHOT_DIR=build/store_screenshots/ja/iphone flutter drive -d <デバイス ID> --dart-define=lang=ja \
   --driver=test_driver/integration_test.dart --target=integration_test/store_screenshots_test.dart
 ```
 
-`lang=en` で英語版、`-d` に iPad の ID を渡すと iPad 版になる。PNG は透過の情報を持つので、`sips -s format jpeg` で JPEG にしてから載せる。
+`lang=en` で英語版になり、`-d` に渡す端末の ID でサイズが決まる。6.3 インチの欄は 6.9 インチの画像を受け付けない。縮めるとドット絵がにじむので、端末ごとに撮る。ボス戦はたまに被弾して「HIT!」が写るので、撮ったら目で確かめ、写っていたらその端末だけ撮り直す。PNG は透過の情報を持つので、`sips -s format jpeg` で JPEG にしてから載せる。
 
 ## App のプライバシー
 
