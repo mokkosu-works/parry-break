@@ -25,10 +25,11 @@ import 'game_controller.dart';
 import 'result_overlay.dart';
 import '../ui/pixel_icons.dart';
 
-/// プレイ画面。[stage] があればステージモード、なければエンドレス。
+/// プレイ画面。[stage] があればステージモード、なければエンドレス (エンドレスは常に NORMAL)。
 class GameScreen extends ConsumerStatefulWidget {
-  const GameScreen({super.key, this.stage});
+  const GameScreen({super.key, this.stage, this.difficulty = Difficulty.normal});
   final StageDef? stage;
+  final Difficulty difficulty;
 
   /// 最後に作られたプレイの進行役 (テストから状態を確かめるため)。
   @visibleForTesting
@@ -65,6 +66,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       audio: ref.read(audioProvider),
       haptics: ref.read(hapticsProvider),
       inputLag: settings.timingOffsetMs / 1000,
+      difficulty: stage != null ? widget.difficulty : Difficulty.normal,
       reduceEffects: settings.reduceEffects,
       timeSource: ref.read(timeSourceProvider),
     )..onFinished = _onFinished;
@@ -136,11 +138,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       final cleared = w.phase == WorldPhase.completed;
       final result = StageResult(cleared: cleared, score: w.score, stats: w.stats);
       final stars = stage.evaluate(result);
-      final newBest = records.submitStage(stage.id, result, stars);
-      if (cleared) {
-        final total = ref.read(recordsProvider).stages.values.fold(0, (s, r) => s + r.bestScore);
-        lb.submit(Board.stagesTotal, total);
-      }
+      final newBest = records.submitStage(stage.id, result, stars, difficulty: widget.difficulty);
+      if (cleared) lb.submit(Board.stagesTotal, ref.read(recordsProvider).stagesTotal);
       _outcome = _Outcome(newBest: newBest, stars: stars, cleared: cleared);
     }
   }
@@ -334,9 +333,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
         stats: w.stats,
         reason: w.overReason,
         newBest: o?.newBest ?? false,
-        bestScore: stage == null ? records.endless.bestScore : records.stage(stage.id).bestScore,
+        bestScore: stage == null ? records.endless.bestScore : records.stage(stage.id, widget.difficulty).bestScore,
         bestWave: records.endless.bestWave,
         stage: stage,
+        difficulty: widget.difficulty,
         cleared: cleared,
         achieved: o?.stars,
       ),
@@ -344,7 +344,9 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       onNewRecord: () => _ctl.audio.play('ricochet'),
       onRetry: _retry,
       onTitle: () => _leaveResult(_toTitle),
-      onNext: next == null ? null : () => Navigator.of(context).pushReplacement(fadeRoute<void>(GameScreen(stage: next))),
+      onNext: next == null
+          ? null
+          : () => Navigator.of(context).pushReplacement(fadeRoute<void>(GameScreen(stage: next, difficulty: widget.difficulty))),
       onStageSelect: stage == null ? null : () => _leaveResult(() => Navigator.of(context).pop()),
     );
   }

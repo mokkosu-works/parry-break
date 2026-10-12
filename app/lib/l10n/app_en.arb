@@ -95,9 +95,15 @@
   "introMagnet": "NEW: MAGNET — ATTRACTS THE BALL",
   "introSplitter": "NEW: SPLITTER — SCATTERS SMALL BLOCKS",
   "introMirror": "NEW: MIRROR — REFLECTS RETURNED BULLETS",
+  "introSpread": "NEW: SPREAD TURRET — PARRY THE WHOLE FAN AT ONCE",
+  "introGatling": "NEW: GATLING — A TRACKING BURST; PARRY IN RHYTHM",
+  "introRing": "NEW: RING TURRET — SLIP THROUGH THE GAPS",
+  "introSpiral": "NEW: SPIRAL TURRET — ATTACK WHILE IT RESTS",
+  "introSniper": "NEW: SNIPER — WHEN THE SIGHT LOCKS, A FAST SHOT FOLLOWS",
   "introLoop": "LOOP {loop} — SPEED UP",
   "introParry": "TAP AS THE BALL HITS TO PARRY",
   "introPierce": "A PERFECT PARRY MAKES A PIERCING SHOT",
+  "introOverdrive": "CHAIN PERFECTS TO FILL HEAT — OVERDRIVE PIERCES EVERYTHING",
   "introSurvive": "HOLD THE BLOCKS ABOVE THE DEAD LINE",
   "introScore": "REACH THE TARGET SCORE",
   "bannerBoss": "HIT CORES WITH PARRIED RED BULLETS AND PIERCING SHOTS",
@@ -105,5 +111,9 @@
   "bannerPhase2": "MIRROR SHIELDS — LOCK-ON LASERS",
   "bannerPhase3": "FORTRESS EXPANDS — BULLET STORM",
   "bannerTimeOver": "FORTRESS DIVING",
-  "endingSub": "NEXT LOOP — SPEED KEEPS RISING"
+  "endingSub": "NEXT LOOP — SPEED KEEPS RISING",
+  "difficulty": "Difficulty",
+  "difficultyEasy": "Fewer, slower bullets. Wider parry timing and more time for bosses",
+  "difficultyNormal": "Standard difficulty",
+  "difficultyHard": "Bullet hell. More bullets, and broken blocks shoot back"
 }

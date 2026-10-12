@@ -3,6 +3,7 @@ library;
 
 export 'blocks/block_behavior.dart';
 export 'blocks/standard_blocks.dart';
+export 'config/difficulty.dart';
 export 'config/field.dart';
 export 'config/tuning.dart';
 export 'entities/entities.dart';

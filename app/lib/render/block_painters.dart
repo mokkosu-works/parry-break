@@ -45,6 +45,18 @@ Rect _inner(Rect r) => r.deflate(2);
 
 // 種類ごとの印 (ドット絵)
 final _turret = DotSprite(['#####', '##.##', '..#..']);
+final _spread = DotSprite(['#.#.#', '.###.', '..#..']);
+final _gatling = DotSprite(['#####', '.#.#.', '.#.#.']);
+final _ring = DotSprite(['.###.', '#...#', '.###.']);
+final _sniper = DotSprite(['..#..', '##.##', '..#..']);
+
+/// 回転砲台の腕 (向きごとの 4 枚)。
+final _spiral = [
+  DotSprite(['...', '###', '...']),
+  DotSprite(['..#', '.#.', '#..']),
+  DotSprite(['.#.', '.#.', '.#.']),
+  DotSprite(['#..', '.#.', '..#']),
+];
 final _magnet = DotSprite(['#.#', '#.#', '###']);
 final _crack = DotSprite(['#...', '.#.#', '..#.']);
 final _diamond = DotSprite(['.#.', '###', '.#.']);
@@ -61,16 +73,33 @@ void _eachInnerDot(Rect i, void Function(int col, int row, double x, double y) f
   }
 }
 
-/// 通常・砲台・反射・磁力・分裂の描き方 (陰影の付いた四角 + 種類ごとのドットの印 + 残り HP)。
+/// 通常・砲台 (攻撃ブロック)・反射・磁力・分裂の描き方 (陰影の付いた四角 + 種類ごとのドットの印 + 残り HP)。
 void paintStandardBlock(BlockPaintContext ctx, Block b, Rect r) {
   final c = ctx.canvas, col = ctx.colorOf(b), i = _inner(r);
-  final warn = b.type == 'T' && b.telegraph && (ctx.time * 16).floor().isEven;
+  final warn = b.telegraph && (ctx.time * 16).floor().isEven;
   bevelRect(c, i, warn ? Dot.white : col);
   final cx = r.center.dx, cy = r.center.dy;
+  void muzzle() =>
+      c.drawRect(Rect.fromLTWH(cx - _d / 2, cy - _d / 2, _d, _d), pixelPaint(b.telegraph ? Dot.bulletRed : Dot.white));
   switch (b.type) {
     case 'T':
       _turret.drawCentered(c, cx, cy, Dot.dark(col));
-      c.drawRect(Rect.fromLTWH(cx - _d / 2, cy - _d / 2, _d, _d), pixelPaint(b.telegraph ? Dot.bulletRed : Dot.white));
+      muzzle();
+    case 'F':
+      _spread.drawCentered(c, cx, cy, Dot.dark(col));
+      muzzle();
+    case 'G':
+      _gatling.drawCentered(c, cx, cy, Dot.dark(col));
+      muzzle();
+    case 'O':
+      _ring.drawCentered(c, cx, cy, Dot.dark(col));
+      muzzle();
+    case 'Z':
+      final k = ((b.aim % math.pi) / (math.pi / 4)).round() % 4;
+      _spiral[k].drawCentered(c, cx, cy, Dot.dark(col));
+    case 'P':
+      _sniper.drawCentered(c, cx, cy, Dot.dark(col));
+      muzzle();
     case 'R':
       final p = pixelPaint(Dot.light(col));
       _eachInnerDot(i, (col, row, x, y) {

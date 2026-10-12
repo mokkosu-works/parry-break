@@ -333,6 +333,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introMirror => 'NEW: MIRROR — REFLECTS RETURNED BULLETS';
 
   @override
+  String get introSpread => 'NEW: SPREAD TURRET — PARRY THE WHOLE FAN AT ONCE';
+
+  @override
+  String get introGatling => 'NEW: GATLING — A TRACKING BURST; PARRY IN RHYTHM';
+
+  @override
+  String get introRing => 'NEW: RING TURRET — SLIP THROUGH THE GAPS';
+
+  @override
+  String get introSpiral => 'NEW: SPIRAL TURRET — ATTACK WHILE IT RESTS';
+
+  @override
+  String get introSniper =>
+      'NEW: SNIPER — WHEN THE SIGHT LOCKS, A FAST SHOT FOLLOWS';
+
+  @override
   String introLoop(String loop) {
     return 'LOOP $loop — SPEED UP';
   }
@@ -342,6 +358,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get introPierce => 'A PERFECT PARRY MAKES A PIERCING SHOT';
+
+  @override
+  String get introOverdrive =>
+      'CHAIN PERFECTS TO FILL HEAT — OVERDRIVE PIERCES EVERYTHING';
 
   @override
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
@@ -367,4 +387,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get endingSub => 'NEXT LOOP — SPEED KEEPS RISING';
+
+  @override
+  String get difficulty => 'Difficulty';
+
+  @override
+  String get difficultyEasy =>
+      'Fewer, slower bullets. Wider parry timing and more time for bosses';
+
+  @override
+  String get difficultyNormal => 'Standard difficulty';
+
+  @override
+  String get difficultyHard =>
+      'Bullet hell. More bullets, and broken blocks shoot back';
 }

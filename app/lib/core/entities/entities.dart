@@ -22,10 +22,13 @@ class Block {
   /// 被弾時の白い明滅の残り時間 (描画用)。
   double flash = 0;
 
-  // 砲台
+  // 攻撃ブロック (砲台など)
   double fireT = 0;
   bool telegraph = false;
   int shots = 0;
+
+  /// 狙い・回転の角度 (ラジアン)。狙撃砲台の照準線、全方位・回転砲台の向き。
+  double aim = 0;
 
   /// 分裂の子ブロックが落ちていく残り距離。
   double fall = 0;

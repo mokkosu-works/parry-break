@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/rendering.dart';
 
+import '../core/blocks/turret.dart';
 import '../core/core.dart';
 import '../l10n/app_localizations.dart';
 import 'block_painters.dart';
@@ -86,6 +87,9 @@ class FieldPainter extends CustomPainter {
     final ctx = BlockPaintContext(canvas, text, _t, fx.blockColor);
     for (final b in w.blocks) {
       _block(ctx, b, Rect.fromLTWH(b.x + _ox, b.y + _oy, b.w, b.h));
+    }
+    for (final b in w.blocks) {
+      if (b.type == 'P' && b.telegraph) _sniperSight(b);
     }
     _cracking();
     _debris();
@@ -186,6 +190,23 @@ class FieldPainter extends CustomPainter {
     final r = rad - ((_t * 60) % rad);
     final m = math.max(6, (r * 2 * math.pi / 20).round());
     drawDots(_c, ringDots(x, y, r, m), withAlpha(Dot.sky, 0.3 * r / rad), size: 3);
+  }
+
+  /// 狙撃砲台の照準線 (ドットの点線)。予兆の間はパドルを追い、固定されると詰まって明滅する。
+  void _sniperSight(Block b) {
+    final x = b.x + _ox + b.w / 2, y = b.y + _oy + b.h;
+    final locked = b.fireT <= SniperTurretBlock.lockTime;
+    final len = (Field.paddleY - y) / math.max(0.2, math.sin(b.aim));
+    final step = locked ? _d * 2 : _d * 4;
+    final col = locked ? ((_t * 16).floor().isEven ? Dot.white : Dot.bulletRed) : withAlpha(Dot.bulletRed, 0.6);
+    final n = (len / step).floor();
+    final pts = Float32List(n * 2);
+    for (var k = 0; k < n; k++) {
+      // ドットの格子に揃える
+      pts[k * 2] = ((x + math.cos(b.aim) * k * step) / _d).floorToDouble() * _d + _d / 2;
+      pts[k * 2 + 1] = ((y + math.sin(b.aim) * k * step) / _d).floorToDouble() * _d + _d / 2;
+    }
+    drawDots(_c, pts, col, size: locked ? _d : _d / 2 + 1);
   }
 
   void _block(BlockPaintContext ctx, Block b, Rect r) {
@@ -587,9 +608,15 @@ class FieldPainter extends CustomPainter {
         'intro.magnet' => l10n.introMagnet,
         'intro.splitter' => l10n.introSplitter,
         'intro.mirror' => l10n.introMirror,
+        'intro.spread' => l10n.introSpread,
+        'intro.gatling' => l10n.introGatling,
+        'intro.ring' => l10n.introRing,
+        'intro.spiral' => l10n.introSpiral,
+        'intro.sniper' => l10n.introSniper,
         'intro.loop' => l10n.introLoop('${world.wave.loop + 1}'),
         'intro.parry' => l10n.introParry,
         'intro.pierce' => l10n.introPierce,
+        'intro.overdrive' => l10n.introOverdrive,
         'intro.survive' => l10n.introSurvive,
         'intro.score' => l10n.introScore,
         _ => null,

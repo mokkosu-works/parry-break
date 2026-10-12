@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../blocks/block_behavior.dart';
 import '../blocks/standard_blocks.dart';
+import '../config/difficulty.dart';
 import '../config/field.dart';
 import '../config/tuning.dart';
 import '../entities/entities.dart';
@@ -55,11 +56,14 @@ class World {
     BlockRegistry? blocks,
     BossPatternRegistry? bossPatterns,
     Tuning tuning = const Tuning(),
+    this.difficulty = Difficulty.normal,
     this.inputLag = 0.016,
   })  : registry = blocks ?? standardBlocks(),
         bossPatterns = bossPatterns ?? BossPatternRegistry.standard,
-        baseTuning = tuning,
-        tuning = tuning;
+        baseTuning = _withDifficulty(tuning, difficulty),
+        tuning = _withDifficulty(tuning, difficulty);
+
+  static Tuning _withDifficulty(Tuning t, Difficulty d) => d.tuning.isEmpty ? t : t.copyWith(d.tuning);
 
   static const double dt = 1 / 60;
 
@@ -67,6 +71,9 @@ class World {
   final BlockRegistry registry;
   final BossPatternRegistry bossPatterns;
   final Tuning baseTuning;
+
+  /// 難易度 (弾の量・速さ、パリィの判定の広さなど)。
+  final Difficulty difficulty;
 
   /// 現在のウェーブで有効なバランス値 (ウェーブごとの上書きを反映したもの)。
   Tuning tuning;
@@ -223,7 +230,7 @@ class World {
 
   double get paddleWidth => tuning.paddleWidth;
 
-  double get descentSpeed => tuning.descentSpeed(wave.difficulty, wave.loopMul);
+  double get descentSpeed => tuning.descentSpeed(wave.difficulty, wave.loopMul) * difficulty.descent;
 
   /// ボールの目標速度。段階が上がると補間して加速する。
   double get targetSpeed {

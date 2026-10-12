@@ -27,6 +27,7 @@ class BossDef {
     required this.coreHp,
     required this.timeLimit,
     required this.patterns,
+    this.hardPatterns = const [],
     this.phaseThresholds = const [0.66, 0.33],
     this.sway = 0.55,
     this.reinforce = 2,
@@ -40,6 +41,9 @@ class BossDef {
   final int coreHp;
   final double timeLimit;
   final List<PatternSpec> patterns;
+
+  /// HARD (弾幕) のときだけ足す攻撃 (JSON の `hard`)。
+  final List<PatternSpec> hardPatterns;
 
   /// コアの残り HP の割合がこれ以下になるとフェーズが進む。
   final List<double> phaseThresholds;
@@ -55,16 +59,19 @@ class BossDef {
         template: List<String>.from(j['template'] as List),
         coreHp: (j['coreHp'] as num).toInt(),
         timeLimit: (j['timeLimit'] as num).toDouble(),
-        patterns: [
-          for (final p in (j['patterns'] as List).cast<Map<String, Object?>>())
-            PatternSpec(p['type'] as String, fromPhase: (p['from'] as num?)?.toInt() ?? 1, params: p),
-        ],
+        patterns: _patterns(j['patterns'] as List<Object?>),
+        hardPatterns: _patterns(j['hard'] as List<Object?>? ?? const []),
         phaseThresholds: [
           for (final v in (j['phases'] as List?) ?? const [0.66, 0.33]) (v as num).toDouble(),
         ],
         sway: (j['sway'] as num?)?.toDouble() ?? 0.55,
         reinforce: (j['reinforce'] as num?)?.toInt() ?? 2,
       );
+
+  static List<PatternSpec> _patterns(List<Object?> l) => [
+        for (final p in l.cast<Map<String, Object?>>())
+          PatternSpec(p['type'] as String, fromPhase: (p['from'] as num?)?.toInt() ?? 1, params: p),
+      ];
 }
 
 /// 戦闘中のボスの状態。
@@ -125,10 +132,12 @@ class BossPatternRegistry {
     'curtain': (p, _) => CurtainPattern(p),
     'laserGrid': (p, _) => LaserGridPattern(p),
     'repair': (p, _) => RepairPattern(p),
+    'ring': (p, _) => RingPattern(p),
+    'rain': (p, _) => RainPattern(p),
   });
 }
 
-double _bulletSpeed(World w, Boss b) => (230 + b.index * 15) * w.wave.loopMul;
+double _bulletSpeed(World w, Boss b) => (230 + b.index * 15) * w.wave.loopMul * w.difficulty.bulletSpeed;
 
 /// 扇状の弾幕 (赤い弾を含む)。コアが複数あるときは 1 つずつ順番に撃つ。
 class FanPattern extends BossPattern {
@@ -143,8 +152,8 @@ class FanPattern extends BossPattern {
     _t = 3.6;
     final sp = _bulletSpeed(w, boss);
     final c = cores[_n++ % cores.length], o = w.blockCenter(c);
-    final n = 2 + boss.phase * 2;
-    const spread = 80 * deg;
+    final n = 2 + boss.phase * 2 + w.difficulty.pick(0, 0, 2);
+    final spread = w.difficulty.pick(80, 80, 96) * deg;
     for (var i = 0; i < n; i++) {
       final a = math.pi / 2 - spread / 2 + spread * i / (n - 1);
       w.fireBullet(o.x, o.y + 20, a, sp, source: c, red: i % 3 == 1);
@@ -167,7 +176,8 @@ class AimedPattern extends BossPattern {
     final sp = _bulletSpeed(w, boss);
     final c = cores[_n++ % cores.length], o = w.blockCenter(c);
     final a = math.atan2(Field.paddleY - o.y, w.paddle.x - o.x);
-    for (var k = -1; k <= 1; k++) {
+    final side = w.difficulty.pick(1, 1, 2);
+    for (var k = -side; k <= side; k++) {
       w.fireBullet(o.x, o.y + 20, a + k * 10 * deg, sp * 1.25, source: c, red: k == 0);
     }
     w.emit(const BulletFired());
@@ -201,7 +211,7 @@ class SpiralPattern extends BossPattern {
     if (_cycle >= 2) return;
     _t -= dt;
     if (_t > 0) return;
-    _t = 0.18 / (1 + boss.index * 0.05);
+    _t = 0.18 / (1 + boss.index * 0.05) / w.difficulty.bossFireRate;
     _angle += 0.45;
     final c = cores[_n++ % cores.length], o = w.blockCenter(c);
     w.fireBullet(o.x, o.y + 20, math.pi / 2 + math.sin(_angle) * 70 * deg, _bulletSpeed(w, boss),
@@ -314,5 +324,51 @@ class RepairPattern extends BossPattern {
       if (rectDist(ball.x, ball.y, sx, sy, Field.cellW, Field.cellH) < Field.ballR + 40) return true;
     }
     return false;
+  }
+}
+
+/// 全方位弾: コアから輪の形に弾を撃つ (撃つたびに少し回す)。コアが複数あるときは 1 つずつ順番に撃つ。
+class RingPattern extends BossPattern {
+  RingPattern(super.fromPhase);
+  double _t = 3, _rot = 0;
+  int _n = 0;
+
+  @override
+  void update(World w, Boss boss, List<Block> cores, double dt, double rate) {
+    _t -= dt * rate;
+    if (_t > 0) return;
+    _t = 5;
+    final c = cores[_n++ % cores.length], o = w.blockCenter(c);
+    final n = w.difficulty.pick(10, 14, 16) + boss.phase * 2;
+    final sp = _bulletSpeed(w, boss) * 0.8;
+    _rot += 0.37;
+    for (var i = 0; i < n; i++) {
+      w.fireBullet(o.x, o.y + 20, _rot + 2 * math.pi * i / n, sp, source: c, red: i % 5 == 0);
+    }
+    w.emit(const BulletFired());
+  }
+}
+
+/// 弾の雨: 要塞の下端のあちこちから、少しずつ斜めに弾を降らせる。
+class RainPattern extends BossPattern {
+  RainPattern(super.fromPhase);
+  double _t = 2;
+
+  @override
+  void update(World w, Boss boss, List<Block> cores, double dt, double rate) {
+    _t -= dt * rate;
+    if (_t > 0) return;
+    _t = 1.8;
+    var y = 0.0;
+    for (final b in w.blocks) {
+      y = math.max(y, b.y + w.form.oy + b.h);
+    }
+    final n = w.difficulty.pick(2, 2, 3) + boss.phase;
+    final sp = _bulletSpeed(w, boss) * 0.7;
+    for (var i = 0; i < n; i++) {
+      final x = 40 + w.aux.next() * (Field.width - 80);
+      w.fireBullet(x, y + 10, math.pi / 2 + w.aux.range(-0.18, 0.18), sp * w.aux.range(0.85, 1.15));
+    }
+    w.emit(const BulletFired());
   }
 }

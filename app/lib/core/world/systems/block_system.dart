@@ -22,6 +22,21 @@ extension _BlockSystem on World {
     if (cause == DestroyCause.ball || cause == DestroyCause.pierce) ball.flight++;
     emit(BlockDestroyed(bl, c.x, c.y, cause, v));
     bl.behavior.onDestroyed(this, bl, c.x, c.y);
+    if (cause != DestroyCause.blast) _revenge(c.x, c.y);
+  }
+
+  /// 撃ち返し弾 (打ち返し): HARD では、壊されたブロックが一定の確率でパドルへ 3 方向弾を撃ってくる。
+  /// パドルのすぐ近くからは撃たない (避けようがないため)。
+  void _revenge(double x, double y) {
+    final chance = difficulty.revengeChance;
+    if (chance <= 0 || phase != WorldPhase.playing || bullets.length >= 160) return;
+    if (aux.next() >= chance) return;
+    if (hypot(paddle.x - x, Field.paddleY - y) < 240) return;
+    final a = math.atan2(Field.paddleY - y, paddle.x - x) + aux.range(-0.06, 0.06);
+    final sp = 230 * difficulty.bulletSpeed * wave.loopMul;
+    for (var k = -1; k <= 1; k++) {
+      fireBullet(x, y, a + k * 11 * deg, sp);
+    }
   }
 
   void _damageCore(Block core, int n) {
