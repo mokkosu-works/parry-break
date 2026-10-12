@@ -1,12 +1,12 @@
 import '../entities/entities.dart';
 import 'boss_def.dart';
 import 'procedural_generator.dart';
-import 'wave_spec.dart';
+import 'round_spec.dart';
 
 /// エンドレス (アーケード) の定義。`assets/stages/endless.json` から読む。
 class EndlessContent {
   const EndlessContent({
-    required this.wavesPerLoop,
+    required this.roundsPerLoop,
     required this.bossEvery,
     required this.loopSpeedup,
     required this.loopIntro,
@@ -16,17 +16,17 @@ class EndlessContent {
     required this.bosses,
   });
 
-  final int wavesPerLoop, bossEvery;
+  final int roundsPerLoop, bossEvery;
   final double loopSpeedup;
   final String? loopIntro;
 
-  /// 自動生成で使うブロックの種類 → 解禁ウェーブ。
+  /// 自動生成で使うブロックの種類 → 解禁ラウンド。
   final Map<String, int> unlock;
 
-  /// 手作りの配置 (新ギミックの学習ウェーブ)。
+  /// 手作りの配置 (新ギミックの学習ラウンド)。
   final Map<int, List<String>> handcrafted;
 
-  /// ウェーブ番号 → 説明の翻訳キー。
+  /// ラウンド番号 → 説明の翻訳キー。
   final Map<int, String> intros;
   final List<BossDef> bosses;
 
@@ -39,7 +39,7 @@ class EndlessContent {
     }
     final bosses = (j['bosses'] as List).cast<Map<String, Object?>>();
     return EndlessContent(
-      wavesPerLoop: (j['wavesPerLoop'] as num).toInt(),
+      roundsPerLoop: (j['roundsPerLoop'] as num).toInt(),
       bossEvery: (j['bossEvery'] as num).toInt(),
       loopSpeedup: (j['loopSpeedup'] as num).toDouble(),
       loopIntro: j['loopIntro'] as String?,
@@ -53,29 +53,29 @@ class EndlessContent {
     );
   }
 
-  /// 難易度 [base] (1〜[wavesPerLoop]) のウェーブの中身。
-  WaveContent contentFor(int base) {
+  /// 難易度 [base] (1〜[roundsPerLoop]) のラウンドの中身。
+  RoundContent contentFor(int base) {
     if (base % bossEvery == 0 && bosses.isNotEmpty) {
       return BossContent(bosses[(base ~/ bossEvery - 1).clamp(0, bosses.length - 1)]);
     }
     return layoutFor(base);
   }
 
-  /// 難易度 [base] の配置 (ボスのウェーブ番号でも、ボスではなく配置を返す)。
+  /// 難易度 [base] の配置 (ボスのラウンド番号でも、ボスではなく配置を返す)。
   LayoutContent layoutFor(int base) => LayoutContent(handcrafted[base] ?? generateLayout(base, unlock: unlock));
 
-  /// エンドレスの [number] 番目のウェーブ。
-  WaveSpec wave(int number) {
-    final base = (number - 1) % wavesPerLoop + 1;
-    final loop = (number - 1) ~/ wavesPerLoop;
-    return WaveSpec(
+  /// エンドレスの [number] 番目のラウンド。
+  RoundSpec round(int number) {
+    final base = (number - 1) % roundsPerLoop + 1;
+    final loop = (number - 1) ~/ roundsPerLoop;
+    return RoundSpec(
       number: number,
       difficulty: base,
       loop: loop,
       loopMul: 1 + loopSpeedup * loop,
       content: contentFor(base),
       introKey: loop > 0 && base == 1 ? loopIntro : intros[base],
-      ending: base == wavesPerLoop,
+      ending: base == roundsPerLoop,
     );
   }
 }
@@ -170,12 +170,12 @@ class StageDef {
     required this.id,
     required this.chapterId,
     required this.title,
-    required this.waves,
+    required this.rounds,
     required this.stars,
   });
   final String id, chapterId;
   final LocalizedText title;
-  final List<WaveSpec> waves;
+  final List<RoundSpec> rounds;
   final List<StarCondition> stars;
 
   /// 達成した星 (条件ごと)。
@@ -191,9 +191,9 @@ class ChapterDef {
 
 /// ステージモードの定義。`assets/stages/campaign.json` から読む。
 ///
-/// ウェーブの書き方:
+/// ラウンドの書き方:
 /// - `{"rows": [...], "legend": {...}}`: 配置を直接書く
-/// - `{"endless": 2}`: エンドレスの W2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)
+/// - `{"endless": 2}`: エンドレスの R2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)
 /// - `{"boss": 0}`: エンドレスの 1 体目のボス
 /// 共通で `difficulty`(既定 1)、`clear`、`tuning`、`intro` を書ける。
 class Campaign {
@@ -218,9 +218,9 @@ class Campaign {
               id: s['id'] as String,
               chapterId: c['id'] as String,
               title: LocalizedText.fromJson(s['title']),
-              waves: [
-                for (final (i, w) in (s['waves'] as List).cast<Map<String, Object?>>().indexed)
-                  _wave(i + 1, w, endless),
+              rounds: [
+                for (final (i, w) in (s['rounds'] as List).cast<Map<String, Object?>>().indexed)
+                  _round(i + 1, w, endless),
               ],
               stars: [
                 for (final st in (s['stars'] as List? ?? const [{'type': 'clear'}]).cast<Map<String, Object?>>())
@@ -231,18 +231,18 @@ class Campaign {
     ]);
   }
 
-  static WaveSpec _wave(int number, Map<String, Object?> w, EndlessContent endless) {
+  static RoundSpec _round(int number, Map<String, Object?> w, EndlessContent endless) {
     // 中身と、`difficulty` を省いたときの難易度
-    final (WaveContent content, int defaultDifficulty) = switch (w) {
+    final (RoundContent content, int defaultDifficulty) = switch (w) {
       {'rows': final List<Object?> rows} => (
           LayoutContent(List<String>.from(rows), legend: Map<String, String>.from((w['legend'] as Map?) ?? const {})),
           1,
         ),
       {'endless': final num n} => (endless.layoutFor(n.toInt()), n.toInt()),
       {'boss': final num i} => (BossContent(endless.bosses[i.toInt()]), (i.toInt() + 1) * endless.bossEvery),
-      _ => throw const FormatException('wave needs rows, endless or boss'),
+      _ => throw const FormatException('round needs rows, endless or boss'),
     };
-    return WaveSpec(
+    return RoundSpec(
       number: number,
       difficulty: (w['difficulty'] as num?)?.toInt() ?? defaultDifficulty,
       content: content,

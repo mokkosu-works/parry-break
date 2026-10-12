@@ -33,7 +33,7 @@ extension _BlockSystem on World {
     if (aux.next() >= chance) return;
     if (hypot(paddle.x - x, Field.paddleY - y) < 240) return;
     final a = math.atan2(Field.paddleY - y, paddle.x - x) + aux.range(-0.06, 0.06);
-    final sp = 230 * difficulty.bulletSpeed * wave.loopMul;
+    final sp = 230 * difficulty.bulletSpeed * round.loopMul;
     for (var k = -1; k <= 1; k++) {
       fireBullet(x, y, a + k * 11 * deg, sp);
     }
@@ -93,7 +93,7 @@ extension _BlockSystem on World {
     if (e.shrapnel && phase == WorldPhase.playing) {
       for (var k = -1; k <= 1; k++) {
         final a = math.pi / 2 + k * 28 * deg + aux.range(-0.1, 0.1);
-        final sp = 250 * wave.loopMul;
+        final sp = 250 * round.loopMul;
         _spawnHostile(e.x, e.y, math.cos(a) * sp, math.sin(a) * sp, BulletKind.shrapnel);
       }
     }

@@ -6,9 +6,9 @@ import 'package:parry_break/core/core.dart';
 
 import 'helpers.dart';
 
-/// [rows] の 1 ウェーブを [difficulty] で始め、カウントダウンを済ませた World。
+/// [rows] の 1 ラウンドを [difficulty] で始め、カウントダウンを済ませた World。
 World gunWorld(List<String> rows, Difficulty difficulty, {int level = 30}) {
-  final w = World(mode: SingleWaveMode(rows, difficulty: level), difficulty: difficulty, inputLag: 0)..start();
+  final w = World(mode: SingleRoundMode(rows, difficulty: level), difficulty: difficulty, inputLag: 0)..start();
   w.sync
     ..wall = 0
     ..sim = 0
@@ -148,15 +148,15 @@ void main() {
       expect(easy.descentSpeed, lessThan(normal.descentSpeed));
     });
 
-    test('ウェーブごとのバランスの上書きがあっても、難易度の上書きは残る', () {
-      final mode = SingleWaveMode([_row]);
+    test('ラウンドごとのバランスの上書きがあっても、難易度の上書きは残る', () {
+      final mode = SingleRoundMode([_row]);
       final w = World(mode: mode, difficulty: Difficulty.easy)..start();
       expect(w.tuning.parryWindow, Difficulty.easy.tuning['parryWindow']);
     });
 
     test('HARD のボスは攻撃が増え、EASY は制限時間が長い', () {
       final def = endlessContent.bosses.first;
-      World boss(Difficulty d) => World(mode: endlessMode, difficulty: d)..start(fromWave: endlessContent.bossEvery);
+      World boss(Difficulty d) => World(mode: endlessMode, difficulty: d)..start(fromRound: endlessContent.bossEvery);
       expect(boss(Difficulty.normal).boss!.patterns.length, def.patterns.length);
       expect(boss(Difficulty.hard).boss!.patterns.length, def.patterns.length + def.hardPatterns.length);
       expect(boss(Difficulty.easy).boss!.time, def.timeLimit + Difficulty.easy.bossTimeBonus);
@@ -167,7 +167,7 @@ void main() {
 
     test('HARD のボスは、全フェーズで NORMAL より弾が多い', () {
       double rate(int index, Difficulty d) {
-        final w = World(mode: endlessMode, difficulty: d)..start(fromWave: (index + 1) * endlessContent.bossEvery);
+        final w = World(mode: endlessMode, difficulty: d)..start(fromRound: (index + 1) * endlessContent.bossEvery);
         run(w, 1.1);
         return bulletsFired(w, 20) / 20;
       }

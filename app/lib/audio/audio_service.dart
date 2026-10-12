@@ -155,11 +155,11 @@ class SoLoudAudio implements AudioService {
         play('coreDie');
       case BulletMirrored():
         play('mirror');
-      case WaveCleared():
+      case RoundCleared():
         play('clear');
       case BossPhaseChanged():
         play('phase');
-      case WaveStarted(:final bossIndex):
+      case RoundStarted(:final bossIndex):
         if (bossIndex != null) play('alarm');
       case BossTimeOver():
         play('alarm');

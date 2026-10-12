@@ -12,7 +12,7 @@ import '../sim/geom.dart';
 import '../sim/rng.dart';
 import '../sim/time_sync.dart';
 import '../stages/boss_def.dart';
-import '../stages/wave_spec.dart';
+import '../stages/round_spec.dart';
 
 part 'systems/ball_system.dart';
 part 'systems/parry_system.dart';
@@ -20,19 +20,19 @@ part 'systems/block_system.dart';
 part 'systems/collapse_system.dart';
 part 'systems/bullet_system.dart';
 part 'systems/boss_system.dart';
-part 'systems/wave_system.dart';
+part 'systems/round_system.dart';
 
 enum WorldPhase {
-  /// ウェーブ進行中。
+  /// ラウンド進行中。
   playing,
 
-  /// ウェーブクリアの演出中 (次のウェーブを待つ)。
+  /// ラウンドクリアの演出中 (次のラウンドを待つ)。
   clearing,
 
   /// ゲームオーバー。
   over,
 
-  /// モードの最後のウェーブをクリアした (ステージモード)。
+  /// モードの最後のラウンドをクリアした (ステージモード)。
   completed,
 }
 
@@ -75,7 +75,7 @@ class World {
   /// 難易度 (弾の量・速さ、パリィの判定の広さなど)。
   final Difficulty difficulty;
 
-  /// 現在のウェーブで有効なバランス値 (ウェーブごとの上書きを反映したもの)。
+  /// 現在のラウンドで有効なバランス値 (ラウンドごとの上書きを反映したもの)。
   Tuning tuning;
 
   /// 判定タイミング補正 (秒)。入力時刻をこの値だけ早めて扱う。
@@ -103,15 +103,15 @@ class World {
   List<PendingFall> falling = [];
   final Formation form = Formation();
   Boss? boss;
-  late WaveSpec wave;
+  late RoundSpec round;
 
-  /// ウェーブの固定シードの乱数 (反射ブロック・砲台の初期タイマー。ブラウザ版と同じ系列)。
+  /// ラウンドの固定シードの乱数 (反射ブロック・砲台の初期タイマー。ブラウザ版と同じ系列)。
   late Mulberry32 rng;
 
-  /// ゲーム結果に影響するその他の乱数 (瓦礫・分身弾など)。これもウェーブのシードで決まる。
+  /// ゲーム結果に影響するその他の乱数 (瓦礫・分身弾など)。これもラウンドのシードで決まる。
   late Mulberry32 aux;
 
-  double countdown = 0, waveTime = 0;
+  double countdown = 0, roundTime = 0;
   bool launched = false;
   double lastBlockHit = -9;
   Contact lastContact = const Contact(-9, used: true);
@@ -153,8 +153,8 @@ class World {
     return out;
   }
 
-  /// 新しいプレイを始める。[fromWave] で途中のウェーブから始められる (テスト・デバッグ用)。
-  void start({int fromWave = 1}) {
+  /// 新しいプレイを始める。[fromRound] で途中のラウンドから始められる (テスト・デバッグ用)。
+  void start({int fromRound = 1}) {
     phase = WorldPhase.playing;
     t = 0;
     score = 0;
@@ -172,9 +172,9 @@ class World {
     stats = RunStats();
     overReason = '';
     _actions.clear();
-    final first = mode.waveAt(fromWave);
-    if (first == null) throw StateError('mode has no waves');
-    _loadWave(first);
+    final first = mode.roundAt(fromRound);
+    if (first == null) throw StateError('mode has no rounds');
+    _loadRound(first);
   }
 
   /// 1 ステップ進める。
@@ -230,11 +230,11 @@ class World {
 
   double get paddleWidth => tuning.paddleWidth;
 
-  double get descentSpeed => tuning.descentSpeed(wave.difficulty, wave.loopMul) * difficulty.descent;
+  double get descentSpeed => tuning.descentSpeed(round.difficulty, round.loopMul) * difficulty.descent;
 
   /// ボールの目標速度。段階が上がると補間して加速する。
   double get targetSpeed {
-    final s = tuning.baseSpeed(wave.difficulty, wave.loopMul);
+    final s = tuning.baseSpeed(round.difficulty, round.loopMul);
     if (od) {
       final s4 = math.min(tuning.odStartSpeedCap, s * tuning.stageSpeed[3]);
       return s4 + (tuning.odMaxSpeed - s4) * math.min(1, odElapsed / tuning.odTime);
