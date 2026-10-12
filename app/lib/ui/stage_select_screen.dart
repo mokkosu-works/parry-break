@@ -300,8 +300,13 @@ class _StageTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = Text(stage.id,
         style: pixelFont((height * 0.28).clamp(14.0, 24.0), color: record.cleared ? Dot.ink : unlocked ? Palette.white : Palette.gray));
+    // 狭い画面では、番号を折り返さずに縮めて 1 行で収める
+    final fitted = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: FittedBox(fit: BoxFit.scaleDown, child: label),
+    );
     final face = record.cleared
-        ? BevelBox(color: Palette.main, child: Center(child: label))
+        ? BevelBox(color: Palette.main, child: Center(child: fitted))
         : Container(
             decoration: BoxDecoration(
               color: Dot.night,
@@ -309,7 +314,7 @@ class _StageTile extends StatelessWidget {
             ),
             child: Center(
               child: unlocked
-                  ? label
+                  ? fitted
                   : Padding(
                       padding: const EdgeInsets.all(3),
                       child: FittedBox(
@@ -353,9 +358,12 @@ class _StageTile extends StatelessWidget {
               left: 0,
               right: 0,
               top: height + 8,
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                for (var i = 0; i < stage.stars.length; i++) PixelStar(got: record.hasStar(i), size: 14),
-              ]),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  for (var i = 0; i < stage.stars.length; i++) PixelStar(got: record.hasStar(i), size: 14),
+                ]),
+              ),
             ),
             if (selected)
               Positioned(
