@@ -145,7 +145,7 @@ class Bullet {
 
   /// パドルの近く (グレイズ判定の範囲) を通ったか。
   bool near = false;
-  bool nearMissed = false;
+  bool grazed = false;
 
   /// 直前のステップの位置 (描画でステップ間を補間するため)。
   late double prevX = x, prevY = y;
@@ -193,7 +193,7 @@ class BlastChainTally {
 }
 
 class RunStats {
-  int just = 0, nearMiss = 0, bestCollapse = 0, bestBlast = 0, bestRicochet = 0, hurt = 0;
+  int just = 0, graze = 0, bestCollapse = 0, bestBlast = 0, bestRicochet = 0, hurt = 0;
 
   /// パリィの成功数 / うち PERFECT 以上の数 / 撃ち返し弾で壊したブロック数。
   int parries = 0, perfects = 0, returnKills = 0;

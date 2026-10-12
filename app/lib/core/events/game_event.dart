@@ -18,7 +18,7 @@ enum BannerKind { round, boss, overdrive, bossPhase, timeOver }
 
 enum CalloutChannel { collapse, chainBlast, multiParry, ricochet, overdriveFinish }
 
-enum PopupKind { score, returnedScore, chain, ricochet, chainBlast, nearMiss, noDamage, coreDamage }
+enum PopupKind { score, returnedScore, chain, ricochet, chainBlast, graze, noDamage, coreDamage }
 
 // ---- ラウンド ----------------------------------------------------------
 
@@ -124,8 +124,8 @@ final class PlayerHurt extends GameEvent {
   final double x;
 }
 
-final class NearMissed extends GameEvent {
-  const NearMissed(this.x);
+final class Grazed extends GameEvent {
+  const Grazed(this.x);
   final double x;
 }
 

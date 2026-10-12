@@ -174,7 +174,7 @@ class FxState {
           PopupKind.chain => (Dot.white, 16.0),
           PopupKind.ricochet => (Dot.peach, 16.0),
           PopupKind.chainBlast => (Dot.orange, 24.0),
-          PopupKind.nearMiss => (Dot.peach, 16.0),
+          PopupKind.graze => (Dot.peach, 16.0),
           PopupKind.noDamage => (Dot.dim, 16.0),
           PopupKind.coreDamage => (Dot.mustard, 24.0),
         };
@@ -233,7 +233,7 @@ class FxState {
         burst(x, Field.paddleY, 20, Dot.bulletRed, 300);
         _shake(12);
         _flash(0.25, Dot.bulletRed);
-      case NearMissed(:final x):
+      case Grazed(:final x):
         burst(x, Field.paddleY + 6, 6, Dot.white, 200);
       case OverdriveStarted():
         _flash(0.5);

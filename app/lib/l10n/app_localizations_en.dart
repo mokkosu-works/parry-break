@@ -167,8 +167,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String starNearMiss(String value) {
-    return '$value× NEAR MISS';
+  String starGraze(String value) {
+    return '$value× GRAZE';
   }
 
   @override

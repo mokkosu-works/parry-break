@@ -101,8 +101,8 @@
       }
     }
   },
-  "starNearMiss": "NEAR MISS を {value} 回決める",
-  "@starNearMiss": {
+  "starGraze": "GRAZE を {value} 回決める",
+  "@starGraze": {
     "placeholders": {
       "value": {
         "type": "String"

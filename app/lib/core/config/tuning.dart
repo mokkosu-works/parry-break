@@ -29,7 +29,7 @@ class Tuning {
     this.odMaxSpeed = 1000,
     this.odStartSpeedCap = 900,
     this.minAngleDeg = 15,
-    this.nearMissDist = 22,
+    this.grazeDist = 22,
     this.blastRadius = 84,
     this.breakerRadius = 120,
     this.phantomMax = 6,
@@ -80,7 +80,7 @@ class Tuning {
   final double maxSpeed, odMaxSpeed, odStartSpeedCap, minAngleDeg;
 
   // 各種半径・距離
-  final double nearMissDist, blastRadius, breakerRadius, phantomBlastRadius;
+  final double grazeDist, blastRadius, breakerRadius, phantomBlastRadius;
   final int phantomMax;
   final double phantomLife;
   final double magnetRadius, magnetAccel;
@@ -137,7 +137,7 @@ class Tuning {
       odMaxSpeed: d('odMaxSpeed', odMaxSpeed),
       odStartSpeedCap: d('odStartSpeedCap', odStartSpeedCap),
       minAngleDeg: d('minAngleDeg', minAngleDeg),
-      nearMissDist: d('nearMissDist', nearMissDist),
+      grazeDist: d('grazeDist', grazeDist),
       blastRadius: d('blastRadius', blastRadius),
       breakerRadius: d('breakerRadius', breakerRadius),
       phantomMax: (o['phantomMax'] as num?)?.toInt() ?? phantomMax,

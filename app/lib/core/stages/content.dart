@@ -121,7 +121,7 @@ final class TimeStar extends StarCondition {
   bool achieved(StageResult r) => r.cleared && r.stats.playTime <= seconds;
 }
 
-enum StatKind { score, just, perfect, collapse, chainBlast, returnKills, nearMiss, ricochet }
+enum StatKind { score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet }
 
 /// 数値の目標 (例: JUST を 3 回、COLLAPSE ×14)。クリアしたときだけ数える。
 final class StatStar extends StarCondition {
@@ -136,7 +136,7 @@ final class StatStar extends StarCondition {
         StatKind.collapse => r.stats.bestCollapse,
         StatKind.chainBlast => r.stats.bestBlast,
         StatKind.returnKills => r.stats.returnKills,
-        StatKind.nearMiss => r.stats.nearMiss,
+        StatKind.graze => r.stats.graze,
         StatKind.ricochet => r.stats.bestRicochet,
       };
 

@@ -45,7 +45,7 @@
   "starCollapse": "COLLAPSE ×{value}+",
   "starChainBlast": "CHAIN BLAST ×{value}+",
   "starReturnKills": "Destroy {value} blocks with returned shots",
-  "starNearMiss": "{value}× NEAR MISS",
+  "starGraze": "{value}× GRAZE",
   "starRicochet": "RICOCHET ×{value}+",
   "clearAnnihilate": "GOAL: CLEAR ALL BLOCKS",
   "clearScore": "GOAL: SCORE {value}",

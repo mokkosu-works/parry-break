@@ -1,6 +1,6 @@
 {
  "version": 1,
- "_comment": "ステージモードの定義。ラウンドは rows(直接配置) / endless(エンドレスの W番号) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, nearMiss, ricochet",
+ "_comment": "ステージモードの定義。ラウンドは rows(直接配置) / endless(エンドレスの W番号) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet",
  "chapters": [
   {
    "id": "ch01",
@@ -227,7 +227,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 5
       },
       {
@@ -552,7 +552,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 15
       },
       {
@@ -829,7 +829,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 25
       },
       {
@@ -1051,7 +1051,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 10
       },
       {
@@ -1122,7 +1122,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 20
       },
       {
@@ -1152,7 +1152,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 20
       },
       {
@@ -1252,7 +1252,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 15
       },
       {
@@ -1283,7 +1283,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 25
       },
       {
@@ -1456,7 +1456,7 @@
        "value": 1000000
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 30
       }
      ]
@@ -1645,7 +1645,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 30
       },
       {
@@ -1787,7 +1787,7 @@
        "type": "clear"
       },
       {
-       "type": "nearMiss",
+       "type": "graze",
        "value": 40
       },
       {

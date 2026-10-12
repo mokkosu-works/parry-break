@@ -241,7 +241,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
       "id": "1-7", "title": { "ja": "防衛線", "en": "HOLD THE LINE" },
       "rounds": [{ "endless": 11, "intro": "intro.survive",
                   "clear": { "type": "survive", "value": 40 }, "tuning": { "descentBase": 7 } }],
-      "stars": [{ "type": "clear" }, { "type": "nearMiss", "value": 5 }, { "type": "noHit" }]
+      "stars": [{ "type": "clear" }, { "type": "graze", "value": 5 }, { "type": "noHit" }]
     }]
   }]
 }
@@ -249,7 +249,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 
 - ラウンドは `rows`(配置を直接書く。`legend` で文字をブロック ID に読み替え可)/ `endless`(エンドレスの W 番号の中身)/ `boss`(ボス番号)のどれかで書く。共通で `difficulty`・`clear`・`tuning`・`intro` を書ける。
 - クリア条件 `clear.type`: `annihilate`(既定。ボス戦はコア全破壊)/ `score` / `survive`。
-- 星 `stars[].type`: `clear` / `noHit` / `time`(秒以内)/ `score` / `just` / `perfect` / `collapse` / `chainBlast` / `returnKills` / `nearMiss` / `ricochet`。
+- 星 `stars[].type`: `clear` / `noHit` / `time`(秒以内)/ `score` / `just` / `perfect` / `collapse` / `chainBlast` / `returnKills` / `graze` / `ricochet`。
 - 自動生成(`genLayout`)は Dart に移植した。解禁ラウンドは JSON、形の候補・出現率・上限数はコード(`procedural_generator.dart`)にある。mulberry32 は 32bit 整数演算を再現しており、ブラウザ版と同じ配置になることをテストで保証している。
 
 ### 5.6 拡張の手順

@@ -182,8 +182,8 @@ class SoLoudAudio implements AudioService {
         } else {
           play('blast', gap: 0.05);
         }
-      case NearMissed():
-        play('nearMiss', gap: 0.04);
+      case Grazed():
+        play('graze', gap: 0.04);
       case RicochetBonus():
         play('ricochet');
       case PhantomsSpawned():

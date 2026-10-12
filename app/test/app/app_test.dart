@@ -234,7 +234,7 @@ void main() {
       ..maxStreak = 17;
     w.stats
       ..just = 9
-      ..nearMiss = 23
+      ..graze = 23
       ..bestCollapse = 31
       ..bestBlast = 4
       ..bestRicochet = 12;

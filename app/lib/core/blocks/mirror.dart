@@ -49,7 +49,7 @@ class MirrorBlock extends BlockBehavior {
       ..red = false
       ..source = null
       ..near = false
-      ..nearMissed = false
+      ..grazed = false
       ..y = b.y + w.form.oy + b.h + u.r + 1;
     final a = math.atan2(Field.paddleY - u.y, w.paddle.x - u.x), sp = w.tuning.mirrorReturnSpeed * w.round.loopMul;
     u

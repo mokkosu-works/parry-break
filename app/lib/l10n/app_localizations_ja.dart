@@ -165,8 +165,8 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String starNearMiss(String value) {
-    return 'NEAR MISS を $value 回決める';
+  String starGraze(String value) {
+    return 'GRAZE を $value 回決める';
   }
 
   @override

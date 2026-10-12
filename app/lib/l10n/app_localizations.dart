@@ -368,11 +368,11 @@ abstract class AppLocalizations {
   /// **'撃ち返した弾でブロックを {value} 個壊す'**
   String starReturnKills(String value);
 
-  /// No description provided for @starNearMiss.
+  /// No description provided for @starGraze.
   ///
   /// In ja, this message translates to:
-  /// **'NEAR MISS を {value} 回決める'**
-  String starNearMiss(String value);
+  /// **'GRAZE を {value} 回決める'**
+  String starGraze(String value);
 
   /// No description provided for @starRicochet.
   ///

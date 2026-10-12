@@ -335,7 +335,7 @@ class _ResultOverlayState extends State<ResultOverlay>
       ('ROUND', '${d.round}', d.round >= d.bestRound && d.round > 1),
       ('MAX CHAIN', '${d.maxChain}', false),
       ('JUST', '${s.just}', false),
-      ('NEAR MISS', '${s.nearMiss}', false),
+      ('GRAZE', '${s.graze}', false),
       ('COLLAPSE', '×${s.bestCollapse}', false),
       ('BLAST', '×${s.bestBlast}', false),
       ('RICOCHET', '×${s.bestRicochet}', false),

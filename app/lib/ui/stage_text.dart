@@ -16,7 +16,7 @@ String starText(AppLocalizations l, StarCondition s) => switch (s) {
           StatKind.collapse => l.starCollapse('$value'),
           StatKind.chainBlast => l.starChainBlast('$value'),
           StatKind.returnKills => l.starReturnKills('$value'),
-          StatKind.nearMiss => l.starNearMiss('$value'),
+          StatKind.graze => l.starGraze('$value'),
           StatKind.ricochet => l.starRicochet('$value'),
         },
     };
