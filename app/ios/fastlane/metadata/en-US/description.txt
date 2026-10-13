@@ -4,7 +4,7 @@ PARRY BREAK turns the block-breaker paddle from a shield into a weapon. An arcad
 Tap the right half of the screen just as the ball or a bullet hits your paddle. PERFECT timing fires a piercing shot; JUST releases a burst. Every bullet you send back is a chance for big points.
 
 - RISK PAYS
-Parries and returned bullets build up your Heat and your multiplier. Max it out to trigger OVERDRIVE: your ball tears through blocks, and every parry splits off clone balls. Playing safe won't get you far.
+Parries and returned bullets build up your Heat and your multiplier. Max it out to trigger FEVER TIME: your ball tears through blocks, and every parry splits off clone balls. Playing safe won't get you far.
 
 - COLLAPSE AND CHAIN BLASTS
 Break a white keystone and every block it was holding comes crashing down. Orange explosives take their neighbours with them. Find the chain that flips the whole board.

@@ -17,7 +17,7 @@ import '../../services/content.dart';
 /// タイトル画面の背景で流すデモプレイ (アーケードのアトラクトモード)。
 ///
 /// 本物のコアを自動操作で動かす。ボールの落下点を予測してパドルを寄せ、当たる直前にパリィするので、
-/// JUST・貫通・OVERDRIVE・崩落が次々に起きる。音は出さない。
+/// JUST・貫通・FEVER TIME・崩落が次々に起きる。音は出さない。
 class AttractDemo extends ConsumerStatefulWidget {
   const AttractDemo({super.key, this.animate = true});
 

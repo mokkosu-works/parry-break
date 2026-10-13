@@ -215,13 +215,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpHeatTitle.
   ///
   /// In ja, this message translates to:
-  /// **'HEAT・OVERDRIVE'**
+  /// **'HEAT・FEVER TIME'**
   String get helpHeatTitle;
 
   /// No description provided for @helpHeatBody.
   ///
   /// In ja, this message translates to:
-  /// **'パリィや敵弾の撃ち返しを決めると、上の HEAT メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると OVERDRIVE。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、HEAT は下がる'**
+  /// **'パリィや敵弾の撃ち返しを決めると、上の HEAT メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると FEVER TIME。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、HEAT は下がる'**
   String get helpHeatBody;
 
   /// No description provided for @helpGrazeTitle.
@@ -740,11 +740,11 @@ abstract class AppLocalizations {
   /// **'PERFECT でパリィすると貫通弾。まとめて撃ち抜け'**
   String get introPierce;
 
-  /// No description provided for @introOverdrive.
+  /// No description provided for @introFeverTime.
   ///
   /// In ja, this message translates to:
-  /// **'PERFECT を重ねてヒートを貯めると OVERDRIVE。全弾貫通で一気に崩せ'**
-  String get introOverdrive;
+  /// **'PERFECT を重ねてヒートを貯めると FEVER TIME。全弾貫通で一気に崩せ'**
+  String get introFeverTime;
 
   /// No description provided for @introSurvive.
   ///
@@ -764,11 +764,11 @@ abstract class AppLocalizations {
   /// **'赤い弾をパリィで撃ち返し、貫通弾でコアを狙え'**
   String get bannerBoss;
 
-  /// No description provided for @bannerOverdrive.
+  /// No description provided for @bannerFeverTime.
   ///
   /// In ja, this message translates to:
   /// **'全弾貫通 ×16 — PERFECT で分身弾'**
-  String get bannerOverdrive;
+  String get bannerFeverTime;
 
   /// No description provided for @bannerPhase2.
   ///

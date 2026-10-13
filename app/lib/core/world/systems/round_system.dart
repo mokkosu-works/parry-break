@@ -91,12 +91,12 @@ extension _RoundSystem on World {
         form.oy += descentSpeed * (t - lastBlockHit < 0.5 ? 0.5 : 1) * dt;
       }
     }
-    // ヒート減衰 / OVERDRIVE
+    // ヒート減衰 / FEVER TIME
     if (!ball.attached) {
       if (od) {
         odTime -= dt;
         odElapsed += dt;
-        if (odTime <= 0) _endOverdrive(byHit: false);
+        if (odTime <= 0) _endFeverTime(byHit: false);
       } else {
         final st = stage;
         if (st >= 1) heat = math.max(0, heat - tuning.heatDecay[st] * dt);

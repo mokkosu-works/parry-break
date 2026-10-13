@@ -400,7 +400,7 @@ void main() {
     testWidgets('遊び方の HEAT / GRAZE のページが ${size.width.toInt()}×${size.height.toInt()} ではみ出さない', (tester) async {
       await _pumpApp(tester, home: const HelpScreen(), size: size);
       await _frames(tester, 0.5);
-      for (final title in ['MOVE', 'LAUNCH / PARRY', 'TIMING', 'CHAIN', 'HEAT / OVERDRIVE', 'GRAZE / RICOCHET']) {
+      for (final title in ['MOVE', 'LAUNCH / PARRY', 'TIMING', 'CHAIN', 'HEAT / FEVER TIME', 'GRAZE / RICOCHET']) {
         expect(find.text(title), findsOneWidget, reason: title);
         expect(tester.takeException(), isNull, reason: '$title がはみ出さない');
         await tester.tap(find.text('NEXT'));

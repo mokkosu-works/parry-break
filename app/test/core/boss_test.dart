@@ -176,7 +176,7 @@ void main() {
     expect(n.heat, 0);
   });
 
-  test('ボス戦の OVERDRIVE は被弾で終わらず残り時間が減り、尽きたら段階 4 に戻る', () {
+  test('ボス戦の FEVER TIME は被弾で終わらず残り時間が減り、尽きたら段階 4 に戻る', () {
     final w = bossWorld(0);
     w.addHeat(w.tuning.odHeat);
     expect(w.od, isTrue);
@@ -191,7 +191,7 @@ void main() {
     expect(w.heat, closeTo(w.tuning.stageMin[3], 5));
   });
 
-  test('OVERDRIVE 中はコアへのダメージが倍になる', () {
+  test('FEVER TIME 中はコアへのダメージが倍になる', () {
     final w = bossWorld(0);
     final c = coresOf(w).first;
     final hp = c.hp;

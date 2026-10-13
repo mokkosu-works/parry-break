@@ -137,7 +137,7 @@ void main() {
     await playUntilParry(t, w);
     await snap(t, w, '03_play');
 
-    // 4. ボス戦 (フェーズ3・レーザー・弾幕。OVERDRIVE の手前)
+    // 4. ボス戦 (フェーズ3・レーザー・弾幕。FEVER TIME の手前)
     w = world(t)..start(fromRound: 20);
     await wait(t, 1.3);
     final core = w.blocks.firstWhere((b) => b.type == bossCoreId);

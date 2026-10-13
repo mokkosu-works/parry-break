@@ -101,14 +101,14 @@ void main() {
       expect(w.phantoms, isEmpty);
     });
 
-    test('OVERDRIVE が終わると分身弾は爆発する', () {
+    test('FEVER TIME が終わると分身弾は爆発する', () {
       final w = inPlay();
       w.addHeat(1000);
       expect(w.od, isTrue);
       w.phantoms.add(phantom(w, y: 300, vy: -400));
       w.odTime = 0.01;
       final events = run(w, 0.5);
-      expect(events.whereType<OverdriveEnded>().single.byHit, isFalse);
+      expect(events.whereType<FeverTimeEnded>().single.byHit, isFalse);
       expect(events.whereType<BlastExploded>().where((e) => e.kind == BlastKind.phantom), hasLength(1));
       expect(w.heat, inInclusiveRange(240, 250)); // 段階3 (250) に戻り、その後は減衰
     });

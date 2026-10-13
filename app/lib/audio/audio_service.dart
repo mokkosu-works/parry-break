@@ -13,7 +13,7 @@ abstract class AudioService {
 
   void handle(GameEvent e);
 
-  /// BGM の段階 (0〜3: ヒート段階、4: OVERDRIVE)。毎フレーム呼んでよい。
+  /// BGM の段階 (0〜3: ヒート段階、4: FEVER TIME)。毎フレーム呼んでよい。
   void setMusicLevel(int level);
 
   void startMusic();
@@ -145,9 +145,9 @@ class SoLoudAudio implements AudioService {
       case PlayerHurt():
         play('hurt');
         _duckMusic();
-      case OverdriveStarted():
+      case FeverTimeStarted():
         play('od');
-      case OverdriveEnded():
+      case FeverTimeEnded():
         play('odEnd');
       case CoreDamaged():
         play('core');

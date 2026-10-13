@@ -19,7 +19,7 @@ typedef _Def = void Function(Synth s);
 /// 崩落の音階 (ペンタトニック) の数。
 const noteCount = 20;
 
-/// ヒート段階ごとの BGM のループ数 (段階 1〜4 と OVERDRIVE)。
+/// ヒート段階ごとの BGM のループ数 (段階 1〜4 と FEVER TIME)。
 const musicLevels = 5;
 
 const _penta = [0, 2, 4, 7, 9];
@@ -197,7 +197,7 @@ final Map<String, (double, _Def)> _sfx = {
   ),
 };
 
-/// BGM のテンポ (ヒート段階 1〜4、OVERDRIVE)。
+/// BGM のテンポ (ヒート段階 1〜4、FEVER TIME)。
 const musicBpm = [132.0, 136.0, 142.0, 150.0, 168.0];
 
 /// 1 小節 (16 ステップ) の長さ (秒)。

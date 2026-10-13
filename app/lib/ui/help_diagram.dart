@@ -396,7 +396,7 @@ class _DiagramPainter extends CustomPainter {
   }
 
   void _heat() {
-    // 上の帯 (HUD) のメーターが、パリィのたびに満ちて段階が上がり、満ちると OVERDRIVE になる
+    // 上の帯 (HUD) のメーターが、パリィのたびに満ちて段階が上がり、満ちると FEVER TIME になる
     _c.drawRect(const Rect.fromLTWH(0, 0, w, 64), _fill..color = Palette.hudBg);
     _c.drawLine(
       const Offset(0, 64),
@@ -415,7 +415,7 @@ class _DiagramPainter extends CustomPainter {
     }
     if (od) st = 4;
     const bx = 24.0, by = 32.0, cell = 12.0, gap = 4.0, cells = 25;
-    text.draw(_c, od ? 'OVERDRIVE' : 'HEAT LV${st + 1}', bx, 14, 14, od ? Dot.rose : Dot.dim, align: TextAlignH.left);
+    text.draw(_c, od ? 'FEVER TIME' : 'HEAT LV${st + 1}', bx, 14, 14, od ? Dot.rose : Dot.dim, align: TextAlignH.left);
     final lit = od ? cells : (cells * heat / odHeat).ceil();
     for (var i = 0; i < cells; i++) {
       final r = Rect.fromLTWH(bx + i * (cell + gap), by, cell, 16);

@@ -70,10 +70,10 @@ class Tuning {
   final List<double> heatDecay;
   final double odHeat, odTime, odMaxTime;
 
-  /// ボス戦で OVERDRIVE 中に被弾したとき、OVERDRIVE を終わらせずに減らす残り時間 (秒)。
+  /// ボス戦で FEVER TIME 中に被弾したとき、FEVER TIME を終わらせずに減らす残り時間 (秒)。
   final double bossOdHurtPenalty;
 
-  /// OVERDRIVE 中にコアへ与えるダメージの倍率。
+  /// FEVER TIME 中にコアへ与えるダメージの倍率。
   final int odCoreDamageMul;
 
   // ボール

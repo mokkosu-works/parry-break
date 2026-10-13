@@ -1,4 +1,4 @@
-// Issue #74: 遊び方に HEAT / OVERDRIVE と GRAZE / RICOCHET のページがあり、説明が画面に収まることを確かめる。
+// Issue #74: 遊び方に HEAT / FEVER TIME と GRAZE / RICOCHET のページがあり、説明が画面に収まることを確かめる。
 //   SHOT_DIR=build/claude flutter drive -d <デバイス ID> \
 //     --driver=test_driver/integration_test.dart --target=integration_test/help_heat_graze_pages_test.dart
 import 'dart:convert';
@@ -29,7 +29,7 @@ void main() {
     await binding.takeScreenshot(name);
   }
 
-  testWidgets('遊び方に HEAT / OVERDRIVE と GRAZE / RICOCHET のページがある', (t) async {
+  testWidgets('遊び方に HEAT / FEVER TIME と GRAZE / RICOCHET のページがある', (t) async {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
     SharedPreferences.setMockInitialValues({'settings.v1': jsonEncode(const Settings(language: 'en').toJson())});
     final prefs = await SharedPreferences.getInstance();
@@ -48,7 +48,7 @@ void main() {
     expect(find.byType(HelpScreen), findsOneWidget);
 
     var n = 0;
-    for (final title in ['MOVE', 'LAUNCH / PARRY', 'TIMING', 'CHAIN', 'HEAT / OVERDRIVE', 'GRAZE / RICOCHET']) {
+    for (final title in ['MOVE', 'LAUNCH / PARRY', 'TIMING', 'CHAIN', 'HEAT / FEVER TIME', 'GRAZE / RICOCHET']) {
       expect(find.text(title), findsOneWidget, reason: title);
       if (title.startsWith('HEAT') || title.startsWith('GRAZE')) {
         // 動く図の見どころを 2 コマ撮る (3.2 秒で 1 周)

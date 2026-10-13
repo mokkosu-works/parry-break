@@ -149,7 +149,7 @@ class FieldPainter extends CustomPainter {
     final od = world.od;
     if (highQuality) _floor.draw(_c, od ? Dot.odDither : Dot.dither);
     if (od) {
-      // OVERDRIVE: 速く流れる線 (加速している感じ)
+      // FEVER TIME: 速く流れる線 (加速している感じ)
       final p = pixelPaint(Dot.odDither);
       final off = (_t * 900) % 240;
       for (var x = 60.0; x < _w; x += 90) {
@@ -451,7 +451,7 @@ class FieldPainter extends CustomPainter {
     if (w.isDanger) _edgeBands(Dot.bulletRed, 0.45, (_t * 7).floor().isEven ? 4 : 2);
   }
 
-  /// OVERDRIVE 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
+  /// FEVER TIME 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
   /// 残り 2 秒を切ると全体が点滅して、終わりが近いことを知らせる。
   /// 「刺激を弱める」設定では、色をゆっくり送り、点滅はしない。
   void _marquee() {
@@ -516,7 +516,7 @@ class FieldPainter extends CustomPainter {
     // ヒート: ドットのマスを並べたメーター
     const bx = 680.0, by = 28.0, bw = 340.0, bh = 16.0;
     final st = w.od ? 4 : w.stage;
-    _txt(w.od ? 'OVERDRIVE ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'HEAT LV${st + 1}', bx, 14, 16,
+    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'HEAT LV${st + 1}', bx, 14, 16,
         w.od ? Dot.rose : Dot.dim,
         align: TextAlignH.left);
     final tun = w.tuning;
@@ -584,7 +584,7 @@ class FieldPainter extends CustomPainter {
     final (title, sub, color) = switch (b.kind) {
       BannerKind.round => ('ROUND ${b.value}', _introText(b.introKey) ?? _goalText(), Dot.white),
       BannerKind.boss => ('WARNING', 'BOSS ${b.value}  —  ${l10n.bannerBoss}', Dot.bulletRed),
-      BannerKind.overdrive => ('OVERDRIVE', l10n.bannerOverdrive, Dot.rose),
+      BannerKind.feverTime => ('FEVER TIME', l10n.bannerFeverTime, Dot.rose),
       BannerKind.bossPhase => ('PHASE ${b.value}', b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3, Dot.white),
       BannerKind.timeOver => ('TIME OVER', l10n.bannerTimeOver, Dot.bulletRed),
     };
@@ -616,7 +616,7 @@ class FieldPainter extends CustomPainter {
         'intro.loop' => l10n.introLoop('${world.round.loop + 1}'),
         'intro.parry' => l10n.introParry,
         'intro.pierce' => l10n.introPierce,
-        'intro.overdrive' => l10n.introOverdrive,
+        'intro.feverTime' => l10n.introFeverTime,
         'intro.survive' => l10n.introSurvive,
         'intro.score' => l10n.introScore,
         _ => null,

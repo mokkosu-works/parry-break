@@ -38,7 +38,7 @@ PARRY BREAK は、ブロック崩しの「受けて守る」パドルを「弾�
 ボールや敵弾がパドルに当たる瞬間に画面の右半分をタップすると、パリィになります。タイミングが PERFECT なら貫通弾、JUST なら衝撃波。撃ち返した敵弾は、最大の得点源になります。
 
 ■ 攻めるほど点が伸びる
-ジャストパリィや撃ち返しでヒートが上がり、倍率が跳ね上がります。最高段階で発動する OVERDRIVE では、ボールがブロックを次々と貫き、パリィのたびに分身弾が飛び出します。安全に受けるだけでは点になりません。
+ジャストパリィや撃ち返しでヒートが上がり、倍率が跳ね上がります。最高段階で発動する FEVER TIME では、ボールがブロックを次々と貫き、パリィのたびに分身弾が飛び出します。安全に受けるだけでは点になりません。
 
 ■ 崩落と誘爆
 白い要石を壊すと、支えを失ったブロックがまとめて崩れ落ちます。オレンジの爆薬は周りを巻き込んで誘爆します。一撃で盤面をひっくり返す連鎖を狙ってください。
@@ -76,7 +76,7 @@ PARRY BREAK turns the block-breaker paddle from a shield into a weapon. An arcad
 Tap the right half of the screen just as the ball or a bullet hits your paddle. PERFECT timing fires a piercing shot; JUST releases a burst. Every bullet you send back is a chance for big points.
 
 - RISK PAYS
-Parries and returned bullets build up your Heat and your multiplier. Max it out to trigger OVERDRIVE: your ball tears through blocks, and every parry splits off clone balls. Playing safe won't get you far.
+Parries and returned bullets build up your Heat and your multiplier. Max it out to trigger FEVER TIME: your ball tears through blocks, and every parry splits off clone balls. Playing safe won't get you far.
 
 - COLLAPSE AND CHAIN BLASTS
 Break a white keystone and every block it was holding comes crashing down. Orange explosives take their neighbours with them. Find the chain that flips the whole board.

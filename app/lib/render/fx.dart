@@ -132,11 +132,11 @@ class FxState {
       CalloutChannel.chainBlast => (Dot.orange, 32.0),
       CalloutChannel.multiParry => (Dot.peach, 32.0),
       CalloutChannel.ricochet => (Dot.peach, 32.0),
-      CalloutChannel.overdriveFinish => (Dot.rose, 32.0),
+      CalloutChannel.feverFinish => (Dot.rose, 32.0),
     };
     // 同じ種類のコールアウトが表示中なら、新しく出さずに書き換える
     final cur = callouts.where((c) => c.channel == e.channel).lastOrNull;
-    final updatable = e.channel != CalloutChannel.ricochet && e.channel != CalloutChannel.overdriveFinish;
+    final updatable = e.channel != CalloutChannel.ricochet && e.channel != CalloutChannel.feverFinish;
     if (cur != null && updatable && (cur.hold || e.release || e.channel == CalloutChannel.multiParry)) {
       cur
         ..text = e.text
@@ -235,7 +235,7 @@ class FxState {
         _flash(0.25, Dot.bulletRed);
       case Grazed(:final x):
         burst(x, Field.paddleY + 6, 6, Dot.white, 200);
-      case OverdriveStarted():
+      case FeverTimeStarted():
         _flash(0.5);
         _shake(14);
       case BossPhaseChanged():

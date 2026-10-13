@@ -1,6 +1,6 @@
 part of '../world.dart';
 
-/// 発射・パリィの入力処理、パリィの判定結果、ヒートと OVERDRIVE、被弾。
+/// 発射・パリィの入力処理、パリィの判定結果、ヒートと FEVER TIME、被弾。
 extension _ParrySystem on World {
   /// 溜まった入力を、押した時刻 (シミュレーション時刻に換算) の順に処理する。
   void _processActions(double dt) {
@@ -103,42 +103,42 @@ extension _ParrySystem on World {
     if (streak >= 2) emit(Popup(paddle.x, Field.paddleY - 64, 'CHAIN $streak', PopupKind.chain));
   }
 
-  void _startOverdrive() {
+  void _startFeverTime() {
     od = true;
     heat = tuning.odHeat;
     odTime = tuning.odTime;
     odElapsed = 0;
-    emit(const OverdriveStarted());
-    emit(const Banner(BannerKind.overdrive));
+    emit(const FeverTimeStarted());
+    emit(const Banner(BannerKind.feverTime));
   }
 
-  /// OVERDRIVE の終了。残っていた分身弾はそれぞれ爆発する (OVERDRIVE FINISH)。
-  void _endOverdrive({required bool byHit}) {
+  /// FEVER TIME の終了。残っていた分身弾はそれぞれ爆発する (FEVER FINISH)。
+  void _endFeverTime({required bool byHit}) {
     od = false;
     heat = byHit ? 0 : tuning.stageMin[2];
     if (phantoms.isNotEmpty) {
-      emit(const Callout(CalloutChannel.overdriveFinish, 'OVERDRIVE FINISH'));
+      emit(const Callout(CalloutChannel.feverFinish, 'FEVER FINISH'));
       _popPhantoms();
     }
-    emit(OverdriveEnded(byHit: byHit));
+    emit(FeverTimeEnded(byHit: byHit));
   }
 
   /// 敵弾・レーザーに当たった: ヒート 0、パドルがスタン。
   /// ボス戦は弾が多くヒートが貯まらないため、ヒートを 1 段階下げるだけにする。
-  /// OVERDRIVE 中なら終わらせず、残り時間を減らす (尽きたら段階 4 に戻る)。
+  /// FEVER TIME 中なら終わらせず、残り時間を減らす (尽きたら段階 4 に戻る)。
   void _hurt() {
     if (boss != null) {
       if (od) {
         odTime -= tuning.bossOdHurtPenalty;
         if (odTime <= 0) {
-          _endOverdrive(byHit: true);
+          _endFeverTime(byHit: true);
           heat = tuning.stageMin[3];
         }
       } else {
         heat = stage >= 1 ? tuning.stageMin[stage - 1] : 0;
       }
     } else {
-      if (od) _endOverdrive(byHit: true);
+      if (od) _endFeverTime(byHit: true);
       heat = 0;
     }
     paddle
@@ -155,7 +155,7 @@ extension _ParrySystem on World {
     emit(PlayerHurt(paddle.x));
   }
 
-  /// OVERDRIVE 中の PERFECT / JUST で分身弾を出す (同時に最大 [Tuning.phantomMax] 個)。
+  /// FEVER TIME 中の PERFECT / JUST で分身弾を出す (同時に最大 [Tuning.phantomMax] 個)。
   void _spawnPhantoms(int n) {
     final b = ball;
     var spawned = 0;

@@ -219,7 +219,7 @@ class World {
 
   // ---- 派生値 -------------------------------------------------------------
 
-  /// ヒート段階 (0〜3)。OVERDRIVE は [od] で表す。
+  /// ヒート段階 (0〜3)。FEVER TIME は [od] で表す。
   int get stage {
     final m = tuning.stageMin;
     return heat >= m[3] ? 3 : heat >= m[2] ? 2 : heat >= m[1] ? 1 : 0;
@@ -272,7 +272,7 @@ class World {
     return b;
   }
 
-  /// 貫通弾の貫通回数を 1 減らす (メインのボール、OVERDRIVE 中でないとき)。
+  /// 貫通弾の貫通回数を 1 減らす (メインのボール、FEVER TIME 中でないとき)。
   void consumePierce(BallHit hit) {
     if (hit.main && !od) hit.ball.pierce--;
   }
@@ -319,7 +319,7 @@ class World {
   void addHeat(double v) {
     if (od) return;
     heat = math.max(0, heat + v);
-    if (heat >= tuning.odHeat) _startOverdrive();
+    if (heat >= tuning.odHeat) _startFeverTime();
   }
 
   void addScore(int v) => score += v;
