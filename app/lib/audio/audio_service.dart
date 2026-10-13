@@ -7,13 +7,13 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import '../core/core.dart';
 import 'sound_bank.dart';
 
-/// 音の再生。コアのイベントを効果音にし、ヒート段階に合わせて BGM を切り替える。
+/// 音の再生。コアのイベントを効果音にし、コンボ段階に合わせて BGM を切り替える。
 abstract class AudioService {
   Future<void> init();
 
   void handle(GameEvent e);
 
-  /// BGM の段階 (0〜3: ヒート段階、4: FEVER TIME)。毎フレーム呼んでよい。
+  /// BGM の段階 (0〜3: コンボ段階、4: FEVER TIME)。毎フレーム呼んでよい。
   void setMusicLevel(int level);
 
   void startMusic();

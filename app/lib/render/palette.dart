@@ -46,8 +46,8 @@ abstract final class Palette {
     'B': Dot.orange,
   };
 
-  /// ヒート段階 (1〜4, FEVER TIME) の色。
-  static const heatBar = [Dot.sky, Dot.mint, Dot.mustard, Dot.orange];
+  /// コンボ段階 (1〜4, FEVER TIME) の色。
+  static const comboBar = [Dot.sky, Dot.mint, Dot.mustard, Dot.orange];
   static const multColor = [Dot.white, Dot.peach, Dot.mint, Dot.mustard, Dot.rose];
 }
 

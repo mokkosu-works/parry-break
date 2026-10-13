@@ -91,7 +91,7 @@ extension _RoundSystem on World {
         form.oy += descentSpeed * (t - lastBlockHit < 0.5 ? 0.5 : 1) * dt;
       }
     }
-    // ヒート減衰 / FEVER TIME
+    // コンボ減衰 / FEVER TIME
     if (!ball.attached) {
       if (od) {
         odTime -= dt;
@@ -99,7 +99,7 @@ extension _RoundSystem on World {
         if (odTime <= 0) _endFeverTime(byHit: false);
       } else {
         final st = stage;
-        if (st >= 1) heat = math.max(0, heat - tuning.heatDecay[st] * dt);
+        if (st >= 1) combo = math.max(0, combo - tuning.comboDecay[st] * dt);
       }
     }
     _updateAllBalls(dt);

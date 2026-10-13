@@ -127,7 +127,7 @@ extension _BallSystem on World {
     final n = b.flight;
     final v = n * n * 25 * mult;
     score += v;
-    addHeat(n * 2.0);
+    addCombo(n * 2.0);
     stats.bestRicochet = math.max(stats.bestRicochet, n);
     if (n >= 15) {
       emit(Callout(CalloutChannel.ricochet, 'RICOCHET ×$n', sub: '+${formatScore(v)}'));

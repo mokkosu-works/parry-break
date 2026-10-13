@@ -159,26 +159,26 @@ void main() {
     expect(run(w, 0.2).whereType<PlayerHurt>(), hasLength(1));
   }
 
-  test('ボス戦の被弾はヒートを 1 段階下げるだけ。通常のラウンドでは 0 に戻る', () {
+  test('ボス戦の被弾はコンボを 1 段階下げるだけ。通常のラウンドでは 0 に戻る', () {
     final w = bossWorld(0);
-    w.heat = 300; // 段階 3
+    w.combo = 300; // 段階 3
     hitPaddle(w);
-    expect(w.heat, closeTo(w.tuning.stageMin[1], 5));
-    w.heat = 50; // 段階 1 なら 0
+    expect(w.combo, closeTo(w.tuning.stageMin[1], 5));
+    w.combo = 50; // 段階 1 なら 0
     run(w, w.tuning.hurtInvuln);
     hitPaddle(w);
-    expect(w.heat, 0);
+    expect(w.combo, 0);
 
     final n = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
     run(n, 1.1);
-    n.heat = 300;
+    n.combo = 300;
     hitPaddle(n);
-    expect(n.heat, 0);
+    expect(n.combo, 0);
   });
 
   test('ボス戦の FEVER TIME は被弾で終わらず残り時間が減り、尽きたら段階 4 に戻る', () {
     final w = bossWorld(0);
-    w.addHeat(w.tuning.odHeat);
+    w.addCombo(w.tuning.odCombo);
     expect(w.od, isTrue);
     final before = w.odTime;
     hitPaddle(w);
@@ -188,7 +188,7 @@ void main() {
     run(w, w.tuning.hurtInvuln);
     hitPaddle(w);
     expect(w.od, isFalse);
-    expect(w.heat, closeTo(w.tuning.stageMin[3], 5));
+    expect(w.combo, closeTo(w.tuning.stageMin[3], 5));
   });
 
   test('FEVER TIME 中はコアへのダメージが倍になる', () {
@@ -197,7 +197,7 @@ void main() {
     final hp = c.hp;
     w.damageCore(c, 1);
     expect(c.hp, hp - 1);
-    w.addHeat(w.tuning.odHeat);
+    w.addCombo(w.tuning.odCombo);
     w.damageCore(c, 1);
     expect(c.hp, hp - 1 - w.tuning.odCoreDamageMul);
   });

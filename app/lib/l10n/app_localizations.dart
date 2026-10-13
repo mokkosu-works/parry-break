@@ -212,17 +212,17 @@ abstract class AppLocalizations {
   /// **'白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る'**
   String get helpChainBody;
 
-  /// No description provided for @helpHeatTitle.
+  /// No description provided for @helpComboTitle.
   ///
   /// In ja, this message translates to:
-  /// **'HEAT・FEVER TIME'**
-  String get helpHeatTitle;
+  /// **'COMBO・FEVER TIME'**
+  String get helpComboTitle;
 
-  /// No description provided for @helpHeatBody.
+  /// No description provided for @helpComboBody.
   ///
   /// In ja, this message translates to:
-  /// **'パリィや敵弾の撃ち返しを決めると、上の HEAT メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると FEVER TIME。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、HEAT は下がる'**
-  String get helpHeatBody;
+  /// **'パリィや敵弾の撃ち返しを決めると、上の COMBO メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると FEVER TIME。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、COMBO は下がる'**
+  String get helpComboBody;
 
   /// No description provided for @helpGrazeTitle.
   ///
@@ -233,7 +233,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpGrazeBody.
   ///
   /// In ja, this message translates to:
-  /// **'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。HEAT が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点'**
+  /// **'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。COMBO が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点'**
   String get helpGrazeBody;
 
   /// No description provided for @helpOverTitle.
@@ -743,7 +743,7 @@ abstract class AppLocalizations {
   /// No description provided for @introFeverTime.
   ///
   /// In ja, this message translates to:
-  /// **'PERFECT を重ねてヒートを貯めると FEVER TIME。全弾貫通で一気に崩せ'**
+  /// **'PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ'**
   String get introFeverTime;
 
   /// No description provided for @introSurvive.

@@ -513,16 +513,16 @@ class FieldPainter extends CustomPainter {
       _txt('CHAIN', 530, 14, 16, Dot.dim);
       _txt('${w.streak}', 530, 38, 24, Dot.white);
     }
-    // ヒート: ドットのマスを並べたメーター
+    // コンボ: ドットのマスを並べたメーター
     const bx = 680.0, by = 28.0, bw = 340.0, bh = 16.0;
     final st = w.od ? 4 : w.stage;
-    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'HEAT LV${st + 1}', bx, 14, 16,
+    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'COMBO LV${st + 1}', bx, 14, 16,
         w.od ? Dot.rose : Dot.dim,
         align: TextAlignH.left);
     final tun = w.tuning;
     const cell = 12.0, gap = 4.0;
     final cells = ((bw + gap) / (cell + gap)).floor();
-    final k = w.od ? (w.odTime / tun.odMaxTime).clamp(0.0, 1.0) : (w.heat / tun.odHeat).clamp(0.0, 1.0);
+    final k = w.od ? (w.odTime / tun.odMaxTime).clamp(0.0, 1.0) : (w.combo / tun.odCombo).clamp(0.0, 1.0);
     final lit = (cells * k).ceil();
     for (var i = 0; i < cells; i++) {
       final r = Rect.fromLTWH(bx + i * (cell + gap), by, cell, bh);
@@ -530,14 +530,14 @@ class FieldPainter extends CustomPainter {
         _c.drawRect(r, pixelPaint(Dot.dither));
         continue;
       }
-      final c = w.od ? ((i + (_t * 12).floor()) % 3 == 0 ? Dot.white : Dot.rose) : Palette.heatBar[st];
+      final c = w.od ? ((i + (_t * 12).floor()) % 3 == 0 ? Dot.white : Dot.rose) : Palette.comboBar[st];
       bevelRect(_c, r, c);
     }
     if (!w.od) {
       // 段階の境目
       final p = pixelPaint(Dot.dim);
       for (final m in tun.stageMin.skip(1)) {
-        final i = (cells * m / tun.odHeat).round();
+        final i = (cells * m / tun.odCombo).round();
         _c.drawRect(Rect.fromLTWH(bx + i * (cell + gap) - gap / 2 - 1, by - 4, 2, bh + 8), p);
       }
     }

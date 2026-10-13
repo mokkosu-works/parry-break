@@ -71,7 +71,7 @@ void main() {
       ..vy = -500
       ..vx = 120;
     _run(w, fx, 3, before: autopilot(w));
-    w.addHeat(1000);
+    w.addCombo(1000);
     w.phantoms.add(Ball(x: 300, y: 400, vx: 200, vy: -300, speed: 360, phantom: true, life: 5));
     w.fireLaser(w.paddle.x + 200);
     _run(w, fx, 0.3, before: autopilot(w));

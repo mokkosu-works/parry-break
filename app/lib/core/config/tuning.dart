@@ -19,8 +19,8 @@ class Tuning {
     this.stageMin = const [0, 100, 250, 450],
     this.stageMult = const [1, 2, 4, 8, 16],
     this.stageSpeed = const [1, 495 / 420, 585 / 420, 690 / 420],
-    this.heatDecay = const [0, 8, 14, 22],
-    this.odHeat = 700,
+    this.comboDecay = const [0, 8, 14, 22],
+    this.odCombo = 700,
     this.odTime = 10,
     this.odMaxTime = 20,
     this.bossOdHurtPenalty = 3,
@@ -63,12 +63,12 @@ class Tuning {
   // パドル
   final double paddleSpeed, paddleWidth;
 
-  // ヒート
+  // コンボ
   final List<double> stageMin;
   final List<int> stageMult;
   final List<double> stageSpeed;
-  final List<double> heatDecay;
-  final double odHeat, odTime, odMaxTime;
+  final List<double> comboDecay;
+  final double odCombo, odTime, odMaxTime;
 
   /// ボス戦で FEVER TIME 中に被弾したとき、FEVER TIME を終わらせずに減らす残り時間 (秒)。
   final double bossOdHurtPenalty;
@@ -127,8 +127,8 @@ class Tuning {
       stageMin: stageMin,
       stageMult: stageMult,
       stageSpeed: stageSpeed,
-      heatDecay: heatDecay,
-      odHeat: d('odHeat', odHeat),
+      comboDecay: comboDecay,
+      odCombo: d('odCombo', odCombo),
       odTime: d('odTime', odTime),
       odMaxTime: d('odMaxTime', odMaxTime),
       bossOdHurtPenalty: d('bossOdHurtPenalty', bossOdHurtPenalty),
