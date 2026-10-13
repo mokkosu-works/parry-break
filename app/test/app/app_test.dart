@@ -396,6 +396,38 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  // Issue #69: 狭い画面でタイルの番号が折り返して切れていた
+  for (final size in const [Size(667, 375), Size(1280, 800)]) {
+    for (final cleared in [false, true]) {
+      testWidgets('ステージ選択: ${size.width.toInt()}x${size.height.toInt()} ${cleared ? 'クリア済み' : '選択中・未クリア'}のタイルの番号が 1 行で収まる',
+          (tester) async {
+        await _pumpApp(tester, size: size, prefs: {
+          'settings.v1': jsonEncode(const Settings(language: 'en', debugMode: true).toJson()),
+          if (cleared)
+            'records': jsonEncode(const Records(stages: {
+              '1-1': StageRecord(cleared: true),
+              '1-10': StageRecord(cleared: true),
+            }).toJson()),
+        });
+        await tester.tap(find.text('STAGES'));
+        await _frames(tester, 0.5);
+        final heights = <double>[];
+        for (final id in ['1-1', '1-10']) {
+          final label = find.text(id);
+          expect(label, findsOneWidget);
+          final tile = find.ancestor(of: label, matching: find.byType(GestureDetector)).first;
+          final l = tester.getRect(label), t = tester.getRect(tile);
+          expect(l.left, greaterThanOrEqualTo(t.left), reason: id);
+          expect(l.right, lessThanOrEqualTo(t.right), reason: id);
+          heights.add(l.height);
+        }
+        // 1 行のまま縮んでいる (折り返すと、文字の多い 1-10 のほうが高くなる)
+        expect(heights[1], lessThanOrEqualTo(heights[0]));
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   for (final size in const [Size(667, 375), Size(1280, 720)]) {
     testWidgets('遊び方の COMBO / GRAZE のページが ${size.width.toInt()}×${size.height.toInt()} ではみ出さない', (tester) async {
       await _pumpApp(tester, home: const HelpScreen(), size: size);
