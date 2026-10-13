@@ -397,10 +397,10 @@ void main() {
   });
 
   for (final size in const [Size(667, 375), Size(1280, 720)]) {
-    testWidgets('遊び方の HEAT / GRAZE のページが ${size.width.toInt()}×${size.height.toInt()} ではみ出さない', (tester) async {
+    testWidgets('遊び方の COMBO / GRAZE のページが ${size.width.toInt()}×${size.height.toInt()} ではみ出さない', (tester) async {
       await _pumpApp(tester, home: const HelpScreen(), size: size);
       await _frames(tester, 0.5);
-      for (final title in ['MOVE', 'LAUNCH / PARRY', 'TIMING', 'CHAIN', 'HEAT / OVERDRIVE', 'GRAZE / RICOCHET']) {
+      for (final title in ['MOVE', 'LAUNCH / PARRY', 'TIMING', 'CHAIN', 'COMBO / FEVER TIME', 'GRAZE / RICOCHET']) {
         expect(find.text(title), findsOneWidget, reason: title);
         expect(tester.takeException(), isNull, reason: '$title がはみ出さない');
         await tester.tap(find.text('NEXT'));

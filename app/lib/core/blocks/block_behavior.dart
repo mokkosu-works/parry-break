@@ -15,7 +15,7 @@ class BallHit {
   const BallHit(this.ball, {required this.pierce, required this.main, required this.cause});
   final Ball ball;
 
-  /// 貫通弾として当たったか (貫通回数が残っている / OVERDRIVE 中 / 分身弾)。
+  /// 貫通弾として当たったか (貫通回数が残っている / FEVER TIME 中 / 分身弾)。
   final bool pierce;
 
   /// メインのボールか (分身弾なら false)。

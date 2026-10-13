@@ -76,7 +76,7 @@ extension _BulletSystem on World {
   /// かすり: 敵弾がパドルに当たらず、近くを通り過ぎた。
   void _graze(Bullet u) {
     stats.graze++;
-    addHeat(8);
+    addCombo(8);
     final v = 50 * mult;
     score += v;
     emit(Grazed(u.x));

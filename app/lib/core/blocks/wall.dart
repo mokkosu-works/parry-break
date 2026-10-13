@@ -3,7 +3,7 @@ import '../events/game_event.dart';
 import '../world/world.dart';
 import 'block_behavior.dart';
 
-/// 破壊不可ブロック。OVERDRIVE 中だけ壊せる。クリア条件・崩落の支えには含めない。
+/// 破壊不可ブロック。FEVER TIME 中だけ壊せる。クリア条件・崩落の支えには含めない。
 class WallBlock extends BlockBehavior {
   const WallBlock();
 

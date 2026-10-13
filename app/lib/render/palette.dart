@@ -46,8 +46,8 @@ abstract final class Palette {
     'B': Dot.orange,
   };
 
-  /// ヒート段階 (1〜4, OVERDRIVE) の色。
-  static const heatBar = [Dot.sky, Dot.mint, Dot.mustard, Dot.orange];
+  /// コンボ段階 (1〜4, FEVER TIME) の色。
+  static const comboBar = [Dot.sky, Dot.mint, Dot.mustard, Dot.orange];
   static const multColor = [Dot.white, Dot.peach, Dot.mint, Dot.mustard, Dot.rose];
 }
 
@@ -71,7 +71,7 @@ abstract final class Dot {
   /// 撃ち返した弾・GOOD・跳弾など、こちらの手柄の淡い色。
   static const peach = Color(0xFFFFC9A8);
 
-  /// OVERDRIVE 中の地・床・HUD (パレットを入れ替えて、ひと目で分かるようにする)。
+  /// FEVER TIME 中の地・床・HUD (パレットを入れ替えて、ひと目で分かるようにする)。
   static const odBg = Color(0xFF3A0532);
   static const odDither = Color(0xFF64104F);
   static const odHud = Color(0xFF520A47);

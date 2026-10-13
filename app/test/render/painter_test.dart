@@ -10,7 +10,7 @@ import 'package:parry_break/render/text_cache.dart';
 
 import '../core/helpers.dart';
 
-/// 盤面の描画を、さまざまな状態 (OVERDRIVE、ボス、崩落、ラウンドクリア) で行う。
+/// 盤面の描画を、さまざまな状態 (FEVER TIME、ボス、崩落、ラウンドクリア) で行う。
 /// 例外が出ないことを確かめ、`--dart-define=screenshots=true --update-goldens` で画面写真を書き出す。
 const _shots = bool.fromEnvironment('screenshots');
 
@@ -58,7 +58,7 @@ void main() {
         .load();
   });
 
-  testWidgets('OVERDRIVE 中のボス戦 (フェーズ3・レーザー・分身弾・弾幕)', (tester) async {
+  testWidgets('FEVER TIME 中のボス戦 (フェーズ3・レーザー・分身弾・弾幕)', (tester) async {
     final w = World(mode: endlessMode)..start(fromRound: 20);
     final fx = FxState(w);
     _run(w, fx, 1.2);
@@ -71,12 +71,12 @@ void main() {
       ..vy = -500
       ..vx = 120;
     _run(w, fx, 3, before: autopilot(w));
-    w.addHeat(1000);
+    w.addCombo(1000);
     w.phantoms.add(Ball(x: 300, y: 400, vx: 200, vy: -300, speed: 360, phantom: true, life: 5));
     w.fireLaser(w.paddle.x + 200);
     _run(w, fx, 0.3, before: autopilot(w));
     expect(w.od || w.phase != WorldPhase.playing, isTrue);
-    await _paint(tester, w, fx, 'p1_boss_overdrive');
+    await _paint(tester, w, fx, 'p1_boss_fever_time');
   });
 
   testWidgets('崩落の最中 (ひび・落下・コールアウト・瓦礫)', (tester) async {

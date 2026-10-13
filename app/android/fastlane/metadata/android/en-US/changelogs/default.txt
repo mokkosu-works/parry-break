@@ -1,5 +1,5 @@
 ・Three new chapters in Stage mode (FIRESTORM, BULLET HELL, STEEL RAIN) with three new bosses. Every chapter now has 10 stages, 60 in all
 ・Choose EASY, NORMAL or HARD in Stage mode. HARD is bullet hell: more bullets, and broken blocks shoot back. Records are kept per difficulty
 ・Five new turrets: spread, gatling, ring, spiral and sniper
-・How to Play has new pages for HEAT / OVERDRIVE and GRAZE / RICOCHET
+・How to Play has new pages for COMBO / FEVER TIME and GRAZE / RICOCHET
 ・Each section of play is now called a ROUND

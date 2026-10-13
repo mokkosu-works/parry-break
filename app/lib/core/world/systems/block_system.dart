@@ -18,7 +18,7 @@ extension _BlockSystem on World {
     }
     final v = pts * mult;
     score += v;
-    addHeat(cause == DestroyCause.pierce ? 10 : cause == DestroyCause.blast ? 4 : 2);
+    addCombo(cause == DestroyCause.pierce ? 10 : cause == DestroyCause.blast ? 4 : 2);
     if (cause == DestroyCause.ball || cause == DestroyCause.pierce) ball.flight++;
     emit(BlockDestroyed(bl, c.x, c.y, cause, v));
     bl.behavior.onDestroyed(this, bl, c.x, c.y);

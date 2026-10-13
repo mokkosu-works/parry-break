@@ -11,7 +11,7 @@ import '../render/text_cache.dart';
 import '../services/settings.dart';
 
 /// 遊び方の図で見せる場面。
-enum HelpTopic { move, parry, timing, chain, heat, graze, over, pause }
+enum HelpTopic { move, parry, timing, chain, combo, graze, over, pause }
 
 /// 遊び方の 1 場面を、本物のブロックの描き方を使って小さな盤面に描き、繰り返し動かす。
 class HelpDiagram extends StatefulWidget {
@@ -88,7 +88,7 @@ class _DiagramPainter extends CustomPainter {
     HelpTopic.parry: 0.5,
     HelpTopic.timing: 0.3,
     HelpTopic.chain: 0.36,
-    HelpTopic.heat: 0.55,
+    HelpTopic.combo: 0.55,
     HelpTopic.graze: 0.45,
     HelpTopic.over: 0.42,
     HelpTopic.pause: 0.5,
@@ -112,8 +112,8 @@ class _DiagramPainter extends CustomPainter {
         _timing();
       case HelpTopic.chain:
         _chain();
-      case HelpTopic.heat:
-        _heat();
+      case HelpTopic.combo:
+        _combo();
       case HelpTopic.graze:
         _graze();
       case HelpTopic.over:
@@ -395,8 +395,8 @@ class _DiagramPainter extends CustomPainter {
     }
   }
 
-  void _heat() {
-    // 上の帯 (HUD) のメーターが、パリィのたびに満ちて段階が上がり、満ちると OVERDRIVE になる
+  void _combo() {
+    // 上の帯 (HUD) のメーターが、パリィのたびに満ちて段階が上がり、満ちると FEVER TIME になる
     _c.drawRect(const Rect.fromLTWH(0, 0, w, 64), _fill..color = Palette.hudBg);
     _c.drawLine(
       const Offset(0, 64),
@@ -405,35 +405,35 @@ class _DiagramPainter extends CustomPainter {
         ..color = Palette.hudLine
         ..strokeWidth = 2,
     );
-    const stageMin = [0, 100, 250, 450], odHeat = 700.0, mults = [1, 2, 4, 8, 16];
+    const stageMin = [0, 100, 250, 450], odCombo = 700.0, mults = [1, 2, 4, 8, 16];
     final od = _t >= 0.75;
     final k = _span(_t, 0.05, 0.7);
-    final heat = od ? odHeat : _ease(k) * odHeat;
+    final combo = od ? odCombo : _ease(k) * odCombo;
     var st = 0;
     for (var i = 1; i < stageMin.length; i++) {
-      if (heat >= stageMin[i]) st = i;
+      if (combo >= stageMin[i]) st = i;
     }
     if (od) st = 4;
     const bx = 24.0, by = 32.0, cell = 12.0, gap = 4.0, cells = 25;
-    text.draw(_c, od ? 'OVERDRIVE' : 'HEAT LV${st + 1}', bx, 14, 14, od ? Dot.rose : Dot.dim, align: TextAlignH.left);
-    final lit = od ? cells : (cells * heat / odHeat).ceil();
+    text.draw(_c, od ? 'FEVER TIME' : 'COMBO LV${st + 1}', bx, 14, 14, od ? Dot.rose : Dot.dim, align: TextAlignH.left);
+    final lit = od ? cells : (cells * combo / odCombo).ceil();
     for (var i = 0; i < cells; i++) {
       final r = Rect.fromLTWH(bx + i * (cell + gap), by, cell, 16);
       if (i >= lit) {
         _c.drawRect(r, pixelPaint(Dot.dither));
         continue;
       }
-      bevelRect(_c, r, od ? ((i + (_t * 40).floor()) % 3 == 0 ? Dot.white : Dot.rose) : Palette.heatBar[st]);
+      bevelRect(_c, r, od ? ((i + (_t * 40).floor()) % 3 == 0 ? Dot.white : Dot.rose) : Palette.comboBar[st]);
     }
     if (!od) {
       final p = pixelPaint(Dot.dim);
       for (final m in stageMin.skip(1)) {
-        final i = (cells * m / odHeat).round();
+        final i = (cells * m / odCombo).round();
         _c.drawRect(Rect.fromLTWH(bx + i * (cell + gap) - gap / 2 - 1, by - 4, 2, 24), p);
       }
     }
     text.draw(_c, '×${mults[st]}', w - 24, 36, 30, Palette.multColor[st], weight: 900, align: TextAlignH.right);
-    // 下の盤面: パリィのたびに HEAT が増える
+    // 下の盤面: パリィのたびに COMBO が増える
     const hitX = 300.0;
     final pulse = (k * 4) % 1;
     final hit = !od && k < 1 && pulse < 0.25;
