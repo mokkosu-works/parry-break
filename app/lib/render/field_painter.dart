@@ -12,7 +12,7 @@ import 'palette.dart';
 import 'pixel.dart';
 import 'text_cache.dart';
 
-/// 盤面 (1200×720) を描く。HUD・コールアウト・バナー・ウェーブクリアの表示も含む。
+/// 盤面 (1200×720) を描く。HUD・コールアウト・バナー・ラウンドクリアの表示も含む。
 ///
 /// 見た目は 16 色のドット絵 (1 ドット = [Dot.px])。発光やぼかしは使わず、
 /// 陰影は 1 ドットの縁、影は 1 ドットずらしの硬い影、グラデーションはディザや段階の帯で表す。
@@ -149,7 +149,7 @@ class FieldPainter extends CustomPainter {
     final od = world.od;
     if (highQuality) _floor.draw(_c, od ? Dot.odDither : Dot.dither);
     if (od) {
-      // OVERDRIVE: 速く流れる線 (加速している感じ)
+      // FEVER TIME: 速く流れる線 (加速している感じ)
       final p = pixelPaint(Dot.odDither);
       final off = (_t * 900) % 240;
       for (var x = 60.0; x < _w; x += 90) {
@@ -451,7 +451,7 @@ class FieldPainter extends CustomPainter {
     if (w.isDanger) _edgeBands(Dot.bulletRed, 0.45, (_t * 7).floor().isEven ? 4 : 2);
   }
 
-  /// OVERDRIVE 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
+  /// FEVER TIME 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
   /// 残り 2 秒を切ると全体が点滅して、終わりが近いことを知らせる。
   /// 「刺激を弱める」設定では、色をゆっくり送り、点滅はしない。
   void _marquee() {
@@ -498,31 +498,31 @@ class FieldPainter extends CustomPainter {
     _txt('SCORE', 20, 14, 16, Dot.dim, align: TextAlignH.left);
     _txt(formatScore(fx.dispScore), 20, 38, 24, Dot.white, align: TextAlignH.left);
     final boss = w.boss;
-    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'WAVE', 400, 14, 16, Dot.dim);
-    _txt('${w.wave.number}${w.wave.loop > 0 ? ' L${w.wave.loop + 1}' : ''}', 400, 38, 24, Dot.white);
-    final clear = w.wave.clear;
+    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND', 400, 14, 16, Dot.dim);
+    _txt('${w.round.number}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}', 400, 38, 24, Dot.white);
+    final clear = w.round.clear;
     if (boss != null) {
       final tm = boss.time.ceil();
       _txt('TIME', 530, 14, 16, Dot.dim);
       _txt('$tm', 530, 38, 24, tm <= 10 ? Dot.bulletRed : Dot.white);
     } else if (clear is SurviveClear) {
-      final left = math.max(0, (clear.seconds - w.waveTime).ceil());
+      final left = math.max(0, (clear.seconds - w.roundTime).ceil());
       _txt('SURVIVE', 530, 14, 16, Dot.dim);
       _txt('$left', 530, 38, 24, left <= 5 ? Dot.mustard : Dot.white);
     } else {
       _txt('CHAIN', 530, 14, 16, Dot.dim);
       _txt('${w.streak}', 530, 38, 24, Dot.white);
     }
-    // ヒート: ドットのマスを並べたメーター
+    // コンボ: ドットのマスを並べたメーター
     const bx = 680.0, by = 28.0, bw = 340.0, bh = 16.0;
     final st = w.od ? 4 : w.stage;
-    _txt(w.od ? 'OVERDRIVE ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'HEAT LV${st + 1}', bx, 14, 16,
+    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'COMBO LV${st + 1}', bx, 14, 16,
         w.od ? Dot.rose : Dot.dim,
         align: TextAlignH.left);
     final tun = w.tuning;
     const cell = 12.0, gap = 4.0;
     final cells = ((bw + gap) / (cell + gap)).floor();
-    final k = w.od ? (w.odTime / tun.odMaxTime).clamp(0.0, 1.0) : (w.heat / tun.odHeat).clamp(0.0, 1.0);
+    final k = w.od ? (w.odTime / tun.odMaxTime).clamp(0.0, 1.0) : (w.combo / tun.odCombo).clamp(0.0, 1.0);
     final lit = (cells * k).ceil();
     for (var i = 0; i < cells; i++) {
       final r = Rect.fromLTWH(bx + i * (cell + gap), by, cell, bh);
@@ -530,14 +530,14 @@ class FieldPainter extends CustomPainter {
         _c.drawRect(r, pixelPaint(Dot.dither));
         continue;
       }
-      final c = w.od ? ((i + (_t * 12).floor()) % 3 == 0 ? Dot.white : Dot.rose) : Palette.heatBar[st];
+      final c = w.od ? ((i + (_t * 12).floor()) % 3 == 0 ? Dot.white : Dot.rose) : Palette.comboBar[st];
       bevelRect(_c, r, c);
     }
     if (!w.od) {
       // 段階の境目
       final p = pixelPaint(Dot.dim);
       for (final m in tun.stageMin.skip(1)) {
-        final i = (cells * m / tun.odHeat).round();
+        final i = (cells * m / tun.odCombo).round();
         _c.drawRect(Rect.fromLTWH(bx + i * (cell + gap) - gap / 2 - 1, by - 4, 2, bh + 8), p);
       }
     }
@@ -574,7 +574,7 @@ class FieldPainter extends CustomPainter {
     }
   }
 
-  /// ウェーブ開始時などの帯。副題は翻訳する。
+  /// ラウンド開始時などの帯。副題は翻訳する。
   void _banner() {
     final b = fx.banner;
     if (b == null || world.phase == WorldPhase.over) return;
@@ -582,9 +582,9 @@ class FieldPainter extends CustomPainter {
     final open = b.t < 0.15 ? b.t / 0.15 : b.t > 1.4 ? math.max(0.0, (1.8 - b.t) / 0.4) : 1.0;
     final h = (90 * open / 24).ceil() * 24.0;
     final (title, sub, color) = switch (b.kind) {
-      BannerKind.wave => ('WAVE ${b.value}', _introText(b.introKey) ?? _goalText(), Dot.white),
+      BannerKind.round => ('ROUND ${b.value}', _introText(b.introKey) ?? _goalText(), Dot.white),
       BannerKind.boss => ('WARNING', 'BOSS ${b.value}  —  ${l10n.bannerBoss}', Dot.bulletRed),
-      BannerKind.overdrive => ('OVERDRIVE', l10n.bannerOverdrive, Dot.rose),
+      BannerKind.feverTime => ('FEVER TIME', l10n.bannerFeverTime, Dot.rose),
       BannerKind.bossPhase => ('PHASE ${b.value}', b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3, Dot.white),
       BannerKind.timeOver => ('TIME OVER', l10n.bannerTimeOver, Dot.bulletRed),
     };
@@ -613,10 +613,10 @@ class FieldPainter extends CustomPainter {
         'intro.ring' => l10n.introRing,
         'intro.spiral' => l10n.introSpiral,
         'intro.sniper' => l10n.introSniper,
-        'intro.loop' => l10n.introLoop('${world.wave.loop + 1}'),
+        'intro.loop' => l10n.introLoop('${world.round.loop + 1}'),
         'intro.parry' => l10n.introParry,
         'intro.pierce' => l10n.introPierce,
-        'intro.overdrive' => l10n.introOverdrive,
+        'intro.feverTime' => l10n.introFeverTime,
         'intro.survive' => l10n.introSurvive,
         'intro.score' => l10n.introScore,
         _ => null,
@@ -625,7 +625,7 @@ class FieldPainter extends CustomPainter {
   /// ステージモードでは、説明がなければクリア条件を出す。
   String? _goalText() {
     if (world.mode is! StageMode) return null;
-    return switch (world.wave.clear) {
+    return switch (world.round.clear) {
       AnnihilateClear() => l10n.clearAnnihilate,
       ScoreClear(:final target) => l10n.clearScore(formatScore(target)),
       SurviveClear(:final seconds) => l10n.clearSurvive('${seconds.round()}'),
@@ -637,16 +637,16 @@ class FieldPainter extends CustomPainter {
     final k = math.min(1.0, w.clearT / 0.3);
     _c.drawRect(const Rect.fromLTWH(0, 0, _w, _h), pixelPaint(withAlpha(Dot.ink, (k * 3).ceil() / 3 * 0.8)));
     if (k < 1) return;
-    final last = w.mode.waveAt(w.wave.number + 1) == null;
-    final title = w.wave.ending
-        ? 'ALL WAVES CLEAR'
+    final last = w.mode.roundAt(w.round.number + 1) == null;
+    final title = w.round.ending
+        ? 'ALL ROUNDS CLEAR'
         : last && w.mode is StageMode
             ? 'STAGE CLEAR'
             : w.boss != null
                 ? 'BOSS DESTROYED'
-                : 'WAVE ${w.wave.number} CLEAR';
-    _bigTxt(title, _w / 2, 220, 40, w.wave.ending ? Dot.rose : Dot.mustard,
-        shadow: w.wave.ending ? Dot.violet : Dot.brick);
+                : 'ROUND ${w.round.number} CLEAR';
+    _bigTxt(title, _w / 2, 220, 40, w.round.ending ? Dot.rose : Dot.mustard,
+        shadow: w.round.ending ? Dot.violet : Dot.brick);
     final bon = w.bonuses;
     for (var i = 0; i < bon.length; i++) {
       if (w.clearT < 0.3 + i * 0.18) continue;
@@ -660,7 +660,7 @@ class FieldPainter extends CustomPainter {
       _txt('SCORE', _w / 2 - 220, y + 10, 16, Dot.dim, align: TextAlignH.left);
       _txt(formatScore(fx.dispScore), _w / 2 + 220, y + 10, 24, Dot.white, align: TextAlignH.right);
     }
-    if (w.wave.ending) _txt(l10n.endingSub, _w / 2, y + 60, 16, Dot.rose, family: TextCache.jp);
+    if (w.round.ending) _txt(l10n.endingSub, _w / 2, y + 60, 16, Dot.rose, family: TextCache.jp);
   }
 
   @override

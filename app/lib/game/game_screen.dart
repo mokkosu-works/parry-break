@@ -130,9 +130,9 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     // 結果画面を見ている間に、戻るときの広告を読み込んでおく
     ref.read(adsProvider).onResult();
     if (stage == null) {
-      final newBest = records.submitEndless(score: w.score, wave: w.wave.number, stats: w.stats);
+      final newBest = records.submitEndless(score: w.score, round: w.round.number, stats: w.stats);
       lb.submit(Board.endlessScore, w.score);
-      lb.submit(Board.endlessWave, w.wave.number);
+      lb.submit(Board.endlessRound, w.round.number);
       _outcome = _Outcome(newBest: newBest);
     } else {
       final cleared = w.phase == WorldPhase.completed;
@@ -293,7 +293,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     return Rect.fromCenter(center: r.center, width: math.max(min, r.width), height: math.max(min, r.height));
   }
 
-  /// 盤面。OVERDRIVE の見せ方 (色の入れ替えと電飾) は FieldPainter が描く。
+  /// 盤面。FEVER TIME の見せ方 (色の入れ替えと電飾) は FieldPainter が描く。
   Widget _field() => RepaintBoundary(child: CustomPaint(painter: _painter, size: Size.infinite));
 
   Widget _pauseOverlay(AppLocalizations l) {
@@ -328,13 +328,13 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       key: ValueKey(_runId),
       data: ResultData(
         score: w.score,
-        wave: w.wave.number,
+        round: w.round.number,
         maxChain: w.maxStreak,
         stats: w.stats,
         reason: w.overReason,
         newBest: o?.newBest ?? false,
         bestScore: stage == null ? records.endless.bestScore : records.stage(stage.id, widget.difficulty).bestScore,
-        bestWave: records.endless.bestWave,
+        bestRound: records.endless.bestRound,
         stage: stage,
         difficulty: widget.difficulty,
         cleared: cleared,
@@ -368,7 +368,7 @@ class StarLine extends StatelessWidget {
       );
 }
 
-/// HUD の右端のポーズボタン。HUD の線の色の 1 ドットの枠だけを描く (OVERDRIVE で HUD の色が変わっても馴染むよう、塗らない)。
+/// HUD の右端のポーズボタン。HUD の線の色の 1 ドットの枠だけを描く (FEVER TIME で HUD の色が変わっても馴染むよう、塗らない)。
 class _PauseButton extends StatelessWidget {
   const _PauseButton({required this.size, required this.dot, required this.onTap, required this.label});
 

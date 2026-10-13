@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'settings.dart';
 
 /// ランキングのボード。
-enum Board { endlessScore, endlessWave, stagesTotal }
+enum Board { endlessScore, endlessRound, stagesTotal }
 
 /// ストアで作ったリーダーボードの ID。
 ///
@@ -28,13 +28,13 @@ abstract final class LeaderboardConfig {
 
   static const ios = <Board, String>{
     Board.endlessScore: 'com.watsuwo.parrybreak.endless_score',
-    Board.endlessWave: 'com.watsuwo.parrybreak.endless_wave',
+    Board.endlessRound: 'com.watsuwo.parrybreak.endless_wave',
     Board.stagesTotal: 'com.watsuwo.parrybreak.stages_total',
   };
 
   static const android = <Board, String>{
     Board.endlessScore: '',
-    Board.endlessWave: '',
+    Board.endlessRound: '',
     Board.stagesTotal: '',
   };
 }

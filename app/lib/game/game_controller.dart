@@ -96,7 +96,7 @@ class GameController extends ChangeNotifier {
       notifyListeners();
     }
     if (!session.paused) {
-      // ステップの外で起きたイベント (ウェーブ開始など) もここで配る
+      // ステップの外で起きたイベント (ラウンド開始など) もここで配る
       session.advance(now).forEach(_dispatch);
       fx.frame(rdt);
       // 終わったプレイが、次のステージの画面の BGM を切り替えないようにする

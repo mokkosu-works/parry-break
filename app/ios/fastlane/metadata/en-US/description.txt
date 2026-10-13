@@ -1,17 +1,17 @@
 PARRY BREAK turns the block-breaker paddle from a shield into a weapon. An arcade score attack where you parry instead of just catching.
 
 - PARRY ON IMPACT
-Tap the right half of the screen just as the ball or a bullet hits your paddle. PERFECT timing fires a piercing shot; JUST releases a shockwave. Every bullet you send back is a chance for big points.
+Tap the right half of the screen just as the ball or a bullet hits your paddle. PERFECT timing fires a piercing shot; JUST releases a burst. Every bullet you send back is a chance for big points.
 
 - RISK PAYS
-Parries and returned bullets build up your Heat and your multiplier. Max it out to trigger OVERDRIVE: your ball tears through blocks, and every parry splits off clone balls. Playing safe won't get you far.
+Parries and returned bullets build up your Combo and your multiplier. Max it out to trigger FEVER TIME: your ball tears through blocks, and every parry splits off clone balls. Playing safe won't get you far.
 
 - COLLAPSE AND CHAIN BLASTS
 Break a white keystone and every block it was holding comes crashing down. Orange explosives take their neighbours with them. Find the chain that flips the whole board.
 
 - TWO MODES
-Endless: Survive 60 waves and the loop beyond, with a boss fortress every 10 waves.
-Stages: Short 1-2 minute stages rated with up to three stars. Chapter 1 teaches the basics.
+Endless: Survive 60 rounds and the loop beyond, with a boss fortress every 10 rounds.
+Stages: 60 short 1-2 minute stages across 6 chapters, rated with up to three stars. Pick EASY, NORMAL or HARD; HARD turns up the bullet hell. Chapter 1 teaches the basics.
 
 - ONE BALL, NO CONTINUES
 Drop the ball or let the blocks reach the dead line and it's over.

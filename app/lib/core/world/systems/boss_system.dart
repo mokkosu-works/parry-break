@@ -53,7 +53,7 @@ extension _BossSystem on World {
     }
     final cores = blocks.where((x) => x.type == bossCoreId).toList();
     if (cores.isEmpty) return;
-    final rate = const [1.0, 1.15, 1.3][b.phase - 1] * (1 + b.index * 0.05) * wave.loopMul * difficulty.bossFireRate;
+    final rate = const [1.0, 1.15, 1.3][b.phase - 1] * (1 + b.index * 0.05) * round.loopMul * difficulty.bossFireRate;
     for (final p in b.patterns) {
       if (b.phase >= p.fromPhase) p.update(this, b, cores, dt, rate);
     }

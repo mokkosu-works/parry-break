@@ -3,7 +3,7 @@ import 'dart:math' as math;
 /// ゲームバランスの数値 (design.md 第3〜8章)。
 ///
 /// 既定値はブラウザ版と同じ。ステージごとに一部を上書きできる ([copyWith])。
-/// [difficulty] はウェーブの難易度 (エンドレスではループを除いたウェーブ番号 1〜60)、
+/// [difficulty] はラウンドの難易度 (エンドレスではループを除いたラウンド番号 1〜60)、
 /// [loopMul] は周回ごとの速度倍率 (1 + 0.15 × 周回数)。
 class Tuning {
   const Tuning({
@@ -19,8 +19,8 @@ class Tuning {
     this.stageMin = const [0, 100, 250, 450],
     this.stageMult = const [1, 2, 4, 8, 16],
     this.stageSpeed = const [1, 495 / 420, 585 / 420, 690 / 420],
-    this.heatDecay = const [0, 8, 14, 22],
-    this.odHeat = 700,
+    this.comboDecay = const [0, 8, 14, 22],
+    this.odCombo = 700,
     this.odTime = 10,
     this.odMaxTime = 20,
     this.bossOdHurtPenalty = 3,
@@ -38,13 +38,13 @@ class Tuning {
     this.magnetRadius = 140,
     this.magnetAccel = 220,
     this.descentBase = 4.5,
-    this.descentPerWave = 0.18,
+    this.descentPerRound = 0.18,
     this.descentMax = 13,
     this.turretIntervalBase = 2.8,
-    this.turretIntervalPerWave = 0.04,
+    this.turretIntervalPerRound = 0.04,
     this.turretIntervalMin = 1.2,
     this.bulletSpeedBase = 300,
-    this.bulletSpeedPerWave = 4,
+    this.bulletSpeedPerRound = 4,
     this.bulletSpeedMax = 560,
     this.returnSpeed = 620,
     this.mirrorReturnSpeed = 340,
@@ -63,17 +63,17 @@ class Tuning {
   // パドル
   final double paddleSpeed, paddleWidth;
 
-  // ヒート
+  // コンボ
   final List<double> stageMin;
   final List<int> stageMult;
   final List<double> stageSpeed;
-  final List<double> heatDecay;
-  final double odHeat, odTime, odMaxTime;
+  final List<double> comboDecay;
+  final double odCombo, odTime, odMaxTime;
 
-  /// ボス戦で OVERDRIVE 中に被弾したとき、OVERDRIVE を終わらせずに減らす残り時間 (秒)。
+  /// ボス戦で FEVER TIME 中に被弾したとき、FEVER TIME を終わらせずに減らす残り時間 (秒)。
   final double bossOdHurtPenalty;
 
-  /// OVERDRIVE 中にコアへ与えるダメージの倍率。
+  /// FEVER TIME 中にコアへ与えるダメージの倍率。
   final int odCoreDamageMul;
 
   // ボール
@@ -86,9 +86,9 @@ class Tuning {
   final double magnetRadius, magnetAccel;
 
   // 難易度の式の係数
-  final double descentBase, descentPerWave, descentMax;
-  final double turretIntervalBase, turretIntervalPerWave, turretIntervalMin;
-  final double bulletSpeedBase, bulletSpeedPerWave, bulletSpeedMax;
+  final double descentBase, descentPerRound, descentMax;
+  final double turretIntervalBase, turretIntervalPerRound, turretIntervalMin;
+  final double bulletSpeedBase, bulletSpeedPerRound, bulletSpeedMax;
   final double returnSpeed, mirrorReturnSpeed;
   final double countdown;
 
@@ -101,15 +101,15 @@ class Tuning {
 
   /// ブロック群の降下速度 (px/秒)。
   double descentSpeed(int difficulty, double loopMul) =>
-      math.min(descentMax, descentBase + descentPerWave * (difficulty - 1)) * loopMul;
+      math.min(descentMax, descentBase + descentPerRound * (difficulty - 1)) * loopMul;
 
   /// 砲台の発射間隔 (秒)。
   double turretInterval(int difficulty, double loopMul) =>
-      math.max(turretIntervalMin, turretIntervalBase - turretIntervalPerWave * difficulty) / loopMul;
+      math.max(turretIntervalMin, turretIntervalBase - turretIntervalPerRound * difficulty) / loopMul;
 
   /// 砲台の弾速 (px/秒)。
   double bulletSpeed(int difficulty, double loopMul) =>
-      math.min(bulletSpeedMax, bulletSpeedBase + bulletSpeedPerWave * (difficulty - 1)) * loopMul;
+      math.min(bulletSpeedMax, bulletSpeedBase + bulletSpeedPerRound * (difficulty - 1)) * loopMul;
 
   /// JSON の値で一部を上書きした Tuning を返す (ステージデータの `tuning`)。
   Tuning copyWith(Map<String, Object?> o) {
@@ -127,8 +127,8 @@ class Tuning {
       stageMin: stageMin,
       stageMult: stageMult,
       stageSpeed: stageSpeed,
-      heatDecay: heatDecay,
-      odHeat: d('odHeat', odHeat),
+      comboDecay: comboDecay,
+      odCombo: d('odCombo', odCombo),
       odTime: d('odTime', odTime),
       odMaxTime: d('odMaxTime', odMaxTime),
       bossOdHurtPenalty: d('bossOdHurtPenalty', bossOdHurtPenalty),
@@ -146,13 +146,13 @@ class Tuning {
       magnetRadius: d('magnetRadius', magnetRadius),
       magnetAccel: d('magnetAccel', magnetAccel),
       descentBase: d('descentBase', descentBase),
-      descentPerWave: d('descentPerWave', descentPerWave),
+      descentPerRound: d('descentPerRound', descentPerRound),
       descentMax: d('descentMax', descentMax),
       turretIntervalBase: d('turretIntervalBase', turretIntervalBase),
-      turretIntervalPerWave: d('turretIntervalPerWave', turretIntervalPerWave),
+      turretIntervalPerRound: d('turretIntervalPerRound', turretIntervalPerRound),
       turretIntervalMin: d('turretIntervalMin', turretIntervalMin),
       bulletSpeedBase: d('bulletSpeedBase', bulletSpeedBase),
-      bulletSpeedPerWave: d('bulletSpeedPerWave', bulletSpeedPerWave),
+      bulletSpeedPerRound: d('bulletSpeedPerRound', bulletSpeedPerRound),
       bulletSpeedMax: d('bulletSpeedMax', bulletSpeedMax),
       returnSpeed: d('returnSpeed', returnSpeed),
       mirrorReturnSpeed: d('mirrorReturnSpeed', mirrorReturnSpeed),

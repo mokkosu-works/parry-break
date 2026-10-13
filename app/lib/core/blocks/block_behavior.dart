@@ -15,7 +15,7 @@ class BallHit {
   const BallHit(this.ball, {required this.pierce, required this.main, required this.cause});
   final Ball ball;
 
-  /// 貫通弾として当たったか (貫通回数が残っている / OVERDRIVE 中 / 分身弾)。
+  /// 貫通弾として当たったか (貫通回数が残っている / FEVER TIME 中 / 分身弾)。
   final bool pierce;
 
   /// メインのボールか (分身弾なら false)。
@@ -39,7 +39,7 @@ abstract class BlockBehavior {
   /// 壊したときの基本点。
   int basePoints(Block b, World w);
 
-  /// ウェーブのクリア条件 (全消し) に含むか。
+  /// ラウンドのクリア条件 (全消し) に含むか。
   bool get clearable => true;
 
   /// 崩落の支え合いに含むか。
@@ -74,13 +74,13 @@ abstract class BlockBehavior {
   /// 壊れた直後に呼ばれる (誘爆・分裂など)。
   void onDestroyed(World w, Block b, double cx, double cy) {}
 
-  /// ウェーブ開始時に、配置の順番で呼ばれる (砲台の初期タイマーなど)。
-  void onWaveStart(World w, Block b) {}
+  /// ラウンド開始時に、配置の順番で呼ばれる (砲台の初期タイマーなど)。
+  void onRoundStart(World w, Block b) {}
 
   /// 崩落して落ち始めた (得点の加算後に呼ばれる)。
   void onFell(World w, Block b, double cx, double cy) {}
 
-  /// ウェーブ進行中に毎ステップ呼ばれる (砲台の発射など)。
+  /// ラウンド進行中に毎ステップ呼ばれる (砲台の発射など)。
   void update(World w, Block b, double dt) {}
 
   /// ボールに力を及ぼすか ([influenceBall] を呼ぶか)。

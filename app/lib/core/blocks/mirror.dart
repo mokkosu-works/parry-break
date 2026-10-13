@@ -6,7 +6,7 @@ import '../events/game_event.dart';
 import '../world/world.dart';
 import 'block_behavior.dart';
 
-/// 鏡面ブロック。撃ち返し弾をパドルへ跳ね返す。貫通弾・ブレイカー・OVERDRIVE でのみ壊れる。
+/// 鏡面ブロック。撃ち返し弾をパドルへ跳ね返す。貫通弾・ブレイカー・FEVER TIME でのみ壊れる。
 class MirrorBlock extends BlockBehavior {
   const MirrorBlock();
 
@@ -51,7 +51,7 @@ class MirrorBlock extends BlockBehavior {
       ..near = false
       ..grazed = false
       ..y = b.y + w.form.oy + b.h + u.r + 1;
-    final a = math.atan2(Field.paddleY - u.y, w.paddle.x - u.x), sp = w.tuning.mirrorReturnSpeed * w.wave.loopMul;
+    final a = math.atan2(Field.paddleY - u.y, w.paddle.x - u.x), sp = w.tuning.mirrorReturnSpeed * w.round.loopMul;
     u
       ..vx = math.cos(a) * sp
       ..vy = math.sin(a) * sp;

@@ -7,13 +7,13 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import '../core/core.dart';
 import 'sound_bank.dart';
 
-/// 音の再生。コアのイベントを効果音にし、ヒート段階に合わせて BGM を切り替える。
+/// 音の再生。コアのイベントを効果音にし、コンボ段階に合わせて BGM を切り替える。
 abstract class AudioService {
   Future<void> init();
 
   void handle(GameEvent e);
 
-  /// BGM の段階 (0〜3: ヒート段階、4: OVERDRIVE)。毎フレーム呼んでよい。
+  /// BGM の段階 (0〜3: コンボ段階、4: FEVER TIME)。毎フレーム呼んでよい。
   void setMusicLevel(int level);
 
   void startMusic();
@@ -145,9 +145,9 @@ class SoLoudAudio implements AudioService {
       case PlayerHurt():
         play('hurt');
         _duckMusic();
-      case OverdriveStarted():
+      case FeverTimeStarted():
         play('od');
-      case OverdriveEnded():
+      case FeverTimeEnded():
         play('odEnd');
       case CoreDamaged():
         play('core');
@@ -155,11 +155,11 @@ class SoLoudAudio implements AudioService {
         play('coreDie');
       case BulletMirrored():
         play('mirror');
-      case WaveCleared():
+      case RoundCleared():
         play('clear');
       case BossPhaseChanged():
         play('phase');
-      case WaveStarted(:final bossIndex):
+      case RoundStarted(:final bossIndex):
         if (bossIndex != null) play('alarm');
       case BossTimeOver():
         play('alarm');

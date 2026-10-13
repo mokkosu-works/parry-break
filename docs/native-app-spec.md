@@ -12,7 +12,7 @@ Oct 4, 2026 · @watsuwo
 | --- | --- |
 | 対象 | iOS / Android(横画面)。**ブラウザ版(PWA)と iOS の WebView ラッパーは廃止する**。ブラウザ版の `index.html` は移植元として `legacy/` に置き、移植の検証が終わったら削除する(削除済み) |
 | 技術 | Flutter(描画は CustomPainter)+ Riverpod(アプリ層の状態)+ flutter_soloud(音)+ games_services(ランキング)+ shared_preferences(保存) |
-| ゲームモード | **エンドレス**(現行のアーケード: 60ウェーブ + ループ)と、**ステージモード**(新規: チャプター制) |
+| ゲームモード | **エンドレス**(現行のアーケード: 60ラウンド + ループ)と、**ステージモード**(新規: チャプター制) |
 | オンライン | 初回リリースでは **ランキング**(Game Center / Google Play Games)のみ。クラウドセーブや課金は後から足せる構造にしておく |
 | 収益化 | **広告のみ**(AdMob)。課金は入れない。まずはインタースティシャルだけで、結果画面からタイトル・ステージ選択へ戻るときに、頻度を制限して出す(9.3)。リワード広告と、その報酬にするボス練習モードは次の段階で作る |
 | 仕様の正 | 現在の実装。明らかな不具合だけを design.md の記載どおりに直す |
@@ -24,11 +24,11 @@ Oct 4, 2026 · @watsuwo
 | ループ | 60Hz の固定ステップ。ヒットストップ・スローモーション(×0.35)・入力時刻からシミュレーション時刻への換算(`SYNC`)あり |
 | 判定 | パリィは、入力イベントの時刻と、サブステップ内で補間した接触時刻の差で判定する(JUST 12ms / PERFECT 30ms / GOOD 100ms)。表示遅延の補正は16ms |
 | ブロック | 1文字のIDで表す: `N` 通常 / `T` 砲台 / `R` 反射 / `M` 磁力 / `S` 分裂 / `s` 分裂の子 / `X` 鏡面 / `#` 破壊不可 / `K` 要石 / `B` 爆薬 / `C` ボスのコア。挙動は `ballHits` / `explode` / `updateBullets` などの中で、種類ごとの if 文に分散している |
-| ステージ | 学習ウェーブの手作り配置(`HAND`)、mulberry32 によるシード付きの自動生成(`genLayout`)、ボス要塞3種(`BOSS_T`)とコアHP・制限時間の表 |
-| システム | ヒート / OVERDRIVE、崩落(支点からの幅優先探索)、誘爆、ブレイカー、分身弾、グレイズ、跳弾、ロックオンレーザー、ボスのフェーズ移行 |
-| 演出・音 | Canvas の shadowBlur によるグロー、CSS filter による OVERDRIVE の画面反転、WebAudio の合成音(効果音約30種、ヒート段階で変化する16ステップの BGM) |
+| ステージ | 学習ラウンドの手作り配置(`HAND`)、mulberry32 によるシード付きの自動生成(`genLayout`)、ボス要塞3種(`BOSS_T`)とコアHP・制限時間の表 |
+| システム | コンボ / FEVER TIME、崩落(支点からの幅優先探索)、誘爆、ブレイカー、分身弾、グレイズ、跳弾、ロックオンレーザー、ボスのフェーズ移行 |
+| 演出・音 | Canvas の shadowBlur によるグロー、CSS filter による FEVER TIME の画面反転、WebAudio の合成音(効果音約30種、コンボ段階で変化する16ステップの BGM) |
 | UI | DOM のタイトル・遊び方・日英切替、左の操作レール(横/縦切替)、PARRY / ポーズボタン |
-| 保存 | localStorage(`ro_best` / `ro_bestwave` / `ro_language` / `ro_control_axis`) |
+| 保存 | localStorage(`ro_best` / `ro_bestround` / `ro_language` / `ro_control_axis`) |
 | 状態 | すべてグローバルの `G` に集まっている。マルチボールは `G.ball` を差し替えて処理している |
 
 ## 3. ネイティブ化で直す・変える仕様
@@ -37,9 +37,9 @@ Oct 4, 2026 · @watsuwo
 
 | # | 内容 | 対応 |
 | --- | --- | --- |
-| A1 | 分身弾に印が付いておらず、メインのボールと同じ扱いになっている。5秒の寿命、パドルでの自動反射、「落としてもミスにならない」が効かない。メインのボールを落としても、分身弾が残っていればゲームが続く。OVERDRIVE が終わっても分身弾が爆発しない(OVERDRIVE FINISH の表示だけが出る) | design.md 7.4 のとおりにする。OVERDRIVE の終了時(被弾による終了を含む)に分身弾を爆発させる。メインのボールを落としても分身弾が1つでも残っていれば、その1つをメインのボールに昇格させてゲームを続ける(ゲームオーバーはボールが1つも残っていないときだけ) |
+| A1 | 分身弾に印が付いておらず、メインのボールと同じ扱いになっている。5秒の寿命、パドルでの自動反射、「落としてもミスにならない」が効かない。メインのボールを落としても、分身弾が残っていればゲームが続く。FEVER TIME が終わっても分身弾が爆発しない(FEVER FINISH の表示だけが出る) | design.md 7.4 のとおりにする。FEVER TIME の終了時(被弾による終了を含む)に分身弾を爆発させる。メインのボールを落としても分身弾が1つでも残っていれば、その1つをメインのボールに昇格させてゲームを続ける(ゲームオーバーはボールが1つも残っていないときだけ) |
 | A2 | `G.ball` を差し替えてマルチボールを処理している | ボールごとに状態(跳弾数、貫通回数、ブレイカー)を持つエンティティにする |
-| A3 | ゲーム結果に影響する乱数の一部が `Math.random`(瓦礫の落下位置、分身弾の角度、ボス砲台の初期タイマー) | ウェーブのシードから作る乱数に統一する。リプレイ・ランキングの検証・テストの再現性のため。演出だけの乱数(パーティクルなど)は対象外 |
+| A3 | ゲーム結果に影響する乱数の一部が `Math.random`(瓦礫の落下位置、分身弾の角度、ボス砲台の初期タイマー) | ラウンドのシードから作る乱数に統一する。リプレイ・ランキングの検証・テストの再現性のため。演出だけの乱数(パーティクルなど)は対象外 |
 | A4 | 設定メニュー・振動が未実装(design.md 第9章) | 3.2 の B3・B6 と設定画面で実装する |
 | A5 | Orbitron フォントを読み込んでいない | アプリにバンドルする(`ios/fonts/Orbitron.ttf`、OFL) |
 
@@ -51,16 +51,16 @@ Oct 4, 2026 · @watsuwo
 | B2 | タッチ操作 | 左の操作レール(横/縦切替)+ 右の PARRY ボタン | 標準は「**左半分ドラッグ(相対移動)・右半分タップ**」の領域方式(design.md 第9章)。現行のレール方式は設定で選べる。マルチタッチを確実に扱うため、生のポインターイベントで処理する |
 | B3 | 判定タイミング補正 | 16ms 固定 | 設定値にする(初期値はタッチ 36ms / コントローラー 16ms、範囲は0〜100ms)。リズムに合わせてタップし、平均のずれを測る **キャリブレーション画面** を設ける。タッチイベントの時刻をシミュレーション時刻に換算する仕組み(`SYNC`)は移植する |
 | B4 | 高リフレッシュレート | 画面の更新頻度に依存 | シミュレーションは 60Hz 固定のまま、描画では前後のステップの間を補間して 90 / 120Hz で表示する |
-| B5 | 音 | WebAudio でその場で合成 | ブラウザ版の合成(`tone` / `noise` と biquad フィルタ)を Dart に移植し、**起動時に別 isolate で効果音と BGM を WAV(メモリ上)に書き出して** flutter_soloud で鳴らす。BGM はヒート段階ごとの4小節ループ(BPM 132〜168)で、段階が変わると次の小節の頭で切り替える。ミスしたら即座に止める(コアピラー4)。タイトル画面とメニュー画面ではタイトル用の BGM を流し、ゲーム画面を開いている間とアプリが背面にある間は止める。**実装メモ**: 計画では WAV を書き出して同梱する予定だったが、起動時に作れば素材の書き出し作業と容量(約4.4MB)が不要になるため変えた。iOS で他アプリの音楽と共存する設定は未対応(第10章) |
+| B5 | 音 | WebAudio でその場で合成 | ブラウザ版の合成(`tone` / `noise` と biquad フィルタ)を Dart に移植し、**起動時に別 isolate で効果音と BGM を WAV(メモリ上)に書き出して** flutter_soloud で鳴らす。BGM はコンボ段階ごとの4小節ループ(BPM 132〜168)で、段階が変わると次の小節の頭で切り替える。ミスしたら即座に止める(コアピラー4)。タイトル画面とメニュー画面ではタイトル用の BGM を流し、ゲーム画面を開いている間とアプリが背面にある間は止める。**実装メモ**: 計画では WAV を書き出して同梱する予定だったが、起動時に作れば素材の書き出し作業と容量(約4.4MB)が不要になるため変えた。iOS で他アプリの音楽と共存する設定は未対応(第10章) |
 | B6 | 振動 | なし | design.md 第9章の振動パターンを、端末の触覚フィードバックで実装する。設定で ON / OFF |
 | B7 | 中断・再開 | ウィンドウのフォーカスが外れたらポーズ | アプリがバックグラウンドに回ったら自動でポーズする。再開は「タップで再開 → 1秒のカウントダウン」にする |
-| B8 | 描画の負荷 | shadowBlur を多用 | ぼかしのフィルタは重いため、グローは事前に作った画像か加算合成で描く。OVERDRIVE は画面反転をやめ、背景の色の入れ替えと電飾で表す(盤面の描画の中で行う)。**画質設定(高 / 低)** を設ける |
+| B8 | 描画の負荷 | shadowBlur を多用 | ぼかしのフィルタは重いため、グローは事前に作った画像か加算合成で描く。FEVER TIME は画面反転をやめ、背景の色の入れ替えと電飾で表す(盤面の描画の中で行う)。**画質設定(高 / 低)** を設ける |
 | B9 | アクセシビリティ | なし | 「フラッシュ・点滅・画面の揺れを弱める」設定を設ける(光過敏性への配慮) |
 | B10 | ポーズ画面 | Canvas の画像を img に写す回避策 | 通常の重ね表示にする |
 | B11 | 保存 | localStorage | 設定はキーと値、記録はスキーマのバージョン付き JSON で保存する。記録はモード別・ステージ別に持つ。ブラウザ版の記録は移行しない |
-| B12 | 多言語 | メニューだけ日英、ゲーム内は英語のみ | 文言をすべて翻訳ファイル(日本語 / 英語)に移す。ウェーブ開始時の説明(`NEW: KEYSTONE …`)も翻訳する。判定やボーナス名(PERFECT、COLLAPSE など)は英語のまま |
+| B12 | 多言語 | メニューだけ日英、ゲーム内は英語のみ | 文言をすべて翻訳ファイル(日本語 / 英語)に移す。ラウンド開始時の説明(`NEW: KEYSTONE …`)も翻訳する。判定やボーナス名(PERFECT、COLLAPSE など)は英語のまま |
 | B13 | ランキング | なし | Game Center / Google Play Games に送る(4章)。オフライン時は送信を保留し、次の起動時に送る |
-| B14 | 遊び方の導線 | 学習ウェーブで1行の説明を出すだけ | ステージモードの第1章をチュートリアルにする。初回起動時はチュートリアルに案内する |
+| B14 | 遊び方の導線 | 学習ラウンドで1行の説明を出すだけ | ステージモードの第1章をチュートリアルにする。初回起動時はチュートリアルに案内する |
 | B15 | 入力機器 | キーボード・マウス・ゲームパッド | タッチに加えてハードウェアキーボード(←→ / A D で移動、Space / Enter で発射・パリィ、Esc / P でポーズ)に対応。コアへの入力は `PaddleInput`(目標位置 / 方向)と `pressAction`(時刻)に抽象化してあり、ゲームパッドは後から足せる |
 
 ### 3.3 設定項目
@@ -80,11 +80,11 @@ Oct 4, 2026 · @watsuwo
 
 ### 4.1 ステージモード
 
-- ステージは、1つ以上のウェーブ、クリア条件、評価条件の組み合わせとする。
+- ステージは、1つ以上のラウンド、クリア条件、評価条件の組み合わせとする。
 - クリア条件: 全消し / ボス撃破 / 目標スコア到達 / 制限時間まで生存。
 - 星3つで評価する。1つめはクリアで、残り2つの条件(例: 被弾なし、JUST を N 回、M 秒以内)はステージごとにデータで決める。
 - チャプター単位で解禁する(前のチャプターの最終ステージをクリアすると次が開く)。
-- 第1章(10ステージ前後)は既存の学習ウェーブ(W1 / 2 / 4 / 6 / 8 / 14 / 20 / 26)とボス1をもとにしたチュートリアルにする。
+- 第1章(10ステージ前後)は既存の学習ラウンド(R1 / 2 / 4 / 6 / 8 / 14 / 20 / 26)とボス1をもとにしたチュートリアルにする。
 - 記録とランキングはエンドレスとは別に持つ。
 
 ### 4.2 ランキング
@@ -92,7 +92,7 @@ Oct 4, 2026 · @watsuwo
 | ボード | 値 |
 | --- | --- |
 | エンドレス: スコア | 1回のプレイの最終スコア |
-| エンドレス: 到達ウェーブ | 最終ウェーブ番号 |
+| エンドレス: 到達ラウンド | 最終ラウンド番号 |
 | ステージ: 合計スコア | 全ステージの最高スコアの合計(ステージごとにボードを作るとボード数が増え続けるため、合計にした) |
 
 不正対策として、乱数の固定(A3)により「シード + 入力ログ」からスコアを再現できる構造にしておく。サーバーでの検証は将来の課題とする。
@@ -104,7 +104,7 @@ Oct 4, 2026 · @watsuwo
 1. **コアのシミュレーションは Flutter に依存しない純粋な Dart にする。** 60Hz 固定・決定的に動き、単体テストで検証できるようにする。
 2. **コアは描画・音・振動を直接呼ばない。** 出来事を `GameEvent` として発行し、描画・音・振動・統計がそれを購読する(ブラウザ版の `SFX.x()` や `burst()` の直接呼び出しを置き換える)。
 3. **種類の違いはレジストリで、数値と配置はデータ(JSON)で扱う。** ブロック・ボスの攻撃・ステージ・モードを、既存コードの if 文を増やさずに追加できるようにする。
-4. **数値は Tuning に集める。** 既定値は `core/config/tuning.dart`、ウェーブ・ステージごとの上書きはステージデータの `tuning` に書く。降下速度・砲台の発射間隔・弾速などの計算式も Tuning にまとめた。
+4. **数値は Tuning に集める。** 既定値は `core/config/tuning.dart`、ラウンド・ステージごとの上書きはステージデータの `tuning` に書く。降下速度・砲台の発射間隔・弾速などの計算式も Tuning にまとめた。
 5. **描画は状態を読むだけにする。** ゲームの状態はコアが持ち、描画(`FieldPainter`)は毎フレームその状態を読んで描く。
 
 **実装メモ(Flame を使わなかった理由)**: コアがすべての状態を持ち、毎フレームその状態をそのまま描く作りのため、Flame のコンポーネントの木を作るとコアの状態を二重に持つことになる。CustomPainter で即時描画(ブラウザ版の Canvas と同じ書き方)にした。描画が重くなった場合や、スプライト・パーティクルの仕組みが必要になった場合に Flame を検討する。
@@ -121,7 +121,7 @@ Session(1回のプレイ: GameMode + World + 入力 + 時刻換算)
 Core World(純粋 Dart: エンティティ + System 列 + レジストリ)
   │
   ├─▶ Render(CustomPainter: 状態を読んで描く、イベントでエフェクトを出す)
-  ├─▶ Audio(イベント → 効果音、ヒート段階 → BGM)
+  ├─▶ Audio(イベント → 効果音、コンボ段階 → BGM)
   ├─▶ Haptics(イベント → 振動パターン)
   └─▶ Services(記録の保存、ランキング、設定)
 ```
@@ -140,9 +140,9 @@ app/
       blocks/     block_behavior.dart(抽象 + BlockRegistry), standard_blocks.dart(登録一覧),
                   normal / turret / reflector(反射・磁力) / splitter / mirror / wall / keystone / explosive / core_block.dart
       world/      world.dart(状態・公開操作・step)
-        systems/  wave_system / ball_system / parry_system / block_system / collapse_system /
+        systems/  round_system / ball_system / parry_system / block_system / collapse_system /
                   bullet_system / boss_system.dart(World の part。システムごとに分割)
-      stages/     wave_spec.dart(WaveSpec + クリア条件), procedural_generator.dart,
+      stages/     round_spec.dart(RoundSpec + クリア条件), procedural_generator.dart,
                   boss_def.dart(BossDef + 攻撃パターン + BossPatternRegistry),
                   content.dart(JSON の読み込み: EndlessContent / Campaign / StageDef / 星の条件)
       modes/      game_mode.dart(GameMode + EndlessMode + StageMode)
@@ -188,7 +188,7 @@ abstract class BlockBehavior {
   void onBlast(World w, Block b, {required bool breaker});
   bool onReturnedBullet(World w, Block b, Bullet u);            // 弾が消えるなら true
   void onDestroyed(World w, Block b, double cx, double cy) {}   // 誘爆・分裂など
-  void onWaveStart(World w, Block b) {}                         // 砲台の初期タイマー
+  void onRoundStart(World w, Block b) {}                         // 砲台の初期タイマー
   void onFell(World w, Block b, double cx, double cy) {}        // 崩落した爆薬の爆発
   void update(World w, Block b, double dt) {}                   // 砲台の発射
   void influenceBall(World w, Block b, Ball ball, double dt) {} // 磁力
@@ -197,19 +197,19 @@ abstract class BlockBehavior {
 // 1回のプレイの進め方 (core/modes/game_mode.dart)
 abstract class GameMode {
   String get recordKey;                 // 記録・ランキングの保存先
-  WaveSpec? waveAt(int number);         // null ならモード終了 (ステージクリア)
+  RoundSpec? roundAt(int number);         // null ならモード終了 (ステージクリア)
 }
 
-// ウェーブ (core/stages/wave_spec.dart): 中身 (配置 / ボス)、難易度、周回倍率、クリア条件、Tuning の上書き
+// ラウンド (core/stages/round_spec.dart): 中身 (配置 / ボス)、難易度、周回倍率、クリア条件、Tuning の上書き
 // ボスの攻撃 (core/stages/boss_def.dart): BossPattern を実装して BossPatternRegistry に登録する
 
 // コアが発行する出来事 (core/events/game_event.dart)。描画・音・振動・統計が購読する
 sealed class GameEvent {}
-// WaveStarted, ParrySucceeded, BlockDestroyed, CollapseStarted, BlockFell, BlastExploded,
-// PlayerHurt, OverdriveStarted, BossPhaseChanged, WaveCleared, GameOver, StageCompleted … (約40種)
+// RoundStarted, ParrySucceeded, BlockDestroyed, CollapseStarted, BlockFell, BlastExploded,
+// PlayerHurt, FeverTimeStarted, BossPhaseChanged, RoundCleared, GameOver, StageCompleted … (約40種)
 ```
 
-System は `World` が決まった順に呼ぶ(入力 → パドル → パリィの窓 → 降下 / ボス → ヒート → ボール → 砲台 → 弾 → レーザー → 爆発 → 崩落 → クリア判定)。この順序はブラウザ版の `updatePlay` に合わせる。
+System は `World` が決まった順に呼ぶ(入力 → パドル → パリィの窓 → 降下 / ボス → コンボ → ボール → 砲台 → 弾 → レーザー → 爆発 → 崩落 → クリア判定)。この順序はブラウザ版の `updatePlay` に合わせる。
 
 ### 5.5 データ形式
 
@@ -217,7 +217,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 
 ```json
 {
-  "wavesPerLoop": 60, "bossEvery": 10, "loopSpeedup": 0.15, "loopIntro": "intro.loop",
+  "roundsPerLoop": 60, "bossEvery": 10, "loopSpeedup": 0.15, "loopIntro": "intro.loop",
   "generator": { "unlock": { "N": 1, "K": 2, "T": 4, "B": 6, "R": 8, "M": 14, "S": 20, "X": 26 } },
   "handcrafted": {
     "2": { "rows": ["...K......K...", "...N......N...", ".NNNNN..NNNNN.", ".NNNNN..NNNNN.", "..NNN....NNN.."],
@@ -239,7 +239,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
     "id": "ch01", "title": { "ja": "第1章 基礎訓練", "en": "CHAPTER 1  BASICS" },
     "stages": [{
       "id": "1-7", "title": { "ja": "防衛線", "en": "HOLD THE LINE" },
-      "waves": [{ "endless": 11, "intro": "intro.survive",
+      "rounds": [{ "endless": 11, "intro": "intro.survive",
                   "clear": { "type": "survive", "value": 40 }, "tuning": { "descentBase": 7 } }],
       "stars": [{ "type": "clear" }, { "type": "graze", "value": 5 }, { "type": "noHit" }]
     }]
@@ -247,10 +247,10 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 }
 ```
 
-- ウェーブは `rows`(配置を直接書く。`legend` で文字をブロック ID に読み替え可)/ `endless`(エンドレスの W 番号の中身)/ `boss`(ボス番号)のどれかで書く。共通で `difficulty`・`clear`・`tuning`・`intro` を書ける。
+- ラウンドは `rows`(配置を直接書く。`legend` で文字をブロック ID に読み替え可)/ `endless`(エンドレスの W 番号の中身)/ `boss`(ボス番号)のどれかで書く。共通で `difficulty`・`clear`・`tuning`・`intro` を書ける。
 - クリア条件 `clear.type`: `annihilate`(既定。ボス戦はコア全破壊)/ `score` / `survive`。
 - 星 `stars[].type`: `clear` / `noHit` / `time`(秒以内)/ `score` / `just` / `perfect` / `collapse` / `chainBlast` / `returnKills` / `graze` / `ricochet`。
-- 自動生成(`genLayout`)は Dart に移植した。解禁ウェーブは JSON、形の候補・出現率・上限数はコード(`procedural_generator.dart`)にある。mulberry32 は 32bit 整数演算を再現しており、ブラウザ版と同じ配置になることをテストで保証している。
+- 自動生成(`genLayout`)は Dart に移植した。解禁ラウンドは JSON、形の候補・出現率・上限数はコード(`procedural_generator.dart`)にある。mulberry32 は 32bit 整数演算を再現しており、ブラウザ版と同じ配置になることをテストで保証している。
 
 ### 5.6 拡張の手順
 
@@ -269,7 +269,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 | フェーズ | 内容 | 完了の目安 |
 | --- | --- | --- |
 | 0 | 本書の作成、design.md を実装に合わせて更新 | 本書と design.md 第8章(当時の 8.3 / 8.4 は、のちに本文と第9章へ取り込んだ) |
-| 1 | Flutter SDK の導入と `app/` の作成、コアの移植(A1〜A3 の修正を含む)、配置の一致テスト | `flutter test` で W1〜60 の配置がブラウザ版と一致する |
+| 1 | Flutter SDK の導入と `app/` の作成、コアの移植(A1〜A3 の修正を含む)、配置の一致テスト | `flutter test` で R1〜60 の配置がブラウザ版と一致する |
 | 2 | 描画(CustomPainter)、タッチ操作、HUD・演出、エンドレスモード | シミュレーター / 実機でエンドレスを通しで遊べる |
 | 3 | 音、振動、設定、キャリブレーション、ポーズ・中断、画質・アクセシビリティ設定、多言語化 | ブラウザ版と同等以上の体験になる |
 | 4 | 配置・ボスを JSON に出し、ステージモード(第1章、星評価、解禁)を作る | ステージ選択から第1章を遊べる |
@@ -278,14 +278,14 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 ## 7. 検証
 
 - 単体テスト(`flutter test`)
-  - 配置の一致: ブラウザ版から書き出した配置(`test/core/golden/layouts.json`)と Dart の生成結果が W1〜60 で完全に一致する。
+  - 配置の一致: ブラウザ版から書き出した配置(`test/core/golden/layouts.json`)と Dart の生成結果が R1〜60 で完全に一致する。
   - パリィ判定の境界: 接触時刻との差が ±12 / 30 / 100ms ちょうどのときの判定。
   - 崩落: 要石の破壊、つながりの切断で、期待どおりのブロックが崩れる。
   - スコア: 崩落・連鎖爆発・跳弾のボーナス計算。
   - 決定性: 同じシードと同じ入力ログから、同じスコアになる。
 - `flutter analyze` で警告がない。
-- iOS シミュレーターと Android エミュレーターで W1〜W10(ボス1)を通しで遊び、ブラウザ版と並べて挙動・数値・演出を比べる。
-- 実機で、OVERDRIVE 中や大崩落の最中も 60fps 以上を保つことを確認する。
+- iOS シミュレーターと Android エミュレーターで R1〜R10(ボス1)を通しで遊び、ブラウザ版と並べて挙動・数値・演出を比べる。
+- 実機で、FEVER TIME 中や大崩落の最中も 60fps 以上を保つことを確認する。
 - キャリブレーションで測った補正値で、判定が体感と合うことを確認する。
 - ランキングは TestFlight と Play の内部テストトラックで、送信と表示を確認する。
 
@@ -296,7 +296,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 | 確認 | 結果 |
 | --- | --- |
 | `flutter analyze` | 指摘なし |
-| `flutter test`(29件) | すべて成功。コア(配置・乱数の一致、パリィ判定、崩落、分身弾、ボスのフェーズ、決定性、全ウェーブの読み込み、ステージと星)、音の生成、アプリ全体(タイトル → エンドレス → 発射 → ポーズ → 再開、タッチ操作、ボス戦の失敗 → リザルト、ステージ選択、設定)、盤面の描画(OVERDRIVE 中のボス戦、崩落、ウェーブクリア) |
+| `flutter test`(29件) | すべて成功。コア(配置・乱数の一致、パリィ判定、崩落、分身弾、ボスのフェーズ、決定性、全ラウンドの読み込み、ステージと星)、音の生成、アプリ全体(タイトル → エンドレス → 発射 → ポーズ → 再開、タッチ操作、ボス戦の失敗 → リザルト、ステージ選択、設定)、盤面の描画(FEVER TIME 中のボス戦、崩落、ラウンドクリア) |
 | 画面写真 | `test/app/screenshots/` と `test/render/screenshots/` に、テストで描いた画面の写真がある(作り直すには `flutter test test/app test/render --dart-define=screenshots=true --update-goldens`) |
 | Web ビルド | `flutter build web` が通る(開発中に Chrome で確認するためだけに使う。ストアには出さない。音とランキングは無効) |
 
@@ -339,7 +339,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
    | ID | 内容 | 名前 |
    | --- | --- | --- |
    | `com.watsuwo.parrybreak.endless_score` | エンドレスの最終スコア | エンドレス: スコア / Endless: Score |
-   | `com.watsuwo.parrybreak.endless_wave` | エンドレスの到達ウェーブ | エンドレス: 到達ウェーブ / Endless: Wave |
+   | `com.watsuwo.parrybreak.endless_wave` | エンドレスの到達ラウンド | エンドレス: 到達ラウンド / Endless: Round |
    | `com.watsuwo.parrybreak.stages_total` | 全ステージの最高スコアの合計 | ステージ: 合計スコア / Stages: Total Score |
 
 4. **ビルドとアップロード**: `cd app && flutter build ipa --release`。できた `build/ios/archive/Runner.xcarchive` を Xcode の Organizer で開き、Distribute App → App Store Connect でアップロードする。2回目以降は `pubspec.yaml` の `version` のビルド番号(`+` の後ろ)を上げる。
@@ -410,7 +410,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 
 | 項目 | 内容 |
 | --- | --- |
-| 実機での確認 | iOS / Android の実機で、操作感・判定(キャリブレーション後)・音の遅延・振動・描画速度(OVERDRIVE 中や大崩落)を確認する。画質「低」との差も見る |
+| 実機での確認 | iOS / Android の実機で、操作感・判定(キャリブレーション後)・音の遅延・振動・描画速度(FEVER TIME 中や大崩落)を確認する。画質「低」との差も見る |
 | ストアの設定 | 第9章。iOS は 9.2 の手順(署名・App Store Connect・リーダーボード・スクリーンショット)が残っている。Android は 9.4 |
 | iPad のレイアウト | 4:3 では上下に余白が出る。HUD を盤面の外に出す配置は未対応 |
 | 音の共存 | iOS で他アプリの音楽を流しながら遊ぶ設定は未対応(オーディオセッションの設定が必要) |

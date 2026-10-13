@@ -34,8 +34,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bestScore => '最高スコア';
 
   @override
-  String waveN(String n) {
-    return 'ウェーブ $n';
+  String roundN(String n) {
+    return 'ラウンド $n';
   }
 
   @override
@@ -71,6 +71,20 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get helpChainBody =>
       '白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る';
+
+  @override
+  String get helpComboTitle => 'COMBO・FEVER TIME';
+
+  @override
+  String get helpComboBody =>
+      'パリィや敵弾の撃ち返しを決めると、上の COMBO メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると FEVER TIME。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、COMBO は下がる';
+
+  @override
+  String get helpGrazeTitle => 'GRAZE・RICOCHET';
+
+  @override
+  String get helpGrazeBody =>
+      'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。COMBO が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点';
 
   @override
   String get helpOverTitle => 'ゲームオーバー';
@@ -301,7 +315,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rankingEndlessScore => 'エンドレス: スコア';
 
   @override
-  String get rankingEndlessWave => 'エンドレス: 到達ウェーブ';
+  String get rankingEndlessRound => 'エンドレス: 到達ラウンド';
 
   @override
   String get rankingStages => 'ステージ: 合計スコア';
@@ -354,7 +368,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introPierce => 'PERFECT でパリィすると貫通弾。まとめて撃ち抜け';
 
   @override
-  String get introOverdrive => 'PERFECT を重ねてヒートを貯めると OVERDRIVE。全弾貫通で一気に崩せ';
+  String get introFeverTime => 'PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ';
 
   @override
   String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
@@ -366,7 +380,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bannerBoss => '赤い弾をパリィで撃ち返し、貫通弾でコアを狙え';
 
   @override
-  String get bannerOverdrive => '全弾貫通 ×16 — PERFECT で分身弾';
+  String get bannerFeverTime => '全弾貫通 ×16 — PERFECT で分身弾';
 
   @override
   String get bannerPhase2 => '鏡のシールド展開 — ロックオンレーザーに注意';

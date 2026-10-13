@@ -34,8 +34,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bestScore => 'BEST SCORE';
 
   @override
-  String waveN(String n) {
-    return 'WAVE $n';
+  String roundN(String n) {
+    return 'ROUND $n';
   }
 
   @override
@@ -64,7 +64,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpTimingBody =>
-      'The closer to the moment of impact, the stronger the hit\nPERFECT: the ball pierces through blocks\nJUST (even closer): its next hit sends out a shockwave that breaks nearby blocks';
+      'The closer to the moment of impact, the stronger the hit\nPERFECT: the ball pierces through blocks\nJUST (even closer): its next hit sends out a burst that breaks nearby blocks';
 
   @override
   String get helpChainTitle => 'CHAIN';
@@ -72,6 +72,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get helpChainBody =>
       'White blocks (keystones) hold up the blocks attached to them. Break one and the whole cluster falls\nOrange striped blocks (explosives) blow up their surroundings, setting off nearby explosives in turn';
+
+  @override
+  String get helpComboTitle => 'COMBO / FEVER TIME';
+
+  @override
+  String get helpComboBody =>
+      'Land parries and return enemy shots to fill the COMBO meter at the top. Each stage raises your score multiplier (×1 → ×2 → ×4 → ×8) and the ball\'s speed\nFill the meter for FEVER TIME: for a while the ball pierces blocks and the multiplier is ×16\nGetting hit by an enemy shot lowers COMBO';
+
+  @override
+  String get helpGrazeTitle => 'GRAZE / RICOCHET';
+
+  @override
+  String get helpGrazeBody =>
+      'GRAZE: dodge an enemy shot by a hair, without letting it hit the paddle. It raises COMBO\nRICOCHET: break 8 or more blocks before the ball returns to the paddle. The more you break, the higher the score';
 
   @override
   String get helpOverTitle => 'GAME OVER';
@@ -305,7 +319,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rankingEndlessScore => 'Endless: Score';
 
   @override
-  String get rankingEndlessWave => 'Endless: Wave';
+  String get rankingEndlessRound => 'Endless: Round';
 
   @override
   String get rankingStages => 'Stages: Total score';
@@ -360,8 +374,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introPierce => 'A PERFECT PARRY MAKES A PIERCING SHOT';
 
   @override
-  String get introOverdrive =>
-      'CHAIN PERFECTS TO FILL HEAT — OVERDRIVE PIERCES EVERYTHING';
+  String get introFeverTime =>
+      'CHAIN PERFECTS TO FILL COMBO — FEVER TIME PIERCES EVERYTHING';
 
   @override
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
@@ -374,7 +388,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'HIT CORES WITH PARRIED RED BULLETS AND PIERCING SHOTS';
 
   @override
-  String get bannerOverdrive => 'FULL PIERCE ×16 — PERFECT SPAWNS PHANTOMS';
+  String get bannerFeverTime => 'FULL PIERCE ×16 — PERFECT SPAWNS PHANTOMS';
 
   @override
   String get bannerPhase2 => 'MIRROR SHIELDS — LOCK-ON LASERS';

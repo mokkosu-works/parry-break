@@ -3,7 +3,7 @@ import 'package:parry_break/core/core.dart';
 
 import 'helpers.dart';
 
-// W2 の手作り配置: 2 つの吊り下げ型の塊 (要石 + 首 + 13 個)
+// R2 の手作り配置: 2 つの吊り下げ型の塊 (要石 + 首 + 13 個)
 const w2 = [
   '...K......K...',
   '...N......N...',
@@ -18,7 +18,7 @@ Block at(World w, int row, int col) => w.blocks.firstWhere((b) =>
 void main() {
   group('崩落', () {
     test('要石を壊すと、つながっていた塊がすべて崩れ落ちる', () {
-      final w = testWorld(const SingleWaveMode(w2));
+      final w = testWorld(const SingleRoundMode(w2));
       expect(w.blocks.where((b) => b.supported).length, w.blocks.length);
       w.destroyBlock(at(w, 0, 3), DestroyCause.ball);
       final events = run(w, 2);
@@ -29,7 +29,7 @@ void main() {
     });
 
     test('首を断つと、その下の塊だけが崩れる', () {
-      final w = testWorld(const SingleWaveMode(w2));
+      final w = testWorld(const SingleRoundMode(w2));
       w.destroyBlock(at(w, 1, 3), DestroyCause.ball);
       final events = run(w, 2);
       expect(events.whereType<CollapseStarted>().single.count, 13);
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('崩落ボーナスは n² × 10 × 倍率', () {
-      final w = testWorld(const SingleWaveMode(w2));
+      final w = testWorld(const SingleRoundMode(w2));
       w.destroyBlock(at(w, 0, 3), DestroyCause.ball);
       final before = w.score;
       final events = run(w, 2);
@@ -48,7 +48,7 @@ void main() {
 
   group('分身弾 (design.md 7.4)', () {
     World inPlay() {
-      final w = testWorld(const SingleWaveMode(['NNNNNNNNNNNNNN']));
+      final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
       run(w, 1.1);
       w.ball
         ..attached = false
@@ -101,16 +101,16 @@ void main() {
       expect(w.phantoms, isEmpty);
     });
 
-    test('OVERDRIVE が終わると分身弾は爆発する', () {
+    test('FEVER TIME が終わると分身弾は爆発する', () {
       final w = inPlay();
-      w.addHeat(1000);
+      w.addCombo(1000);
       expect(w.od, isTrue);
       w.phantoms.add(phantom(w, y: 300, vy: -400));
       w.odTime = 0.01;
       final events = run(w, 0.5);
-      expect(events.whereType<OverdriveEnded>().single.byHit, isFalse);
+      expect(events.whereType<FeverTimeEnded>().single.byHit, isFalse);
       expect(events.whereType<BlastExploded>().where((e) => e.kind == BlastKind.phantom), hasLength(1));
-      expect(w.heat, inInclusiveRange(240, 250)); // 段階3 (250) に戻り、その後は減衰
+      expect(w.combo, inInclusiveRange(240, 250)); // 段階3 (250) に戻り、その後は減衰
     });
   });
 
@@ -118,7 +118,7 @@ void main() {
     (int, int, double) play() {
       final w = World(mode: endlessMode)..start();
       run(w, 90, before: autopilot(w));
-      return (w.score, w.wave.number, w.heat);
+      return (w.score, w.round.number, w.combo);
     }
 
     test('同じ入力なら同じ結果になる', () {
@@ -126,16 +126,16 @@ void main() {
     });
   });
 
-  test('全ウェーブ (ボスとループを含む) を読み込んで進めても例外が出ない', () {
+  test('全ラウンド (ボスとループを含む) を読み込んで進めても例外が出ない', () {
     for (var n = 1; n <= 61; n++) {
-      final w = World(mode: endlessMode)..start(fromWave: n);
-      expect(w.blocks, isNotEmpty, reason: 'wave $n');
+      final w = World(mode: endlessMode)..start(fromRound: n);
+      expect(w.blocks, isNotEmpty, reason: 'round $n');
       run(w, 8, before: autopilot(w));
     }
   });
 
   test('ボス戦: コアを壊すとフェーズが進み、全部壊すとクリア', () {
-    final w = World(mode: endlessMode)..start(fromWave: 10);
+    final w = World(mode: endlessMode)..start(fromRound: 10);
     run(w, 1.1);
     final core = w.blocks.firstWhere((b) => b.type == bossCoreId);
     final events = <GameEvent>[];
@@ -144,7 +144,7 @@ void main() {
       events.addAll(run(w, 0.05));
     }
     expect(events.whereType<BossPhaseChanged>().map((e) => e.phase), [2, 3]);
-    expect(events.whereType<WaveCleared>(), hasLength(1));
+    expect(events.whereType<RoundCleared>(), hasLength(1));
     expect(w.bonuses.first.label, 'BOSS DESTROYED');
   });
 }

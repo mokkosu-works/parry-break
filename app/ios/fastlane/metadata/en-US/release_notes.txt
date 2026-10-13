@@ -1,12 +1,5 @@
-- A brand-new look: the whole game, plus the app icon and launch screen, is now drawn in 16-color retro pixel art
-- New CONTINUE button on the title screen jumps straight into your next stage
-- Stage select is now a map, with stages linked by a path. Turning chapters plays a sound
-- How to Play has been redesigned: flip through one topic per page, each with an animated diagram
-- Music now plays on the title and menu screens
-- During OVERDRIVE, the background changes color and lights run around the edge of the screen
-- Settings are now grouped into Controls, Sound, Display and Other tabs
-- With the "Screen halves" controls, the side control hints are gone and the play area is bigger
-- The results screen is easier to read, and the pause button is smaller and sits at the right end of the score bar
-- The red dotted line that ends the run when blocks reach it is now called the DEAD LINE
-- Fixed an issue where the music stopped after moving on to the next stage
-- Minor bug fixes and performance improvements
+- Three new chapters in Stage mode, Chapter 4 FIRESTORM, Chapter 5 BULLET HELL and Chapter 6 STEEL RAIN, with three new bosses. Every chapter now has 10 stages, for 60 in all
+- Choose your difficulty in Stage mode: EASY, NORMAL or HARD. HARD is bullet hell, with more bullets and broken blocks that shoot back. Records are kept for each difficulty
+- Five new turrets: spread, gatling, ring, spiral and sniper
+- How to Play has new pages for COMBO / FEVER TIME and GRAZE / RICOCHET
+- Each section of play is now called a ROUND

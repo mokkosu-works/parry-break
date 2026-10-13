@@ -7,7 +7,7 @@ import 'helpers.dart';
 
 /// 真下へ落ちてくるボールに対して、接触の [offset] 秒前 (負なら後) に押したときの判定。
 ParryGrade? gradeFor(double offset) {
-  final w = testWorld(const SingleWaveMode(['NNNNNNNNNNNNNN']));
+  final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
   run(w, 1.1); // カウントダウンを終える
   final b = w.ball
     ..attached = false
@@ -49,7 +49,7 @@ void main() {
   });
 
   test('PERFECT で貫通弾になり、JUST でブレイカーが付く', () {
-    final w = testWorld(const SingleWaveMode(['NNNNNNNNNNNNNN']));
+    final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
     run(w, 1.1);
     final b = w.ball
       ..attached = false
@@ -68,11 +68,11 @@ void main() {
     });
     expect(w.ball.pierce, 3);
     expect(w.ball.breaker, isTrue);
-    expect(w.heat, inInclusiveRange(150, 160)); // JUST で +160 (その後は減衰)
+    expect(w.combo, inInclusiveRange(150, 160)); // JUST で +160 (その後は減衰)
   });
 
   test('被弾: 短く止まり、その後しばらく無敵。パドル付近の弾は消え、続けて被弾しない', () {
-    final w = testWorld(const SingleWaveMode(['NNNNNNNNNNNNNN']));
+    final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
     run(w, 1.1);
     final x = w.paddle.x;
     // パドルの真上に縦に並べた敵弾 (先頭が 0.1 秒後に当たる) と、遠くの敵弾

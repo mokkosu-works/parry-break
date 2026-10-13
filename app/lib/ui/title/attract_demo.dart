@@ -17,7 +17,7 @@ import '../../services/content.dart';
 /// タイトル画面の背景で流すデモプレイ (アーケードのアトラクトモード)。
 ///
 /// 本物のコアを自動操作で動かす。ボールの落下点を予測してパドルを寄せ、当たる直前にパリィするので、
-/// JUST・貫通・OVERDRIVE・崩落が次々に起きる。音は出さない。
+/// JUST・貫通・FEVER TIME・崩落が次々に起きる。音は出さない。
 class AttractDemo extends ConsumerStatefulWidget {
   const AttractDemo({super.key, this.animate = true});
 
@@ -29,8 +29,8 @@ class AttractDemo extends ConsumerStatefulWidget {
 }
 
 class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProviderStateMixin {
-  /// 見栄えのするウェーブ (要石・爆薬・砲台・鏡面が揃うもの) を順に流す。
-  static const _waves = [23, 6, 26, 12, 21, 3, 17];
+  /// 見栄えのするラウンド (要石・爆薬・砲台・鏡面が揃うもの) を順に流す。
+  static const _rounds = [23, 6, 26, 12, 21, 3, 17];
   static const _runSeconds = 32.0;
 
   late final Ticker _ticker;
@@ -73,7 +73,7 @@ class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProv
 
   void _newRun() {
     final content = ref.read(contentProvider);
-    _world = World(mode: EndlessMode(content.endless), inputLag: 0)..start(fromWave: _waves[_run++ % _waves.length]);
+    _world = World(mode: EndlessMode(content.endless), inputLag: 0)..start(fromRound: _rounds[_run++ % _rounds.length]);
     _fx = FxState(_world, reduceEffects: true);
     _session = Session(_world, onStep: _onStep);
     _startedAt = _clock.now;

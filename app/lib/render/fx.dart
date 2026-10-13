@@ -55,7 +55,7 @@ class FxBanner {
   double t = 0;
 }
 
-/// 崩れ落ちるブロック (崩落・ウェーブクリア)。
+/// 崩れ落ちるブロック (崩落・ラウンドクリア)。
 class FxDebris {
   FxDebris(this.x, this.y, this.w, this.h, this.color, {this.delay = 0, this.originX});
   double x, y, vx = 0, vy = 0, rot = 0, vr = 0;
@@ -132,11 +132,11 @@ class FxState {
       CalloutChannel.chainBlast => (Dot.orange, 32.0),
       CalloutChannel.multiParry => (Dot.peach, 32.0),
       CalloutChannel.ricochet => (Dot.peach, 32.0),
-      CalloutChannel.overdriveFinish => (Dot.rose, 32.0),
+      CalloutChannel.feverFinish => (Dot.rose, 32.0),
     };
     // 同じ種類のコールアウトが表示中なら、新しく出さずに書き換える
     final cur = callouts.where((c) => c.channel == e.channel).lastOrNull;
-    final updatable = e.channel != CalloutChannel.ricochet && e.channel != CalloutChannel.overdriveFinish;
+    final updatable = e.channel != CalloutChannel.ricochet && e.channel != CalloutChannel.feverFinish;
     if (cur != null && updatable && (cur.hold || e.release || e.channel == CalloutChannel.multiParry)) {
       cur
         ..text = e.text
@@ -160,7 +160,7 @@ class FxState {
   /// コアのイベントを演出にする。
   void handle(GameEvent e) {
     switch (e) {
-      case WaveStarted():
+      case RoundStarted():
         trails.clear();
         debris.removeWhere((d) => !d.dropped);
       case Banner(:final kind, :final value, :final introKey):
@@ -215,7 +215,7 @@ class FxState {
         _drop(d);
         debris.add(d);
         burst(x + block.w / 2, y + block.h / 2, 5, d.color, 160);
-      case WaveCleared(:final remaining):
+      case RoundCleared(:final remaining):
         for (final b in remaining) {
           debris.add(FxDebris(b.x + world.form.ox, b.y + world.form.oy, b.w, b.h, blockColor(b),
               delay: _r(0.05, 0.5), originX: Field.width / 2));
@@ -235,7 +235,7 @@ class FxState {
         _flash(0.25, Dot.bulletRed);
       case Grazed(:final x):
         burst(x, Field.paddleY + 6, 6, Dot.white, 200);
-      case OverdriveStarted():
+      case FeverTimeStarted():
         _flash(0.5);
         _shake(14);
       case BossPhaseChanged():

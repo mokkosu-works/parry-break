@@ -146,11 +146,11 @@ abstract class AppLocalizations {
   /// **'最高スコア'**
   String get bestScore;
 
-  /// No description provided for @waveN.
+  /// No description provided for @roundN.
   ///
   /// In ja, this message translates to:
-  /// **'ウェーブ {n}'**
-  String waveN(String n);
+  /// **'ラウンド {n}'**
+  String roundN(String n);
 
   /// No description provided for @helpMoveTitle.
   ///
@@ -211,6 +211,30 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'白いブロック(要石)は、つながったブロックの塊を支えている。壊すと、支えを失った塊がまとめて崩れ落ちる\nオレンジのしま模様のブロック(爆薬)は、壊すと周りを吹き飛ばす。近くの爆薬にも次々に燃え移る'**
   String get helpChainBody;
+
+  /// No description provided for @helpComboTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'COMBO・FEVER TIME'**
+  String get helpComboTitle;
+
+  /// No description provided for @helpComboBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'パリィや敵弾の撃ち返しを決めると、上の COMBO メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると FEVER TIME。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、COMBO は下がる'**
+  String get helpComboBody;
+
+  /// No description provided for @helpGrazeTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'GRAZE・RICOCHET'**
+  String get helpGrazeTitle;
+
+  /// No description provided for @helpGrazeBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。COMBO が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点'**
+  String get helpGrazeBody;
 
   /// No description provided for @helpOverTitle.
   ///
@@ -614,11 +638,11 @@ abstract class AppLocalizations {
   /// **'エンドレス: スコア'**
   String get rankingEndlessScore;
 
-  /// No description provided for @rankingEndlessWave.
+  /// No description provided for @rankingEndlessRound.
   ///
   /// In ja, this message translates to:
-  /// **'エンドレス: 到達ウェーブ'**
-  String get rankingEndlessWave;
+  /// **'エンドレス: 到達ラウンド'**
+  String get rankingEndlessRound;
 
   /// No description provided for @rankingStages.
   ///
@@ -716,11 +740,11 @@ abstract class AppLocalizations {
   /// **'PERFECT でパリィすると貫通弾。まとめて撃ち抜け'**
   String get introPierce;
 
-  /// No description provided for @introOverdrive.
+  /// No description provided for @introFeverTime.
   ///
   /// In ja, this message translates to:
-  /// **'PERFECT を重ねてヒートを貯めると OVERDRIVE。全弾貫通で一気に崩せ'**
-  String get introOverdrive;
+  /// **'PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ'**
+  String get introFeverTime;
 
   /// No description provided for @introSurvive.
   ///
@@ -740,11 +764,11 @@ abstract class AppLocalizations {
   /// **'赤い弾をパリィで撃ち返し、貫通弾でコアを狙え'**
   String get bannerBoss;
 
-  /// No description provided for @bannerOverdrive.
+  /// No description provided for @bannerFeverTime.
   ///
   /// In ja, this message translates to:
   /// **'全弾貫通 ×16 — PERFECT で分身弾'**
-  String get bannerOverdrive;
+  String get bannerFeverTime;
 
   /// No description provided for @bannerPhase2.
   ///

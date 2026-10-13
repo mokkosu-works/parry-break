@@ -14,16 +14,16 @@ enum ParryTarget { ball, bullet }
 
 enum DestroyCause { ball, pierce, phantom, blast, bullet }
 
-enum BannerKind { wave, boss, overdrive, bossPhase, timeOver }
+enum BannerKind { round, boss, feverTime, bossPhase, timeOver }
 
-enum CalloutChannel { collapse, chainBlast, multiParry, ricochet, overdriveFinish }
+enum CalloutChannel { collapse, chainBlast, multiParry, ricochet, feverFinish }
 
 enum PopupKind { score, returnedScore, chain, ricochet, chainBlast, graze, noDamage, coreDamage }
 
-// ---- ウェーブ ----------------------------------------------------------
+// ---- ラウンド ----------------------------------------------------------
 
-final class WaveStarted extends GameEvent {
-  const WaveStarted({required this.number, required this.loop, this.bossIndex, this.introKey});
+final class RoundStarted extends GameEvent {
+  const RoundStarted({required this.number, required this.loop, this.bossIndex, this.introKey});
   final int number, loop;
   final int? bossIndex;
 
@@ -35,8 +35,8 @@ final class CountdownFinished extends GameEvent {
   const CountdownFinished();
 }
 
-final class WaveCleared extends GameEvent {
-  const WaveCleared({required this.bonuses, required this.remaining, required this.ending});
+final class RoundCleared extends GameEvent {
+  const RoundCleared({required this.bonuses, required this.remaining, required this.ending});
   final List<Bonus> bonuses;
 
   /// 消えずに残っていたブロック (崩れ落ちる演出用)。
@@ -45,9 +45,9 @@ final class WaveCleared extends GameEvent {
 }
 
 final class GameOver extends GameEvent {
-  const GameOver({required this.reason, required this.score, required this.wave, required this.stats});
+  const GameOver({required this.reason, required this.score, required this.round, required this.stats});
   final String reason;
-  final int score, wave;
+  final int score, round;
   final RunStats stats;
 }
 
@@ -60,7 +60,7 @@ final class Banner extends GameEvent {
   const Banner(this.kind, {this.value = 0, this.introKey});
   final BannerKind kind;
 
-  /// ウェーブ番号・ボス番号・フェーズ番号など。
+  /// ラウンド番号・ボス番号・フェーズ番号など。
   final int value;
   final String? introKey;
 }
@@ -231,14 +231,14 @@ final class BossTimeOver extends GameEvent {
   const BossTimeOver();
 }
 
-// ---- OVERDRIVE -----------------------------------------------------------
+// ---- FEVER TIME -----------------------------------------------------------
 
-final class OverdriveStarted extends GameEvent {
-  const OverdriveStarted();
+final class FeverTimeStarted extends GameEvent {
+  const FeverTimeStarted();
 }
 
-final class OverdriveEnded extends GameEvent {
-  const OverdriveEnded({required this.byHit});
+final class FeverTimeEnded extends GameEvent {
+  const FeverTimeEnded({required this.byHit});
   final bool byHit;
 }
 

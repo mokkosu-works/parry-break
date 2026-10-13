@@ -30,6 +30,8 @@ List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
     ),
     (topic: HelpTopic.timing, title: l.helpTimingTitle, body: l.helpTimingBody, color: Dot.mint),
     (topic: HelpTopic.chain, title: l.helpChainTitle, body: l.helpChainBody, color: Dot.orange), // 爆発ブロック
+    (topic: HelpTopic.combo, title: l.helpComboTitle, body: l.helpComboBody, color: Dot.rose), // FEVER TIME のメーター
+    (topic: HelpTopic.graze, title: l.helpGrazeTitle, body: l.helpGrazeBody, color: Dot.mustard),
     (topic: HelpTopic.over, title: l.helpOverTitle, body: l.helpOverBody, color: Palette.red), // 危険ライン
     (topic: HelpTopic.pause, title: l.helpPauseTitle, body: l.helpPauseBody, color: Dot.white),
   ];
