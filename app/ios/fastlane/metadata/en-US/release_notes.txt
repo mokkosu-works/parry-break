@@ -1,5 +1,4 @@
-- Three new chapters in Stage mode, Chapter 4 FIRESTORM, Chapter 5 BULLET HELL and Chapter 6 STEEL RAIN, with three new bosses. Every chapter now has 10 stages, for 60 in all
-- Choose your difficulty in Stage mode: EASY, NORMAL or HARD. HARD is bullet hell, with more bullets and broken blocks that shoot back. Records are kept for each difficulty
-- Five new turrets: spread, gatling, ring, spiral and sniper
-- How to Play has new pages for COMBO / FEVER TIME and GRAZE / RICOCHET
-- Each section of play is now called a ROUND
+- Stage numbers and stars now fit on small screens in stage select
+- Fixed an issue where signing in to the leaderboards could stop partway
+- Fixed ads not appearing on iOS
+- Unified in-game naming as FEVER TIME and COMBO
