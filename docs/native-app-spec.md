@@ -373,7 +373,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 **リリース前の作業**
 
 1. AdMob でアプリ(iOS / Android)とインタースティシャルの広告ユニットを作る。
-2. テスト用の ID を本番の ID に置き換える: `AdsConfig` の広告ユニット ID、`ios/Runner/Info.plist` の `GADApplicationIdentifier`、`android/app/src/main/AndroidManifest.xml` の `com.google.android.gms.ads.APPLICATION_ID`。**置き換え済み**。iOS はアプリ `ca-app-pub-4435922675604695~8150605646`、インタースティシャル `ca-app-pub-4435922675604695/2281923603`。Android はアプリ `ca-app-pub-4435922675604695~7228403610`、インタースティシャル `ca-app-pub-4435922675604695/7946499628`。デバッグビルドでは、本番の ID があってもテスト用の広告ユニットを使う。
+2. テスト用の ID を本番の ID に置き換える: `AdsConfig` の広告ユニット ID、`ios/Runner/Info.plist` の `GADApplicationIdentifier`、`android/app/src/main/AndroidManifest.xml` の `com.google.android.gms.ads.APPLICATION_ID`。**置き換え済み**。iOS はアプリ `ca-app-pub-4435922675604695~8150605646`、インタースティシャル `ca-app-pub-4435922675604695/2233314968`。Android はアプリ `ca-app-pub-4435922675604695~7228403610`、インタースティシャル `ca-app-pub-4435922675604695/7946499628`。デバッグビルドでは、本番の ID があってもテスト用の広告ユニットを使う。
 3. AdMob の「プライバシーとメッセージ」で、EU 向けの同意メッセージを作る。ATT の許可ダイアログはアプリが同意の流れのあと、AdMob を初期化する前に直接出す(UMP の IDFA の説明メッセージ任せにすると、設定や地域によってダイアログが出ず、審査で Guideline 2.1 の指摘を受けた)。
 4. `Info.plist` の `SKAdNetworkItems` に、Google が公開している一覧を入れる(いまは Google のものだけ)。`NSUserTrackingUsageDescription` の日本語は `ios/Runner/ja.lproj/InfoPlist.strings` にある。
 5. App Store Connect の「App のプライバシー」と、Google Play の「データ セーフティ」に広告の利用を書く。
