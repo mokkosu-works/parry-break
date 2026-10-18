@@ -108,7 +108,7 @@ extension _CollapseSystem on World {
       if (phase == WorldPhase.over) continue;
       final v = f.points * mult;
       score += v;
-      addHeat(2);
+      addCombo(2);
       emit(Popup(cx, cy, '+${formatScore(v)}', PopupKind.score, amount: v));
       cascade.notes++;
       b.behavior.onFell(this, b, cx, cy);

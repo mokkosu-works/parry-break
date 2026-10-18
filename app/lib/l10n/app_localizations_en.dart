@@ -74,18 +74,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'White blocks (keystones) hold up the blocks attached to them. Break one and the whole cluster falls\nOrange striped blocks (explosives) blow up their surroundings, setting off nearby explosives in turn';
 
   @override
-  String get helpHeatTitle => 'HEAT / OVERDRIVE';
+  String get helpComboTitle => 'COMBO / FEVER TIME';
 
   @override
-  String get helpHeatBody =>
-      'Land parries and return enemy shots to fill the HEAT meter at the top. Each stage raises your score multiplier (×1 → ×2 → ×4 → ×8) and the ball\'s speed\nFill the meter for OVERDRIVE: for a while the ball pierces blocks and the multiplier is ×16\nGetting hit by an enemy shot lowers HEAT';
+  String get helpComboBody =>
+      'Land parries and return enemy shots to fill the COMBO meter at the top. Each stage raises your score multiplier (×1 → ×2 → ×4 → ×8) and the ball\'s speed\nFill the meter for FEVER TIME: for a while the ball pierces blocks and the multiplier is ×16\nGetting hit by an enemy shot lowers COMBO';
 
   @override
   String get helpGrazeTitle => 'GRAZE / RICOCHET';
 
   @override
   String get helpGrazeBody =>
-      'GRAZE: dodge an enemy shot by a hair, without letting it hit the paddle. It raises HEAT\nRICOCHET: break 8 or more blocks before the ball returns to the paddle. The more you break, the higher the score';
+      'GRAZE: dodge an enemy shot by a hair, without letting it hit the paddle. It raises COMBO\nRICOCHET: break 8 or more blocks before the ball returns to the paddle. The more you break, the higher the score';
 
   @override
   String get helpOverTitle => 'GAME OVER';
@@ -374,8 +374,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introPierce => 'A PERFECT PARRY MAKES A PIERCING SHOT';
 
   @override
-  String get introOverdrive =>
-      'CHAIN PERFECTS TO FILL HEAT — OVERDRIVE PIERCES EVERYTHING';
+  String get introFeverTime =>
+      'CHAIN PERFECTS TO FILL COMBO — FEVER TIME PIERCES EVERYTHING';
 
   @override
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
@@ -388,7 +388,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'HIT CORES WITH PARRIED RED BULLETS AND PIERCING SHOTS';
 
   @override
-  String get bannerOverdrive => 'FULL PIERCE ×16 — PERFECT SPAWNS PHANTOMS';
+  String get bannerFeverTime => 'FULL PIERCE ×16 — PERFECT SPAWNS PHANTOMS';
 
   @override
   String get bannerPhase2 => 'MIRROR SHIELDS — LOCK-ON LASERS';

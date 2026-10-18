@@ -88,7 +88,7 @@ class World {
   WorldPhase phase = WorldPhase.playing;
   double t = 0;
   int score = 0;
-  double heat = 0;
+  double combo = 0;
   bool od = false;
   double odTime = 0, odElapsed = 0;
   int streak = 0, maxStreak = 0;
@@ -158,7 +158,7 @@ class World {
     phase = WorldPhase.playing;
     t = 0;
     score = 0;
-    heat = 0;
+    combo = 0;
     od = false;
     odTime = odElapsed = 0;
     streak = maxStreak = 0;
@@ -219,10 +219,10 @@ class World {
 
   // ---- 派生値 -------------------------------------------------------------
 
-  /// ヒート段階 (0〜3)。OVERDRIVE は [od] で表す。
+  /// コンボ段階 (0〜3)。FEVER TIME は [od] で表す。
   int get stage {
     final m = tuning.stageMin;
-    return heat >= m[3] ? 3 : heat >= m[2] ? 2 : heat >= m[1] ? 1 : 0;
+    return combo >= m[3] ? 3 : combo >= m[2] ? 2 : combo >= m[1] ? 1 : 0;
   }
 
   /// 得点倍率。
@@ -272,7 +272,7 @@ class World {
     return b;
   }
 
-  /// 貫通弾の貫通回数を 1 減らす (メインのボール、OVERDRIVE 中でないとき)。
+  /// 貫通弾の貫通回数を 1 減らす (メインのボール、FEVER TIME 中でないとき)。
   void consumePierce(BallHit hit) {
     if (hit.main && !od) hit.ball.pierce--;
   }
@@ -316,10 +316,10 @@ class World {
     }
   }
 
-  void addHeat(double v) {
+  void addCombo(double v) {
     if (od) return;
-    heat = math.max(0, heat + v);
-    if (heat >= tuning.odHeat) _startOverdrive();
+    combo = math.max(0, combo + v);
+    if (combo >= tuning.odCombo) _startFeverTime();
   }
 
   void addScore(int v) => score += v;

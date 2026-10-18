@@ -14,9 +14,9 @@ enum ParryTarget { ball, bullet }
 
 enum DestroyCause { ball, pierce, phantom, blast, bullet }
 
-enum BannerKind { round, boss, overdrive, bossPhase, timeOver }
+enum BannerKind { round, boss, feverTime, bossPhase, timeOver }
 
-enum CalloutChannel { collapse, chainBlast, multiParry, ricochet, overdriveFinish }
+enum CalloutChannel { collapse, chainBlast, multiParry, ricochet, feverFinish }
 
 enum PopupKind { score, returnedScore, chain, ricochet, chainBlast, graze, noDamage, coreDamage }
 
@@ -231,14 +231,14 @@ final class BossTimeOver extends GameEvent {
   const BossTimeOver();
 }
 
-// ---- OVERDRIVE -----------------------------------------------------------
+// ---- FEVER TIME -----------------------------------------------------------
 
-final class OverdriveStarted extends GameEvent {
-  const OverdriveStarted();
+final class FeverTimeStarted extends GameEvent {
+  const FeverTimeStarted();
 }
 
-final class OverdriveEnded extends GameEvent {
-  const OverdriveEnded({required this.byHit});
+final class FeverTimeEnded extends GameEvent {
+  const FeverTimeEnded({required this.byHit});
   final bool byHit;
 }
 

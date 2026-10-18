@@ -53,7 +53,7 @@ void main() {
     final end = DateTime.now().add(Duration(milliseconds: (seconds * 1000).round()));
     var armed = true;
     while (DateTime.now().isBefore(end)) {
-      // 撮影中は被弾させない (被弾するとヒートが下がり、HIT! が写る)。無敵中はパドルが点滅するので、撮る直前に外す
+      // 撮影中は被弾させない (被弾するとコンボが下がり、HIT! が写る)。無敵中はパドルが点滅するので、撮る直前に外す
       w.paddle.invuln = 5;
       final b = w.ball;
       w.input
@@ -126,18 +126,18 @@ void main() {
     Navigator.of(t.element(find.byType(StageSelectScreen))).pop();
     await wait(t, 1);
 
-    // 3. エンドレスのプレイ中 (砲台の弾が飛び交い、ヒートが上がった場面)
+    // 3. エンドレスのプレイ中 (砲台の弾が飛び交い、コンボが上がった場面)
     await t.tap(find.text('ENDLESS'));
     await wait(t, 1);
     var w = world(t)..start(fromRound: playRound);
     await wait(t, 1.3);
     launch(w);
     await play(t, w, 3);
-    w.addHeat(450);
+    w.addCombo(450);
     await playUntilParry(t, w);
     await snap(t, w, '03_play');
 
-    // 4. ボス戦 (フェーズ3・レーザー・弾幕。OVERDRIVE の手前)
+    // 4. ボス戦 (フェーズ3・レーザー・弾幕。FEVER TIME の手前)
     w = world(t)..start(fromRound: 20);
     await wait(t, 1.3);
     final core = w.blocks.firstWhere((b) => b.type == bossCoreId);
@@ -146,7 +146,7 @@ void main() {
     }
     launch(w);
     await play(t, w, 2.5);
-    w.addHeat(500);
+    w.addCombo(500);
     w.fireLaser(w.paddle.x + 200);
     await playUntilParry(t, w);
     await snap(t, w, '01_boss');

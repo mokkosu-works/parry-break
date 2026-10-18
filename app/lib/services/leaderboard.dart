@@ -102,8 +102,11 @@ class GamesServicesLeaderboard implements LeaderboardService {
     if (!_signedIn) return;
     final pending = _pending;
     final left = <String, int>{};
+    final boards = Board.values.asNameMap();
     for (final e in pending.entries) {
-      final b = Board.values.byName(e.key);
+      // 今のバージョンにないボード (過去のバージョンで保留したもの) は、送り先がないので捨てる
+      final b = boards[e.key];
+      if (b == null) continue;
       if (!await _send(b, e.value)) left[e.key] = e.value;
     }
     _pending = left;

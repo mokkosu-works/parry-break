@@ -68,7 +68,7 @@ void main() {
     });
     expect(w.ball.pierce, 3);
     expect(w.ball.breaker, isTrue);
-    expect(w.heat, inInclusiveRange(150, 160)); // JUST で +160 (その後は減衰)
+    expect(w.combo, inInclusiveRange(150, 160)); // JUST で +160 (その後は減衰)
   });
 
   test('被弾: 短く止まり、その後しばらく無敵。パドル付近の弾は消え、続けて被弾しない', () {

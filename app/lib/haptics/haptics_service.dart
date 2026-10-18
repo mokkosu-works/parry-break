@@ -56,7 +56,7 @@ class HapticsService {
         _play(const [(0, _Pulse.heavy), (50, _Pulse.medium)]);
       case CoreDestroyed():
         _play(const [(0, _Pulse.heavy), (100, _Pulse.heavy), (200, _Pulse.heavy)]);
-      case OverdriveStarted():
+      case FeverTimeStarted():
         _play(const [(0, _Pulse.heavy), (70, _Pulse.medium), (140, _Pulse.light)]);
       case GameOver():
         _play(const [(0, _Pulse.long), (150, _Pulse.long), (300, _Pulse.heavy)]);

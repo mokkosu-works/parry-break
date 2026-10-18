@@ -289,15 +289,15 @@
   {
    "id": "ch02",
    "title": {
-    "ja": "第2章 オーバードライブ",
-    "en": "CHAPTER 2  OVERDRIVE"
+    "ja": "第2章 フィーバータイム",
+    "en": "CHAPTER 2  FEVER TIME"
    },
    "stages": [
     {
      "id": "2-1",
      "title": {
       "ja": "限界突破",
-      "en": "OVERDRIVE"
+      "en": "FEVER TIME"
      },
      "rounds": [
       {
@@ -309,7 +309,7 @@
         ".NNNNNNNNNNNN."
        ],
        "difficulty": 15,
-       "intro": "intro.overdrive",
+       "intro": "intro.feverTime",
        "tuning": {
         "descentBase": 3
        }
