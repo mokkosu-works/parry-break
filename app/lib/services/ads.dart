@@ -16,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 abstract final class AdsConfig {
   static const enabled = true;
 
-  static const iosInterstitial = 'ca-app-pub-4435922675604695/2281923603';
+  static const iosInterstitial = 'ca-app-pub-4435922675604695/2233314968';
   static const androidInterstitial = 'ca-app-pub-4435922675604695/7946499628';
 
   // Google のテスト用の広告ユニット。デバッグビルドではこちらを使う
