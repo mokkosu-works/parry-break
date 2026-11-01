@@ -253,7 +253,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                 rect: layout.left,
                 child: SafeArea(
                   right: false,
-                  child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical),
+                  child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical, sensitivity: settings.railSensitivity),
                 ),
               ),
               // 右の余白: パリィ

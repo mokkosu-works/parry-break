@@ -234,6 +234,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSensitivity => 'Move sensitivity';
 
   @override
+  String get settingsRailSensitivity => 'Rail sensitivity';
+
+  @override
   String get settingsTiming => 'Timing offset';
 
   @override

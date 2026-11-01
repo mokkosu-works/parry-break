@@ -23,6 +23,7 @@ class Settings {
   const Settings({
     this.controls = ControlScheme.zones,
     this.sensitivity = 2.0,
+    this.railSensitivity = 1.0,
     this.timingOffsetMs = 36,
     this.bgmVolume = 0.8,
     this.sfxVolume = 1.0,
@@ -38,6 +39,9 @@ class Settings {
 
   /// 移動感度 (指の移動量に対するパドルの移動量)。×1.0〜×4.0。
   final double sensitivity;
+
+  /// レール方式の感度 (レールの移動量に対するパドルの移動量)。×1.0 で、レールの端から端がちょうど盤面の端から端。×0.5〜×2.0。
+  final double railSensitivity;
 
   /// 判定タイミング補正 (ms)。入力時刻をこの値だけ早めて扱う。0〜100。
   final int timingOffsetMs;
@@ -61,6 +65,7 @@ class Settings {
   Settings copyWith({
     ControlScheme? controls,
     double? sensitivity,
+    double? railSensitivity,
     int? timingOffsetMs,
     double? bgmVolume,
     double? sfxVolume,
@@ -74,6 +79,7 @@ class Settings {
       Settings(
         controls: controls ?? this.controls,
         sensitivity: sensitivity ?? this.sensitivity,
+        railSensitivity: railSensitivity ?? this.railSensitivity,
         timingOffsetMs: timingOffsetMs ?? this.timingOffsetMs,
         bgmVolume: bgmVolume ?? this.bgmVolume,
         sfxVolume: sfxVolume ?? this.sfxVolume,
@@ -88,6 +94,7 @@ class Settings {
   Map<String, Object?> toJson() => {
         'controls': controls.name,
         'sensitivity': sensitivity,
+        'railSensitivity': railSensitivity,
         'timingOffsetMs': timingOffsetMs,
         'bgmVolume': bgmVolume,
         'sfxVolume': sfxVolume,
@@ -108,6 +115,7 @@ class Settings {
     return Settings(
       controls: pick(ControlScheme.values, j['controls'], d.controls),
       sensitivity: num_(j['sensitivity'], d.sensitivity, 1, 4),
+      railSensitivity: num_(j['railSensitivity'], d.railSensitivity, 0.5, 2),
       timingOffsetMs: num_(j['timingOffsetMs'], d.timingOffsetMs.toDouble(), 0, 100).round(),
       bgmVolume: num_(j['bgmVolume'], d.bgmVolume, 0, 1),
       sfxVolume: num_(j['sfxVolume'], d.sfxVolume, 0, 1),
