@@ -156,6 +156,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           _Row(
+            label: l.settingsRailSensitivity,
+            enabled: s.controls != ControlScheme.zones,
+            child: _Meter(
+              color: color,
+              value: s.railSensitivity,
+              min: 0.5,
+              max: 2,
+              divisions: 15,
+              format: (v) => '×${v.toStringAsFixed(1)}',
+              enabled: s.controls != ControlScheme.zones,
+              onChanged: (v) => n.update((x) => x.copyWith(railSensitivity: v)),
+            ),
+          ),
+          _Row(
             label: l.settingsTiming,
             help: l.settingsTimingHelp,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
