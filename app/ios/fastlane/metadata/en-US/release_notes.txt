@@ -1,4 +1,2 @@
-- Stage numbers and stars now fit on small screens in stage select
-- Fixed an issue where signing in to the leaderboards could stop partway
-- Fixed ads not appearing on iOS
-- Unified in-game naming as FEVER TIME and COMBO
+・You can now adjust "Rail sensitivity" in Settings when playing with the rail controls
+・After a 3-star clear, the game may occasionally ask you for a rating
