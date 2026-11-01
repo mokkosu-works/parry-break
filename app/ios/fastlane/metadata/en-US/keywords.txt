@@ -1,1 +1,1 @@
-block,bricks,ball,paddle,shmup,shooter,boss,score,attack,hardcore,reflex,timing,retro,pixel,offline
+breakout,bullet hell,shmup,shooter,boss,score attack,combo,reflex,retro,pixel,offline,hardcore

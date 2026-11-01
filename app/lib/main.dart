@@ -11,6 +11,7 @@ import 'l10n/app_localizations.dart';
 import 'services/ads.dart';
 import 'services/content.dart';
 import 'services/leaderboard.dart';
+import 'services/review.dart';
 import 'services/settings.dart';
 import 'ui/title/title_screen.dart';
 import 'ui/widgets.dart';
@@ -28,6 +29,7 @@ Future<void> main() async {
       contentProvider.overrideWithValue(content),
       audioProvider.overrideWithValue(audio),
       adsProvider.overrideWithValue(createAdsService(prefs)),
+      reviewProvider.overrideWithValue(createReviewService(prefs)),
     ],
     child: ParryBreakApp(audioInit: audio.init()),
   ));

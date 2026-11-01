@@ -327,6 +327,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 | 暗号化 | `ITSAppUsesNonExemptEncryption = false`(輸出コンプライアンスの質問が出ない) |
 | Game Center | `ios/Runner/Runner.entitlements`(`com.apple.developer.game-center`)を Runner の全構成に設定済み |
 | ランキング | `LeaderboardConfig.iosEnabled = true`。ID は `com.watsuwo.parrybreak.endless_score` / `.endless_wave` / `.stages_total`。Android は `androidEnabled = false` のまま |
+| 評価の依頼 | ステージを星3つでクリアして結果画面から戻るときに、OS 標準の評価ダイアログを出す(`lib/services/review.dart`、`in_app_review`)。クリア済みが5面以上、前回から60日以上、通算3回まで。出したときはその回の広告は出さない。データは集めないので、プライバシーの申告は変わらない |
 | アイコン・起動画面 | 16 色のドット絵で、`python3 tools/make_icons.py` が描く(元画像の `branding/icons/` と、iOS / Android / Web の各サイズをまとめて書き出す)。元画像だけ変えたときは `dart run flutter_launcher_icons`、`dart run flutter_native_splash:create` でも作り直せる |
 | ポリシー・サポート | 別のリポジトリ `watsuwo/watsuwo.github.io` の `parry-break/privacy.html` と `parry-break/support.html` を GitHub Pages で公開している(https://watsuwo.github.io/parry-break/privacy と https://watsuwo.github.io/parry-break/support)。広告(AdMob)の `app-ads.txt` も同じリポジトリにある |
 

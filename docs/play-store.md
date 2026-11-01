@@ -6,7 +6,7 @@ Google Play Console に入力する内容の下書き。署名とビルドの手
 
 | 項目 | 値 |
 | --- | --- |
-| アプリ名 | 日本語「PARRY BREAK - パリィ×ブロック崩し」、英語「PARRY BREAK: Brick Breaker」(30字以内。App Store の名前と同じ) |
+| アプリ名 | 日本語「PARRY BREAK - パリィ×弾幕ブロック崩し」、英語「PARRY BREAK: Brick Breaker」(30字以内。App Store の名前と同じ) |
 | パッケージ名 | `com.watsuwo.parrybreak`(一度アップロードすると変えられない) |
 | デフォルトの言語 | 日本語(英語の翻訳も追加する) |
 | アプリかゲームか | ゲーム |
@@ -17,14 +17,14 @@ Google Play Console に入力する内容の下書き。署名とビルドの手
 | プライバシーポリシー URL | https://watsuwo.github.io/parry-break/privacy |
 | ウェブサイト | https://watsuwo.github.io/parry-break/support |
 
-App Store にあるサブタイトル・プロモーション用テキスト・キーワードは、Play Store にはない。代わりに「簡単な説明」がある。
+App Store にあるサブタイトル・プロモーション用テキスト・キーワードは、Play Store にはない。代わりに「簡単な説明」がある。Play はタイトル・簡単な説明・詳しい説明の文章が検索に使われるので、遊びを表す語(ブロック崩し・弾幕・ドット絵・シューティングなど)を自然な文の中に入れる。語を並べるだけの書き方は、ポリシー違反になる。
 
 ## 日本語
 
-**簡単な説明**(80字以内。ストアのページで最初に見える。App Store のプロモーション用テキストと同じ)
+**簡単な説明**(80字以内。ストアのページで最初に見え、検索にも使われる)
 
 ```
-パリィで攻めて撃破せよ！一つのボールで挑む、シンプル操作の高難易度ブロック崩し。
+弾幕を撃ち返して崩す、高難度ブロック崩し。パリィで連鎖を狙うドット絵アーケード。
 ```
 
 **詳しい説明**(4000字以内)
@@ -55,16 +55,22 @@ PARRY BREAK は、ブロック崩しの「受けて守る」パドルを「弾�
 ・端末に合わせて判定タイミングを測定・補正できます
 ・フラッシュや画面の揺れを抑える設定があります
 ・広告はプレイ中には出ません。課金はありません
+
+■ こんな人におすすめ
+・昔ながらのブロック崩し(ブロックくずし、ブレイクアウト)に、ひとひねり加えた遊びを探している人
+・弾幕を避けるだけでなく、撃ち返して攻めるシューティングが好きな人
+・反射神経とタイミングで高いスコアを狙う、スコアアタックが好きな人
+・ドット絵のレトロなアーケードを、片手でちょっと遊びたい人
 ```
 
 ## English
 
 **Short description** (80 characters)
 
-App Store の Promotional text は 92 字で上限を超えるため、「and destroy」を削って 80 字にした。
+検索にも使われる。72 字。
 
 ```
-Parry to attack! One ball, simple controls, and a seriously tough block breaker.
+Parry bullets back and break blocks. A tough pixel arcade brick breaker.
 ```
 
 **Full description** (4000 characters)
@@ -93,6 +99,12 @@ Drop the ball or let the blocks reach the dead line and it's over.
 - Calibrate the timing offset to your device
 - Reduce flashing and screen shake in Settings
 - Ads never interrupt a run. No in-app purchases
+
+WHO IT'S FOR
+- Fans of classic brick breaker and breakout games who want a new twist
+- Players who like bullet hell shooters and prefer hitting back to just dodging
+- Anyone chasing a high score with sharp reflexes and tight timing
+- Pixel-art retro arcade fans who want a quick one-handed session
 ```
 
 Play Games サービスを有効にしたら、`- Google Play Games leaderboards` を足す。
