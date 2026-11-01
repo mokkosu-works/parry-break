@@ -6,7 +6,7 @@ App Store Connect に入力する内容。名前・説明文・キーワード�
 
 | 項目 | 値 |
 | --- | --- |
-| 名前 | 言語ごとに `name.txt`(日本語「PARRY BREAK - パリィ×ブロック崩し」、英語「PARRY BREAK: Brick Breaker」)。ホーム画面の名前は PARRY BREAK のまま |
+| 名前 | 言語ごとに `name.txt`(日本語「PARRY BREAK - パリィ×弾幕ブロック崩し」、英語「PARRY BREAK: Brick Breaker」)。ホーム画面の名前は PARRY BREAK のまま |
 | バンドル ID | `com.watsuwo.parrybreak` |
 | SKU | `parrybreak` |
 | プライマリ言語 | 日本語(英語のローカリゼーションも追加する) |
