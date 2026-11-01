@@ -17,6 +17,7 @@ import '../services/ads.dart';
 import '../services/content.dart';
 import '../services/leaderboard.dart';
 import '../services/records.dart';
+import '../services/review.dart';
 import '../services/settings.dart';
 import '../ui/settings_screen.dart';
 import '../ui/arcade.dart';
@@ -195,10 +196,20 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     // デバッグモードのプレイでは出さない (開発者が本番の広告を表示・クリックしないように)
     if (!ref.read(debugModeProvider)) {
       _ctl.audio.setPaused(true);
-      await ref.read(adsProvider).showInterstitialIfDue();
+      // ステージを星 3 つでクリアして戻るときは、評価の依頼を出す (出したときは、続けて広告は出さない)
+      if (!await _askReview()) await ref.read(adsProvider).showInterstitialIfDue();
       _ctl.audio.setPaused(false);
     }
     if (mounted) go();
+  }
+
+  /// 星 3 つでクリアしたあとなら、ストアの評価の依頼を出す。出したら true。
+  Future<bool> _askReview() {
+    final stars = _outcome?.stars;
+    if (stars == null || !stars.every((s) => s)) return Future.value(false);
+    final records = ref.read(recordsProvider);
+    final cleared = ref.read(contentProvider).campaign.stages.where((s) => records.clearedAny(s.id)).length;
+    return ref.read(reviewProvider).askIfDue(clearedStages: cleared);
   }
 
   StageDef? get _nextStage {
@@ -253,7 +264,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                 rect: layout.left,
                 child: SafeArea(
                   right: false,
-                  child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical),
+                  child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical, sensitivity: settings.railSensitivity),
                 ),
               ),
               // 右の余白: パリィ

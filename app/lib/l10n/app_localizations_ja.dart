@@ -232,6 +232,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsSensitivity => '移動感度';
 
   @override
+  String get settingsRailSensitivity => 'レール感度';
+
+  @override
   String get settingsTiming => '判定タイミング補正';
 
   @override

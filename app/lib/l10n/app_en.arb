@@ -64,6 +64,7 @@
   "controlsRailH": "Rail (horizontal)",
   "controlsRailV": "Rail (vertical)",
   "settingsSensitivity": "Move sensitivity",
+  "settingsRailSensitivity": "Rail sensitivity",
   "settingsTiming": "Timing offset",
   "settingsTimingHelp": "Input is treated as this much earlier, to cancel display and touch latency",
   "calibrate": "Calibrate",

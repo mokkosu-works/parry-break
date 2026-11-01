@@ -1,11 +1,12 @@
-// App Store 用のスクリーンショットを、シミュレータで実際のアプリを動かして撮る。
+// ストア用のスクリーンショットを、シミュレータや実機で実際のアプリを動かして撮る。
 // ファイル名の番号は App Store に載せる順 (最初の 1 枚が検索結果に出るので、プレイ画面から並べる)。
 //
 //   SHOT_DIR=build/store_screenshots/iphone flutter drive -d <デバイス ID> \
 //     --driver=test_driver/integration_test.dart --target=integration_test/store_screenshots_test.dart
 //
-// 手順は docs/app-store.md の「スクリーンショット」を参照。
+// 手順は docs/app-store.md (iOS) と docs/play-store.md (Android) の「スクリーンショット」を参照。
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -42,7 +43,16 @@ void main() {
   const playRound = int.fromEnvironment('playRound', defaultValue: 28);
 
   Future<void> wait(WidgetTester t, double seconds) => t.pump(Duration(milliseconds: (seconds * 1000).round()));
-  Future<void> shot(String name) => binding.takeScreenshot(name);
+  // Android は描画面を画像に切り替えてからでないと撮れない (1 回だけ)
+  var surfaceConverted = false;
+  Future<void> shot(String name) async {
+    if (Platform.isAndroid && !surfaceConverted) {
+      await binding.convertFlutterSurfaceToImage();
+      surfaceConverted = true;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    await binding.takeScreenshot(name);
+  }
 
   World world(WidgetTester t) =>
       t.widgetList<CustomPaint>(find.byType(CustomPaint)).map((c) => c.painter).whereType<FieldPainter>().first.world;

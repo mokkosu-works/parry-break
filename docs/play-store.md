@@ -6,7 +6,7 @@ Google Play Console に入力する内容の下書き。署名とビルドの手
 
 | 項目 | 値 |
 | --- | --- |
-| アプリ名 | 日本語「PARRY BREAK - パリィ×ブロック崩し」、英語「PARRY BREAK: Brick Breaker」(30字以内。App Store の名前と同じ) |
+| アプリ名 | 日本語「PARRY BREAK - パリィ×弾幕ブロック崩し」、英語「PARRY BREAK: Brick Breaker」(30字以内。App Store の名前と同じ) |
 | パッケージ名 | `com.watsuwo.parrybreak`(一度アップロードすると変えられない) |
 | デフォルトの言語 | 日本語(英語の翻訳も追加する) |
 | アプリかゲームか | ゲーム |
@@ -17,14 +17,14 @@ Google Play Console に入力する内容の下書き。署名とビルドの手
 | プライバシーポリシー URL | https://watsuwo.github.io/parry-break/privacy |
 | ウェブサイト | https://watsuwo.github.io/parry-break/support |
 
-App Store にあるサブタイトル・プロモーション用テキスト・キーワードは、Play Store にはない。代わりに「簡単な説明」がある。
+App Store にあるサブタイトル・プロモーション用テキスト・キーワードは、Play Store にはない。代わりに「簡単な説明」がある。Play はタイトル・簡単な説明・詳しい説明の文章が検索に使われるので、遊びを表す語(ブロック崩し・弾幕・ドット絵・シューティングなど)を自然な文の中に入れる。語を並べるだけの書き方は、ポリシー違反になる。
 
 ## 日本語
 
-**簡単な説明**(80字以内。ストアのページで最初に見える。App Store のプロモーション用テキストと同じ)
+**簡単な説明**(80字以内。ストアのページで最初に見え、検索にも使われる)
 
 ```
-パリィで攻めて撃破せよ！一つのボールで挑む、シンプル操作の高難易度ブロック崩し。
+弾幕を撃ち返して崩す、高難度ブロック崩し。パリィで連鎖を狙うドット絵アーケード。
 ```
 
 **詳しい説明**(4000字以内)
@@ -55,16 +55,22 @@ PARRY BREAK は、ブロック崩しの「受けて守る」パドルを「弾�
 ・端末に合わせて判定タイミングを測定・補正できます
 ・フラッシュや画面の揺れを抑える設定があります
 ・広告はプレイ中には出ません。課金はありません
+
+■ こんな人におすすめ
+・昔ながらのブロック崩し(ブロックくずし、ブレイクアウト)に、ひとひねり加えた遊びを探している人
+・弾幕を避けるだけでなく、撃ち返して攻めるシューティングが好きな人
+・反射神経とタイミングで高いスコアを狙う、スコアアタックが好きな人
+・ドット絵のレトロなアーケードを、片手でちょっと遊びたい人
 ```
 
 ## English
 
 **Short description** (80 characters)
 
-App Store の Promotional text は 92 字で上限を超えるため、「and destroy」を削って 80 字にした。
+検索にも使われる。72 字。
 
 ```
-Parry to attack! One ball, simple controls, and a seriously tough block breaker.
+Parry bullets back and break blocks. A tough pixel arcade brick breaker.
 ```
 
 **Full description** (4000 characters)
@@ -93,6 +99,12 @@ Drop the ball or let the blocks reach the dead line and it's over.
 - Calibrate the timing offset to your device
 - Reduce flashing and screen shake in Settings
 - Ads never interrupt a run. No in-app purchases
+
+WHO IT'S FOR
+- Fans of classic brick breaker and breakout games who want a new twist
+- Players who like bullet hell shooters and prefer hitting back to just dodging
+- Anyone chasing a high score with sharp reflexes and tight timing
+- Pixel-art retro arcade fans who want a quick one-handed session
 ```
 
 Play Games サービスを有効にしたら、`- Google Play Games leaderboards` を足す。
@@ -102,10 +114,33 @@ Play Games サービスを有効にしたら、`- Google Play Games leaderboards
 | 種類 | サイズ | 枚数 | 用意するもの |
 | --- | --- | --- | --- |
 | アプリのアイコン | 512 × 512、PNG(32 ビット) | 1 | `app/branding/icons/icon-512.png`。いまは透過なしの PNG なので、受け付けられなければ透過ありで書き出し直す |
-| フィーチャー グラフィック | 1024 × 500、JPEG か 24 ビット PNG(透過なし) | 1 | ストアのページの一番上に出る横長の画像。タイトル画面のスクリーンショット(`05_title.png`)から、ロゴが入るように 1024 × 500 を切り出したもの |
-| スマートフォンのスクリーンショット | 長い辺が短い辺の2倍以内、320〜3840 px | 2〜8 | **未作成**。ゲームは横画面で 1920 × 1080 以上を4枚以上にすると、おすすめに載りやすい |
+| フィーチャー グラフィック | 1024 × 500、JPEG か 24 ビット PNG(透過なし) | 1 | ストアのページの一番上に出る横長の画像。タイトル画面のスクリーンショットから、ロゴが入るように 1024 × 500 を切り出したもの(下の「スクリーンショットの撮り方」の 5) |
+| スマートフォンのスクリーンショット | 長い辺が短い辺の2倍以内、320〜3840 px | 2〜8 | 下の「スクリーンショットの撮り方」で撮った5枚。ゲームは横画面で 1920 × 1080 以上を4枚以上にすると、おすすめに載りやすい |
 
-App Store 用のスクリーンショット(`integration_test/store_screenshots_test.dart`)は iPhone の縦横比が 2:1 を超える(2868 × 1320 など)ため、そのままでは使えない。iPad 用(4:3)は使える。Android のエミュレーターで同じテストを動かすか、16:9 に切り出す。
+App Store 用の iPhone のスクリーンショット(2868 × 1320 など)は縦横比が 2:1 を超えるため、そのままでは使えない。Android は実機で同じテストを動かして撮り、2:1 に収める。
+
+### スクリーンショットの撮り方
+
+`integration_test/store_screenshots_test.dart` を実機で動かす。記録は見栄えのよい値を入れた仮のもので、端末の保存データには触らない。WSL には `/dev/kvm` がなく、エミュレーターは高速化が効かないので、実機を使った。
+
+1. 端末と PC を同じ Wi-Fi につなぎ、端末の「開発者向けオプション → ワイヤレス デバッグ」をオンにする(Android 11 以上)。端末は横向きで、画面を点けたままにする。
+2. 「ペア設定コードによるデバイスのペア設定」に出る IP とポート、6桁のコードで `adb pair <IP:ポート> <コード>` を実行する。続けて、ワイヤレス デバッグの**メイン画面**に出る、ペア設定用とは別のポートで `adb connect <IP:ポート>` を実行する。`adb devices` で `device` と出ればよい。ポートはワイヤレス デバッグを切るたびに変わる。
+3. 撮影する。`<デバイス ID>` は `adb devices` の左の列(`192.168.1.86:37357` など)。
+
+   ```sh
+   cd app
+   SHOT_DIR=build/store_screenshots/ja/android_raw flutter drive -d <デバイス ID> --dart-define=lang=ja \
+     --driver=test_driver/integration_test.dart --target=integration_test/store_screenshots_test.dart
+   ```
+
+   初回はビルドに数分かかる。撮ったら目で確かめる。ボス戦はたまに被弾して「HIT!」が写るので、写っていたら撮り直す。
+4. 縦横比を 2:1 以内にする。20:9 の端末だと、横にして 2400 × 1080(2.2:1)になり、そのままでは受け付けられない。
+   - プレイ画面(ボス戦・崩落・プレイ中)は、盤面の中心に合わせて左右を切り、2160 × 1080 にする。盤面は画面の中央に寄っていて、左右は黒い余白なので、切っても何も欠けない。
+   - タイトルとステージ選択は、画面いっぱいに文字があるので切らず、上下に背景色(`#07060A`)を 60 px ずつ足して 2400 × 1200 にする。
+   - どれも透過なしの PNG で書き出す。
+5. フィーチャー グラフィックは、タイトルの画像から、ロゴが上下の中央に来るように 1024 × 500 を拡大縮小せずに切り出す。
+
+載せる順は、App Store に合わせて、タイトル、ステージ選択、プレイ中、崩落、ボス戦にする。
 
 ## データ セーフティ
 

@@ -482,6 +482,12 @@ abstract class AppLocalizations {
   /// **'移動感度'**
   String get settingsSensitivity;
 
+  /// No description provided for @settingsRailSensitivity.
+  ///
+  /// In ja, this message translates to:
+  /// **'レール感度'**
+  String get settingsRailSensitivity;
+
   /// No description provided for @settingsTiming.
   ///
   /// In ja, this message translates to:

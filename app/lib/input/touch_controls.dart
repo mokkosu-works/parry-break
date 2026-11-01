@@ -97,9 +97,12 @@ class _TouchInputState extends State<TouchInput> {
 
 /// レール方式の移動操作 (左の余白)。レールの端から端でパドルが盤面の端から端まで動く。
 class RailControl extends StatefulWidget {
-  const RailControl({super.key, required this.controller, required this.vertical});
+  const RailControl({super.key, required this.controller, required this.vertical, this.sensitivity = 1.0});
   final GameController controller;
   final bool vertical;
+
+  /// レールの移動量に対するパドルの移動量の倍率 (設定の「レール感度」)。
+  final double sensitivity;
 
   @override
   State<RailControl> createState() => _RailControlState();
@@ -130,7 +133,7 @@ class _RailControlState extends State<RailControl> {
         _last = e.position;
         final pw = _w.paddleWidth;
         final delta = widget.vertical ? d.dy : d.dx;
-        _w.input.targetX = clampD(_w.input.targetX + delta * (Field.width - pw) / _travel, pw / 2, Field.width - pw / 2);
+        _w.input.targetX = clampD(_w.input.targetX + delta * widget.sensitivity * (Field.width - pw) / _travel, pw / 2, Field.width - pw / 2);
       },
       onPointerUp: (e) => e.pointer == _drag ? _drag = null : null,
       onPointerCancel: (e) => e.pointer == _drag ? _drag = null : null,
