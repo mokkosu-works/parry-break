@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/providers.dart';
 import 'audio/audio_service.dart';
+import 'game/autoplay_bot.dart' show kPromoAutoplay;
 import 'l10n/app_localizations.dart';
 import 'services/ads.dart';
 import 'services/content.dart';
@@ -87,7 +88,7 @@ class _ParryBreakAppState extends ConsumerState<ParryBreakApp> with WidgetsBindi
       supportedLocales: AppLocalizations.supportedLocales,
       home: widget.home ?? const TitleScreen(),
       // デバッグモード中はどの画面でも分かるように帯を出す
-      builder: debug ? (context, child) => Banner(message: 'DEBUG', location: BannerLocation.bottomStart, child: child!) : null,
+      builder: debug && !kPromoAutoplay ? (context, child) => Banner(message: 'DEBUG', location: BannerLocation.bottomStart, child: child!) : null,
     );
   }
 }

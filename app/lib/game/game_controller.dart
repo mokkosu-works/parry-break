@@ -5,6 +5,7 @@ import '../core/core.dart';
 import '../haptics/haptics_service.dart';
 import '../input/input_clock.dart';
 import '../render/fx.dart';
+import 'autoplay_bot.dart';
 
 /// 1 回のプレイの進行役。シミュレーションを実時間で進め、イベントを演出・音・振動へ配る。
 ///
@@ -22,7 +23,14 @@ class GameController extends ChangeNotifier {
         clock = InputClock(source: timeSource) {
     fx = FxState(world, reduceEffects: reduceEffects);
     session = Session(world, onStep: _onStep);
+    if (kPromoAutoplay) {
+      _bot = Bot(world, seed: DateTime.now().millisecondsSinceEpoch & 0xffff, sigma: kPromoSigma, speed: kPromoSpeed,
+          bias: kPromoBias, lagComp: kPromoLagComp);
+    }
   }
+
+  /// 撮影用の自動プレイ (PROMO_AUTOPLAY=true のビルドだけ)。
+  Bot? _bot;
 
   final GameMode mode;
   final World world;
@@ -60,6 +68,7 @@ class GameController extends ChangeNotifier {
   }
 
   void _onStep(double dt) {
+    _bot?.call();
     world.drainEvents().forEach(_dispatch);
     fx.step(dt);
   }
@@ -98,6 +107,13 @@ class GameController extends ChangeNotifier {
     if (!session.paused) {
       // ステップの外で起きたイベント (ラウンド開始など) もここで配る
       session.advance(now).forEach(_dispatch);
+      // ボットはシミュレーション時刻で入力を積むので、時刻の換算を恒等にしておく
+      if (_bot != null) {
+        world.sync
+          ..wall = 0
+          ..sim = 0
+          ..scale = 1;
+      }
       fx.frame(rdt);
       // 終わったプレイが、次のステージの画面の BGM を切り替えないようにする
       if (!_finished) audio.setMusicLevel(world.od ? 4 : world.stage);
