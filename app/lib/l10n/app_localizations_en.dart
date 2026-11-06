@@ -101,6 +101,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPauseBody => 'Tap Ⅱ at the top right to pause';
 
   @override
+  String get helpKeysMove => 'Keyboard: ←→ or A / D to move';
+
+  @override
+  String get helpKeysParry => 'Keyboard: Space or Enter to launch / parry';
+
+  @override
+  String get helpKeysPause => 'Keyboard: Esc or P to pause';
+
+  @override
   String get helpPrev => 'PREV';
 
   @override

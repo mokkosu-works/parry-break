@@ -260,6 +260,24 @@ abstract class AppLocalizations {
   /// **'右上の Ⅱ をタップすると、一時停止する'**
   String get helpPauseBody;
 
+  /// No description provided for @helpKeysMove.
+  ///
+  /// In ja, this message translates to:
+  /// **'キーボード:←→ か A / D で移動'**
+  String get helpKeysMove;
+
+  /// No description provided for @helpKeysParry.
+  ///
+  /// In ja, this message translates to:
+  /// **'キーボード:Space か Enter で発射・パリィ'**
+  String get helpKeysParry;
+
+  /// No description provided for @helpKeysPause.
+  ///
+  /// In ja, this message translates to:
+  /// **'キーボード:Esc か P で一時停止'**
+  String get helpKeysPause;
+
   /// No description provided for @helpPrev.
   ///
   /// In ja, this message translates to:
