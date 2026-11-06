@@ -66,6 +66,18 @@ void main() {
     expect(p.due, isTrue);
   });
 
+  test('今日の上限に達したかを返す。日付が変わると戻る', () {
+    final p = played();
+    for (var i = 0; i < InterstitialPolicy.dailyCap; i++) {
+      expect(p.cappedToday, isFalse, reason: '$i 回目');
+      p.recordShown();
+      now = now.add(InterstitialPolicy.minGap);
+    }
+    expect(p.cappedToday, isTrue);
+    now = DateTime(2026, 10, 5, 0, 1);
+    expect(p.cappedToday, isFalse);
+  });
+
   test('猶予なしの設定 (デバッグビルド) では最初の結果画面から出せる', () {
     final p = InterstitialPolicy(prefs, now: () => now, freeResults: 0);
     expect(p.due, isFalse);
@@ -143,6 +155,77 @@ void main() {
       expect(sdk.loads, 1);
       await ads.showInterstitialIfDue();
       expect(sdk.shown, 1);
+    });
+
+    /// 今日の上限まで出した状態にする。
+    void reachDailyCap() {
+      final p = policy();
+      for (var i = 0; i < InterstitialPolicy.dailyCap; i++) {
+        p.recordShown();
+      }
+    }
+
+    test('今日の上限まで出したら、次を読み込まない', () async {
+      ads = create();
+      await start();
+      for (var i = 0; i < InterstitialPolicy.dailyCap; i++) {
+        await ads.showInterstitialIfDue();
+        await pumpEventQueue();
+        now = now.add(InterstitialPolicy.minGap);
+      }
+      expect(sdk.shown, InterstitialPolicy.dailyCap);
+      // 起動時の 1 回と、7 回目までを出した後の 7 回。8 回目を出した後は読み込まない
+      expect(sdk.loads, InterstitialPolicy.dailyCap);
+    });
+
+    test('上限に達した日は、起動・結果画面・前面復帰・戻るときのどれでも読み込まない', () async {
+      reachDailyCap();
+      ads = create();
+      await start();
+      expect(sdk.initialized, isTrue);
+      ads.onResult();
+      await pumpEventQueue();
+      await ads.onResume();
+      await pumpEventQueue();
+      await ads.showInterstitialIfDue();
+      await pumpEventQueue();
+      expect(sdk.loads, 0);
+      expect(sdk.shown, 0);
+    });
+
+    test('再試行を待つ間に上限に達したら、再試行でも読み込まない', () async {
+      sdk.failLoads = 1;
+      ads = create();
+      await start();
+      expect(sdk.loads, 1);
+      expect(timers, hasLength(1));
+      reachDailyCap();
+      timers.last.$2();
+      await pumpEventQueue();
+      expect(sdk.loads, 1);
+    });
+
+    test('日付が変わったあとの結果画面で、また読み込んで出せる', () async {
+      reachDailyCap();
+      ads = create();
+      await start();
+      expect(sdk.loads, 0);
+      now = DateTime(2026, 10, 5, 0, 1);
+      ads.onResult();
+      await pumpEventQueue();
+      expect(sdk.loads, 1);
+      await ads.showInterstitialIfDue();
+      expect(sdk.shown, 1);
+    });
+
+    test('日付が変わったあとの前面復帰で読み込む', () async {
+      reachDailyCap();
+      ads = create();
+      await start();
+      now = DateTime(2026, 10, 5, 0, 1);
+      await ads.onResume();
+      await pumpEventQueue();
+      expect(sdk.loads, 1);
     });
 
     test('期限が近い広告は捨てて読み込み直す', () async {
