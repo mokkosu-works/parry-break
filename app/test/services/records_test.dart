@@ -100,4 +100,103 @@ void main() {
       expect(Settings.fromJson(const {}).difficulty, Difficulty.normal);
     });
   });
+
+  group('壊れた保存データ (Issue #145)', () {
+    Future<(ProviderContainer, SharedPreferences)> load(String raw) async {
+      SharedPreferences.setMockInitialValues({'records': raw});
+      final sp = await SharedPreferences.getInstance();
+      final c = ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(sp)]);
+      addTearDown(c.dispose);
+      return (c, sp);
+    }
+
+    StageResult clear(int score) => StageResult(cleared: true, score: score, stats: RunStats());
+
+    test('ステージの 1 件が壊れていても、他のステージとエンドレスの記録は読める', () async {
+      const raw = '{"version":1,"endless":{"bestScore":5000},"stages":{"1-1":{"cleared":true},"1-2":"x"}}';
+      final (c, sp) = await load(raw);
+      final r = c.read(recordsProvider);
+      expect(r.endless.bestScore, 5000);
+      expect(r.stage('1-1').cleared, isTrue);
+      expect(r.stages.containsKey('1-2'), isFalse);
+      expect(sp.getString('records.broken'), raw, reason: '捨てた項目があるので、元のデータを退避する');
+
+      c.read(recordsProvider.notifier).submitEndless(score: 100, round: 1, stats: RunStats());
+      final saved = Records.fromJson(jsonDecode(sp.getString('records')!) as Map<String, Object?>);
+      expect(saved.endless.bestScore, 5000);
+      expect(saved.stage('1-1').cleared, isTrue);
+      expect(sp.getString('records.broken'), raw);
+    });
+
+    test('項目の型が違うときは、その項目だけ初期値にして残りは読む', () async {
+      const raw = '{"version":1,"endless":{"bestScore":"x","bestRound":7},'
+          '"stages":{"1-1":{"cleared":"yes","bestScore":800,"stars":[true,false]},"1-2":{"cleared":true,"stars":3}}}';
+      final (c, sp) = await load(raw);
+      final r = c.read(recordsProvider);
+      expect(r.endless.bestScore, 0);
+      expect(r.endless.bestRound, 7);
+      expect(r.stage('1-1').cleared, isFalse);
+      expect(r.stage('1-1').bestScore, 800);
+      expect(r.stage('1-1').stars, [true, false]);
+      expect(r.stage('1-2').cleared, isTrue);
+      expect(r.stage('1-2').stars, isEmpty);
+      expect(sp.getString('records.broken'), raw);
+    });
+
+    test('JSON として読めないときは、元の文字列を records.broken に残して初期値で始める', () async {
+      const raw = '{"version":1,"endless":{"bestScore":50';
+      final (c, sp) = await load(raw);
+      expect(c.read(recordsProvider).endless.bestScore, 0);
+      expect(sp.getString('records.broken'), raw);
+
+      c.read(recordsProvider.notifier).submitStage('1-1', clear(300), [true]);
+      expect(sp.getString('records.broken'), raw, reason: '保存しても退避したデータは残る');
+      expect(sp.getString('records'), isNot(raw));
+    });
+
+    test('最上位が JSON のオブジェクトでないときも退避して初期値で始める', () async {
+      final (c, sp) = await load('[1,2]');
+      expect(c.read(recordsProvider).stages, isEmpty);
+      expect(sp.getString('records.broken'), '[1,2]');
+    });
+
+    test('今より新しい version のデータは、読める項目を読み、元のデータを退避する', () async {
+      final raw = jsonEncode({
+        'version': Records.version + 1,
+        'endless': {'bestScore': 9000, 'newField': 1},
+        'stages': {
+          '1-1': {
+            'cleared': true,
+            'bestScore': 700,
+            'stars': [true],
+          },
+        },
+        'future': {'x': 1},
+      });
+      final (c, sp) = await load(raw);
+      final r = c.read(recordsProvider);
+      expect(r.endless.bestScore, 9000);
+      expect(r.stage('1-1').bestScore, 700);
+      expect(sp.getString('records.broken'), raw);
+
+      c.read(recordsProvider.notifier).submitEndless(score: 10, round: 1, stats: RunStats());
+      expect(sp.getString('records.broken'), raw, reason: '新しい版のデータは上書きで失わない');
+    });
+
+    test('正しいデータでは退避しない', () async {
+      final raw = jsonEncode(const Records(
+        endless: EndlessRecord(bestScore: 10),
+        stages: {'1-1': StageRecord(cleared: true, bestScore: 5, stars: [true, false])},
+      ).toJson());
+      final (c, sp) = await load(raw);
+      expect(c.read(recordsProvider).stage('1-1').stars, [true, false]);
+      expect(sp.getString('records.broken'), isNull);
+    });
+
+    test('version がない古い形式も、退避せずに読む', () async {
+      final (c, sp) = await load('{"endless":{"bestScore":42},"stages":{}}');
+      expect(c.read(recordsProvider).endless.bestScore, 42);
+      expect(sp.getString('records.broken'), isNull);
+    });
+  });
 }

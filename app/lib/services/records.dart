@@ -6,6 +6,80 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/core.dart';
 import 'settings.dart';
 
+/// 保存データを読む。型の違う項目は初期値に置き換え、置き換えた・捨てた項目があれば [lossy] にする。
+class _Reader {
+  bool lossy = false;
+
+  Map<String, Object?> map(Object? v) {
+    if (v == null) return const {};
+    if (v is Map<String, Object?>) return v;
+    lossy = true;
+    return const {};
+  }
+
+  int int_(Object? v) {
+    if (v == null) return 0;
+    if (v is num && v.isFinite) return v.toInt();
+    lossy = true;
+    return 0;
+  }
+
+  bool bool_(Object? v) {
+    if (v == null) return false;
+    if (v is bool) return v;
+    lossy = true;
+    return false;
+  }
+
+  List<bool> bools(Object? v) {
+    if (v == null) return const [];
+    if (v is! List) {
+      lossy = true;
+      return const [];
+    }
+    return [for (final s in v) s is bool ? s : _invalidStar()];
+  }
+
+  bool _invalidStar() {
+    lossy = true;
+    return false;
+  }
+
+  EndlessRecord endless(Object? v) {
+    final j = map(v);
+    return EndlessRecord(
+      bestScore: int_(j['bestScore']),
+      bestRound: int_(j['bestRound']),
+      bestCollapse: int_(j['bestCollapse']),
+      bestBlast: int_(j['bestBlast']),
+      bestRicochet: int_(j['bestRicochet']),
+    );
+  }
+
+  StageRecord stage(Map<String, Object?> j) => StageRecord(
+        cleared: bool_(j['cleared']),
+        bestScore: int_(j['bestScore']),
+        stars: bools(j['stars']),
+      );
+
+  Records records(Map<String, Object?> j) {
+    final v = j['version'];
+    // version がない古いデータは 1 として読む。今より新しい版のデータは、知っている項目だけを読む
+    // (知らない項目は次の保存で失うので、元のデータを退避させる)。
+    if (v != null && !(v is int && v <= Records.version)) lossy = true;
+    final stages = <String, StageRecord>{};
+    for (final e in map(j['stages']).entries) {
+      final s = e.value;
+      if (s is Map<String, Object?>) {
+        stages[e.key] = stage(s);
+      } else {
+        lossy = true; // 形の違うこの 1 件だけを捨てる
+      }
+    }
+    return Records(endless: endless(j['endless']), stages: stages);
+  }
+}
+
 class EndlessRecord {
   const EndlessRecord({
     this.bestScore = 0,
@@ -24,16 +98,8 @@ class EndlessRecord {
         'bestRicochet': bestRicochet,
       };
 
-  factory EndlessRecord.fromJson(Map<String, Object?> j) {
-    int i(String k) => (j[k] as num?)?.toInt() ?? 0;
-    return EndlessRecord(
-      bestScore: i('bestScore'),
-      bestRound: i('bestRound'),
-      bestCollapse: i('bestCollapse'),
-      bestBlast: i('bestBlast'),
-      bestRicochet: i('bestRicochet'),
-    );
-  }
+  /// 型の違う項目は 0 として読む。
+  factory EndlessRecord.fromJson(Map<String, Object?> j) => _Reader().endless(j);
 }
 
 class StageRecord {
@@ -51,11 +117,8 @@ class StageRecord {
 
   Map<String, Object?> toJson() => {'cleared': cleared, 'bestScore': bestScore, 'stars': stars};
 
-  factory StageRecord.fromJson(Map<String, Object?> j) => StageRecord(
-        cleared: j['cleared'] as bool? ?? false,
-        bestScore: (j['bestScore'] as num?)?.toInt() ?? 0,
-        stars: [for (final s in (j['stars'] as List?) ?? const []) s == true],
-      );
+  /// 型の違う項目は初期値として読む。
+  factory StageRecord.fromJson(Map<String, Object?> j) => _Reader().stage(j);
 }
 
 /// 記録 (スキーマのバージョン付き JSON で保存する)。
@@ -114,27 +177,40 @@ class Records {
         'stages': {for (final e in stages.entries) e.key: e.value.toJson()},
       };
 
-  factory Records.fromJson(Map<String, Object?> j) => Records(
-        endless: EndlessRecord.fromJson((j['endless'] as Map<String, Object?>?) ?? const {}),
-        stages: {
-          for (final e in ((j['stages'] as Map<String, Object?>?) ?? const {}).entries)
-            e.key: StageRecord.fromJson(e.value as Map<String, Object?>),
-        },
-      );
+  /// 壊れた項目 (形の違うステージの 1 件、型の違う値) だけを捨て、読める項目は残す。
+  factory Records.fromJson(Map<String, Object?> j) => _Reader().records(j);
+
+  /// 保存した文字列を読む。`intact` が false なら、捨てた項目がある・JSON として読めない・
+  /// 今より新しい版のデータのどれかで、そのまま上書きすると元のデータを失う。
+  static ({Records records, bool intact}) decode(String raw) {
+    final Object? json;
+    try {
+      json = jsonDecode(raw);
+    } on FormatException {
+      return (records: const Records(), intact: false);
+    }
+    if (json is! Map<String, Object?>) return (records: const Records(), intact: false);
+    final reader = _Reader();
+    final records = reader.records(json);
+    return (records: records, intact: !reader.lossy);
+  }
 }
 
 class RecordsNotifier extends Notifier<Records> {
   static const _key = 'records';
 
+  /// 読めなかった (一部でも捨てた) 元のデータの退避先。最新の 1 世代だけを残す。
+  static const brokenKey = 'records.broken';
+
   @override
   Records build() {
-    final raw = ref.read(sharedPrefsProvider).getString(_key);
+    final prefs = ref.read(sharedPrefsProvider);
+    final raw = prefs.getString(_key);
     if (raw == null) return const Records();
-    try {
-      return Records.fromJson(jsonDecode(raw) as Map<String, Object?>);
-    } on Object {
-      return const Records();
-    }
+    final (:records, :intact) = Records.decode(raw);
+    // 次の保存で records を上書きする前に、元の文字列を残しておく。
+    if (!intact) prefs.setString(brokenKey, raw);
+    return records;
   }
 
   void _save(Records r) {
