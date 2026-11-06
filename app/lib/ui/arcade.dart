@@ -21,11 +21,18 @@ class PixelTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final o = math.max(1.0, (size / 10).roundToDouble());
     TextStyle st(Color c) => pixelFont(size, color: c).copyWith(height: 1);
-    return Stack(children: [
-      Transform.translate(offset: Offset(o * 2, o * 2), child: Text(text, style: st(Dot.ink))),
-      Transform.translate(offset: Offset(o, o), child: Text(text, style: st(shadow ?? Dot.dark(color)))),
-      Text(text, style: st(color)),
-    ]);
+    // 同じ文字を 3 つ重ねて描くので、読み上げには見出しとして 1 回だけ渡す。
+    return Semantics(
+      header: true,
+      label: text,
+      child: ExcludeSemantics(
+        child: Stack(children: [
+          Transform.translate(offset: Offset(o * 2, o * 2), child: Text(text, style: st(Dot.ink))),
+          Transform.translate(offset: Offset(o, o), child: Text(text, style: st(shadow ?? Dot.dark(color)))),
+          Text(text, style: st(color)),
+        ]),
+      ),
+    );
   }
 }
 
