@@ -160,6 +160,10 @@ class AdMobAds implements AdsService {
   /// 読み込みに失敗したときの再試行の間隔。使い切ったら、次に結果画面が出るか前面に戻るまで試さない。
   static const retryDelays = [Duration(seconds: 30), Duration(minutes: 1), Duration(minutes: 2), Duration(minutes: 4)];
 
+  /// 出してから表示の通知 (onShown) が来るまで待つ長さ。表示の通知も閉じた通知も来ないまま
+  /// これを過ぎたら、待つのをやめて結果画面から戻れるようにする。表示の通知が来たあとは、閉じるまで待つ。
+  static const showTimeout = Duration(seconds: 5);
+
   bool _initDone = false, _consentUpdated = false, _starting = false, _ready = false, _loading = false;
   LoadedInterstitial? _ad;
   DateTime? _loadedAt;
@@ -273,7 +277,30 @@ class AdMobAds implements AdsService {
     }
     _ad = null;
     _loadedAt = null;
-    await ad.show(onShown: _policy.recordShown);
+    var shown = false;
+    final finished = Completer<void>();
+    void finish() {
+      if (!finished.isCompleted) finished.complete();
+    }
+
+    final timeout = _timer(showTimeout, () {
+      if (shown) return;
+      debugPrint('interstitial show timed out');
+      finish();
+    });
+    unawaited(
+      ad
+          .show(
+            onShown: () {
+              shown = true;
+              _policy.recordShown();
+            },
+          )
+          .catchError((Object e) => debugPrint('interstitial show failed: $e'))
+          .whenComplete(finish),
+    );
+    await finished.future;
+    timeout.cancel();
     _preload();
   }
 
