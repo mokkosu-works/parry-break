@@ -539,7 +539,8 @@
      },
      "rounds": [
       {
-       "endless": 28,
+       "endless": 24,
+       "difficulty": 28,
        "intro": "intro.survive",
        "clear": {
         "type": "survive",
@@ -761,7 +762,8 @@
      },
      "rounds": [
       {
-       "endless": 35
+       "endless": 31,
+       "difficulty": 35
       }
      ],
      "stars": [
