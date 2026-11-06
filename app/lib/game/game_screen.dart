@@ -245,6 +245,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       highQuality: settings.quality == GraphicsQuality.high,
       repaint: _ctl.frame,
     );
+    _painter!.parryButton = settings.controls != ControlScheme.zones;
     return Scaffold(
       backgroundColor: Dot.ink,
       body: Focus(

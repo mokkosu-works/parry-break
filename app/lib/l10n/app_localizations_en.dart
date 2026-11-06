@@ -374,6 +374,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introParry => 'TAP AS THE BALL HITS TO PARRY';
 
   @override
+  String get introParryButton => 'PRESS PARRY AS THE BALL HITS';
+
+  @override
   String get introPierce => 'A PERFECT PARRY MAKES A PIERCING SHOT';
 
   @override

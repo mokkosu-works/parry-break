@@ -368,6 +368,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introParry => 'ボールが当たる瞬間にタップしてパリィ';
 
   @override
+  String get introParryButton => 'ボールが当たる瞬間に PARRY を押してパリィ';
+
+  @override
   String get introPierce => 'PERFECT でパリィすると貫通弾。まとめて撃ち抜け';
 
   @override
