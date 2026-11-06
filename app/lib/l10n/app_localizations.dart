@@ -695,8 +695,14 @@ abstract class AppLocalizations {
   /// No description provided for @introMirror.
   ///
   /// In ja, this message translates to:
-  /// **'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す'**
+  /// **'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す。貫通弾でしか壊れない'**
   String get introMirror;
+
+  /// No description provided for @introWall.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: 壊せない壁 — 全消しには数えない。FEVER TIME 中だけ壊せる'**
+  String get introWall;
 
   /// No description provided for @introSpread.
   ///

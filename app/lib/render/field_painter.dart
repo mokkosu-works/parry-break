@@ -12,6 +12,30 @@ import 'palette.dart';
 import 'pixel.dart';
 import 'text_cache.dart';
 
+/// 説明の翻訳キー (`intro.*`) の文言。知らないキーなら null。[loop] は `intro.loop` の周回数。
+String? introText(AppLocalizations l10n, String? key, {int loop = 1}) => switch (key) {
+      'intro.keystone' => l10n.introKeystone,
+      'intro.turret' => l10n.introTurret,
+      'intro.explosive' => l10n.introExplosive,
+      'intro.reflector' => l10n.introReflector,
+      'intro.magnet' => l10n.introMagnet,
+      'intro.splitter' => l10n.introSplitter,
+      'intro.mirror' => l10n.introMirror,
+      'intro.wall' => l10n.introWall,
+      'intro.spread' => l10n.introSpread,
+      'intro.gatling' => l10n.introGatling,
+      'intro.ring' => l10n.introRing,
+      'intro.spiral' => l10n.introSpiral,
+      'intro.sniper' => l10n.introSniper,
+      'intro.loop' => l10n.introLoop('$loop'),
+      'intro.parry' => l10n.introParry,
+      'intro.pierce' => l10n.introPierce,
+      'intro.feverTime' => l10n.introFeverTime,
+      'intro.survive' => l10n.introSurvive,
+      'intro.score' => l10n.introScore,
+      _ => null,
+    };
+
 /// 盤面 (1200×720) を描く。HUD・コールアウト・バナー・ラウンドクリアの表示も含む。
 ///
 /// 見た目は 16 色のドット絵 (1 ドット = [Dot.px])。発光やぼかしは使わず、
@@ -600,27 +624,7 @@ class FieldPainter extends CustomPainter {
     }
   }
 
-  String? _introText(String? key) => switch (key) {
-        'intro.keystone' => l10n.introKeystone,
-        'intro.turret' => l10n.introTurret,
-        'intro.explosive' => l10n.introExplosive,
-        'intro.reflector' => l10n.introReflector,
-        'intro.magnet' => l10n.introMagnet,
-        'intro.splitter' => l10n.introSplitter,
-        'intro.mirror' => l10n.introMirror,
-        'intro.spread' => l10n.introSpread,
-        'intro.gatling' => l10n.introGatling,
-        'intro.ring' => l10n.introRing,
-        'intro.spiral' => l10n.introSpiral,
-        'intro.sniper' => l10n.introSniper,
-        'intro.loop' => l10n.introLoop('${world.round.loop + 1}'),
-        'intro.parry' => l10n.introParry,
-        'intro.pierce' => l10n.introPierce,
-        'intro.feverTime' => l10n.introFeverTime,
-        'intro.survive' => l10n.introSurvive,
-        'intro.score' => l10n.introScore,
-        _ => null,
-      };
+  String? _introText(String? key) => introText(l10n, key, loop: world.round.loop + 1);
 
   /// ステージモードでは、説明がなければクリア条件を出す。
   String? _goalText() {
