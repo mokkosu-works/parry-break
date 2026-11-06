@@ -120,5 +120,7 @@
   "difficulty": "Difficulty",
   "difficultyEasy": "Fewer, slower bullets. Wider parry timing and more time for bosses",
   "difficultyNormal": "Standard difficulty",
-  "difficultyHard": "Bullet hell. More bullets, and broken blocks shoot back"
+  "difficultyHard": "Bullet hell. More bullets, and broken blocks shoot back",
+  "startupErrorTitle": "Couldn't start",
+  "startupErrorBody": "The game data could not be loaded. Please close the app and open it again. If this keeps happening, update the app to the latest version."
 }

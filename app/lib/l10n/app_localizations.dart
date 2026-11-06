@@ -823,6 +823,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'弾幕モード。弾が増え、壊したブロックが撃ち返してくる'**
   String get difficultyHard;
+
+  /// No description provided for @startupErrorTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'起動できませんでした'**
+  String get startupErrorTitle;
+
+  /// No description provided for @startupErrorBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。'**
+  String get startupErrorBody;
 }
 
 class _AppLocalizationsDelegate
