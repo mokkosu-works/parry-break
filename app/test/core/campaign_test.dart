@@ -62,6 +62,40 @@ void main() {
     }
   });
 
+  test('エンドレスの配置を借りた面は、ステージ側に intro がなければエンドレスの説明を引き継ぐ', () {
+    String? intro(String id) => campaign.stage(id)!.rounds.first.introKey;
+    // 借りたラウンドの説明 (新しいブロックの初登場)
+    expect(intro('1-2'), 'intro.keystone');
+    expect(intro('1-4'), 'intro.turret');
+    expect(intro('1-5'), 'intro.explosive');
+    expect(intro('1-6'), 'intro.reflector');
+    expect(intro('1-9'), 'intro.magnet');
+    expect(intro('2-4'), 'intro.splitter');
+    expect(intro('2-6'), 'intro.mirror');
+    // ステージ側に intro があれば、そちらが優先される
+    expect(intro('1-1'), 'intro.parry');
+    expect(intro('1-3'), 'intro.pierce');
+    expect(intro('1-7'), 'intro.score');
+    expect(intro('1-8'), 'intro.survive');
+    expect(intro('2-1'), 'intro.feverTime');
+    expect(intro('4-1'), 'intro.spread');
+    // 借りたラウンドに説明がなければ何も付かない (帯にはクリア条件が出る)
+    expect(intro('2-2'), isNull);
+    expect(intro('3-3'), isNull);
+    // どの {"endless": n} の面も、ステージ側の intro か、エンドレスの R{n} の intro になる
+    final raw = jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>;
+    for (final c in (raw['chapters'] as List).cast<Map<String, Object?>>()) {
+      for (final s in (c['stages'] as List).cast<Map<String, Object?>>()) {
+        for (final (i, r) in (s['rounds'] as List).cast<Map<String, Object?>>().indexed) {
+          if (r['endless'] case final num n) {
+            expect(campaign.stage(s['id'] as String)!.rounds[i].introKey, r['intro'] ?? endlessContent.intros[n.toInt()],
+                reason: '${s['id']} の ${i + 1} ラウンド目');
+          }
+        }
+      }
+    }
+  });
+
   test('エンドレスのボスの番号を指定したステージでも、ボスではなく配置になる', () {
     final s = campaign.stage('2-4')!; // エンドレスの R20 (分裂の学習ラウンド)
     final w = World(mode: StageMode(s))..start();
