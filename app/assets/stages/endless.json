@@ -82,6 +82,14 @@
    ],
    "intro": "intro.splitter"
   },
+  "21": {
+   "rows": [
+    "..SSSSSSSSSS..",
+    "NNNNNNNNNNNNNN",
+    ".N.N.N..N.N.N."
+   ],
+   "intro": "intro.splitter"
+  },
   "26": {
    "rows": [
     "...T......T...",
