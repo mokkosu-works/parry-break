@@ -332,6 +332,12 @@ abstract class AppLocalizations {
   /// **'NEW RECORD'**
   String get newRecord;
 
+  /// No description provided for @bestScoreClearOnly.
+  ///
+  /// In ja, this message translates to:
+  /// **'クリアした回のみ記録'**
+  String get bestScoreClearOnly;
+
   /// No description provided for @locked.
   ///
   /// In ja, this message translates to:

@@ -311,6 +311,17 @@ class _ResultOverlayState extends State<ResultOverlay>
                       weight: 900,
                     ).copyWith(fontFeatures: tab),
                   ),
+                  // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える
+                  if (d.stage != null && !d.cleared) ...[
+                    const SizedBox(width: 14),
+                    Flexible(
+                      child: Text(
+                        AppLocalizations.of(context).bestScoreClearOnly,
+                        overflow: TextOverflow.ellipsis,
+                        style: pixelFont(13, color: Palette.pale, weight: 400),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               if (d.newBest) ...[
