@@ -168,7 +168,7 @@
   "debugModeOff": "デバッグモード OFF",
   "languageSystem": "端末の設定に合わせる",
   "calibrationTitle": "判定タイミングの測定",
-  "calibrationBody": "リングが線に重なる瞬間にタップしてください（{count}回）",
+  "calibrationBody": "縮んでくる輪が、中央の輪に重なる瞬間にタップしてください（{count}回）",
   "@calibrationBody": {
     "placeholders": {
       "count": {
@@ -186,6 +186,18 @@
   },
   "calibrationApply": "この値を使う",
   "calibrationRetry": "測り直す",
+  "calibrationStart": "スタート",
+  "calibrationFailed": "うまく測れませんでした（輪に合ったタップ: {hits}回。{min}回以上必要です）。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください",
+  "@calibrationFailed": {
+    "placeholders": {
+      "hits": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
   "tapToStart": "タップで開始",
   "rankingUnavailable": "ランキングは現在利用できません",
   "rankingEndlessScore": "エンドレス: スコア",
