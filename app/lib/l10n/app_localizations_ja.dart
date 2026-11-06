@@ -135,6 +135,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newRecord => 'NEW RECORD';
 
   @override
+  String get bestScoreClearOnly => 'クリアした回のみ記録';
+
+  @override
   String get locked => '未解放';
 
   @override

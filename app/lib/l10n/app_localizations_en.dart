@@ -137,6 +137,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newRecord => 'NEW RECORD';
 
   @override
+  String get bestScoreClearOnly => 'CLEAR ONLY';
+
+  @override
   String get locked => 'LOCKED';
 
   @override
