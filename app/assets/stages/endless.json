@@ -65,6 +65,9 @@
    ],
    "intro": "intro.reflector"
   },
+  "12": {
+   "intro": "intro.wall"
+  },
   "14": {
    "rows": [
     "NNNNNNNNNNNNNN",

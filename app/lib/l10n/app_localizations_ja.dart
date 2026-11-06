@@ -342,7 +342,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introSplitter => 'NEW: 分裂 — 壊すと小さなブロックが飛び散る';
 
   @override
-  String get introMirror => 'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す';
+  String get introMirror => 'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す。貫通弾でしか壊れない';
+
+  @override
+  String get introWall => 'NEW: 壊せない壁 — 全消しには数えない。FEVER TIME 中だけ壊せる';
 
   @override
   String get introSpread => 'NEW: 拡散砲台 — 扇状の弾。まとめてパリィで撃ち返せ';
