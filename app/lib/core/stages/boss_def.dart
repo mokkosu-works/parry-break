@@ -28,7 +28,7 @@ class BossDef {
     required this.timeLimit,
     required this.patterns,
     this.hardPatterns = const [],
-    this.phaseThresholds = const [0.66, 0.33],
+    this.phaseThresholds = defaultPhaseThresholds,
     this.sway = 0.55,
     this.reinforce = 2,
   });
@@ -48,6 +48,9 @@ class BossDef {
   /// コアの残り HP の割合がこれ以下になるとフェーズが進む。
   final List<double> phaseThresholds;
 
+  /// 既定のフェーズ移行: 残りが合計の 2/3 以下でフェーズ2、1/3 以下でフェーズ3 (design.md 6章)。
+  static const defaultPhaseThresholds = [2 / 3, 1 / 3];
+
   /// 左右に揺れる速さ (角速度、ラジアン/秒)。速いほどコアを狙いにくい。
   final double sway;
 
@@ -62,7 +65,7 @@ class BossDef {
         patterns: _patterns(j['patterns'] as List<Object?>),
         hardPatterns: _patterns(j['hard'] as List<Object?>? ?? const []),
         phaseThresholds: [
-          for (final v in (j['phases'] as List?) ?? const [0.66, 0.33]) (v as num).toDouble(),
+          for (final v in (j['phases'] as List?) ?? defaultPhaseThresholds) (v as num).toDouble(),
         ],
         sway: (j['sway'] as num?)?.toDouble() ?? 0.55,
         reinforce: (j['reinforce'] as num?)?.toInt() ?? 2,
@@ -91,6 +94,12 @@ class Boss {
 
   /// 左右に揺れる振幅。
   double amp;
+
+  /// フェーズ移行で [amp] が変わったとき、要塞が飛ばないように元の位置からなめらかに移る時間 (秒)。
+  static const ampBlendTime = 1.0;
+
+  /// 移行の瞬間の位置と、新しい揺れの位置との差。[blend] (残り秒数) に比例して 0 に近づける。
+  double blendOx = 0, blend = 0;
   final int maxHp;
   final List<BossPattern> patterns;
   int phase = 1;
