@@ -29,6 +29,7 @@ class FieldPainter extends CustomPainter {
     required this.highQuality,
     required super.repaint,
     this.attract = false,
+    this.parryButton = false,
   });
 
   final World world;
@@ -48,6 +49,10 @@ class FieldPainter extends CustomPainter {
 
   /// タイトル画面のデモ表示。HUD・文字の演出を描かない。
   final bool attract;
+
+  /// 発射とパリィを PARRY ボタンでする操作方式 (レール方式) か。
+  /// 案内を「TAP」ではなく PARRY ボタンを指す文にする。設定の変更に合わせて書き換える。
+  bool parryButton;
 
   static const _w = Field.width, _h = Field.height, _d = Dot.px;
 
@@ -338,7 +343,7 @@ class FieldPainter extends CustomPainter {
       if (w.countdown > 0) {
         _bigTxt('READY', x, y - 32, 24, Dot.mustard, shadow: Dot.brick);
       } else if ((_t * 2).floor().isEven) {
-        _bigTxt('TAP', x, y - 32, 24, Dot.white, shadow: Dot.edge);
+        _bigTxt(parryButton ? 'PARRY' : 'TAP', x, y - 32, 24, Dot.white, shadow: Dot.edge);
       }
     }
   }
@@ -614,7 +619,7 @@ class FieldPainter extends CustomPainter {
         'intro.spiral' => l10n.introSpiral,
         'intro.sniper' => l10n.introSniper,
         'intro.loop' => l10n.introLoop('${world.round.loop + 1}'),
-        'intro.parry' => l10n.introParry,
+        'intro.parry' => parryButton ? l10n.introParryButton : l10n.introParry,
         'intro.pierce' => l10n.introPierce,
         'intro.feverTime' => l10n.introFeverTime,
         'intro.survive' => l10n.introSurvive,
