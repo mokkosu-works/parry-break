@@ -147,4 +147,48 @@ void main() {
     expect(events.whereType<RoundCleared>(), hasLength(1));
     expect(w.bonuses.first.label, 'BOSS DESTROYED');
   });
+
+  group('RETRY (#132)', () {
+    test('タッチで端へ寄せたまま start() を呼び直すと、最初のステップ後のパドルは中央にある', () {
+      final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
+      run(w, 1.1);
+      w.input
+        ..useTarget = true
+        ..targetX = Field.width - w.paddleWidth / 2;
+      run(w, 0.1);
+      expect(w.paddle.x, Field.width - w.paddleWidth / 2);
+      w.start();
+      w.step(World.dt);
+      expect(w.paddle.x, Field.width / 2);
+      expect(w.ball.x, Field.width / 2); // ボールもパドルと一緒に中央から
+    });
+
+    test('キーの方向入力が残っていても、start() の後の最初のステップでパドルは動かない', () {
+      final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
+      w.input
+        ..useTarget = false
+        ..axis = -1;
+      run(w, 0.5);
+      expect(w.paddle.x, lessThan(Field.width / 2));
+      w.start();
+      w.step(World.dt);
+      expect(w.paddle.x, Field.width / 2);
+    });
+
+    test('start() で、前のプレイのクリア・ゲームオーバーの演出用の値も最初の状態に戻る', () {
+      final fresh = World(mode: const SingleRoundMode(['NNNNNNNNNNNNNN']))..start();
+      final w = World(mode: const SingleRoundMode(['NNNNNNNNNNNNNN']))..start();
+      w
+        ..bonuses = const [Bonus('ROUND CLEAR  ×1', 5000)]
+        ..clearT = 3
+        ..overT = 2
+        ..lastBreak = const Vec2(10, 10);
+      w.start();
+      expect(w.bonuses, isEmpty);
+      expect(w.clearT, 0);
+      expect(w.overT, 0);
+      expect(w.lastBreak.x, fresh.lastBreak.x);
+      expect(w.lastBreak.y, fresh.lastBreak.y);
+    });
+  });
 }
