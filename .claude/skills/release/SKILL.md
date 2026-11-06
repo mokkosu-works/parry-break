@@ -55,6 +55,7 @@ gh pr list --base dev --state open    # まだ dev に入っていない PR
 | 画面の見た目が変わった | スクリーンショットの撮り直し(人の作業、`docs/app-store.md` の手順) |
 | リーダーボードを足した | App Store Connect と Play Console で作る(人の作業、`docs/native-app-spec.md` 9.2 / 9.4) |
 | 広告・トラッキング・保存データ・外部の通信 | App のプライバシー / データ セーフティの申告の見直し(人の作業) |
+| 広告の出し方(`InterstitialPolicy` の回数・間隔・上限、出す場面)・操作方法(`ControlScheme`)を変えた | `docs/app-store.md` の審査メモを実装に合わせて直す。App Store Connect の「App Review に関する情報」への貼り直しは人の作業 |
 | 権限・Info.plist・AndroidManifest | 審査で聞かれそうな点を PR に書く |
 | 仕様が変わった | `design.md` / `docs/native-app-spec.md` の該当箇所と「実装の状況」 |
 
