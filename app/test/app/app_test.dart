@@ -106,6 +106,23 @@ class _FakeAds extends DisabledAds {
   Future<void> showInterstitialIfDue() async => shown++;
 }
 
+/// 広告を出そうとすると例外を投げる。
+class _ThrowingAds extends DisabledAds {
+  int calls = 0;
+  @override
+  Future<void> showInterstitialIfDue() async {
+    calls++;
+    throw Exception('ads broken');
+  }
+}
+
+/// 音の一時停止 (setPaused) を覚える。
+class _PauseAudio extends SilentAudio {
+  final paused = <bool>[];
+  @override
+  void setPaused(bool paused) => this.paused.add(paused);
+}
+
 /// BGM に関わる呼び出しを覚える。
 class _FakeAudio extends SilentAudio {
   bool menu = false;
@@ -368,6 +385,23 @@ void main() {
     expect(ads.shown, 1);
     expect(find.byType(GameScreen), findsNothing);
     expect(find.text('1-1'), findsOneWidget); // ステージ選択
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('結果画面: 広告で例外が出ても、音を戻してタイトルへ戻る', (tester) async {
+    final ads = _ThrowingAds();
+    final audio = _PauseAudio();
+    await _pumpApp(tester, ads: ads, audio: audio);
+    await _frames(tester, 1);
+    await tester.tap(find.text('ENDLESS'));
+    await _frames(tester, 1.4);
+    await _gameOver(tester);
+    audio.paused.clear();
+    await tester.tap(find.text('TITLE'));
+    await _frames(tester, 1);
+    expect(ads.calls, 1);
+    expect(audio.paused, [true, false]);
+    expect(find.byType(GameScreen), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

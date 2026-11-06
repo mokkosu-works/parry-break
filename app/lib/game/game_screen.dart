@@ -196,9 +196,15 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     // デバッグモードのプレイでは出さない (開発者が本番の広告を表示・クリックしないように)
     if (!ref.read(debugModeProvider)) {
       _ctl.audio.setPaused(true);
-      // ステージを星 3 つでクリアして戻るときは、評価の依頼を出す (出したときは、続けて広告は出さない)
-      if (!await _askReview()) await ref.read(adsProvider).showInterstitialIfDue();
-      _ctl.audio.setPaused(false);
+      try {
+        // ステージを星 3 つでクリアして戻るときは、評価の依頼を出す (出したときは、続けて広告は出さない)
+        if (!await _askReview()) await ref.read(adsProvider).showInterstitialIfDue();
+      } on Object catch (e) {
+        // 広告や評価の依頼でつまずいても、結果画面に閉じ込めない
+        debugPrint('leave result failed: $e');
+      } finally {
+        _ctl.audio.setPaused(false);
+      }
     }
     if (mounted) go();
   }
