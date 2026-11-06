@@ -28,10 +28,7 @@ class SingleRoundMode extends GameMode {
 /// 入力時刻 = シミュレーション時刻になるようにした World。
 World testWorld(GameMode mode, {double inputLag = 0}) {
   final w = World(mode: mode, inputLag: inputLag)..start();
-  w.sync
-    ..wall = 0
-    ..sim = 0
-    ..scale = 1;
+  w.sync.identity();
   return w;
 }
 
