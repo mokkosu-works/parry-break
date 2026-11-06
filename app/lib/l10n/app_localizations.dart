@@ -761,8 +761,8 @@ abstract class AppLocalizations {
   /// No description provided for @introScore.
   ///
   /// In ja, this message translates to:
-  /// **'目標スコアに到達すればクリア'**
-  String get introScore;
+  /// **'スコア {value} に到達すればクリア'**
+  String introScore(String value);
 
   /// No description provided for @bannerBoss.
   ///

@@ -377,7 +377,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
 
   @override
-  String get introScore => '目標スコアに到達すればクリア';
+  String introScore(String value) {
+    return 'スコア $value に到達すればクリア';
+  }
 
   @override
   String get bannerBoss => '赤い弾をパリィで撃ち返し、貫通弾でコアを狙え';
