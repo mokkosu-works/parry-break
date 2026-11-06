@@ -262,6 +262,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       highQuality: settings.quality == GraphicsQuality.high,
       repaint: _ctl.frame,
     );
+    _painter!.parryButton = settings.controls != ControlScheme.zones;
     return PopScope(
       // 戻るボタン (Android) で画面を閉じず、ポーズや結果画面のボタンと同じ処理にする (_onBack)
       canPop: false,

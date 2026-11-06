@@ -224,6 +224,7 @@
     }
   },
   "introParry": "ボールが当たる瞬間にタップしてパリィ",
+  "introParryButton": "ボールが当たる瞬間に PARRY を押してパリィ",
   "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
   "introFeverTime": "PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ",
   "introSurvive": "ブロックをデッドラインまで下ろさずに耐え抜け",
