@@ -179,6 +179,59 @@ void main() {
       expect(sdk.shown, 1);
     });
 
+    test('出せなかったとき (表示の通知が来ない) は表示回数を数えず、次を読み込む', () async {
+      ads = create();
+      await start();
+      sdk.ads.single.showFails = true;
+      await ads.showInterstitialIfDue();
+      expect(sdk.shown, 0);
+      expect(prefs.getInt('ads.lastShown'), isNull);
+      expect(prefs.getInt('ads.dayCount'), isNull);
+      expect(sdk.loads, 2);
+      // 数えていないので、3 分待たずに次の広告を出せる
+      await pumpEventQueue();
+      await ads.showInterstitialIfDue();
+      expect(sdk.shown, 1);
+    });
+
+    test('表示の通知も閉じた通知も来なければ、一定時間で待つのをやめて次を読み込む', () async {
+      ads = create();
+      await start();
+      sdk.ads.single
+        ..showFails = true
+        ..closed = Completer<void>(); // 通知が来ないまま終わらない
+      var done = false;
+      unawaited(ads.showInterstitialIfDue().then((_) => done = true));
+      await pumpEventQueue();
+      expect(done, isFalse);
+      final timeout = timers.where((t) => t.$1 == AdMobAds.showTimeout).toList();
+      expect(timeout, hasLength(1));
+      timeout.single.$2();
+      await pumpEventQueue();
+      expect(done, isTrue);
+      expect(prefs.getInt('ads.lastShown'), isNull);
+      expect(sdk.loads, 2);
+    });
+
+    test('表示の通知が来たら、時間がたってもプレイヤーが閉じるまで待つ', () async {
+      ads = create();
+      await start();
+      final closed = Completer<void>();
+      sdk.ads.single.closed = closed;
+      var done = false;
+      unawaited(ads.showInterstitialIfDue().then((_) => done = true));
+      await pumpEventQueue();
+      expect(sdk.shown, 1);
+      for (final t in timers.where((t) => t.$1 == AdMobAds.showTimeout).toList()) {
+        t.$2();
+      }
+      await pumpEventQueue();
+      expect(done, isFalse);
+      closed.complete();
+      await pumpEventQueue();
+      expect(done, isTrue);
+    });
+
     test('起動時に広告を出せなかったら、前面に戻ったときに同意から確かめ直す', () async {
       sdk
         ..consentOk = false
@@ -267,10 +320,19 @@ class FakeInterstitial implements LoadedInterstitial {
   final FakeSdk _sdk;
   bool disposed = false;
 
+  /// true なら画面に出ない (表示の通知が来ない)。
+  bool showFails = false;
+
+  /// 指定すると、これが終わるまで閉じた通知が来ない。
+  Completer<void>? closed;
+
   @override
   Future<void> show({required VoidCallback onShown}) async {
-    _sdk.shown++;
-    onShown();
+    if (!showFails) {
+      _sdk.shown++;
+      onShown();
+    }
+    await closed?.future;
     disposed = true;
   }
 
