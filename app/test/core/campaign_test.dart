@@ -46,6 +46,22 @@ void main() {
     expect(seen, {'F', 'G', 'O', 'Z', 'P'});
   });
 
+  test('崩落の星がある面には、崩落の支点 (要石・ボスのコア) がある', () {
+    final registry = standardBlocks();
+    for (final s in campaign.stages) {
+      if (!s.stars.any((c) => c is StatStar && c.kind == StatKind.collapse)) continue;
+      final hasAnchor = s.rounds.any((w) => switch (w.content) {
+            BossContent() => true, // ボスのコアが支点になる
+            final LayoutContent c => [
+                for (var r = 0; r < c.rows.length; r++)
+                  for (var k = 0; k < c.rows[r].length; k++)
+                    if (c.rows[r][k] != '.') c.blockIdAt(r, k),
+              ].any((id) => registry[id].anchor),
+          });
+      expect(hasAnchor, isTrue, reason: '${s.id} は崩落の星があるのに、支点がない');
+    }
+  });
+
   test('エンドレスのボスの番号を指定したステージでも、ボスではなく配置になる', () {
     final s = campaign.stage('2-4')!; // エンドレスの R20 (分裂の学習ラウンド)
     final w = World(mode: StageMode(s))..start();

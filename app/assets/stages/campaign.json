@@ -406,8 +406,8 @@
        "type": "clear"
       },
       {
-       "type": "collapse",
-       "value": 20
+       "type": "ricochet",
+       "value": 8
       },
       {
        "type": "time",
