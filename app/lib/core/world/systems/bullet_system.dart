@@ -25,7 +25,15 @@ extension _BulletSystem on World {
       }
       if (u.hostile) {
         final pw = paddleWidth, px = p.x - pw / 2;
-        if (rectDist(u.x, u.y, px, Field.paddleY, pw, Field.paddleH) <= u.r + tuning.grazeDist) u.near = true;
+        if (rectDist(u.x, u.y, px, Field.paddleY, pw, Field.paddleH) <= u.r + tuning.grazeDist) {
+          // グレイズの成否は、近くを通ったときに無敵だったかで決める。無敵中に近くを通った
+          // (重なった弾を含む) 弾は、無敵が切れてから下へ抜けてもグレイズにしない。
+          if (p.invuln > 0) {
+            u.grazed = true;
+          } else {
+            u.near = true;
+          }
+        }
         if (u.vy > 0 && circleRect(u.x, u.y, u.r, px, Field.paddleY, pw, Field.paddleH)) {
           final grade = _judgeContact(tcB);
           if (grade != null) {

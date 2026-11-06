@@ -92,4 +92,51 @@ void main() {
     w.fireBullet(w.paddle.x, Field.paddleY - 30, math.pi / 2, 300);
     expect(run(w, 0.3).whereType<PlayerHurt>(), hasLength(1));
   });
+
+  group('グレイズ (#130)', () {
+    /// カウントダウンを終えた World (ボールはパドルに付いたままなので、コンボは減らない)。
+    World ready() {
+      final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
+      run(w, 1.1);
+      return w;
+    }
+
+    test('無敵でないとき、パドルの 22px 以内をかすめた弾でグレイズになり、コンボ +8・得点 50 × 倍率が入る', () {
+      final w = ready();
+      final c0 = w.combo, s0 = w.score, m = w.mult;
+      // パドルの右端から 10px 外 (弾の縁からは 4px) を真下へ通る
+      w.fireBullet(w.paddle.x + w.paddleWidth / 2 + 6 + 10, Field.paddleY - 30, math.pi / 2, 300);
+      final events = run(w, 0.5);
+      expect(events.whereType<PlayerHurt>(), isEmpty);
+      expect(events.whereType<Grazed>(), hasLength(1));
+      expect(w.stats.graze, 1);
+      expect(w.combo, c0 + 8);
+      expect(w.score, s0 + 50 * m);
+    });
+
+    test('パドルから 22px より遠くを通った弾はグレイズにならない', () {
+      final w = ready();
+      w.fireBullet(w.paddle.x + w.paddleWidth / 2 + 6 + 23, Field.paddleY - 30, math.pi / 2, 300);
+      expect(run(w, 0.5).whereType<Grazed>(), isEmpty);
+    });
+
+    test('無敵中にパドルと重なって抜けた弾は、無敵が切れた後もグレイズにならない', () {
+      final w = ready();
+      // 0.08 秒後にパドルに重なり、約 0.17 秒後にパドルの下へ抜ける。無敵は抜けた後、画面の下へ消える前 (0.25 秒) に切れる
+      w.paddle.invuln = 0.25;
+      w.fireBullet(w.paddle.x, Field.paddleY - 30, math.pi / 2, 300);
+      final events = run(w, 0.5);
+      expect(w.paddle.invuln, lessThanOrEqualTo(0));
+      expect(events.whereType<PlayerHurt>(), isEmpty);
+      expect(events.whereType<Grazed>(), isEmpty);
+      expect(w.stats.graze, 0);
+    });
+
+    test('無敵中にパドルの近くを通った弾は、無敵が切れてから下へ抜けてもグレイズにならない', () {
+      final w = ready();
+      w.paddle.invuln = 0.25;
+      w.fireBullet(w.paddle.x + w.paddleWidth / 2 + 6 + 10, Field.paddleY - 30, math.pi / 2, 300);
+      expect(run(w, 0.5).whereType<Grazed>(), isEmpty);
+    });
+  });
 }
