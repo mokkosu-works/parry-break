@@ -215,7 +215,14 @@
   "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
   "introFeverTime": "PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ",
   "introSurvive": "ブロックをデッドラインまで下ろさずに耐え抜け",
-  "introScore": "目標スコアに到達すればクリア",
+  "introScore": "スコア {value} に到達すればクリア",
+  "@introScore": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "bannerBoss": "赤い弾をパリィで撃ち返し、貫通弾でコアを狙え",
   "bannerFeverTime": "全弾貫通 ×16 — PERFECT で分身弾",
   "bannerPhase2": "鏡のシールド展開 — ロックオンレーザーに注意",

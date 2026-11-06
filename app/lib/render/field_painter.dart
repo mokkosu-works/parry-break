@@ -509,6 +509,9 @@ class FieldPainter extends CustomPainter {
       final left = math.max(0, (clear.seconds - w.roundTime).ceil());
       _txt('SURVIVE', 530, 14, 16, Dot.dim);
       _txt('$left', 530, 38, 24, left <= 5 ? Dot.mustard : Dot.white);
+    } else if (clear is ScoreClear) {
+      _txt('GOAL', 530, 14, 16, Dot.dim);
+      _txt(formatScore(clear.target), 530, 38, 24, Dot.white);
     } else {
       _txt('CHAIN', 530, 14, 16, Dot.dim);
       _txt('${w.streak}', 530, 38, 24, Dot.white);
@@ -618,7 +621,10 @@ class FieldPainter extends CustomPainter {
         'intro.pierce' => l10n.introPierce,
         'intro.feverTime' => l10n.introFeverTime,
         'intro.survive' => l10n.introSurvive,
-        'intro.score' => l10n.introScore,
+        'intro.score' => switch (world.round.clear) {
+            ScoreClear(:final target) => l10n.introScore(formatScore(target)),
+            _ => null,
+          },
         _ => null,
       };
 

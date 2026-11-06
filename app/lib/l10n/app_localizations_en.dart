@@ -384,7 +384,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
 
   @override
-  String get introScore => 'REACH THE TARGET SCORE';
+  String introScore(String value) {
+    return 'REACH SCORE $value';
+  }
 
   @override
   String get bannerBoss =>
