@@ -27,7 +27,6 @@ class Tuning {
     this.odCoreDamageMul = 2,
     this.maxSpeed = 1400,
     this.odMaxSpeed = 1000,
-    this.odStartSpeedCap = 900,
     this.minAngleDeg = 15,
     this.grazeDist = 22,
     this.blastRadius = 84,
@@ -77,7 +76,9 @@ class Tuning {
   final int odCoreDamageMul;
 
   // ボール
-  final double maxSpeed, odMaxSpeed, odStartSpeedCap, minAngleDeg;
+  /// [maxSpeed]: FEVER TIME 以外の速さの上限。
+  /// [odMaxSpeed]: FEVER TIME の最高速度 (段階4 の速さがこれを超えるラウンドでは、段階4 の速さ)。
+  final double maxSpeed, odMaxSpeed, minAngleDeg;
 
   // 各種半径・距離
   final double grazeDist, blastRadius, breakerRadius, phantomBlastRadius;
@@ -135,7 +136,6 @@ class Tuning {
       odCoreDamageMul: (o['odCoreDamageMul'] as num?)?.toInt() ?? odCoreDamageMul,
       maxSpeed: d('maxSpeed', maxSpeed),
       odMaxSpeed: d('odMaxSpeed', odMaxSpeed),
-      odStartSpeedCap: d('odStartSpeedCap', odStartSpeedCap),
       minAngleDeg: d('minAngleDeg', minAngleDeg),
       grazeDist: d('grazeDist', grazeDist),
       blastRadius: d('blastRadius', blastRadius),
