@@ -67,8 +67,11 @@ class InterstitialPolicy {
 
   int get _countToday => _prefs.getString(_dayKey) == _today ? _prefs.getInt(_dayCountKey) ?? 0 : 0;
 
+  /// 今日の上限 ([dailyCap] 回) まで出したか。日付が変わると false に戻る。
+  bool get cappedToday => _countToday >= dailyCap;
+
   bool get due {
-    if (!pastGrace || _countToday >= dailyCap) return false;
+    if (!pastGrace || cappedToday) return false;
     final last = _prefs.getInt(_lastShownKey);
     if (last == null) return true;
     final gap = _now().difference(DateTime.fromMillisecondsSinceEpoch(last));
@@ -234,7 +237,8 @@ class AdMobAds implements AdsService {
   }
 
   void _preload({bool fromRetryTimer = false}) {
-    if (!_ready || _loading || !_policy.pastGrace) return;
+    // 今日の上限まで出した日は、出せない広告を読み込まない (表示率が下がり、通信量も無駄になる)。日付が変わったあとの呼び出しで読み込む
+    if (!_ready || _loading || !_policy.pastGrace || _policy.cappedToday) return;
     if (_ad != null) {
       if (!_expired) return;
       _discard();
