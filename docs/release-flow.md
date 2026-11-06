@@ -94,7 +94,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | 3 | 出したい変更がたまったら(目安: 2週間に1回、または不具合の修正後すぐ) | 🧑 | Claude Code で `/release` を実行する(定期実行にもできる、第6章) |
 | 4 | 〃 | 🤖 | 前回のタグからの変更を集め、バージョン名を決める。`dev` から `release/vX.Y.Z` を切り、`app/pubspec.yaml` の `version` を上げる |
 | 5 | 〃 | 🤖 | ストアの「このバージョンの新機能」を日本語・英語で書く(第5章のファイル) |
-| 6 | 〃 | 🤖 | 掲載文(App Store は `app/ios/fastlane/metadata/`、Google Play は [play-store.md](play-store.md))・スクリーンショット・ドキュメントの更新が要るか調べ、要るものは直す。ストア側で人がやる作業があれば、PR のチェックリストに挙げる |
+| 6 | 〃 | 🤖 | 掲載文(App Store は `app/ios/fastlane/metadata/`、Google Play は [play-store.md](play-store.md))・スクリーンショット・ドキュメントの更新が要るか調べ、要るものは直す。広告の出し方や操作方法が変わったら、[app-store.md](app-store.md) の審査メモも実装に合わせて直す(App Store Connect への貼り直しは人の作業)。ストア側で人がやる作業があれば、PR のチェックリストに挙げる |
 | 7 | 〃 | 🤖 | `main` に向けたリリース PR を作る。Claude のレビューも付く |
 | 8 | リリース PR | 🧑 | 新機能の文面とバージョン名を確認して、**Create a merge commit** でマージする(**人の判断 1**) |
 | 9 | マージ直後 | ⚙️ | `release.yml`: Android を Play の内部テストに、iOS を TestFlight に上げ、`vX.Y.Z` のタグと GitHub Release を作る。`sync-dev.yml`: `main` を `dev` に戻す |
