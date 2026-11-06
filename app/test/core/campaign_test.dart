@@ -63,6 +63,16 @@ void main() {
     expect(w.phase, WorldPhase.completed);
   });
 
+  test('耐久のステージは発射しないまま制限時間を過ぎてもクリアにならない (#100)', () {
+    final s = campaign.stage('5-5')!; // 狙撃戦 (50 秒耐える)
+    final w = World(mode: StageMode(s))..start();
+    final events = run(w, 60); // 入力なし = 発射しない
+    expect(events.whereType<RoundCleared>(), isEmpty);
+    expect(w.roundTime, 0);
+    expect(w.phase, WorldPhase.over);
+    expect(w.overReason, 'BLOCKS BREACHED');
+  });
+
   test('星の判定', () {
     final s = campaign.stage('1-4')!; // clear / returnKills 3 / noHit
     final stats = RunStats()..returnKills = 3;
