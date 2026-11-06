@@ -408,4 +408,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get difficultyHard => '弾幕モード。弾が増え、壊したブロックが撃ち返してくる';
+
+  @override
+  String get startupErrorTitle => '起動できませんでした';
+
+  @override
+  String get startupErrorBody =>
+      'ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。';
 }
