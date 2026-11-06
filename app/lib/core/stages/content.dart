@@ -193,7 +193,8 @@ class ChapterDef {
 ///
 /// ラウンドの書き方:
 /// - `{"rows": [...], "legend": {...}}`: 配置を直接書く
-/// - `{"endless": 2}`: エンドレスの R2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)
+/// - `{"endless": 2}`: エンドレスの R2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)。
+///   `intro` を書かなければ、エンドレスの R2 の説明 (新しいブロックの説明など) を引き継ぐ
 /// - `{"boss": 0}`: エンドレスの 1 体目のボス
 /// 共通で `difficulty`(既定 1)、`clear`、`tuning`、`intro` を書ける。
 class Campaign {
@@ -247,7 +248,10 @@ class Campaign {
       difficulty: (w['difficulty'] as num?)?.toInt() ?? defaultDifficulty,
       content: content,
       clear: ClearCondition.fromJson(w['clear'] as Map<String, Object?>?),
-      introKey: w['intro'] as String?,
+      introKey: w['intro'] as String? ?? switch (w) {
+        {'endless': final num n} => endless.intros[n.toInt()],
+        _ => null,
+      },
       tuning: Map<String, Object?>.from((w['tuning'] as Map?) ?? const {}),
     );
   }
