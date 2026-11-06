@@ -99,6 +99,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpPauseBody => '右上の Ⅱ をタップすると、一時停止する';
 
   @override
+  String get helpKeysMove => 'キーボード:←→ か A / D で移動';
+
+  @override
+  String get helpKeysParry => 'キーボード:Space か Enter で発射・パリィ';
+
+  @override
+  String get helpKeysPause => 'キーボード:Esc か P で一時停止';
+
+  @override
   String get helpPrev => '前へ';
 
   @override

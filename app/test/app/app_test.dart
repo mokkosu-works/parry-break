@@ -396,6 +396,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  // Issue #111: 遊び方の「移動」「発射・パリィ」「一時停止」にキーボードの操作を書く
+  for (final language in ['en', 'ja']) {
+    testWidgets('遊び方にキーボードの操作が出る ($language)', (tester) async {
+      await _pumpApp(tester,
+          home: const HelpScreen(),
+          size: const Size(667, 375),
+          prefs: {'settings.v1': jsonEncode(Settings(language: language).toJson())});
+      await _frames(tester, 0.5);
+      final ja = language == 'ja';
+      final keys = {
+        0: ja ? 'キーボード:←→ か A / D で移動' : 'Keyboard: ←→ or A / D to move',
+        1: ja ? 'キーボード:Space か Enter で発射・パリィ' : 'Keyboard: Space or Enter to launch / parry',
+        7: ja ? 'キーボード:Esc か P で一時停止' : 'Keyboard: Esc or P to pause',
+      };
+      for (var page = 0; page < 8; page++) {
+        if (keys[page] case final text?) {
+          expect(find.text(text), findsOneWidget, reason: 'page ${page + 1}');
+        }
+        expect(tester.takeException(), isNull, reason: 'page ${page + 1} がはみ出さない');
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await _frames(tester, 0.5);
+      }
+    });
+  }
+
   // Issue #69: 狭い画面でタイルの番号が折り返して切れていた
   for (final size in const [Size(667, 375), Size(1280, 800)]) {
     for (final cleared in [false, true]) {
