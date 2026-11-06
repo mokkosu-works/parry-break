@@ -260,6 +260,82 @@ void main() {
     expect(ads.shown, 1);
   });
 
+  // Issue #92: Android の戻るボタンで、確認なしにプレイが終わっていた
+  testWidgets('戻るボタン: プレイ中はポーズ、ポーズ中は再開のカウントダウン、カウントダウン中は何もしない', (tester) async {
+    await _pumpApp(tester);
+    await _frames(tester, 2.4);
+    await tester.tap(find.text('ENDLESS'));
+    await _frames(tester, 1.2);
+    final ctl = GameScreen.debugLastController!;
+    await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
+    await _frames(tester, 0.5);
+
+    // プレイ中: ポーズになり、画面は閉じない
+    await tester.binding.handlePopRoute();
+    await _frames(tester, 0.2);
+    expect(find.byType(GameScreen), findsOneWidget);
+    expect(ctl.paused, isTrue);
+    expect(ctl.resumeCountdown, isNull);
+    expect(find.text('PAUSED'), findsWidgets);
+
+    // ポーズ中: 再開のカウントダウンが始まる (RESUME と同じ)
+    await tester.binding.handlePopRoute();
+    await tester.pump(const Duration(microseconds: 16667));
+    expect(find.byType(GameScreen), findsOneWidget);
+    expect(ctl.resumeCountdown, isNotNull);
+
+    // カウントダウン中: 何もしない (カウントダウンは続き、画面も閉じない)
+    await tester.binding.handlePopRoute();
+    await tester.pump(const Duration(microseconds: 16667));
+    expect(find.byType(GameScreen), findsOneWidget);
+    expect(ctl.resumeCountdown, isNotNull);
+    await _frames(tester, 1.3);
+    expect(ctl.paused, isFalse);
+    expect(find.text('PAUSED'), findsNothing);
+    expect(ctl.finished, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('戻るボタン: エンドレスの結果画面では TITLE と同じく広告の判定を通ってタイトルへ戻る', (tester) async {
+    final ads = _FakeAds();
+    await _pumpApp(tester, ads: ads);
+    await _frames(tester, 2.4);
+    await tester.tap(find.text('ENDLESS'));
+    await _frames(tester, 1.2);
+    await _gameOver(tester);
+    expect(find.text('RETRY'), findsOneWidget);
+    expect(ads.shown, 0);
+
+    await tester.binding.handlePopRoute();
+    await _frames(tester, 1);
+    expect(ads.shown, 1);
+    expect(find.byType(GameScreen), findsNothing);
+    expect(find.text('ENDLESS'), findsOneWidget); // タイトル
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('戻るボタン: ステージの結果画面では STAGES と同じく広告の判定を通ってステージ選択へ戻る', (tester) async {
+    final ads = _FakeAds();
+    await _pumpApp(tester, ads: ads);
+    await _frames(tester, 2.4);
+    await tester.tap(find.text('STAGES'));
+    await _frames(tester, 0.5);
+    await tester.tap(find.text('1-1'));
+    await _frames(tester, 0.5);
+    await tester.tap(find.text('START'));
+    await _frames(tester, 1.2);
+    expect(find.byType(GameScreen), findsOneWidget);
+    await _gameOver(tester);
+    expect(find.text('RETRY'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await _frames(tester, 1);
+    expect(ads.shown, 1);
+    expect(find.byType(GameScreen), findsNothing);
+    expect(find.text('1-1'), findsOneWidget); // ステージ選択
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('タイトル用の BGM: メニューでは鳴り、ゲーム中は止まり、戻ると鳴る', (tester) async {
     final audio = _FakeAudio();
     await _pumpApp(tester, audio: audio);
