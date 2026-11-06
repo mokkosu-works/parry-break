@@ -15,6 +15,19 @@ extension _BulletSystem on World {
         bullets.removeAt(i);
         continue;
       }
+      final tc = u.contact;
+      if (tc != null) {
+        // 接触の後の押下を待っている。押した時刻 (補正後) が救済の窓を過ぎるまで処理した入力が届いたら被弾を確定する。
+        // スタン・無敵は接触した時点から数える (待った分だけ短くする)。
+        if (t - inputLag - tc > tuning.perfectWindow + 1e-6) {
+          u.contact = null;
+          if (p.invuln <= 0) {
+            bullets.removeAt(i);
+            _hurt(since: tcB - tc);
+          }
+        }
+        continue;
+      }
       u.life += dt;
       if (!u.hostile && u.red) _homeToCore(u, dt);
       u.x += u.vx * dt;
@@ -31,8 +44,7 @@ extension _BulletSystem on World {
           if (grade != null) {
             _parryBullet(u, grade);
           } else if (p.invuln <= 0) {
-            bullets.removeAt(i);
-            _hurt();
+            u.contact = tcB; // 接触の後の押下を待つ (被弾の確定は上で)
           }
         } else if (u.near && !u.grazed && u.y > Field.paddleY + Field.paddleH + u.r && p.invuln <= 0) {
           u.grazed = true;
