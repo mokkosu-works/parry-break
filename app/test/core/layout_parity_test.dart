@@ -6,6 +6,10 @@ import 'package:parry_break/core/core.dart';
 
 import 'helpers.dart';
 
+/// ブラウザ版のあとで手作りの配置に差し替えたラウンド。
+/// R21: R20 がボスで分裂の学習ラウンドが遊べないため、分裂の初登場をここで手作りにした (#158)。
+const _handcraftedSinceBrowser = {21};
+
 /// ブラウザ版 (削除済み) の配置生成と一致することを確かめる。
 /// ゴールデンデータはブラウザ版から書き出したもので、作り直すことはできない。
 void main() {
@@ -25,8 +29,12 @@ void main() {
     final rounds = golden['rounds'] as Map<String, dynamic>;
     expect(rounds.length, 54);
     for (final e in rounds.entries) {
-      final c = endlessContent.contentFor(int.parse(e.key)) as LayoutContent;
-      expect(c.rows, List<String>.from(e.value as List), reason: 'round ${e.key}');
+      final n = int.parse(e.key);
+      // ブラウザ版のあとで手作りにしたラウンドは、自動生成のほうがゴールデンと一致することを確かめる
+      final rows = _handcraftedSinceBrowser.contains(n)
+          ? generateLayout(n, unlock: endlessContent.unlock)
+          : (endlessContent.contentFor(n) as LayoutContent).rows;
+      expect(rows, List<String>.from(e.value as List), reason: 'round ${e.key}');
     }
   });
 
