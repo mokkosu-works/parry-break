@@ -46,6 +46,34 @@ void main() {
     });
   });
 
+  group('ラウンドの時間 (#100)', () {
+    test('発射するまで roundTime は進まず、発射の前後で戻らない', () {
+      final w = testWorld(const SingleRoundMode(['......N.......']));
+      run(w, 5); // カウントダウンが終わってもしばらく発射しない
+      expect(w.launched, isFalse);
+      expect(w.roundTime, 0);
+      w.pressAction(w.t);
+      var prev = w.roundTime;
+      run(w, 2, before: () {
+        expect(w.roundTime, greaterThanOrEqualTo(prev));
+        prev = w.roundTime;
+      });
+      expect(w.launched, isTrue);
+      expect(w.roundTime, closeTo(2, 0.05));
+    });
+
+    test('全消しボーナスは発射から数えた時間で判定する (発射前の待ち時間は含めない)', () {
+      final w = testWorld(const SingleRoundMode(['......N.......']));
+      run(w, 15);
+      w.pressAction(w.t);
+      run(w, 1);
+      w.destroyBlock(w.blocks.single, DestroyCause.ball);
+      final events = run(w, 1);
+      final bonuses = events.whereType<RoundCleared>().single.bonuses;
+      expect(bonuses.any((b) => b.label.startsWith('ANNIHILATION')), isTrue);
+    });
+  });
+
   group('分身弾 (design.md 7.4)', () {
     World inPlay() {
       final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
