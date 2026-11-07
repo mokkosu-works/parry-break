@@ -206,7 +206,10 @@ class _ResultOverlayState extends State<ResultOverlay>
                             ],
                           ),
                         ),
-                        _in(
+                        // 出きるまでは押せない (演出を飛ばすつもりのタップが、見えていないボタンに当たらないように)
+                        IgnorePointer(
+                          ignoring: _p(0.78, 0.95) < 1,
+                          child: _in(
                           0.78,
                           0.95,
                           Wrap(
@@ -240,6 +243,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                               ),
                             ],
                           ),
+                        ),
                         ),
                       ],
                     ),
