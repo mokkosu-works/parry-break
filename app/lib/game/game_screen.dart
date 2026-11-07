@@ -223,6 +223,18 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     return ref.read(debugModeProvider) || ref.read(recordsProvider).isUnlocked(c, next) ? next : null;
   }
 
+  /// 戻るボタン (Android)。プレイ中はポーズ、ポーズ中は再開のカウントダウン (カウントダウン中は何もしない)、
+  /// 結果画面は TITLE (エンドレス) / STAGES (ステージ) と同じく、広告・評価の依頼の判定を通って戻る。
+  void _onBack() {
+    if (_ctl.finished) {
+      _leaveResult(widget.stage == null ? _toTitle : () => Navigator.of(context).pop());
+    } else if (!_ctl.paused) {
+      _ctl.pause();
+    } else if (_ctl.resumeCountdown == null) {
+      _ctl.requestResume();
+    }
+  }
+
   Future<void> _openSettings() async {
     await Navigator.of(context).push(fadeRoute<void>(const SettingsScreen()));
     if (mounted) _applySettings(ref.read(settingsProvider));
@@ -245,56 +257,63 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       highQuality: settings.quality == GraphicsQuality.high,
       repaint: _ctl.frame,
     );
-    return Scaffold(
-      backgroundColor: Dot.ink,
-      body: Focus(
-        focusNode: _focus,
-        autofocus: true,
-        onKeyEvent: _onKey,
-        child: LayoutBuilder(builder: (context, c) {
-          final rail = settings.controls != ControlScheme.zones;
-          final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context), rail: rail);
-          return Stack(children: [
-            Positioned.fill(child: TouchInput(controller: _ctl, layout: layout, settings: settings)),
-            Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field())),
-            // レール方式だけ、左右の余白に操作を置く (領域方式は画面の左右半分をタッチするので置かない)
-            if (rail) ...[
-              // 左の余白: 移動
-              Positioned.fromRect(
-                rect: layout.left,
-                child: SafeArea(
-                  right: false,
-                  child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical, sensitivity: settings.railSensitivity),
-                ),
-              ),
-              // 右の余白: パリィ
-              Positioned(
-                left: layout.right.left,
-                width: layout.right.width,
-                bottom: 0,
-                height: c.maxHeight * 0.55,
-                child: SafeArea(
-                  left: false,
-                  child: Center(
-                    child: ParryButton(controller: _ctl, size: (layout.right.width * 0.6).clamp(56, 84)),
+    return PopScope(
+      // 戻るボタン (Android) で画面を閉じず、ポーズや結果画面のボタンと同じ処理にする (_onBack)
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _onBack();
+      },
+      child: Scaffold(
+        backgroundColor: Dot.ink,
+        body: Focus(
+          focusNode: _focus,
+          autofocus: true,
+          onKeyEvent: _onKey,
+          child: LayoutBuilder(builder: (context, c) {
+            final rail = settings.controls != ControlScheme.zones;
+            final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context), rail: rail);
+            return Stack(children: [
+              Positioned.fill(child: TouchInput(controller: _ctl, layout: layout, settings: settings)),
+              Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field())),
+              // レール方式だけ、左右の余白に操作を置く (領域方式は画面の左右半分をタッチするので置かない)
+              if (rail) ...[
+                // 左の余白: 移動
+                Positioned.fromRect(
+                  rect: layout.left,
+                  child: SafeArea(
+                    right: false,
+                    child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical, sensitivity: settings.railSensitivity),
                   ),
                 ),
+                // 右の余白: パリィ
+                Positioned(
+                  left: layout.right.left,
+                  width: layout.right.width,
+                  bottom: 0,
+                  height: c.maxHeight * 0.55,
+                  child: SafeArea(
+                    left: false,
+                    child: Center(
+                      child: ParryButton(controller: _ctl, size: (layout.right.width * 0.6).clamp(56, 84)),
+                    ),
+                  ),
+                ),
+              ],
+              // ポーズ: HUD の右端 (見た目は小さく、押せる範囲は 44pt 以上にする)
+              Positioned.fromRect(
+                rect: _hitRect(layout.toScreen(FieldPainter.pauseButton)),
+                child: _PauseButton(
+                  size: FieldPainter.pauseButton.width * layout.scale,
+                  dot: Dot.px * layout.scale,
+                  onTap: _ctl.finished ? null : _ctl.pause,
+                  label: l.paused,
+                ),
               ),
-            ],
-            // ポーズ: HUD の右端 (見た目は小さく、押せる範囲は 44pt 以上にする)
-            Positioned.fromRect(
-              rect: _hitRect(layout.toScreen(FieldPainter.pauseButton)),
-              child: _PauseButton(
-                size: FieldPainter.pauseButton.width * layout.scale,
-                dot: Dot.px * layout.scale,
-                onTap: _ctl.finished ? null : _ctl.pause,
-                label: l.paused,
-              ),
-            ),
-            if (_ctl.paused && !_ctl.finished) Positioned.fill(child: _pauseOverlay(l)),
-            if (_ctl.finished) Positioned.fill(child: _resultOverlay()),
-          ]);
-        }),
+              if (_ctl.paused && !_ctl.finished) Positioned.fill(child: _pauseOverlay(l)),
+              if (_ctl.finished) Positioned.fill(child: _resultOverlay()),
+            ]);
+          }),
+        ),
       ),
     );
   }
