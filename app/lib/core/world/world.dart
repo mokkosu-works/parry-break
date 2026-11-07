@@ -232,14 +232,21 @@ class World {
 
   double get descentSpeed => tuning.descentSpeed(round.difficulty, round.loopMul) * difficulty.descent;
 
+  /// 段階 [st] (0〜3) のボールの速さ (FEVER TIME 以外)。
+  double stageSpeedOf(int st) =>
+      math.min(tuning.maxSpeed, tuning.baseSpeed(round.difficulty, round.loopMul) * tuning.stageSpeed[st]);
+
+  /// このラウンドの FEVER TIME の最高速度。段階4 の速さより遅くはしない。
+  double get odTopSpeed => math.max(tuning.odMaxSpeed, stageSpeedOf(3));
+
   /// ボールの目標速度。段階が上がると補間して加速する。
+  /// FEVER TIME 中は段階4 の速さから [Tuning.odTime] 秒かけて [odTopSpeed] まで上げる (入った瞬間に減速しない)。
   double get targetSpeed {
-    final s = tuning.baseSpeed(round.difficulty, round.loopMul);
     if (od) {
-      final s4 = math.min(tuning.odStartSpeedCap, s * tuning.stageSpeed[3]);
-      return s4 + (tuning.odMaxSpeed - s4) * math.min(1, odElapsed / tuning.odTime);
+      final s4 = stageSpeedOf(3);
+      return s4 + (odTopSpeed - s4) * math.min(1, odElapsed / tuning.odTime);
     }
-    return math.min(tuning.maxSpeed, s * tuning.stageSpeed[stage]);
+    return stageSpeedOf(stage);
   }
 
   /// ブロックがデッドラインに 3 秒以内に届きそうか (画面端を赤く光らせる)。
