@@ -41,6 +41,50 @@ double bulletRate(int index, int phase) {
   return seen.length / 30;
 }
 
+
+/// ボスの残り HP が [target] になるまで、コアを壊さないように削る。
+void damageTo(World w, int target) {
+  var left = w.bossHp - target;
+  for (final c in coresOf(w)) {
+    final d = math.min(left, c.hp - 1);
+    if (d > 0) {
+      w.damageCore(c, d);
+      left -= d;
+    }
+  }
+  expect(w.bossHp, target);
+}
+
+/// フェーズが進む残り HP (合計の 2/3・1/3 以下になる最大の値)。
+(int, int) phaseHps(World w) => ((w.boss!.maxHp * 2) ~/ 3, w.boss!.maxHp ~/ 3);
+
+/// ボールがブロックに重なっているか。
+bool overlaps(World w, Ball ball, Block b) {
+  final ax = b.x + w.form.ox, ay = b.y + w.form.oy;
+  final nx = ball.x.clamp(ax, ax + b.w), ny = ball.y.clamp(ay, ay + b.h);
+  return math.pow(ball.x - nx, 2) + math.pow(ball.y - ny, 2) <= Field.ballR * Field.ballR;
+}
+
+/// コアの真下からボールを真上へ飛ばし、コアに当たったステップまで進める。そのステップまでのイベントを返す。
+List<GameEvent> shootCoreFromBelow(World w, Block core, {int pierce = 1}) {
+  final ball = w.ball
+    ..attached = false
+    ..x = core.x + w.form.ox + core.w / 2
+    ..y = core.y + w.form.oy + core.h + 40
+    ..vx = 0
+    ..vy = -w.ball.speed
+    ..pierce = pierce;
+  w.drainEvents();
+  final events = <GameEvent>[];
+  for (var k = 0; k < 60 && !events.any((e) => e is CoreDamaged); k++) {
+    ball.x = core.x + w.form.ox + core.w / 2; // 揺れに合わせて真下を保つ
+    w.step(World.dt);
+    events.addAll(w.drainEvents());
+  }
+  expect(events.whereType<CoreDamaged>(), hasLength(1));
+  return events;
+}
+
 void main() {
   final bosses = endlessContent.bosses;
 
@@ -200,5 +244,124 @@ void main() {
     w.addCombo(w.tuning.odCombo);
     w.damageCore(c, 1);
     expect(c.hp, hp - 1 - w.tuning.odCoreDamageMul);
+  });
+
+  test('フェーズ移行: 残り HP が合計の 2/3・1/3 ちょうどになったヒットでフェーズが進む (#103)', () {
+    for (var i = 0; i < bosses.length; i++) {
+      final w = bossWorld(i);
+      final (hp2, hp3) = phaseHps(w);
+      damageTo(w, hp2 + 1);
+      expect(w.boss!.phase, 1, reason: 'boss ${i + 1}');
+      damageTo(w, hp2);
+      expect(w.boss!.phase, 2, reason: 'boss ${i + 1}: 残り $hp2 / ${w.boss!.maxHp}');
+      damageTo(w, hp3 + 1);
+      expect(w.boss!.phase, 2, reason: 'boss ${i + 1}');
+      damageTo(w, hp3);
+      expect(w.boss!.phase, 3, reason: 'boss ${i + 1}: 残り $hp3 / ${w.boss!.maxHp}');
+    }
+  });
+
+  test('フェーズ移行: 1 回のダメージで 2 段階進むときもフェーズ2 と 3 の移行が両方起きる (#103)', () {
+    // FEVER TIME 中 (2 倍) のブレイカーの爆風 (2) = 4 ダメージ
+    final w = bossWorld(0);
+    final c = coresOf(w).single;
+    final (hp2, hp3) = phaseHps(w);
+    damageTo(w, hp2 + 1);
+    expect(hp2 + 1 - 2 * w.tuning.odCoreDamageMul, lessThanOrEqualTo(hp3));
+    w.addCombo(w.tuning.odCombo);
+    expect(w.od, isTrue);
+    w.drainEvents();
+    c.behavior.onBlast(w, c, breaker: true);
+    final phases = [for (final e in w.drainEvents()) if (e is BossPhaseChanged) e.phase];
+    expect(phases, [2, 3]);
+    expect(w.boss!.phase, 3);
+  });
+
+  test('フェーズ移行の鏡面シールドは、コアを下から打ったボールに重ねて置かない (#107)', () {
+    final w = bossWorld(0);
+    final core = coresOf(w).single;
+    damageTo(w, phaseHps(w).$1 + 1);
+    final events = shootCoreFromBelow(w, core);
+    expect(events.whereType<BossPhaseChanged>().map((e) => e.phase), [2]);
+    final mirrors = w.blocks.where((b) => b.type == 'X').toList();
+    expect(mirrors, isNotEmpty, reason: 'ボールに重ならない場所には置く');
+    for (final ball in [w.ball, ...w.phantoms]) {
+      for (final m in mirrors) {
+        expect(overlaps(w, ball, m), isFalse, reason: '(${m.x}, ${m.y})');
+      }
+    }
+    // 貫通が尽きたボールはコアの下で往復せず、そのまま下へ離れていく
+    final after = run(w, 0.5);
+    expect(after.whereType<CoreDamaged>(), isEmpty);
+    expect(after.whereType<BlockDeflected>(), isEmpty);
+    expect(w.ball.vy, greaterThan(0));
+  });
+
+  for (final fever in [false, true]) {
+    test('フェーズ移行のヒットでコアに入るダメージは 1 回だけ${fever ? ' (FEVER TIME 中は 2)' : ''} (#107)', () {
+      final w = bossWorld(0);
+      final core = coresOf(w).single;
+      damageTo(w, phaseHps(w).$1 + 1);
+      if (fever) w.addCombo(w.tuning.odCombo);
+      expect(w.od, fever);
+      final hp = core.hp;
+      final events = [...shootCoreFromBelow(w, core, pierce: 3), ...run(w, 0.5)];
+      expect(events.whereType<BossPhaseChanged>().map((e) => e.phase), [2]);
+      expect(events.whereType<CoreDamaged>(), hasLength(1));
+      expect(hp - core.hp, fever ? w.tuning.odCoreDamageMul : 1);
+    });
+  }
+
+  test('フェーズ移行の前後で要塞の位置がつながっている (#110)', () {
+    for (var i = 0; i < bosses.length; i++) {
+      final w = bossWorld(i);
+      final b = w.boss!;
+      final (hp2, hp3) = phaseHps(w);
+      for (final target in [hp2, hp3]) {
+        // 揺れの端 (移行で揺れ幅が変わると最も大きく飛ぶ所) まで進める
+        run(w, 2);
+        while (math.sin(b.t * b.def.sway).abs() < 0.97) {
+          run(w, World.dt);
+        }
+        final amp0 = b.amp;
+        final phase0 = b.phase;
+        damageTo(w, target);
+        expect(b.phase, phase0 + 1, reason: 'boss ${i + 1}');
+        // 通常の 1 ステップの揺れの最大
+        final normal = b.def.sway * math.max(amp0, b.amp) * World.dt;
+        var prev = w.form.ox;
+        for (var k = 0; k < 120; k++) {
+          run(w, World.dt);
+          expect((w.form.ox - prev).abs(), lessThanOrEqualTo(normal * 1.6),
+              reason: 'boss ${i + 1} phase ${b.phase} step $k: amp $amp0 -> ${b.amp}');
+          prev = w.form.ox;
+        }
+      }
+    }
+  });
+
+  test('フェーズ移行後の揺れで、増援の砲台が画面の外に出ない (#110)', () {
+    for (var i = 0; i < bosses.length; i++) {
+      if (bosses[i].reinforce == 0) continue;
+      final w = bossWorld(i);
+      final b = w.boss!;
+      final before = w.blocks.toSet();
+      run(w, 2);
+      while (math.sin(b.t * b.def.sway).abs() < 0.97) {
+        run(w, World.dt);
+      }
+      damageTo(w, phaseHps(w).$1);
+      final added = w.blocks.where((x) => x.type == 'T' && !before.contains(x)).toList();
+      expect(added, hasLength(2), reason: 'boss ${i + 1}');
+      run(w, Boss.ampBlendTime);
+      // 1 周期以上揺らす
+      for (var k = 0; k < (2 * math.pi / b.def.sway / World.dt).ceil() + 60; k++) {
+        run(w, World.dt);
+        for (final t in added) {
+          expect(t.x + w.form.ox, greaterThanOrEqualTo(-1e-6), reason: 'boss ${i + 1}');
+          expect(t.x + w.form.ox + t.w, lessThanOrEqualTo(Field.width + 1e-6), reason: 'boss ${i + 1}');
+        }
+      }
+    }
   });
 }
