@@ -244,5 +244,7 @@
   "difficulty": "難易度",
   "difficultyEasy": "弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い",
   "difficultyNormal": "標準の難しさ",
-  "difficultyHard": "弾幕モード。弾が増え、壊したブロックが撃ち返してくる"
+  "difficultyHard": "弾幕モード。弾が増え、壊したブロックが撃ち返してくる",
+  "startupErrorTitle": "起動できませんでした",
+  "startupErrorBody": "ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。"
 }

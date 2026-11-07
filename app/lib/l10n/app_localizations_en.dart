@@ -428,4 +428,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get difficultyHard =>
       'Bullet hell. More bullets, and broken blocks shoot back';
+
+  @override
+  String get startupErrorTitle => 'Couldn\'t start';
+
+  @override
+  String get startupErrorBody =>
+      'The game data could not be loaded. Please close the app and open it again. If this keeps happening, update the app to the latest version.';
 }
