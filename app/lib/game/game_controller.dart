@@ -109,10 +109,7 @@ class GameController extends ChangeNotifier {
       session.advance(now).forEach(_dispatch);
       // ボットはシミュレーション時刻で入力を積むので、時刻の換算を恒等にしておく
       if (_bot != null) {
-        world.sync
-          ..wall = 0
-          ..sim = 0
-          ..scale = 1;
+        world.sync.identity();
       }
       fx.frame(rdt);
       // 終わったプレイが、次のステージの画面の BGM を切り替えないようにする
