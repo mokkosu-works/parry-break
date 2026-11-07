@@ -44,6 +44,13 @@ class PaddleInput {
 
   /// -1〜1 の方向入力 (キー・スティック)。[useTarget] が false のとき使う。
   double axis = 0;
+
+  /// 最初の状態 (パドルを中央から動かさない) に戻す。
+  void reset() {
+    useTarget = false;
+    targetX = Field.width / 2;
+    axis = 0;
+  }
 }
 
 /// 1 回のプレイのゲーム状態とシミュレーション (60Hz 固定ステップ、決定的)。
@@ -163,6 +170,9 @@ class World {
     odTime = odElapsed = 0;
     streak = maxStreak = 0;
     paddle = Paddle();
+    // RETRY は同じ World で start() を呼び直すので、前のプレイの入力 (タッチの目標位置・
+    // キーの方向) が残らないようにする。残るとパドルが前のプレイの位置から始まる。
+    input.reset();
     parry = ParryState();
     phantoms = [];
     falling = [];
@@ -171,6 +181,9 @@ class World {
     blastChain = BlastChainTally();
     stats = RunStats();
     overReason = '';
+    lastBreak = const Vec2(Field.width / 2, Field.gridY0);
+    clearT = overT = 0;
+    bonuses = const [];
     _actions.clear();
     final first = mode.roundAt(fromRound);
     if (first == null) throw StateError('mode has no rounds');
