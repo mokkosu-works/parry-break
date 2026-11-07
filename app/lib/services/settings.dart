@@ -112,6 +112,7 @@ class Settings {
         values.where((e) => e.name == v).firstOrNull ?? fallback;
     double num_(Object? v, double fallback, double lo, double hi) =>
         v is num ? v.toDouble().clamp(lo, hi) : fallback;
+    bool bool_(Object? v, bool fallback) => v is bool ? v : fallback;
     return Settings(
       controls: pick(ControlScheme.values, j['controls'], d.controls),
       sensitivity: num_(j['sensitivity'], d.sensitivity, 1, 4),
@@ -119,11 +120,11 @@ class Settings {
       timingOffsetMs: num_(j['timingOffsetMs'], d.timingOffsetMs.toDouble(), 0, 100).round(),
       bgmVolume: num_(j['bgmVolume'], d.bgmVolume, 0, 1),
       sfxVolume: num_(j['sfxVolume'], d.sfxVolume, 0, 1),
-      haptics: j['haptics'] as bool? ?? d.haptics,
+      haptics: bool_(j['haptics'], d.haptics),
       quality: pick(GraphicsQuality.values, j['quality'], d.quality),
-      reduceEffects: j['reduceEffects'] as bool? ?? d.reduceEffects,
+      reduceEffects: bool_(j['reduceEffects'], d.reduceEffects),
       language: switch (j['language']) { 'ja' => 'ja', 'en' => 'en', _ => null },
-      debugMode: j['debugMode'] as bool? ?? d.debugMode,
+      debugMode: bool_(j['debugMode'], d.debugMode),
       difficulty: pick(Difficulty.values, j['difficulty'], d.difficulty),
     );
   }
