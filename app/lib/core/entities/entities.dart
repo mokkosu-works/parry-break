@@ -147,6 +147,10 @@ class Bullet {
   bool near = false;
   bool grazed = false;
 
+  /// パドルに触れたが、まだ被弾が確定していない敵弾の接触時刻。
+  /// 接触の後の押下 (design.md 7.9) を待つ間はここで止まり、待ちきれば被弾になる。
+  double? contact;
+
   /// 直前のステップの位置 (描画でステップ間を補間するため)。
   late double prevX = x, prevY = y;
 }
