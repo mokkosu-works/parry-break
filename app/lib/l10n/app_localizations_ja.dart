@@ -294,7 +294,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String calibrationBody(String count) {
-    return 'リングが線に重なる瞬間にタップしてください（$count回）';
+    return '縮んでくる輪が、中央の輪に重なる瞬間にタップしてください（$count回）';
   }
 
   @override
@@ -307,6 +307,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get calibrationRetry => '測り直す';
+
+  @override
+  String get calibrationStart => 'スタート';
+
+  @override
+  String calibrationFailed(String hits, String min) {
+    return 'うまく測れませんでした（輪に合ったタップ: $hits回。$min回以上必要です）。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください';
+  }
 
   @override
   String get tapToStart => 'タップで開始';

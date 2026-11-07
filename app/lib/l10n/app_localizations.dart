@@ -605,7 +605,7 @@ abstract class AppLocalizations {
   /// No description provided for @calibrationBody.
   ///
   /// In ja, this message translates to:
-  /// **'リングが線に重なる瞬間にタップしてください（{count}回）'**
+  /// **'縮んでくる輪が、中央の輪に重なる瞬間にタップしてください（{count}回）'**
   String calibrationBody(String count);
 
   /// No description provided for @calibrationResult.
@@ -625,6 +625,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'測り直す'**
   String get calibrationRetry;
+
+  /// No description provided for @calibrationStart.
+  ///
+  /// In ja, this message translates to:
+  /// **'スタート'**
+  String get calibrationStart;
+
+  /// No description provided for @calibrationFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'うまく測れませんでした（輪に合ったタップ: {hits}回。{min}回以上必要です）。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください'**
+  String calibrationFailed(String hits, String min);
 
   /// No description provided for @tapToStart.
   ///

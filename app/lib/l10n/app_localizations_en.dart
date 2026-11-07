@@ -298,7 +298,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String calibrationBody(String count) {
-    return 'Tap the moment the ring meets the line ($count times)';
+    return 'Tap the moment the shrinking ring meets the center ring ($count times)';
   }
 
   @override
@@ -311,6 +311,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calibrationRetry => 'Try again';
+
+  @override
+  String get calibrationStart => 'Start';
+
+  @override
+  String calibrationFailed(String hits, String min) {
+    return 'Couldn\'t measure ($hits taps on the beat; at least $min needed). Tap the moment the shrinking ring meets the center ring';
+  }
 
   @override
   String get tapToStart => 'TAP TO START';

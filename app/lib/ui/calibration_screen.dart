@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../app/providers.dart';
 import '../input/input_clock.dart';
 import '../l10n/app_localizations.dart';
 import '../render/palette.dart';
@@ -14,6 +15,7 @@ import 'pixel_icons.dart';
 
 /// 判定タイミングの測定。一定の間隔で縮むリングが目標の輪に重なる瞬間にタップしてもらい、
 /// 「見えてから押すまで」の平均の遅れ (画面の表示遅延 + タッチの入力遅延) を測る。
+/// 説明を読む時間を取るため、測定は「スタート」を押してから始める。
 class CalibrationScreen extends ConsumerStatefulWidget {
   const CalibrationScreen({super.key});
 
@@ -24,20 +26,23 @@ class CalibrationScreen extends ConsumerStatefulWidget {
 class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with SingleTickerProviderStateMixin {
   static const _beats = 10, _interval = 0.8, _leadIn = 1.6;
 
-  final InputClock _clock = InputClock();
+  /// 結果を出すのに要る、拍に合ったタップの数。
+  static const _minHits = 4;
+
+  late final InputClock _clock = InputClock(source: ref.read(timeSourceProvider));
   late final Ticker _ticker;
   final ValueNotifier<double> _now = ValueNotifier(0);
-  late double _start;
+  /// 測定を始めた時刻。null ならまだ始めていない (「スタート」を待っている)。
+  double? _start;
   final List<double> _offsets = [];
   int? _result;
 
   @override
   void initState() {
     super.initState();
-    _restart();
     _ticker = createTicker((_) {
       _now.value = _clock.now;
-      if (_result == null && _clock.now > _beatTime(_beats - 1) + 0.6) _finish();
+      if (_start != null && _result == null && _clock.now > _beatTime(_beats - 1) + 0.6) _finish();
     })
       ..start();
   }
@@ -49,7 +54,7 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
     super.dispose();
   }
 
-  double _beatTime(int i) => _start + _leadIn + i * _interval;
+  double _beatTime(int i) => (_start ?? double.infinity) + _leadIn + i * _interval;
 
   void _restart() {
     _start = _clock.now;
@@ -58,16 +63,17 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
   }
 
   void _tap(PointerDownEvent e) {
-    if (_result != null) return;
+    final start = _start;
+    if (start == null || _result != null) return;
     final t = _clock.eventTime(e.timeStamp);
-    final i = ((t - _start - _leadIn) / _interval).round();
+    final i = ((t - start - _leadIn) / _interval).round();
     if (i < 0 || i >= _beats) return;
     final d = t - _beatTime(i);
     if (d.abs() < 0.25) setState(() => _offsets.add(d));
   }
 
   void _finish() {
-    if (_offsets.length < 4) {
+    if (_offsets.length < _minHits) {
       setState(() => _result = -1);
       return;
     }
@@ -99,6 +105,19 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
               ),
             ),
           ),
+          if (_start == null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Center(
+                child: PixelButton(label: l.calibrationStart, filled: true, icon: PixelIcons.play, onPressed: _restart),
+              ),
+            ),
+          if (r != null && r < 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(l.calibrationFailed('${_offsets.length}', '$_minHits'),
+                  textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Palette.yellow)),
+            ),
           if (r != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
