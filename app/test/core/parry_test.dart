@@ -136,4 +136,58 @@ void main() {
     w.fireBullet(w.paddle.x, Field.paddleY - 30, math.pi / 2, 300);
     expect(run(w, 0.3).whereType<PlayerHurt>(), hasLength(1));
   });
+
+  group('スタン明けのパドル (#128)', () {
+    /// カウントダウンを終えてから [setUp] で入力を整え、スタンさせて、明けるまで進めた World を返す。
+    /// スタン中は各ステップの前に [during] を呼ぶ。
+    World stunThenRecover(void Function(World w) during, {void Function(World w)? setUp}) {
+      final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
+      run(w, 1.1);
+      setUp?.call(w);
+      w.paddle.stun = w.tuning.stunTime;
+      while (w.paddle.stun > 0) {
+        during(w);
+        w.step(World.dt);
+      }
+      return w;
+    }
+
+    test('タッチ: スタン中の目標の動きは捨て、明けた後の入力の分だけ動く', () {
+      late double x0;
+      final w = stunThenRecover(
+        setUp: (w) {
+          w.input
+            ..useTarget = true
+            ..targetX = w.paddle.x;
+          x0 = w.paddle.x;
+        },
+        // 指を右へ動かし続ける (タッチ操作と同じく、前の目標に移動量を足す)
+        (w) => w.input.targetX += 20,
+      );
+      expect(w.paddle.x, x0); // スタンの間は止まっている
+      // 明けた直後のステップ: 新しい入力がなければ動かない
+      w.step(World.dt);
+      expect(w.paddle.x, x0);
+      // 明けた後の指の動きの分だけ動く
+      w.input.targetX += 5;
+      w.step(World.dt);
+      expect(w.paddle.x, closeTo(x0 + 5, 1e-9));
+    });
+
+    test('キーボード: スタンが明けると、押している方向へ速さの上限どおりに動く', () {
+      late double x0;
+      final w = stunThenRecover(
+        setUp: (w) {
+          w.input
+            ..useTarget = false
+            ..axis = 1;
+          x0 = w.paddle.x;
+        },
+        (w) {},
+      );
+      expect(w.paddle.x, x0);
+      w.step(World.dt);
+      expect(w.paddle.x, closeTo(x0 + w.tuning.paddleSpeed * World.dt, 1e-9));
+    });
+  });
 }

@@ -58,6 +58,9 @@ extension _RoundSystem on World {
     if (p.invuln > 0) p.invuln -= dt;
     if (p.stun > 0) {
       p.stun -= dt;
+      // スタン中の目標の動き (タッチは前の目標に移動量を足す) は捨てる。
+      // 明けたら、パドルの今の位置から、明けた後の入力の分だけ動く。
+      if (input.useTarget) input.targetX = p.x;
     } else {
       if (input.useTarget) {
         p.x = input.targetX;
