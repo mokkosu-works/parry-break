@@ -499,7 +499,7 @@ class FieldPainter extends CustomPainter {
     _txt(formatScore(fx.dispScore), 20, 38, 24, Dot.white, align: TextAlignH.left);
     final boss = w.boss;
     _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND', 400, 14, 16, Dot.dim);
-    _txt('${w.round.number}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}', 400, 38, 24, Dot.white);
+    _txt('${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}', 400, 38, 24, Dot.white);
     final clear = w.round.clear;
     if (boss != null) {
       final tm = boss.time.ceil();
@@ -585,7 +585,7 @@ class FieldPainter extends CustomPainter {
     final open = b.t < 0.15 ? b.t / 0.15 : b.t > 1.4 ? math.max(0.0, (1.8 - b.t) / 0.4) : 1.0;
     final h = (90 * open / 24).ceil() * 24.0;
     final (title, sub, color) = switch (b.kind) {
-      BannerKind.round => ('ROUND ${b.value}', _introText(b.introKey) ?? _goalText(), Dot.white),
+      BannerKind.round => ('ROUND ${_roundNo(b.value)}', _introText(b.introKey) ?? _goalText(), Dot.white),
       BannerKind.boss => ('WARNING', 'BOSS ${b.value}  —  ${l10n.bannerBoss}', Dot.bulletRed),
       BannerKind.feverTime => ('FEVER TIME', l10n.bannerFeverTime, Dot.rose),
       BannerKind.bossPhase => ('PHASE ${b.value}', b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3, Dot.white),
@@ -602,6 +602,12 @@ class FieldPainter extends CustomPainter {
       _txt(sub, _w / 2, 400, 15, Dot.white, family: TextCache.jp);
     }
   }
+
+  /// ラウンドの番号。ステージモードで 2 ラウンド以上ある面は「いま/全体」で出す。
+  String _roundNo(int n) => switch (world.mode) {
+        StageMode(:final stage) when stage.rounds.length > 1 => '$n/${stage.rounds.length}',
+        _ => '$n',
+      };
 
   String? _introText(String? key) => switch (key) {
         'intro.keystone' => l10n.introKeystone,
