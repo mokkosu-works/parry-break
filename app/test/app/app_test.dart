@@ -11,6 +11,7 @@ import 'package:parry_break/audio/audio_service.dart';
 import 'package:parry_break/core/core.dart';
 import 'package:parry_break/game/game_screen.dart';
 import 'package:parry_break/main.dart';
+import 'package:parry_break/render/field_painter.dart';
 import 'package:parry_break/services/ads.dart';
 import 'package:parry_break/services/content.dart';
 import 'package:parry_break/services/records.dart';
@@ -168,6 +169,40 @@ void main() {
     await _frames(tester, 1.3); // 1 秒のカウントダウン
     expect(find.text('PAUSED'), findsNothing);
     await _frames(tester, 3);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('ポーズ中に設定で言語・画質を変えると、盤面にすぐ反映される (#98)', (tester) async {
+    await _pumpApp(tester);
+    await tester.tap(find.text('ENDLESS'));
+    await _frames(tester, 0.8);
+    FieldPainter painter() => tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .map((w) => w.painter)
+        .whereType<FieldPainter>()
+        .single;
+    expect(painter().l10n.localeName, 'en');
+    expect(painter().highQuality, isTrue);
+
+    Future<void> changeSettings(Settings Function(Settings) f) async {
+      await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.pause));
+      await _frames(tester, 0.2);
+      await tester.tap(find.text('SETTINGS'));
+      await _frames(tester, 0.5);
+      ProviderScope.containerOf(tester.element(find.byType(MaterialApp))).read(settingsProvider.notifier).update(f);
+      await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.back));
+      await _frames(tester, 0.5);
+      expect(find.byType(GameScreen), findsOneWidget);
+    }
+
+    await changeSettings((s) => s.copyWith(language: () => 'ja', quality: GraphicsQuality.low));
+    expect(painter().l10n.localeName, 'ja'); // 帯の説明は新しい言語で出る
+    expect(painter().highQuality, isFalse); // 床のディザを描かない
+
+    await tester.tap(find.text('RESUME'));
+    await _frames(tester, 1.3);
+    await changeSettings((s) => s.copyWith(quality: GraphicsQuality.high));
+    expect(painter().highQuality, isTrue);
     expect(tester.takeException(), isNull);
   });
 

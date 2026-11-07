@@ -246,6 +246,11 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final settings = ref.watch(settingsProvider);
+    // ポーズ中に設定で言語・画質を変えたら、盤面の描画役を作り直す
+    if (_painter case final p?
+        when p.l10n.localeName != l.localeName || p.highQuality != (settings.quality == GraphicsQuality.high)) {
+      _painter = null;
+    }
     _painter ??= FieldPainter(
       world: _ctl.world,
       fx: _ctl.fx,
