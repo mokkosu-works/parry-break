@@ -14,10 +14,13 @@ import 'package:parry_break/main.dart';
 import 'package:parry_break/render/field_painter.dart';
 import 'package:parry_break/services/ads.dart';
 import 'package:parry_break/services/content.dart';
+import 'package:parry_break/services/history.dart';
+import 'package:parry_break/services/leaderboard.dart';
 import 'package:parry_break/services/records.dart';
 import 'package:parry_break/services/settings.dart';
 import 'package:parry_break/ui/calibration_screen.dart';
 import 'package:parry_break/ui/help_screen.dart';
+import 'package:parry_break/ui/history_screen.dart';
 import 'package:parry_break/ui/pixel_icons.dart';
 import 'package:parry_break/ui/settings_screen.dart';
 import 'package:parry_break/ui/stage_select_screen.dart';
@@ -61,7 +64,8 @@ Future<void> _pumpApp(WidgetTester tester,
     Size size = const Size(1600, 740),
     double dpr = 1,
     AdsService? ads,
-    AudioService? audio}) async {
+    AudioService? audio,
+    LeaderboardService? leaderboard}) async {
   tester.view
     ..physicalSize = size * dpr
     ..devicePixelRatio = dpr;
@@ -81,6 +85,7 @@ Future<void> _pumpApp(WidgetTester tester,
       timeSourceProvider.overrideWithValue(() => binding.clock.now().microsecondsSinceEpoch / 1e6),
       if (ads != null) adsProvider.overrideWithValue(ads),
       if (audio != null) audioProvider.overrideWithValue(audio),
+      if (leaderboard != null) leaderboardProvider.overrideWithValue(leaderboard),
     ],
     child: ParryBreakApp(home: home),
   ));
@@ -119,6 +124,16 @@ class _ThrowingAds extends DisabledAds {
     throw Exception('ads broken');
   }
 }
+
+/// ランキングを使える (タイトルに RANKING が出る)。
+class _AvailableLeaderboard extends DisabledLeaderboard {
+  @override
+  bool get available => true;
+}
+
+/// 履歴の先頭の 1 件。
+PlayEntry _latestPlay(WidgetTester tester) =>
+    ProviderScope.containerOf(tester.element(find.byType(MaterialApp))).read(historyProvider).entries.first;
 
 /// 音の一時停止 (setPaused) を覚える。
 class _PauseAudio extends SilentAudio {
@@ -540,6 +555,7 @@ void main() {
     expect(find.text('NEXT STAGE'), findsOneWidget); // 1-7 も未クリアのまま開いている
     final sp = await SharedPreferences.getInstance();
     expect(sp.getString('records'), isNull);
+    expect(sp.getString(PlayHistoryNotifier.key), isNull, reason: '履歴にも残さない');
   });
 
   testWidgets('遊び方の画面', (tester) async {
@@ -1024,4 +1040,128 @@ void main() {
     expect(find.text('操作方法が「レール」のときに使います'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  // Issue #13: スコア履歴
+  testWidgets('HISTORY: タイトルから開き、遊んでいなければ記録がないと出て、戻るとタイトル', (tester) async {
+    await _pumpApp(tester);
+    await _frames(tester, 2.4);
+    await tester.tap(find.text('HISTORY'));
+    await _frames(tester, 0.5);
+    expect(find.byType(HistoryScreen), findsOneWidget);
+    expect(find.text('No plays yet. Your results appear here after each game'), findsOneWidget);
+    expect(find.byType(HistoryRow), findsNothing);
+    await tester.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.back));
+    await _frames(tester, 0.5);
+    expect(find.byType(HistoryScreen), findsNothing);
+    expect(find.text('HISTORY'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('HISTORY: エンドレスのゲームオーバーが一番上に、日時・ENDLESS・スコア・到達ラウンドで出る', (tester) async {
+    await _pumpApp(tester, ads: _FakeAds(), prefs: {
+      PlayHistoryNotifier.key: jsonEncode(PlayHistory([
+        PlayEntry(at: DateTime(2026, 1, 2, 3, 4), stageId: '1-1', score: 777, cleared: true),
+      ]).toJson()),
+    });
+    await _frames(tester, 2.4);
+    await tester.tap(find.text('ENDLESS'));
+    await _frames(tester, 1.2);
+    GameScreen.debugLastController!.world.addScore(4321);
+    await _gameOver(tester);
+    final round = GameScreen.debugLastController!.world.round.number;
+    await tester.tap(find.text('TITLE'));
+    await _frames(tester, 0.8);
+    await tester.tap(find.text('HISTORY'));
+    await _frames(tester, 0.5);
+    final rows = tester.widgetList<HistoryRow>(find.byType(HistoryRow)).toList();
+    expect(rows, hasLength(2));
+    final top = rows.first.entry;
+    expect(top.endless, isTrue);
+    expect(top.score, 4321);
+    expect(top.round, round);
+    final row = find.byType(HistoryRow).first;
+    expect(find.descendant(of: row, matching: find.text('ENDLESS')), findsOneWidget);
+    expect(find.descendant(of: row, matching: find.text(formatScore(4321))), findsOneWidget);
+    expect(find.descendant(of: row, matching: find.text('ROUND ${round.toString().padLeft(2, '0')}')), findsOneWidget);
+    expect(find.descendant(of: row, matching: find.text(formatPlayedAt(top.at))), findsOneWidget);
+    expect(find.text('2026/01/02 03:04'), findsOneWidget); // 前の記録は 2 行目に残る
+    await _shot(tester, '12_history');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('HISTORY: ステージの結果 (クリアも失敗も) が、番号・難易度・スコア・クリアしたかで一番上に出る', (tester) async {
+    await _pumpApp(tester, home: GameScreen(stage: _campaign.stage('1-4'), difficulty: Difficulty.hard));
+    await _frames(tester, 1.2);
+    var w = GameScreen.debugLastController!.world;
+    for (final b in w.blocks.where((b) => b.behavior.clearable).toList()) {
+      w.destroyBlock(b, DestroyCause.pierce);
+    }
+    await _frames(tester, 6.5);
+    expect(find.text('NEXT STAGE'), findsOneWidget);
+    var top = _latestPlay(tester);
+    expect(top.stageId, '1-4');
+    expect(top.difficulty, Difficulty.hard);
+    expect(top.cleared, isTrue);
+    expect(top.score, w.score);
+
+    await tester.tap(find.text('RETRY'));
+    await _frames(tester, 1.2);
+    w = GameScreen.debugLastController!.world;
+    for (var i = 0; i < 10 && find.text('STAGE FAILED').evaluate().isEmpty; i++) {
+      await _gameOver(tester);
+    }
+    expect(find.text('STAGE FAILED'), findsWidgets);
+    top = _latestPlay(tester);
+    expect(top.stageId, '1-4');
+    expect(top.cleared, isFalse);
+    expect(top.score, w.score);
+    expect(ProviderScope.containerOf(tester.element(find.byType(MaterialApp))).read(historyProvider).entries,
+        hasLength(2));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('HISTORY: ステージの行に番号・難易度・クリアしたかが出る', (tester) async {
+    await _pumpApp(tester, home: const HistoryScreen(), prefs: {
+      PlayHistoryNotifier.key: jsonEncode(PlayHistory([
+        PlayEntry(at: DateTime(2026, 11, 8, 9, 30), stageId: '1-4', difficulty: Difficulty.hard, score: 1500),
+        PlayEntry(at: DateTime(2026, 11, 8, 9, 0), stageId: '1-3', score: 9000, cleared: true),
+      ]).toJson()),
+    });
+    await _frames(tester, 0.5);
+    final rows = find.byType(HistoryRow);
+    Finder inRow(int i, String text) => find.descendant(of: rows.at(i), matching: find.text(text));
+    expect(inRow(0, '2026/11/08 09:30'), findsOneWidget);
+    expect(inRow(0, 'STAGE 1-4  HARD'), findsOneWidget);
+    expect(inRow(0, 'FAILED'), findsOneWidget);
+    expect(inRow(0, formatScore(1500)), findsOneWidget);
+    expect(inRow(1, 'STAGE 1-3  NORMAL'), findsOneWidget);
+    expect(inRow(1, 'CLEAR'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('HISTORY: 日本語の文言が出る', (tester) async {
+    await _pumpApp(tester, home: const HistoryScreen(), prefs: {
+      'settings.v1': jsonEncode(const Settings(language: 'ja').toJson()),
+    });
+    await _frames(tester, 0.5);
+    expect(find.text('プレイ記録'), findsOneWidget);
+    expect(find.text('まだ記録がありません。結果画面まで遊ぶと、ここに残ります'), findsOneWidget);
+  });
+
+  for (final size in const [Size(667, 375), Size(852, 393)]) {
+    testWidgets('タイトル: HISTORY を足しても ${size.width.toInt()}x${size.height.toInt()} でメニューがはみ出さない', (tester) async {
+      await _pumpApp(tester, size: size, leaderboard: _AvailableLeaderboard(), prefs: {
+        'records': jsonEncode(const Records(stages: {'1-1': StageRecord(cleared: true)}).toJson()),
+      });
+      await _frames(tester, 2.4);
+      for (final label in ['CONTINUE', 'ENDLESS', 'STAGES', 'HISTORY', 'HOW TO PLAY', 'SETTINGS', 'RANKING']) {
+        final r = tester.getRect(find.text(label));
+        expect(r.top, greaterThanOrEqualTo(0), reason: label);
+        expect(r.bottom, lessThanOrEqualTo(size.height), reason: label);
+        final hit = find.ancestor(of: find.text(label), matching: find.byType(GestureDetector)).first;
+        expect(tester.getSize(hit).height, greaterThanOrEqualTo(44), reason: '$label を押せる範囲 (#122)');
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

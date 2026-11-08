@@ -16,6 +16,7 @@ import '../../services/leaderboard.dart';
 import '../../services/records.dart';
 import '../../services/settings.dart';
 import '../help_screen.dart';
+import '../history_screen.dart';
 import '../settings_screen.dart';
 import '../stage_select_screen.dart';
 import '../widgets.dart';
@@ -91,6 +92,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
       if (next != null) _MenuEntry('CONTINUE', () => push(GameScreen(stage: next)), meta: 'STAGE  ${next.id}', primary: true),
       _MenuEntry('ENDLESS', () => push(const GameScreen()), meta: 'SCORE ATTACK', primary: !firstTime && next == null),
       _MenuEntry('STAGES', () => push(const StageSelectScreen()), meta: '$stars / $totalStars STARS'),
+      _MenuEntry('HISTORY', () => push(const HistoryScreen())),
       _MenuEntry('HOW TO PLAY', () => push(const HelpScreen())),
       _MenuEntry('SETTINGS', () => push(const SettingsScreen())),
       if (lb.available)
@@ -177,6 +179,11 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
           SafeArea(
             child: LayoutBuilder(builder: (context, c) {
               final logoSize = math.min(c.maxWidth * 0.085, c.maxHeight * 0.17);
+              // 背の低い画面では、メニューが収まるよう項目の高さを詰める (押せる範囲の 44 は割らない)。
+              // 上下の余白 28 と、窓の枠と内側の余白 38 を引いた高さに収める。それでも入らなければ送れる
+              final spare = entries.fold(0.0, (h, e) => h + _MenuItem.heightOf(e) - _MenuItem.minHeight);
+              final menuSqueeze =
+                  spare <= 0 ? 1.0 : ((c.maxHeight - 28 - 38 - entries.length * _MenuItem.minHeight) / spare).clamp(0.0, 1.0);
               return AnimatedBuilder(
                 animation: _intro,
                 builder: (context, _) => Padding(
@@ -212,23 +219,27 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
                       child: Center(
                         child: Opacity(
                           opacity: _stage(0.25, 0.6),
-                          child: PixelWindow(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                for (var i = 0; i < entries.length; i++)
-                                  Opacity(
-                                    opacity: _stage(0.25 + i * 0.07, 0.6 + i * 0.07),
-                                    child: _MenuItem(
-                                      entry: entries[i],
-                                      selected: i == _selected,
-                                      firing: _firing == i,
-                                      onHover: () => _select(i),
-                                      onTap: () => _activate(entries, i),
+                          child: SingleChildScrollView(
+                            clipBehavior: Clip.none, // 窓の影を切らない
+                            child: PixelWindow(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  for (var i = 0; i < entries.length; i++)
+                                    Opacity(
+                                      opacity: _stage(0.25 + i * 0.07, 0.6 + i * 0.07),
+                                      child: _MenuItem(
+                                        entry: entries[i],
+                                        squeeze: menuSqueeze,
+                                        selected: i == _selected,
+                                        firing: _firing == i,
+                                        onHover: () => _select(i),
+                                        onTap: () => _activate(entries, i),
+                                      ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -276,6 +287,7 @@ class _Shade extends StatelessWidget {
 class _MenuItem extends StatelessWidget {
   const _MenuItem({
     required this.entry,
+    this.squeeze = 1,
     required this.selected,
     required this.firing,
     required this.onHover,
@@ -283,7 +295,15 @@ class _MenuItem extends StatelessWidget {
   });
 
   final _MenuEntry entry;
+
+  /// 項目の高さをどれだけ残すか。1 なら [heightOf] のまま、0 なら [minHeight] (背の低い画面で詰める)。
+  final double squeeze;
   final bool selected, firing;
+
+  static double heightOf(_MenuEntry e) => e.primary ? 58 : 46;
+
+  /// 詰めても割らない高さ (押せる範囲の 44pt)。
+  static const minHeight = 44.0;
   final VoidCallback onHover, onTap;
 
   @override
@@ -301,7 +321,7 @@ class _MenuItem extends StatelessWidget {
           onTapDown: (_) => onHover(),
           onTap: onTap,
           child: SizedBox(
-            height: entry.primary ? 58 : 46,
+            height: minHeight + (heightOf(entry) - minHeight) * squeeze,
             child: Stack(alignment: Alignment.centerLeft, children: [
               if (firing) const Positioned.fill(child: ColoredBox(color: Palette.yellow)),
               if (selected && !firing) const Positioned(left: 10, child: BlinkCursor()),
