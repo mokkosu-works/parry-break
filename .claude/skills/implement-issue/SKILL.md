@@ -7,7 +7,9 @@ description: Issue を読んで実装し、Android エミュレーター(手元�
 
 運用の全体は `docs/release-flow.md`。この手順で作った PR は、`pr.yml` のチェック・エミュレーターでのスモークテスト・Claude のレビュー(`.claude/skills/pr-review/SKILL.md`)を通り、**人が Approve するとマージされる**。人は PR の本文と画面を見て Approve するかを決めるので、**何を確かめて、何を確かめられなかったか** を正直に、具体的に書く。
 
-**自分でしないこと**: `dev` / `main` への push、PR のマージ、Approve、ラベルの `hold` を外すこと、`.github/` の変更(Issue で頼まれていない限り)。
+**自分でしないこと**: `dev` / `main` への push、PR のマージ、Approve、ラベルの `hold` / `needs-fix` を外すこと(レビューの指摘を直したら、再レビューで外れるのを待つ)、`.github/` の変更(Issue で頼まれていない限り)。
+
+`implement.yml` では、許されたコマンドしか動かない。push は `git push -u origin claude/issue-<番号>`、PR の本文の更新は `gh pr edit --body-file app/build/pr_body.md` の形どおりに打つ(形が違うと拒否される)。ファイルは Glob / Grep で探し、`timeout` や `find` は使わない。
 
 ## 1. Issue を読む
 
@@ -95,7 +97,7 @@ git commit -m "<1 行目>" -m "<理由>"
 git push -u origin claude/issue-<番号>
 ```
 
-PR の本文を `app/build/pr_body.md` に書き、次で作る。前回の PR が開いていれば、作らずに `gh pr edit <PR> --body-file app/build/pr_body.md` で本文を更新し、`gh pr comment` で今回やったことを書く。
+PR の本文を `app/build/pr_body.md` に書き、次で作る。前回の PR が開いていれば、作らずに `gh pr edit --body-file app/build/pr_body.md`(PR の番号は付けない。いまのブランチの PR が対象になる)で本文を更新し、`gh pr comment` で今回やったことを書く。
 
 ```sh
 gh pr create --base dev --head claude/issue-<番号> --title "<コミットの 1 行目と同じ>" --body-file app/build/pr_body.md
