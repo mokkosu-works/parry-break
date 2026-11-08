@@ -203,6 +203,21 @@ class Campaign {
 
   Iterable<StageDef> get stages => chapters.expand((c) => c.stages);
 
+  /// [s] を開くためにクリアするステージ: 各章の最初のステージは前の章の最後、それ以外は同じ章の 1 つ前。
+  /// 最初から開いているステージ (1 章の最初、前の章が空の章の最初) と、この中にないステージは null。
+  StageDef? unlockedBy(StageDef s) {
+    for (var ci = 0; ci < chapters.length; ci++) {
+      final stages = chapters[ci].stages;
+      final si = stages.indexOf(s);
+      if (si < 0) continue;
+      if (si > 0) return stages[si - 1];
+      if (ci == 0) return null;
+      final prev = chapters[ci - 1].stages;
+      return prev.isEmpty ? null : prev.last;
+    }
+    return null;
+  }
+
   StageDef? stage(String id) {
     for (final s in stages) {
       if (s.id == id) return s;

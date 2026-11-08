@@ -152,6 +152,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locked => 'LOCKED';
 
   @override
+  String unlockBy(String stage) {
+    return 'Clear $stage to unlock';
+  }
+
+  @override
   String get starClear => 'Clear';
 
   @override

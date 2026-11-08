@@ -362,6 +362,12 @@ abstract class AppLocalizations {
   /// **'未解放'**
   String get locked;
 
+  /// No description provided for @unlockBy.
+  ///
+  /// In ja, this message translates to:
+  /// **'{stage} をクリアすると開く'**
+  String unlockBy(String stage);
+
   /// No description provided for @starClear.
   ///
   /// In ja, this message translates to:

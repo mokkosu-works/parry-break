@@ -18,6 +18,7 @@ import 'package:parry_break/services/records.dart';
 import 'package:parry_break/services/settings.dart';
 import 'package:parry_break/ui/help_screen.dart';
 import 'package:parry_break/ui/pixel_icons.dart';
+import 'package:parry_break/ui/stage_select_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/helpers.dart';
@@ -672,5 +673,41 @@ void main() {
       expect(find.ancestor(of: dots, matching: find.byType(GestureDetector)), findsNothing);
       expect(find.ancestor(of: dots, matching: find.byType(ExcludeSemantics)), findsWidgets);
     });
+  });
+
+  // Issue #147: 鍵のかかったステージは LOCKED と出るだけで、どうすれば開くかが分からなかった
+  testWidgets('ステージ選択: 鍵のかかったステージに、開くためにクリアするステージが出る', (tester) async {
+    await _pumpApp(tester, prefs: {
+      'records': jsonEncode(const Records(stages: {'1-1': StageRecord(cleared: true)}).toJson()),
+    });
+    await tester.tap(find.text('STAGES'));
+    await _frames(tester, 0.5);
+    expect(find.text('START'), findsOneWidget); // 開いている 1-2 を選んでいる
+    expect(find.textContaining('to unlock'), findsNothing);
+    await tester.tap(find.text('1-3'));
+    await _frames(tester, 0.3);
+    expect(find.text('LOCKED'), findsOneWidget);
+    expect(find.text('Clear 1-2 to unlock'), findsOneWidget);
+    // 次の章へめくると 2-1 (鍵) を選び、前の章の最後が出る
+    await tester.tap(find
+        .ancestor(
+            of: find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.chevronLeft),
+            matching: find.byType(IconButton))
+        .last);
+    await _frames(tester, 0.3);
+    expect(find.text('STAGE 2-1'), findsOneWidget);
+    expect(find.text('Clear 1-10 to unlock'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('ステージ選択: 開くためのステージの案内は日本語でも出る', (tester) async {
+    await _pumpApp(tester, home: const StageSelectScreen(), size: const Size(667, 375), prefs: {
+      'settings.v1': jsonEncode(const Settings(language: 'ja').toJson()),
+    });
+    await _frames(tester, 0.5);
+    await tester.tap(find.text('1-2'));
+    await _frames(tester, 0.3);
+    expect(find.text('1-1 をクリアすると開く'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

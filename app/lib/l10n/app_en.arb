@@ -44,6 +44,7 @@
   "newRecord": "NEW RECORD",
   "bestScoreClearOnly": "CLEAR ONLY",
   "locked": "LOCKED",
+  "unlockBy": "Clear {stage} to unlock",
   "starClear": "Clear",
   "starNoHit": "Clear without getting hit",
   "starTime": "Clear within {seconds}s",

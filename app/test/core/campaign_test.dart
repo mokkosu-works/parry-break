@@ -209,4 +209,15 @@ void main() {
       expect(LocalizedText.fromJson(null).of('en'), '');
     });
   });
+
+  // Issue #147: 鍵のかかったステージに、どれをクリアすると開くかを出す
+  test('開くためにクリアするステージ: 章の途中は 1 つ前、章の最初は前の章の最後', () {
+    String? by(String id) => campaign.unlockedBy(campaign.stage(id)!)?.id;
+    expect(by('1-1'), isNull);
+    expect(by('1-2'), '1-1');
+    expect(by('1-10'), '1-9');
+    expect(by('2-1'), '1-10');
+    expect(by('2-2'), '2-1');
+    expect(by('6-1'), '5-10');
+  });
 }

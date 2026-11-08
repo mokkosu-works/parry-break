@@ -150,17 +150,11 @@ class Records {
 
   /// ステージを遊べるか: 各章の最初のステージは前の章の最後を、それ以外は同じ章の 1 つ前を
   /// (どの難易度でもよいので) クリアすると開く。
+  /// どれをクリアすると開くかは [Campaign.unlockedBy]。
   bool isUnlocked(Campaign c, StageDef s) {
-    for (var ci = 0; ci < c.chapters.length; ci++) {
-      final stages = c.chapters[ci].stages;
-      final si = stages.indexOf(s);
-      if (si < 0) continue;
-      if (si > 0) return clearedAny(stages[si - 1].id);
-      if (ci == 0) return true;
-      final prev = c.chapters[ci - 1].stages;
-      return prev.isEmpty || clearedAny(prev.last.id);
-    }
-    return false;
+    if (!c.stages.contains(s)) return false;
+    final by = c.unlockedBy(s);
+    return by == null || clearedAny(by.id);
   }
 
   /// 次に遊ぶステージ: 開いていて、まだクリアしていない最初のステージ。全部クリアしたら null。
