@@ -123,6 +123,12 @@ class _PauseAudio extends SilentAudio {
   void setPaused(bool paused) => this.paused.add(paused);
 }
 
+/// 広告の同意が必要な地域 (設定に「広告のプライバシー設定」が出る)。
+class _PrivacyAds extends DisabledAds {
+  @override
+  bool get privacyOptionsRequired => true;
+}
+
 /// BGM に関わる呼び出しを覚える。
 class _FakeAudio extends SilentAudio {
   bool menu = false;
@@ -610,4 +616,61 @@ void main() {
       }
     });
   }
+  // Issue #122: 押せる範囲が 44pt より小さいボタンがあった
+  group('押せる範囲が 44pt 以上', () {
+    Size hitSize(WidgetTester tester, Finder f) =>
+        tester.getSize(find.ancestor(of: f, matching: find.byType(GestureDetector)).first);
+
+    testWidgets('ステージ選択の難易度の切り替え', (tester) async {
+      await _pumpApp(tester, size: const Size(667, 375));
+      await tester.tap(find.text('STAGES'));
+      await _frames(tester, 0.5);
+      for (final d in ['EASY', 'NORMAL', 'HARD']) {
+        // 先に見つかるのが右上の切り替え (右の窓にも難易度の名前が出る)
+        expect(hitSize(tester, find.text(d).first).height, greaterThanOrEqualTo(44), reason: d);
+      }
+      // 押した位置が枠の上下の外 (広げた範囲) でも切り替わる
+      final easy = find.ancestor(of: find.text('EASY').first, matching: find.byType(GestureDetector)).first;
+      await tester.tapAt(tester.getRect(easy).topCenter + const Offset(0, 2));
+      await _frames(tester, 0.2);
+      final sp = await SharedPreferences.getInstance();
+      expect(Settings.fromJson(jsonDecode(sp.getString('settings.v1')!) as Map<String, Object?>).difficulty,
+          Difficulty.easy);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('設定の − / + と、測定する・広告のプライバシー設定', (tester) async {
+      await _pumpApp(tester, size: const Size(667, 375), ads: _PrivacyAds());
+      await tester.tap(find.text('SETTINGS'));
+      await _frames(tester, 0.5);
+      for (final icon in [PixelIcons.minus, PixelIcons.plus]) {
+        final buttons = find.ancestor(
+            of: find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == icon), matching: find.byType(IconButton));
+        expect(buttons, findsWidgets);
+        for (final b in buttons.evaluate()) {
+          final size = tester.getSize(find.byWidget(b.widget));
+          expect(size.width, greaterThanOrEqualTo(44));
+          expect(size.height, greaterThanOrEqualTo(44));
+        }
+      }
+      // 狭い画面では下のほうにあるので、項目の枠を送って出す
+      await tester.scrollUntilVisible(find.text('Calibrate'), 80,
+          scrollable: find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)));
+      await _frames(tester, 0.1);
+      expect(hitSize(tester, find.text('Calibrate')).height, greaterThanOrEqualTo(44));
+      await tester.tap(find.text('OTHER'));
+      await _frames(tester, 0.3);
+      expect(hitSize(tester, find.text('›')).height, greaterThanOrEqualTo(44));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('遊び方のページの点は押せない飾り', (tester) async {
+      await _pumpApp(tester, home: const HelpScreen(), size: const Size(667, 375));
+      await _frames(tester, 0.5);
+      final dots = find.byType(AnimatedContainer);
+      expect(dots, findsNWidgets(8));
+      expect(find.ancestor(of: dots, matching: find.byType(GestureDetector)), findsNothing);
+      expect(find.ancestor(of: dots, matching: find.byType(ExcludeSemantics)), findsWidgets);
+    });
+  });
 }

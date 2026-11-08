@@ -588,7 +588,8 @@ class _StepButton extends StatelessWidget {
         icon: PixelIcon(icon, size: 18),
         color: color,
         disabledColor: withAlpha(Palette.pale, 0.2),
-        constraints: const BoxConstraints(minWidth: 40, minHeight: 44),
+        // 押せる範囲は 44pt 以上 (目盛りの幅は、この 48 を 2 つ分引いて決めている)
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 44),
         padding: EdgeInsets.zero,
       );
 }
@@ -610,7 +611,7 @@ class _SmallButton extends StatelessWidget {
           child: CustomPaint(
             painter: _SlantPainter(color: color, on: false),
             child: Container(
-              constraints: const BoxConstraints(minHeight: 40, minWidth: 64),
+              constraints: const BoxConstraints(minHeight: 44, minWidth: 64), // 押せる範囲は 44pt 以上
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 if (icon != null) ...[PixelIcon(icon!, size: 16, color: color), const SizedBox(width: 6)],

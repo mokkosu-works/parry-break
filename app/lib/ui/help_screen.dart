@@ -134,17 +134,20 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                               tooltip: l.helpPrev,
                             ),
                             const Spacer(),
-                            for (var i = 0; i < pages.length; i++)
-                              GestureDetector(
-                                onTap: () => _go(i, pages.length),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                                  width: i == _index ? 26 : 10,
-                                  height: 6,
-                                  color: i == _index ? page.color : withAlpha(Palette.pale, i < _index ? 0.5 : 0.18),
-                                ),
-                              ),
+                            // ページの点は、いまどこかを見せるだけの飾り (押せる範囲が小さいので押せなくし、読み上げからも外す。
+                            // ページは左右のボタンかスワイプでめくり、番号は右上の 01 / 08 で読める)
+                            ExcludeSemantics(
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                for (var i = 0; i < pages.length; i++)
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    width: i == _index ? 26 : 10,
+                                    height: 6,
+                                    color: i == _index ? page.color : withAlpha(Palette.pale, i < _index ? 0.5 : 0.18),
+                                  ),
+                              ]),
+                            ),
                             const Spacer(),
                             PixelButton(
                               label: last ? l.back : l.helpNext,
