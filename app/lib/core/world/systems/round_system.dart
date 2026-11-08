@@ -85,7 +85,8 @@ extension _RoundSystem on World {
     }
     final active = countdown <= 0;
     if (active) {
-      roundTime += dt;
+      // 耐久の時間・全消しボーナス・残り時間の表示は、最初の発射から数える (#100)
+      if (launched) roundTime += dt;
       stats.playTime += dt;
       if (boss != null) {
         _updateBoss(dt);
