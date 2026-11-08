@@ -180,6 +180,7 @@ TestFlight / Play の内部テストから入れて、次を確かめる(10分�
 | `PLAY_SERVICE_ACCOUNT_JSON` | Google Play Developer API のサービスアカウント | 9.3 |
 
 7. 同じ画面の Variables に、準備ができた OS から `IOS_RELEASE` / `ANDROID_RELEASE` を `true` で登録する。登録するまで `release.yml` はその OS をビルドしない。
+8. Settings → Actions → General → Workflow permissions は「Read repository contents and packages permissions」(読み取りのみ)にしてよい。どのワークフローも先頭で `GITHUB_TOKEN` を `contents: read` にし、書き込みが要るジョブ(`pr.yml` の `review` / `fix` / `merge`、`merge.yml`、`release.yml` の `publish`、`sync-dev.yml`、`implement.yml`、`claude.yml`)だけがジョブの `permissions` で広げているので、この設定に左右されない。ワークフローを足すときも、先頭に `permissions: contents: read` を書き、要るジョブだけで広げる。
 
 ### 9.2 iOS の署名(fastlane match)
 

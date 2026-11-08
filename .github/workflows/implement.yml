@@ -9,6 +9,10 @@ on:
   issue_comment:
     types: [created]
 
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
+
 concurrency:
   group: implement-issue-${{ github.event.issue.number }}
   cancel-in-progress: false

@@ -14,6 +14,10 @@ on:
         description: 出すビルド番号 (空なら最新の release の実行のもの)
         required: false
 
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
+
 jobs:
   resolve:
     runs-on: ubuntu-latest

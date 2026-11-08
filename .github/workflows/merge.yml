@@ -6,6 +6,10 @@ on:
   pull_request_review:
     types: [submitted]
 
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
+
 concurrency:
   group: pr-merge-${{ github.event.pull_request.number }}
   cancel-in-progress: false

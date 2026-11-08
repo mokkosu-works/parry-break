@@ -4,6 +4,10 @@ name: check
 on:
   workflow_call:
 
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
