@@ -3,16 +3,16 @@
 iOS / Android のストアへ、小さな更新を続けて出すための運用を定める。人が判断する場面を **4つ**(`dev` 向けの PR の Approve、リリース PR のマージ、実機での確認、本番への昇格)に絞り、実装・テスト・レビューは CI と Claude に任せる。
 
 ```
-Issue を書く ─▶ @claude とコメント ─▶ 🤖 実装・テスト・エミュレーターで確認 ─▶ 🤖 PR ─▶ ⚙️🤖 チェック・e2e・レビュー ─▶ 🧑 Approve ─▶ dev
+Issue を書く ─▶ @claude とコメント ─▶ 🤖 実装・テスト・エミュレーターで確認 ─▶ 🤖 PR ─▶ ⚙️🤖 チェック・レビュー ─▶ 🧑 Approve ─▶ dev
 ```
 
 ## 1. ブランチ
 
 ```
 claude/issue-* ─┐
-feature/*      ─┼─PR (CI・エミュレーター・Claude のレビューが通り、人が Approve したらマージ)─▶ dev
+feature/*      ─┼─PR (CI・Claude のレビューが通り、人が Approve したらマージ)─▶ dev
 fix/*          ─┘
-dev ──▶ release/vX.Y.Z ─PR (人がマージ)─▶ main ──▶ ストアへテスト配信
+dev ──▶ release/vX.Y.Z ─PR (エミュレーターでも確かめ、人がマージ)─▶ main ──▶ ストアへテスト配信
                                            │
                                            └─(自動)─▶ dev に戻す
 hotfix/* ─PR (人がマージ)─▶ main
@@ -42,7 +42,7 @@ hotfix/* ─PR (人がマージ)─▶ main
 
 `dev` 向けの PR は、次がすべてそろうと squash でマージされる(条件は `.github/scripts/merge-if-approved.sh`)。Approve とチェックのどちらが先に終わってもよい。
 
-- `pr.yml` の `check`(analyze・単体テスト)・`e2e`(Android エミュレーターでのスモークテスト)・`review`(Claude のレビュー)が成功している
+- `pr.yml` の `check`(analyze・単体テスト)・`review`(Claude のレビュー)が成功している。`e2e`(Android エミュレーターでのスモークテスト)は `dev` 向けの PR では動かさない。Issue から作った PR は `implement.yml` で Claude がエミュレーターで確かめている。人が手元で作った `feature/*` / `fix/*` の PR は、作者が手元の端末で確かめる。エミュレーターで確かめたいときは、Actions → `pr` → Run workflow でそのブランチを選んで動かす
 - **人(OWNER / MEMBER / COLLABORATOR)が、いまの先頭のコミットを Approve している**。Approve のあとに push されたら(Claude が指摘を直したときなど)、Approve し直す
 - 下書き(draft)ではなく、`hold` / `needs-fix` のラベルが付いていない
 
@@ -72,8 +72,8 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | --- | --- | --- |
 | `check.yml` | 下の2つから呼ぶ | `flutter analyze`、`flutter test` |
 | `implement.yml` | Issue のコメントの `@claude` | Android エミュレーターを起動し、Claude が Issue を実装・テストし、エミュレーターで確かめて `dev` 向けの PR を作る(`.claude/skills/implement-issue/SKILL.md`)。撮った画面は実行の Artifacts に残る |
-| `pr.yml` | PR の作成・更新 | チェック、エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)、Claude のレビュー。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
-| `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` のジョブがすべて通っていれば squash でマージする |
+| `pr.yml` | PR の作成・更新(手動実行も可) | チェック、Claude のレビュー。エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)は `main` 向けの PR と手動実行だけで動かす。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
+| `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` の `check`・`review` が通っていれば squash でマージする |
 | `claude.yml` | PR のコメントの `@claude` | Claude が依頼に応える(レビューの指摘の修正など) |
 | `release.yml` | `main` への push(手動実行も可) | バージョン名のタグがまだなければ、チェックのあと両 OS をビルドしてテスト配信し、タグと GitHub Release を作る |
 | `sync-dev.yml` | `main` への push | `main` を `dev` にマージする |
@@ -89,13 +89,13 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | --- | --- | --- | --- |
 | 1 | 開発中(随時) | 🧑 | Issue をテンプレートで書き、`@claude` とコメントする |
 | 1' | 〃 | 🤖 | `implement.yml`: Claude が実装・テストし、Android エミュレーターで確かめて `dev` に PR を出す(人が手元で `feature/*` を作って PR を出してもよい) |
-| 2 | 〃 | ⚙️🤖 | `pr.yml`: チェック、エミュレーターでのスモークテスト、Claude のレビュー |
+| 2 | 〃 | ⚙️🤖 | `pr.yml`: チェック、Claude のレビュー(エミュレーターでのスモークテストは `dev` 向けでは動かさない) |
 | 2' | 〃 | 🧑 | レビューの所見と PR の本文を見て Approve する(**人の判断**: 変更ごと)。`dev` にマージされる |
 | 3 | 出したい変更がたまったら(目安: 2週間に1回、または不具合の修正後すぐ) | 🧑 | Claude Code で `/release` を実行する(定期実行にもできる、第6章) |
 | 4 | 〃 | 🤖 | 前回のタグからの変更を集め、バージョン名を決める。`dev` から `release/vX.Y.Z` を切り、`app/pubspec.yaml` の `version` を上げる |
 | 5 | 〃 | 🤖 | ストアの「このバージョンの新機能」を日本語・英語で書く(第5章のファイル) |
 | 6 | 〃 | 🤖 | 掲載文(App Store は `app/ios/fastlane/metadata/`、Google Play は [play-store.md](play-store.md))・スクリーンショット・ドキュメントの更新が要るか調べ、要るものは直す。広告の出し方や操作方法が変わったら、[app-store.md](app-store.md) の審査メモも実装に合わせて直す(App Store Connect への貼り直しは人の作業)。ストア側で人がやる作業があれば、PR のチェックリストに挙げる |
-| 7 | 〃 | 🤖 | `main` に向けたリリース PR を作る。Claude のレビューも付く |
+| 7 | 〃 | 🤖 | `main` に向けたリリース PR を作る。チェック・エミュレーターでのスモークテスト(`e2e`)・Claude のレビューが付く |
 | 8 | リリース PR | 🧑 | 新機能の文面とバージョン名を確認して、**Create a merge commit** でマージする(**人の判断 1**) |
 | 9 | マージ直後 | ⚙️ | `release.yml`: Android を Play の内部テストに、iOS を TestFlight に上げ、`vX.Y.Z` のタグと GitHub Release を作る。`sync-dev.yml`: `main` を `dev` に戻す |
 | 10 | 配信後(30分ほど) | 🧑 | 実機で第8章の確認をする(**人の判断 2**)。だめなら `fix/*` で直し、手順 3 からパッチでやり直す |
@@ -203,7 +203,7 @@ CI のマシンには Xcode のアカウントがないので、配布用の証�
 
 非公開リポジトリでは、GitHub Actions の macOS のマシンは Linux の10倍の時間として数える(無料枠は月2000分)。iOS のビルドは1回15〜20分なので、無料枠でテスト配信できるのは月10回ほど。iOS のビルドは `main` に入れたとき(リリース)だけで、PR では動かさない。PR のチェックと Claude のレビューは Linux で動く。
 
-エミュレーターも Linux で動かす(iOS シミュレータは macOS が要るので使わない)。目安は、PR 1つの `e2e` が17分ほど、Issue 1つの `implement.yml` が30〜60分(Claude の作業の長さによる)。非公開リポジトリの Linux のマシンは 2 コア・8GB なので、`e2e` の大半は準備にかかる(実測、キャッシュなし: Gradle のビルド 8 分、SDK のイメージと NDK の用意 4 分、ディスクの片付け 1 分、エミュレーターの起動 1 分、スモークテスト 2 分)。Gradle と SDK のキャッシュは、成功した実行のあとにできる。PR のキャッシュはその PR の中でしか使えず、PR をまたいで使えるのは `dev` で作ったもの(`implement.yml` の実行)だけ。Issue から PR まで1件あたり Linux で1時間前後なので、他の CI と合わせて月20〜30件ほどが無料枠に収まる。足りなくなったら、`e2e` を `claude/issue-*` 以外の PR では動かさない、などで減らす。
+エミュレーターも Linux で動かす(iOS シミュレータは macOS が要るので使わない)。目安は、`main` 向けの PR 1つの `e2e` が17分ほど(`dev` 向けの PR では動かさない)、Issue 1つの `implement.yml` が30〜60分(Claude の作業の長さによる)。非公開リポジトリの Linux のマシンは 2 コア・8GB なので、`e2e` の大半は準備にかかる(実測、キャッシュなし: Gradle のビルド 8 分、SDK のイメージと NDK の用意 4 分、ディスクの片付け 1 分、エミュレーターの起動 1 分、スモークテスト 2 分)。Gradle と SDK のキャッシュは、成功した実行のあとにできる。PR のキャッシュはその PR の中でしか使えず、PR をまたいで使えるのは `dev` で作ったもの(`implement.yml` の実行)だけ。Issue から PR まで1件あたり Linux で1時間前後なので、他の CI と合わせて月20〜30件ほどが無料枠に収まる。
 
 ## 10. 後回しにしたこと
 
@@ -213,5 +213,5 @@ CI のマシンには Xcode のアカウントがないので、配布用の証�
 | Google Play の掲載文の自動送信 | 説明文などを `app/android/fastlane/metadata/android/<言語>/` に移し、`promote` で送る。いまは更新が少ないので手で入力する(App Store は送っている) |
 | スクリーンショットの自動化 | `integration_test/store_screenshots_test.dart` を CI のシミュレータで動かし、fastlane の `screenshots/` に置いて送る。macOS の時間がかかるので、画面が変わったときだけ手動で実行するワークフローにする |
 | Android の段階的公開 | いまは最初から全員に出す。利用者が増えたら、`promote` で一部(例: 20%)に出し、クラッシュ率を見て割合を上げる形に戻す。クラッシュの収集(Crashlytics など)を入れてから |
-| ブランチの保護 | GitHub Pro にするか公開リポジトリにすれば、`main` / `dev` を「PR 必須・Approve 必須・`check` / `e2e` / `review` 必須」にできる。そのときは `merge-if-approved.sh` を GitHub の auto-merge に置き換えられる |
+| ブランチの保護 | GitHub Pro にするか公開リポジトリにすれば、`main` / `dev` を「PR 必須・Approve 必須・`check` / `review` 必須(`main` は `e2e` も)」にできる。そのときは `merge-if-approved.sh` を GitHub の auto-merge に置き換えられる |
 | iOS シミュレータでの確認 | Issue の実装の確認は Android エミュレーターだけ。iOS だけの処理(ATT・Game Center)は実機確認(第8章)で見る。macOS のマシンの時間に余裕ができたら、`implement.yml` に iOS シミュレータを足す |
