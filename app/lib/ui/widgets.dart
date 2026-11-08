@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../render/palette.dart';
 import '../render/pixel.dart';
@@ -123,6 +124,20 @@ class _BevelPainter extends CustomPainter {
   bool shouldRepaint(_BevelPainter old) => old.color != color || old.d != d;
 }
 
+/// 矢印キーで選んでいるものを動かす向き (← ↑ で前へ -1、→ ↓ で次へ +1)。矢印キーでなければ null。
+int? arrowStep(LogicalKeyboardKey key) => switch (key) {
+      LogicalKeyboardKey.arrowLeft || LogicalKeyboardKey.arrowUp => -1,
+      LogicalKeyboardKey.arrowRight || LogicalKeyboardKey.arrowDown => 1,
+      _ => null,
+    };
+
+/// 決めるキー (Enter / Space)。
+bool isConfirmKey(LogicalKeyboardKey key) => key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space;
+
+/// キーボードで操作しているか (最後の入力がキーか)。選んでいるものの枠は、このときだけ出す
+/// (タッチで遊ぶ人に、押していないボタンが選ばれているように見せない)。
+bool get keyboardInUse => FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+
 /// ドット絵のボタン。[filled] は色で塗った主なボタン (陰影の付いたブロック)、そうでなければ枠だけ。
 /// 色を省くと、主なボタンはメインカラー (黄)、枠だけのボタンはサブカラー (青)。
 /// 押すと硬い影の分だけ沈む。
@@ -135,9 +150,13 @@ class PixelButton extends StatefulWidget {
     this.filled = false,
     this.icon,
     this.fontSize = 18,
+    this.selected = false,
   });
 
   final String label;
+
+  /// キーボードで選んでいる。キーボードで操作しているときだけ、白い枠で囲む。
+  final bool selected;
   final VoidCallback? onPressed;
   final Color? color;
   final bool filled;
@@ -150,6 +169,22 @@ class PixelButton extends StatefulWidget {
 
 class _PixelButtonState extends State<PixelButton> {
   bool _down = false;
+
+  @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addHighlightModeListener(_onHighlightMode);
+  }
+
+  @override
+  void dispose() {
+    FocusManager.instance.removeHighlightModeListener(_onHighlightMode);
+    super.dispose();
+  }
+
+  void _onHighlightMode(FocusHighlightMode _) {
+    if (widget.selected && mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -171,6 +206,7 @@ class _PixelButtonState extends State<PixelButton> {
         ],
       ),
     );
+    final ring = widget.selected && keyboardInUse;
     return Semantics(
       button: true,
       enabled: enabled,
@@ -186,7 +222,20 @@ class _PixelButtonState extends State<PixelButton> {
             // 硬い影 (押すと沈んで影が消える)
             margin: EdgeInsets.only(left: _down ? 4 : 0, top: _down ? 4 : 0, right: _down ? 0 : 4, bottom: _down ? 0 : 4),
             decoration: BoxDecoration(boxShadow: _down ? null : const [BoxShadow(color: Colors.black, offset: Offset(4, 4))]),
-            child: widget.filled ? BevelBox(color: c, child: content) : content,
+            child: Stack(clipBehavior: Clip.none, children: [
+              widget.filled ? BevelBox(color: c, child: content) : content,
+              // 選んでいる枠 (大きさを変えないよう、ボタンの外側に重ねて描く)
+              if (ring)
+                Positioned(
+                  left: -7,
+                  top: -7,
+                  right: -7,
+                  bottom: -7,
+                  child: IgnorePointer(
+                    child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: Dot.white, width: 3))),
+                  ),
+                ),
+            ]),
           ),
         ),
       ),

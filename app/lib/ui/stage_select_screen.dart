@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../app/providers.dart';
@@ -17,6 +18,8 @@ import 'widgets.dart';
 
 /// ステージ選択。章を 1 つずつめくり、ステージをワールドマップのように点線でつないで並べる。
 /// 選んだステージの目標・星の条件・記録は右の窓に出し、START で遊ぶ。
+/// キーボードでは、矢印キーでマップの上をステージからステージへ動き (左右の端から先は隣の章)、
+/// Enter / Space で START、Esc で戻る。
 /// 難易度は右上で選び、星・クリア・最高スコアは選んだ難易度のものを出す (鍵はどの難易度のクリアでも開く)。
 class StageSelectScreen extends ConsumerStatefulWidget {
   const StageSelectScreen({super.key});
@@ -39,6 +42,44 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
     return c.stages.last;
   }
 
+  /// マップ上の位置 (段・列) と、章の中の並び順の変換 (_StageMap のジグザグと同じ)。
+  static (int row, int col) _cell(int i) {
+    final r = i ~/ _StageMap.cols, k = i % _StageMap.cols;
+    return (r, r.isEven ? k : _StageMap.cols - 1 - k);
+  }
+
+  static int _indexAt(int row, int col) => row * _StageMap.cols + (row.isEven ? col : _StageMap.cols - 1 - col);
+
+  /// 矢印キーで選ぶステージを動かす。動いた先のステージ (と章) を返す。動けなければ null。
+  (int chapter, StageDef stage)? _move(Campaign c, int chapterIndex, StageDef selected, LogicalKeyboardKey key) {
+    final stages = c.chapters[chapterIndex].stages;
+    final at = stages.indexOf(selected);
+    if (at < 0) return null;
+    final (row, col) = _cell(at);
+    final rows = (stages.length / _StageMap.cols).ceil();
+    switch (key) {
+      case LogicalKeyboardKey.arrowLeft || LogicalKeyboardKey.arrowRight:
+        final left = key == LogicalKeyboardKey.arrowLeft;
+        final to = col + (left ? -1 : 1);
+        if (to >= 0 && to < _StageMap.cols) {
+          final i = _indexAt(row, to);
+          return i < stages.length ? (chapterIndex, stages[i]) : null;
+        }
+        // 端から先は隣の章の、同じ段の反対の端へ
+        final ch = chapterIndex + (left ? -1 : 1);
+        if (ch < 0 || ch >= c.chapters.length) return null;
+        final next = c.chapters[ch].stages;
+        final nextRows = (next.length / _StageMap.cols).ceil();
+        final i = _indexAt(math.min(row, nextRows - 1), left ? _StageMap.cols - 1 : 0);
+        return (ch, next[i.clamp(0, next.length - 1)]);
+      case LogicalKeyboardKey.arrowUp || LogicalKeyboardKey.arrowDown:
+        final to = row + (key == LogicalKeyboardKey.arrowUp ? -1 : 1);
+        if (to < 0 || to >= rows) return null;
+        return (chapterIndex, stages[_indexAt(to, col).clamp(0, stages.length - 1)]);
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -56,7 +97,36 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
     final chapter = campaign.chapters[chapterIndex];
     bool unlocked(StageDef st) => debug || records.isUnlocked(campaign, st);
 
-    return ScreenFrame(
+    void start() => Navigator.of(context).push(fadeRoute<void>(GameScreen(stage: selected, difficulty: diff)));
+
+    KeyEventResult onKey(FocusNode node, KeyEvent e) {
+      if (e is! KeyDownEvent) return KeyEventResult.ignored;
+      final key = e.logicalKey;
+      if (key == LogicalKeyboardKey.escape) {
+        Navigator.of(context).maybePop();
+        return KeyEventResult.handled;
+      }
+      // Tab で戻るボタンなどにフォーカスを移しているときは、そちらの操作にまかせる
+      if (!node.hasPrimaryFocus) return KeyEventResult.ignored;
+      if (isConfirmKey(key)) {
+        if (unlocked(selected)) start();
+        return KeyEventResult.handled;
+      }
+      if (arrowStep(key) == null) return KeyEventResult.ignored;
+      if (_move(campaign, chapterIndex, selected, key) case (final ch, final st)) {
+        ref.read(audioProvider).play('count');
+        setState(() {
+          _chapter = ch;
+          _selected = st.id;
+        });
+      }
+      return KeyEventResult.handled;
+    }
+
+    return Focus(
+      autofocus: true,
+      onKeyEvent: onKey,
+      child: ScreenFrame(
       title: l.menuStages,
       actions: [
         _DifficultyPicker(
@@ -119,12 +189,12 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
                 difficulty: diff,
                 unlocked: unlocked(selected),
                 unlockedBy: campaign.unlockedBy(selected)?.id,
-                onStart: () =>
-                    Navigator.of(context).push(fadeRoute<void>(GameScreen(stage: selected, difficulty: diff))),
+                onStart: start,
               ),
             ),
           ]);
         }),
+      ),
       ),
     );
   }
@@ -192,12 +262,12 @@ class _StageMap extends StatelessWidget {
   final bool Function(StageDef) unlocked;
   final ValueChanged<StageDef> onSelect;
 
-  static const _cols = 5;
+  static const cols = 5;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
-        final rows = (stages.length / _cols).ceil();
-        final cellW = c.maxWidth / _cols;
+        final rows = (stages.length / cols).ceil();
+        final cellW = c.maxWidth / cols;
         // ブロックは画面の大きさに合わせる (横は列の幅、縦は段の数で決まる上限まで)
         final tileW = math.min(150.0, cellW - 28);
         final tileH = math.max(40.0, math.min(tileW * 0.62, (c.maxHeight - 14) / rows - 46));
@@ -206,8 +276,8 @@ class _StageMap extends StatelessWidget {
         // 上下の中央に置く
         final top = math.max(14.0, (c.maxHeight - rowH * rows) / 2 + 14);
         Offset center(int i) {
-          final r = i ~/ _cols, k = i % _cols;
-          final col = r.isEven ? k : _cols - 1 - k;
+          final r = i ~/ cols, k = i % cols;
+          final col = r.isEven ? k : cols - 1 - k;
           return Offset(cellW * (col + 0.5), top + rowH * r + tileH / 2);
         }
 
