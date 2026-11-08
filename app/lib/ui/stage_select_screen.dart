@@ -480,14 +480,22 @@ class _DifficultyPicker extends StatelessWidget {
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () => onChanged(d),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: d == value ? difficultyColor(d) : Dot.night,
-                      border: Border.all(color: d == value ? difficultyColor(d) : Dot.edge, width: 3),
+                  // 見た目の枠はそのままで、押せる範囲を上下に広げて高さ 44pt 以上にする
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    child: Align(
+                      widthFactor: 1,
+                      heightFactor: 1,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: d == value ? difficultyColor(d) : Dot.night,
+                          border: Border.all(color: d == value ? difficultyColor(d) : Dot.edge, width: 3),
+                        ),
+                        child: Text(d.label,
+                            style: pixelFont(13, color: d == value ? Dot.ink : Palette.gray, letterSpacing: 1.5)),
+                      ),
                     ),
-                    child: Text(d.label,
-                        style: pixelFont(13, color: d == value ? Dot.ink : Palette.gray, letterSpacing: 1.5)),
                   ),
                 ),
               ),
