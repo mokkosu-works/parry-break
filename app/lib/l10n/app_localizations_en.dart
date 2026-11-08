@@ -367,7 +367,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introSplitter => 'NEW: SPLITTER — SCATTERS SMALL BLOCKS';
 
   @override
-  String get introMirror => 'NEW: MIRROR — REFLECTS RETURNED BULLETS';
+  String get introMirror =>
+      'NEW: MIRROR — REFLECTS RETURNED BULLETS. ONLY PIERCE BREAKS IT';
+
+  @override
+  String get introWall =>
+      'NEW: WALL — UNBREAKABLE, NOT NEEDED TO CLEAR. FEVER TIME BREAKS IT';
 
   @override
   String get introSpread => 'NEW: SPREAD TURRET — PARRY THE WHOLE FAN AT ONCE';

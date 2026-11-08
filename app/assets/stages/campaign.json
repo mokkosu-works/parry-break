@@ -510,7 +510,7 @@
      "rounds": [
       {
        "endless": 27,
-       "intro": "intro.score",
+       "intro": "intro.wall",
        "clear": {
         "type": "score",
         "value": 400000
