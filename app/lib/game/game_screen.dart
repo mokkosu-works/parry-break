@@ -100,7 +100,14 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     super.dispose();
   }
 
-  void _onControllerChange() => setState(() {});
+  bool _wasPaused = false;
+
+  void _onControllerChange() {
+    // ポーズするたびに、キーボードで選ぶボタンを RESUME に戻す
+    if (_ctl.paused && !_wasPaused) _pauseIndex = 0;
+    _wasPaused = _ctl.paused;
+    setState(() {});
+  }
 
   /// アプリが隠れたら自動でポーズする。
   @override
@@ -157,15 +164,30 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     input.axis = axis;
   }
 
+  /// ポーズ中にキーボードで選んでいるボタン (RESUME / RETRY / SETTINGS / TITLE の順)。
+  int _pauseIndex = 0;
+
+  List<VoidCallback> get _pauseActions => [_ctl.requestResume, _retry, _openSettings, _toTitle];
+
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
+    // 結果画面のキーは ResultOverlay が受ける
+    if (_ctl.finished) return KeyEventResult.ignored;
     final key = e.logicalKey;
-    if (key == LogicalKeyboardKey.space || key == LogicalKeyboardKey.enter) {
-      if (_ctl.paused) {
-        _ctl.requestResume();
-      } else {
-        _ctl.press(e.timeStamp);
+    final menu = _ctl.paused && _ctl.resumeCountdown == null;
+    if (menu) {
+      if (arrowStep(key) case final step?) {
+        final n = _pauseActions.length;
+        setState(() => _pauseIndex = (_pauseIndex + step + n) % n);
+        return KeyEventResult.handled;
       }
+      if (isConfirmKey(key)) {
+        _pauseActions[_pauseIndex]();
+        return KeyEventResult.handled;
+      }
+    }
+    if (isConfirmKey(key)) {
+      if (!_ctl.paused) _ctl.press(e.timeStamp);
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.keyP) {
@@ -182,6 +204,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     _outcome = null;
     _runId++;
     _ctl.start();
+    // 結果画面がキーボードのフォーカスを持っていたので、盤面に戻す
+    _focus.requestFocus();
   }
 
   void _toTitle() => Navigator.of(context).popUntil((r) => r.isFirst);
@@ -350,10 +374,21 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                   const PixelTitle('PAUSED', size: 56, color: Palette.yellow, shadow: Dot.brick),
                   const SizedBox(height: 30),
                   Wrap(spacing: 14, runSpacing: 12, alignment: WrapAlignment.center, children: [
-                    PixelButton(label: 'RESUME', filled: true, icon: PixelIcons.play, onPressed: _ctl.requestResume),
-                    PixelButton(label: 'RETRY', icon: PixelIcons.replay, onPressed: _retry),
-                    PixelButton(label: 'SETTINGS', icon: PixelIcons.tune, onPressed: _openSettings),
-                    PixelButton(label: 'TITLE', color: Palette.gray, icon: PixelIcons.home, onPressed: _toTitle),
+                    PixelButton(
+                        label: 'RESUME',
+                        filled: true,
+                        icon: PixelIcons.play,
+                        selected: _pauseIndex == 0,
+                        onPressed: _ctl.requestResume),
+                    PixelButton(label: 'RETRY', icon: PixelIcons.replay, selected: _pauseIndex == 1, onPressed: _retry),
+                    PixelButton(
+                        label: 'SETTINGS', icon: PixelIcons.tune, selected: _pauseIndex == 2, onPressed: _openSettings),
+                    PixelButton(
+                        label: 'TITLE',
+                        color: Palette.gray,
+                        icon: PixelIcons.home,
+                        selected: _pauseIndex == 3,
+                        onPressed: _toTitle),
                   ]),
                 ]),
               ),

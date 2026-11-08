@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parry_break/app/providers.dart';
@@ -96,5 +97,46 @@ void main() {
       expect(find.text(body), findsOneWidget);
       expect(body, isNot(contains(lang == 'ja' ? '線' : 'line')));
     }
+  });
+
+  // Issue #109: キーボードでもスタートし、拍を取り、結果を反映できる
+  testWidgets('Space / Enter でスタートして拍を取り、Enter で結果を反映する', (tester) async {
+    await pumpScreen(tester);
+    final container = ProviderScope.containerOf(tester.element(find.byType(CalibrationScreen)));
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(find.text(l.calibrationStart), findsNothing);
+    // 1 拍目は 1.6 秒後、以降 0.8 秒ごと。各拍の 30ms 後に Space を押す
+    await tester.pump(const Duration(milliseconds: 1630));
+    for (var i = 0; i < 10; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text(l.calibrationResult('30')), findsOneWidget);
+    // ← で「やり直す」、→ で「この値を使う」を選び、Enter で反映する
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(container.read(settingsProvider).timingOffsetMs, 30);
+  });
+
+  testWidgets('失敗の結果で Enter を押すと、測り直す', (tester) async {
+    await pumpScreen(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+    for (var i = 0; i < 120; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text(l.calibrationRetry), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(find.text(l.calibrationRetry), findsNothing);
+    expect(find.text(l.calibrationStart), findsNothing);
   });
 }

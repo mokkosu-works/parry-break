@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../app/providers.dart';
@@ -19,6 +20,10 @@ enum _Tab { controls, sound, display, other }
 String _percent(double v) => '${(v * 100).round()}%';
 
 /// 設定。左の見出しで分類を選び、右の枠にその分類の項目を出す (横画面でスクロールを減らすため)。
+///
+/// キーボードでは、左の見出しを ↑↓ で選び、→ か Enter で右の項目へ入る。右では ↑↓ で項目を選び、
+/// ←→ で値を変え (いくつかから選ぶものは隣へ、目盛りは 1 段ずつ)、Enter でボタンを押す (選ぶものは次の値へ)。
+/// Esc は、右にいれば左の見出しへ、左にいれば前の画面へ戻る。
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -28,6 +33,88 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   _Tab _tab = _Tab.controls;
+
+  /// キーボードで右の項目を選んでいる (false なら左の見出しを選んでいる)。
+  bool _inRows = false;
+
+  /// キーボードで選んでいる右の項目。
+  int _row = 0;
+
+  final List<GlobalKey> _rowKeys = [];
+
+  GlobalKey _rowKey(int i) {
+    while (_rowKeys.length <= i) {
+      _rowKeys.add(GlobalKey());
+    }
+    return _rowKeys[i];
+  }
+
+  /// 選んだ項目が枠の外にあれば、見えるところまでスクロールする。
+  void _reveal({required bool down}) => WidgetsBinding.instance.addPostFrameCallback((_) {
+        final c = _rowKey(_row).currentContext;
+        if (c == null || !c.mounted) return;
+        Scrollable.ensureVisible(c,
+            alignmentPolicy: down
+                ? ScrollPositionAlignmentPolicy.keepVisibleAtEnd
+                : ScrollPositionAlignmentPolicy.keepVisibleAtStart);
+      });
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent e, List<_Tab> tabs, _Tab tab, List<_Row> rows) {
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent) return KeyEventResult.ignored;
+    final key = e.logicalKey;
+    final repeat = e is KeyRepeatEvent;
+    if (key == LogicalKeyboardKey.escape) {
+      if (repeat) return KeyEventResult.handled;
+      if (_inRows) {
+        setState(() => _inRows = false);
+      } else {
+        Navigator.of(context).maybePop();
+      }
+      return KeyEventResult.handled;
+    }
+    // Tab で戻るボタンや −/+ にフォーカスを移しているときは、そちらの操作にまかせる
+    if (!node.hasPrimaryFocus) return KeyEventResult.ignored;
+    final confirm = isConfirmKey(key);
+    if (!_inRows) {
+      if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.arrowDown) {
+        final i = tabs.indexOf(tab) + (key == LogicalKeyboardKey.arrowUp ? -1 : 1);
+        if (i >= 0 && i < tabs.length) setState(() => _tab = tabs[i]);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowRight || confirm) {
+        if (!repeat && rows.isNotEmpty) {
+          setState(() {
+            _inRows = true;
+            _row = 0;
+          });
+          _reveal(down: false);
+        }
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
+    final row = rows[_row.clamp(0, rows.length - 1)];
+    if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.arrowDown) {
+      final down = key == LogicalKeyboardKey.arrowDown;
+      final i = _row + (down ? 1 : -1);
+      if (i >= 0 && i < rows.length) {
+        setState(() => _row = i);
+        _reveal(down: down);
+      }
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.arrowRight) {
+      final dir = key == LogicalKeyboardKey.arrowLeft ? -1 : 1;
+      // 値を変えられない項目 (ボタンだけ) で ← を押したら、左の見出しへ戻る
+      if (!row.keyStep(dir) && dir < 0) setState(() => _inRows = false);
+      return KeyEventResult.handled;
+    }
+    if (confirm) {
+      if (!repeat) row.keyEnter();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
 
 
   @override
@@ -45,6 +132,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final tab = tabs.contains(_tab) ? _tab : _Tab.controls;
     // 選んでいるもの・いまの値はメインカラー (黄)
     const color = Palette.main;
+    final rows = _rows(context, tab, s, color);
+    if (_row >= rows.length) _row = math.max(0, rows.length - 1);
     final names = {
       _Tab.controls: l.settingsTabControls,
       _Tab.sound: l.settingsTabSound,
@@ -53,7 +142,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     };
 
     return Scaffold(
-      body: DotBackground(
+      body: Focus(
+        autofocus: true,
+        onKeyEvent: (node, e) => _onKey(node, e, tabs, tab, rows),
+        child: DotBackground(
         animate: false,
         child: Stack(children: [
           SafeArea(
@@ -90,7 +182,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 _TabButton(
                                   label: names[t]!,
                                   selected: t == tab,
-                                  onTap: () => setState(() => _tab = t),
+                                  cursor: !_inRows,
+                                  onTap: () => setState(() {
+                                    _tab = t;
+                                    _inRows = false;
+                                  }),
                                 ),
                             ]),
                           ),
@@ -107,7 +203,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           child: ListView(
                             key: PageStorageKey(tab),
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                            children: _rows(context, tab, s, color),
+                            children: [
+                              for (var i = 0; i < rows.length; i++) ...[
+                                if (i > 0) const Divider(height: 1, thickness: 1, color: Palette.hudLine),
+                                KeyedSubtree(
+                                  key: _rowKey(i),
+                                  child: _Selectable(selected: _inRows && i == _row, child: rows[i]),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
@@ -119,10 +223,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ]),
       ),
+      ),
     );
   }
 
-  List<Widget> _rows(BuildContext context, _Tab tab, Settings s, Color color) {
+  List<_Row> _rows(BuildContext context, _Tab tab, Settings s, Color color) {
     final l = AppLocalizations.of(context);
     final n = ref.read(settingsProvider.notifier);
     void volumes(Settings v) => ref.read(audioProvider).setVolumes(bgm: v.bgmVolume, sfx: v.sfxVolume);
@@ -284,20 +389,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
         ],
     };
-    return [
-      for (var i = 0; i < rows.length; i++) ...[
-        if (i > 0) const Divider(height: 1, thickness: 1, color: Palette.hudLine),
-        rows[i],
-      ],
-    ];
+    return rows;
   }
 }
 
 /// 左の分類の見出し。選んでいるものは色の帯と明るい地で示す。
 class _TabButton extends StatelessWidget {
-  const _TabButton({required this.label, required this.selected, required this.onTap});
+  const _TabButton({required this.label, required this.selected, required this.onTap, this.cursor = true});
   final String label;
   final bool selected;
+
+  /// 選んでいれば ▶ を出す (キーボードで右の項目を選んでいる間は出さない)。
+  final bool cursor;
   final VoidCallback onTap;
 
   @override
@@ -310,7 +413,7 @@ class _TabButton extends StatelessWidget {
           child: SizedBox(
             height: 48,
             child: Row(children: [
-              SizedBox(width: 30, child: selected ? const Center(child: BlinkCursor(size: 16)) : null),
+              SizedBox(width: 30, child: selected && cursor ? const Center(child: BlinkCursor(size: 16)) : null),
               Expanded(
                 child: Text(
                   label,
@@ -329,6 +432,37 @@ class _TabButton extends StatelessWidget {
       );
 }
 
+/// キーボードで操作できる項目の部品。
+abstract interface class _KeyControl {
+  /// ←→ で値を動かす。動かせる部品なら true。
+  bool keyStep(int dir);
+
+  /// Enter / Space で押す。押せる部品なら true。
+  bool keyEnter();
+}
+
+/// キーボードで選んでいる項目を白い枠で囲む (大きさを変えないよう、外側に重ねて描く)。
+class _Selectable extends StatelessWidget {
+  const _Selectable({required this.selected, required this.child});
+  final bool selected;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Stack(clipBehavior: Clip.none, children: [
+        child,
+        if (selected)
+          Positioned(
+            left: -12,
+            right: -12,
+            top: 3,
+            bottom: 3,
+            child: IgnorePointer(
+              child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: Dot.white, width: 3))),
+            ),
+          ),
+      ]);
+}
+
 /// 1 項目。広い枠では名前の右に操作を、狭い枠では名前の下に操作を、どちらも左に寄せて置く。
 class _Row extends StatelessWidget {
   const _Row({required this.label, required this.child, this.help, this.enabled = true});
@@ -336,6 +470,17 @@ class _Row extends StatelessWidget {
   final String? help;
   final Widget child;
   final bool enabled;
+
+  /// 項目の中の、キーボードで操作できる部品 (時間の補正は目盛りと「測定する」の 2 つ)。
+  List<_KeyControl> get _controls => [
+        if (child case final _KeyControl c) c,
+        if (child case Column(:final children)) ...children.whereType<_KeyControl>(),
+      ];
+
+  /// 項目を使えないとき (操作方式に合わない感度) は、動かさずに「動かせる」と答える (← で見出しへ戻らない)。
+  bool keyStep(int dir) => _controls.any((c) => enabled ? c.keyStep(dir) : c is _Meter);
+
+  bool keyEnter() => enabled && _controls.any((c) => c.keyEnter());
 
   @override
   Widget build(BuildContext context) {
@@ -406,12 +551,28 @@ class _SlantPainter extends CustomPainter {
 }
 
 /// いくつかの中から 1 つを選ぶ。
-class _Choice<T> extends StatelessWidget {
+class _Choice<T> extends StatelessWidget implements _KeyControl {
   const _Choice({required this.value, required this.options, required this.onChanged, required this.color});
   final T value;
   final Map<T, String> options;
   final ValueChanged<T> onChanged;
   final Color color;
+
+  @override
+  bool keyStep(int dir) {
+    final keys = options.keys.toList();
+    final i = keys.indexOf(value) + dir;
+    if (i >= 0 && i < keys.length) onChanged(keys[i]);
+    return true;
+  }
+
+  /// 次の値へ (最後なら最初へ)。
+  @override
+  bool keyEnter() {
+    final keys = options.keys.toList();
+    onChanged(keys[(keys.indexOf(value) + 1) % keys.length]);
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) => Wrap(
@@ -448,11 +609,25 @@ class _Choice<T> extends StatelessWidget {
       );
 }
 
-class _OnOff extends StatelessWidget {
+class _OnOff extends StatelessWidget implements _KeyControl {
   const _OnOff({required this.value, required this.onChanged, required this.color});
   final bool value;
   final ValueChanged<bool> onChanged;
   final Color color;
+
+  /// ← で OFF、→ で ON (並びのとおり)。
+  @override
+  bool keyStep(int dir) {
+    final v = dir > 0;
+    if (v != value) onChanged(v);
+    return true;
+  }
+
+  @override
+  bool keyEnter() {
+    onChanged(!value);
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) =>
@@ -460,7 +635,7 @@ class _OnOff extends StatelessWidget {
 }
 
 /// アーケードの音量計のような目盛り。目盛りを触るかドラッグして変え、−/+ で 1 段ずつ動かす。
-class _Meter extends StatelessWidget {
+class _Meter extends StatelessWidget implements _KeyControl {
   const _Meter({
     required this.value,
     required this.min,
@@ -493,6 +668,15 @@ class _Meter extends StatelessWidget {
     onChanged(v);
     onChangeEnd?.call(v);
   }
+
+  @override
+  bool keyStep(int dir) {
+    if (enabled) _step(dir);
+    return true;
+  }
+
+  @override
+  bool keyEnter() => false;
 
   @override
   Widget build(BuildContext context) {
@@ -595,12 +779,21 @@ class _StepButton extends StatelessWidget {
 }
 
 /// 枠付きの小さなボタン (測定する など)。
-class _SmallButton extends StatelessWidget {
+class _SmallButton extends StatelessWidget implements _KeyControl {
   const _SmallButton({required this.label, required this.color, required this.onTap, this.icon});
   final String label;
   final DotSprite? icon;
   final Color color;
   final VoidCallback onTap;
+
+  @override
+  bool keyStep(int dir) => false;
+
+  @override
+  bool keyEnter() {
+    onTap();
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) => Semantics(

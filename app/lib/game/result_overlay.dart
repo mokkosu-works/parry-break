@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/core.dart';
 import '../l10n/app_localizations.dart';
 import '../render/palette.dart';
+import '../render/pixel.dart';
 import '../ui/arcade.dart';
 import '../ui/stage_text.dart';
 import '../ui/widgets.dart';
@@ -37,7 +39,8 @@ class ResultData {
 }
 
 /// ゲームオーバー / ステージの結果画面。見出し → スコアの数え上げ → 記録更新のハンコ → 成績・星 → ボタン の順に出る。
-/// どこかをタップすると演出を飛ばす。
+/// どこかをタップすると演出を飛ばす。キーボードでは、演出中の Enter / Space で演出を飛ばし、
+/// 出きったあとは矢印キーでボタンを選んで Enter / Space で決める。
 class ResultOverlay extends StatefulWidget {
   const ResultOverlay({
     super.key,
@@ -69,10 +72,18 @@ class _ResultOverlayState extends State<ResultOverlay>
     duration: const Duration(milliseconds: 2600),
   );
   bool _stamped = false;
+  final FocusNode _focus = FocusNode(debugLabel: 'ResultOverlay');
+
+  /// キーボードで選んでいるボタン (並びは [_buttons] の順)。
+  int _selected = 0;
 
   @override
   void initState() {
     super.initState();
+    // 盤面がキーボードのフォーカスを持っているので、結果画面に移す (autofocus では移らない)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focus.requestFocus();
+    });
     if (widget.reduceMotion) {
       _c.value = 1;
     } else {
@@ -89,7 +100,39 @@ class _ResultOverlayState extends State<ResultOverlay>
   @override
   void dispose() {
     _c.dispose();
+    _focus.dispose();
     super.dispose();
+  }
+
+  /// 結果画面のボタン (NEXT STAGE / RETRY / STAGES / TITLE のうち出すもの)。
+  List<({String label, DotSprite icon, VoidCallback onPressed, bool filled, Color? color})> get _buttons => [
+        if (widget.onNext case final next?)
+          (label: 'NEXT STAGE', icon: PixelIcons.skipNext, onPressed: next, filled: true, color: null),
+        (label: 'RETRY', icon: PixelIcons.replay, onPressed: widget.onRetry, filled: widget.onNext == null, color: null),
+        if (widget.onStageSelect case final stages?)
+          (label: 'STAGES', icon: PixelIcons.grid, onPressed: stages, filled: false, color: null),
+        (label: 'TITLE', icon: PixelIcons.home, onPressed: widget.onTitle, filled: false, color: Palette.gray),
+      ];
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent e) {
+    if (e is! KeyDownEvent) return KeyEventResult.ignored;
+    final key = e.logicalKey;
+    if (_c.value < 1) {
+      // 演出中は、決めるキーで演出を飛ばすだけ (見えていないボタンを押さない)
+      if (!isConfirmKey(key)) return KeyEventResult.ignored;
+      _c.value = 1;
+      return KeyEventResult.handled;
+    }
+    final buttons = _buttons;
+    if (arrowStep(key) case final step?) {
+      setState(() => _selected = (_selected + step + buttons.length) % buttons.length);
+      return KeyEventResult.handled;
+    }
+    if (isConfirmKey(key)) {
+      buttons[_selected.clamp(0, buttons.length - 1)].onPressed();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   /// [a]〜[b] の間に 0 → 1 になる進み具合。
@@ -119,7 +162,10 @@ class _ResultOverlayState extends State<ResultOverlay>
         : (win ? 'STAGE CLEAR' : 'STAGE FAILED');
     // 勝ちはメインカラー (黄)、負けはアクセントカラー (赤)
     final color = win ? Palette.main : Palette.sub;
-    return GestureDetector(
+    return Focus(
+      focusNode: _focus,
+      onKeyEvent: _onKey,
+      child: GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
         if (_c.value < 1) _c.value = 1;
@@ -216,31 +262,15 @@ class _ResultOverlayState extends State<ResultOverlay>
                             spacing: 14,
                             runSpacing: 10,
                             children: [
-                              if (widget.onNext != null)
+                              for (final (i, b) in _buttons.indexed)
                                 PixelButton(
-                                  label: 'NEXT STAGE',
-                                  filled: true,
-                                  icon: PixelIcons.skipNext,
-                                  onPressed: widget.onNext,
+                                  label: b.label,
+                                  filled: b.filled,
+                                  color: b.color,
+                                  icon: b.icon,
+                                  selected: i == _selected,
+                                  onPressed: b.onPressed,
                                 ),
-                              PixelButton(
-                                label: 'RETRY',
-                                filled: widget.onNext == null,
-                                icon: PixelIcons.replay,
-                                onPressed: widget.onRetry,
-                              ),
-                              if (widget.onStageSelect != null)
-                                PixelButton(
-                                  label: 'STAGES',
-                                  icon: PixelIcons.grid,
-                                  onPressed: widget.onStageSelect,
-                                ),
-                              PixelButton(
-                                label: 'TITLE',
-                                color: Palette.gray,
-                                icon: PixelIcons.home,
-                                onPressed: widget.onTitle,
-                              ),
                             ],
                           ),
                         ),
@@ -254,6 +284,7 @@ class _ResultOverlayState extends State<ResultOverlay>
             ),
           ),
         ],
+      ),
       ),
     );
   }

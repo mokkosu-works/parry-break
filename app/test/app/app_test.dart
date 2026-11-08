@@ -16,9 +16,12 @@ import 'package:parry_break/services/ads.dart';
 import 'package:parry_break/services/content.dart';
 import 'package:parry_break/services/records.dart';
 import 'package:parry_break/services/settings.dart';
+import 'package:parry_break/ui/calibration_screen.dart';
 import 'package:parry_break/ui/help_screen.dart';
 import 'package:parry_break/ui/pixel_icons.dart';
+import 'package:parry_break/ui/settings_screen.dart';
 import 'package:parry_break/ui/stage_select_screen.dart';
+import 'package:parry_break/ui/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/helpers.dart';
@@ -709,5 +712,287 @@ void main() {
     await _frames(tester, 0.3);
     expect(find.text('1-1 をクリアすると開く'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  // Issue #109: ポーズ・結果・ステージ選択・設定をキーボードで操作する
+  group('キーボード操作', () {
+    bool selected(WidgetTester tester, String label) =>
+        tester.widget<PixelButton>(find.widgetWithText(PixelButton, label)).selected;
+
+    testWidgets('ポーズ: 矢印キーで選び、Enter で決め、Esc で再開する', (tester) async {
+      await _pumpApp(tester, home: const GameScreen());
+      await _frames(tester, 1.2);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await _frames(tester, 0.2);
+      expect(find.text('PAUSED'), findsWidgets);
+      expect(selected(tester, 'RESUME'), isTrue);
+
+      // → で RETRY → SETTINGS、← で戻る。端から先は反対の端へ回る
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      expect(selected(tester, 'RETRY'), isTrue);
+      expect(selected(tester, 'RESUME'), isFalse);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      expect(selected(tester, 'SETTINGS'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      expect(selected(tester, 'TITLE'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      expect(selected(tester, 'RESUME'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.pump();
+      expect(selected(tester, 'SETTINGS'), isTrue);
+
+      // Enter で設定を開き、Esc で閉じるとポーズに戻る
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await _frames(tester, 0.5);
+      expect(find.byType(SettingsScreen), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await _frames(tester, 0.5);
+      expect(find.byType(SettingsScreen), findsNothing);
+      expect(find.text('PAUSED'), findsWidgets);
+
+      // RETRY を Enter で決めると、最初からやり直す
+      final ctl = GameScreen.debugLastController!;
+      ctl.world.addScore(500);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.pump();
+      expect(selected(tester, 'RETRY'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await _frames(tester, 0.2);
+      expect(find.text('PAUSED'), findsNothing);
+      expect(ctl.world.score, 0);
+
+      // ポーズし直すと RESUME から。Esc でも Enter でも再開のカウントダウンに入る
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyP);
+      await _frames(tester, 0.2);
+      expect(selected(tester, 'RESUME'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await _frames(tester, 1.3);
+      expect(find.text('PAUSED'), findsNothing);
+      expect(ctl.paused, isFalse);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await _frames(tester, 0.2);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await _frames(tester, 1.3);
+      expect(ctl.paused, isFalse);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('結果画面: 演出中の Enter は演出を飛ばし、そのあと矢印キーで選んで Enter で決める', (tester) async {
+      final ads = _FakeAds();
+      await _pumpApp(tester, home: GameScreen(stage: _campaign.stage('1-4')), ads: ads, prefs: {
+        'settings.v1': jsonEncode(const Settings(language: 'en', debugMode: true).toJson()),
+      });
+      await _frames(tester, 1.2);
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await _frames(tester, 0.3);
+      final ctl = GameScreen.debugLastController!;
+      ctl.world.ball
+        ..y = Field.height - 4
+        ..vy = 600;
+      for (var i = 0; i < 300 && !ctl.finished; i++) {
+        await tester.pump(const Duration(microseconds: 16667));
+      }
+      expect(ctl.finished, isTrue);
+      await _frames(tester, 0.2);
+      // 演出中: ボタンはまだ押せない。Enter で演出が終わり、押せるようになる (ボタンは押さない)
+      bool ignoring() => tester
+          .widgetList<IgnorePointer>(find.ancestor(of: find.text('RETRY'), matching: find.byType(IgnorePointer)))
+          .any((w) => w.ignoring);
+      expect(ignoring(), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(ignoring(), isFalse);
+      expect(ctl.finished, isTrue);
+
+      // RETRY / STAGES / TITLE (失敗なので NEXT STAGE はない)
+      expect(selected(tester, 'RETRY'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      expect(selected(tester, 'STAGES'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      expect(selected(tester, 'TITLE'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      expect(selected(tester, 'RETRY'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.pump();
+      expect(selected(tester, 'TITLE'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.pump();
+
+      // RETRY を Enter で決めると、もう一度遊べ、盤面のキー (Space で発射) が効く
+      expect(selected(tester, 'RETRY'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await _frames(tester, 1.2);
+      expect(ctl.finished, isFalse);
+      expect(find.text('RETRY'), findsNothing);
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await _frames(tester, 0.3);
+      expect(ctl.world.ball.attached, isFalse);
+      expect(ads.shown, 0);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('結果画面: TITLE を Enter で決めると、広告の判定を通ってタイトルへ戻る', (tester) async {
+      final ads = _FakeAds();
+      await _pumpApp(tester, ads: ads);
+      await tester.tap(find.text('ENDLESS'));
+      await _frames(tester, 1.2);
+      await _gameOver(tester);
+      await _frames(tester, 3); // 演出が終わるまで
+      expect(selected(tester, 'RETRY'), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await _frames(tester, 1);
+      expect(ads.shown, 1);
+      expect(find.byType(GameScreen), findsNothing);
+      expect(find.text('ENDLESS'), findsOneWidget);
+    });
+
+    testWidgets('ステージ選択: 矢印キーでステージを選び、Enter で START、Esc で戻る', (tester) async {
+      await _pumpApp(tester, prefs: {
+        'records': jsonEncode(const Records(stages: {
+          '1-1': StageRecord(cleared: true),
+          '1-2': StageRecord(cleared: true),
+        }).toJson()),
+      });
+      await tester.tap(find.text('STAGES'));
+      await _frames(tester, 0.5);
+      expect(find.text('STAGE 1-3'), findsOneWidget); // 開いていて未クリアの最初のステージ
+
+      Future<void> key(LogicalKeyboardKey k) async {
+        await tester.sendKeyEvent(k);
+        await tester.pump();
+      }
+
+      await key(LogicalKeyboardKey.arrowLeft);
+      expect(find.text('STAGE 1-2'), findsOneWidget);
+      await key(LogicalKeyboardKey.arrowRight);
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(find.text('STAGE 1-4'), findsOneWidget);
+      // 下の段はジグザグ (右から左へ) なので、1-4 の真下は 1-7
+      await key(LogicalKeyboardKey.arrowDown);
+      expect(find.text('STAGE 1-7'), findsOneWidget);
+      // 開いていないステージは Enter で始まらない
+      await key(LogicalKeyboardKey.enter);
+      await _frames(tester, 0.5);
+      expect(find.byType(GameScreen), findsNothing);
+      await key(LogicalKeyboardKey.arrowUp);
+      expect(find.text('STAGE 1-4'), findsOneWidget);
+      // 段の右端から先は次の章へ
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(find.text('STAGE 1-5'), findsOneWidget);
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(find.text('STAGE 2-1'), findsOneWidget);
+      await key(LogicalKeyboardKey.arrowLeft);
+      expect(find.text('STAGE 1-5'), findsOneWidget);
+
+      // 開いているステージは Enter で始まる
+      for (var i = 0; i < 2; i++) {
+        await key(LogicalKeyboardKey.arrowLeft);
+      }
+      expect(find.text('STAGE 1-3'), findsOneWidget);
+      await key(LogicalKeyboardKey.enter);
+      await _frames(tester, 0.8);
+      final game = find.byType(GameScreen);
+      expect(game, findsOneWidget);
+      expect(tester.widget<GameScreen>(game).stage?.id, '1-3');
+
+      // ゲームから戻ると、またキーで選べる。Esc でタイトルへ戻る
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await _frames(tester, 0.8);
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(find.text('STAGE 1-4'), findsOneWidget);
+      await key(LogicalKeyboardKey.escape);
+      await _frames(tester, 0.5);
+      expect(find.byType(StageSelectScreen), findsNothing);
+      expect(find.text('STAGES'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('設定: 矢印キーで分類・項目・値を選び、Esc で戻る', (tester) async {
+      await _pumpApp(tester);
+      await tester.tap(find.text('SETTINGS'));
+      await _frames(tester, 0.5);
+      expect(find.byType(SettingsScreen), findsOneWidget);
+      final container = ProviderScope.containerOf(tester.element(find.byType(SettingsScreen)));
+      Settings s() => container.read(settingsProvider);
+
+      Future<void> key(LogicalKeyboardKey k) async {
+        await tester.sendKeyEvent(k);
+        await tester.pump();
+      }
+
+      // 左の見出し: ↓ で SOUND
+      await key(LogicalKeyboardKey.arrowDown);
+      expect(find.text('Music volume'), findsOneWidget);
+      // → で項目へ入り、→ で BGM の音量を 1 段 (5%) 上げる
+      final bgm = s().bgmVolume;
+      await key(LogicalKeyboardKey.arrowRight);
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(s().bgmVolume, closeTo(bgm + 0.05, 1e-9));
+      // ↓ で効果音、← で 1 段下げる
+      final sfx = s().sfxVolume;
+      await key(LogicalKeyboardKey.arrowDown);
+      await key(LogicalKeyboardKey.arrowLeft);
+      expect(s().sfxVolume, closeTo(sfx - 0.05, 1e-9));
+      expect(s().bgmVolume, closeTo(bgm + 0.05, 1e-9));
+
+      // Esc で見出しへ戻り、↓ で DISPLAY。Enter で項目へ入り、↓↓ で言語、← で日本語
+      await key(LogicalKeyboardKey.escape);
+      expect(find.byType(SettingsScreen), findsOneWidget);
+      await key(LogicalKeyboardKey.arrowDown);
+      await key(LogicalKeyboardKey.enter);
+      // 画質: → で LOW、Enter で次 (最後なら最初) の HIGH へ
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(s().quality, GraphicsQuality.low);
+      await key(LogicalKeyboardKey.enter);
+      expect(s().quality, GraphicsQuality.high);
+      // 動きを減らす: → で ON、← で OFF
+      await key(LogicalKeyboardKey.arrowDown);
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(s().reduceEffects, isTrue);
+      await key(LogicalKeyboardKey.arrowLeft);
+      expect(s().reduceEffects, isFalse);
+      await key(LogicalKeyboardKey.arrowDown);
+      await key(LogicalKeyboardKey.arrowLeft);
+      expect(s().language, 'ja');
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(s().language, 'en');
+
+      // 操作の分類: 「測定する」は Enter で開き、Esc で閉じる
+      await key(LogicalKeyboardKey.escape);
+      await key(LogicalKeyboardKey.arrowUp);
+      await key(LogicalKeyboardKey.arrowUp);
+      await key(LogicalKeyboardKey.arrowRight);
+      for (var i = 0; i < 3; i++) {
+        await key(LogicalKeyboardKey.arrowDown);
+      }
+      await key(LogicalKeyboardKey.enter);
+      await _frames(tester, 0.5);
+      expect(find.byType(CalibrationScreen), findsOneWidget);
+      await key(LogicalKeyboardKey.escape);
+      await _frames(tester, 0.5);
+      expect(find.byType(CalibrationScreen), findsNothing);
+      // 補正の目盛りも ←→ で動く (戻ったあともキーが効く)
+      final timing = s().timingOffsetMs;
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(s().timingOffsetMs, timing + 1);
+
+      // Esc で見出しへ、もう一度 Esc で設定を閉じる
+      await key(LogicalKeyboardKey.escape);
+      await key(LogicalKeyboardKey.escape);
+      await _frames(tester, 0.5);
+      expect(find.byType(SettingsScreen), findsNothing);
+      expect(find.text('SETTINGS'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }
