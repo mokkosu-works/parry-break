@@ -62,9 +62,10 @@ class HistoryRow extends StatelessWidget {
     final l = AppLocalizations.of(context);
     const tab = [FontFeature.tabularFigures()];
     final e = entry;
-    final mode = e.endless ? l.menuEndless : 'STAGE ${e.stageId}  ${e.difficulty.label}';
+    // ENDLESS / ROUND はタイトルや HUD と同じく、どちらの言語でも英語のまま (design.md 9.7)
+    final mode = e.endless ? 'ENDLESS' : 'STAGE ${e.stageId}  ${e.difficulty.label}';
     final (detail, detailColor) = e.endless
-        ? (l.roundN(e.round.toString().padLeft(2, '0')), Palette.pale)
+        ? ('ROUND ${e.round.toString().padLeft(2, '0')}', Palette.pale)
         : e.cleared
             ? (l.historyCleared, Dot.mint)
             : (l.historyFailed, Palette.sub);
