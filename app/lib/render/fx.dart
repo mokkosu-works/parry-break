@@ -53,6 +53,40 @@ class FxBanner {
   final int value;
   final String? introKey;
   double t = 0;
+
+  /// 帯を出しておく長さ (秒)。説明 (`intro.*`) のある帯は、[describe] で説明の長さに合わせて延ばす。
+  double life = baseLife;
+
+  /// 説明のない帯の長さ。
+  static const baseLife = 1.8;
+
+  /// 説明のある帯の長さの上限。
+  static const maxLife = 5.0;
+
+  /// 開いてから文字が出るまでと、閉じ始めてから消えるまでの長さ。
+  static const openTime = 0.15, closeTime = 0.4;
+
+  bool _described = false;
+
+  /// 帯の説明文 [sub] が決まったら呼ぶ (描く側が翻訳して渡す)。説明のある帯なら、読める長さまで延ばす。
+  void describe(String? sub) {
+    if (_described) return;
+    _described = true;
+    if (introKey != null && sub != null) life = lifeFor(sub);
+  }
+
+  /// 説明文 [sub] を読むのに足りる長さ。全角の字は 1 字 0.12 秒、半角は 0.06 秒で数え、
+  /// [baseLife]〜[maxLife] に収める。
+  static double lifeFor(String sub) {
+    var chars = 0.0;
+    for (final r in sub.runes) {
+      chars += r < 0x2000 ? 0.5 : 1;
+    }
+    return (0.6 + chars * 0.12).clamp(baseLife, maxLife);
+  }
+
+  /// 帯の開き具合 (0〜1)。
+  double get open => t < openTime ? t / openTime : t > life - closeTime ? math.max(0.0, (life - t) / closeTime) : 1.0;
 }
 
 /// 崩れ落ちるブロック (崩落・ラウンドクリア)。
@@ -305,7 +339,7 @@ class FxState {
     final j = judge;
     if (j != null && (j.t += dt) > 0.6) judge = null;
     final b = banner;
-    if (b != null && (b.t += dt) > 1.8) banner = null;
+    if (b != null && (b.t += dt) > b.life) banner = null;
     shake = math.max(0, shake - 60 * dt);
     flash = math.max(0, flash - dt);
     _updateTrails();

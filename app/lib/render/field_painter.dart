@@ -103,6 +103,19 @@ class FieldPainter extends CustomPainter {
   /// 大きくしたときは、下の端がコンボのメーターの目盛り (y = 24) より上に収まるように上へずらす。
   late double _label, _labelY;
 
+  /// 盤面の 1 単位あたりの画面のピクセル数。
+  late double _scale;
+
+  /// 帯の説明文が画面上でこれより小さくならないようにする (pt)。
+  static const bannerSubMinPt = 11.0;
+
+  /// 帯の説明文の大きさ (盤面の座標)。倍率が十分な端末では今までどおり 15。
+  /// 倍率が小さい端末 (スマホの横画面) では、画面上で [bannerSubMinPt] 以上になるように大きくする。
+  static double bannerSubSize(double scale) => math.max(15.0, (bannerSubMinPt / scale).ceilToDouble());
+
+  /// 帯の説明文を折り返すときの 1 行の幅の上限 (盤面の座標)。
+  static const bannerSubWidth = _w - 80;
+
   double _lerp(double a, double b) => a + (b - a) * _a;
 
   @override
@@ -113,7 +126,8 @@ class FieldPainter extends CustomPainter {
     final w = world;
     _ox = _lerp(w.form.prevOx, w.form.ox);
     _oy = _lerp(w.form.prevOy, w.form.oy);
-    _label = hudLabelSize(size.width / _w);
+    _scale = size.width / _w;
+    _label = hudLabelSize(_scale);
     _labelY = math.min(14.0, 24 - _label / 2);
     canvas.save();
     canvas.scale(size.width / _w);
@@ -627,9 +641,6 @@ class FieldPainter extends CustomPainter {
   void _banner() {
     final b = fx.banner;
     if (b == null || world.phase == WorldPhase.over) return;
-    // 帯は上下から開いて閉じる (高さを 4 段階で変える)
-    final open = b.t < 0.15 ? b.t / 0.15 : b.t > 1.4 ? math.max(0.0, (1.8 - b.t) / 0.4) : 1.0;
-    final h = (90 * open / 24).ceil() * 24.0;
     final (title, sub, color) = switch (b.kind) {
       BannerKind.round => ('ROUND ${_roundNo(b.value)}', _introText(b.introKey) ?? _goalText(), Dot.white),
       BannerKind.boss => ('WARNING', 'BOSS ${b.value}  —  ${l10n.bannerBoss}', Dot.bulletRed),
@@ -637,16 +648,51 @@ class FieldPainter extends CustomPainter {
       BannerKind.bossPhase => ('PHASE ${b.value}', b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3, Dot.white),
       BannerKind.timeOver => ('TIME OVER', l10n.bannerTimeOver, Dot.bulletRed),
     };
+    b.describe(sub);
+    final size = bannerSubSize(_scale), lineH = (size * 1.25).ceilToDouble();
+    final lines = sub == null || sub.isEmpty ? const <String>[] : wrapText(sub, size, bannerSubWidth);
+    // 説明が 2 行以上になったら、その分だけ帯を下へ広げる
+    final extra = math.max(0, lines.length - 1) * lineH;
+    // 帯は上下から開いて閉じる (高さを 4 段階で変える)
+    final open = b.open;
+    final h = ((90 + extra) * open / 24).ceil() * 24.0;
     if (h <= 0) return;
-    final band = Rect.fromLTWH(0, 375 - h / 2, _w, h);
+    final band = Rect.fromLTWH(0, 375 + extra / 2 - h / 2, _w, h);
     _c.drawRect(band, pixelPaint(withAlpha(Dot.ink, 0.85)));
     _c.drawRect(Rect.fromLTWH(0, band.top, _w, _d), pixelPaint(color));
     _c.drawRect(Rect.fromLTWH(0, band.bottom - _d, _w, _d), pixelPaint(color));
     if (open < 0.7) return;
     _bigTxt(title, _w / 2, 360, 40, color, shadow: color == Dot.white ? Dot.edge : Dot.dark(color));
-    if (sub != null && sub.isNotEmpty) {
-      _txt(sub, _w / 2, 400, 15, Dot.white, family: TextCache.jp);
+    for (var i = 0; i < lines.length; i++) {
+      _txt(lines[i], _w / 2, 400 + i * lineH, size, Dot.white, family: TextCache.jp);
     }
+  }
+
+  /// [s] を、大きさ [size] の説明文の字で 1 行が [maxWidth] に収まるように折り返す。
+  /// 英語は空白で、日本語は字の間で折り返す。
+  List<String> wrapText(String s, double size, double maxWidth) {
+    double width(String t) => text.get(t, size, Dot.white, family: TextCache.jp).width;
+    if (width(s) <= maxWidth) return [s];
+    final lines = <String>[];
+    var line = '';
+    for (final ch in s.runes.map(String.fromCharCode)) {
+      final next = line + ch;
+      if (line.isEmpty || width(next) <= maxWidth) {
+        line = next;
+        continue;
+      }
+      // 英単語の途中なら、直前の空白で切る
+      final sp = line.lastIndexOf(' ');
+      if (ch != ' ' && sp > 0 && !line.endsWith(' ') && line.codeUnitAt(line.length - 1) < 0x2000) {
+        lines.add(line.substring(0, sp).trimRight());
+        line = line.substring(sp + 1) + ch;
+      } else {
+        lines.add(line.trimRight());
+        line = ch == ' ' ? '' : ch;
+      }
+    }
+    if (line.trim().isNotEmpty) lines.add(line.trim());
+    return lines;
   }
 
   /// ラウンドの番号。ステージモードで 2 ラウンド以上ある面は「いま/全体」で出す。
