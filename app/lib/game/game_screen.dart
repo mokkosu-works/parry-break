@@ -346,7 +346,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                   size: FieldPainter.pauseButton.width * layout.scale,
                   dot: Dot.px * layout.scale,
                   onTap: _ctl.finished ? null : _ctl.pause,
-                  label: l.paused,
+                  label: l.pauseGame,
                 ),
               ),
               if (_ctl.paused && !_ctl.finished) Positioned.fill(child: _pauseOverlay(l)),

@@ -31,7 +31,6 @@
   "helpKeysPause": "Keyboard: Esc or P to pause",
   "helpPrev": "PREV",
   "helpNext": "NEXT",
-  "paused": "PAUSED",
   "bestScoreClearOnly": "CLEAR ONLY",
   "unlockBy": "Clear {stage} to unlock",
   "starClear": "Clear",
@@ -118,5 +117,14 @@
   "difficultyNormal": "Standard difficulty",
   "difficultyHard": "Bullet hell. More bullets, and broken blocks shoot back",
   "startupErrorTitle": "Couldn't start",
-  "startupErrorBody": "The game data could not be loaded. Please close the app and open it again. If this keeps happening, update the app to the latest version."
+  "startupErrorBody": "The game data could not be loaded. Please close the app and open it again. If this keeps happening, update the app to the latest version.",
+  "chapterPrev": "Previous chapter",
+  "chapterNext": "Next chapter",
+  "stepDown": "Decrease",
+  "stepUp": "Increase",
+  "open": "Open",
+  "pauseGame": "Pause",
+  "stageTileCleared": "{id} {title}, cleared, {got} of {total} stars",
+  "stageTileNotCleared": "{id} {title}, not cleared, {got} of {total} stars",
+  "stageTileLocked": "{id}, locked"
 }

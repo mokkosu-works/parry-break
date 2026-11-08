@@ -112,9 +112,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpNext => 'NEXT';
 
   @override
-  String get paused => 'PAUSED';
-
-  @override
   String get bestScoreClearOnly => 'CLEAR ONLY';
 
   @override
@@ -420,4 +417,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get startupErrorBody =>
       'The game data could not be loaded. Please close the app and open it again. If this keeps happening, update the app to the latest version.';
+
+  @override
+  String get chapterPrev => 'Previous chapter';
+
+  @override
+  String get chapterNext => 'Next chapter';
+
+  @override
+  String get stepDown => 'Decrease';
+
+  @override
+  String get stepUp => 'Increase';
+
+  @override
+  String get open => 'Open';
+
+  @override
+  String get pauseGame => 'Pause';
+
+  @override
+  String stageTileCleared(String id, String title, String got, String total) {
+    return '$id $title, cleared, $got of $total stars';
+  }
+
+  @override
+  String stageTileNotCleared(
+    String id,
+    String title,
+    String got,
+    String total,
+  ) {
+    return '$id $title, not cleared, $got of $total stars';
+  }
+
+  @override
+  String stageTileLocked(String id) {
+    return '$id, locked';
+  }
 }

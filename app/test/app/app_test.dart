@@ -624,6 +624,68 @@ void main() {
     }
   }
 
+  // Issue #117: 読み上げで、ボタンに何をするかの名前があり、ステージのタイルが状態と星の数を読む
+  testWidgets('読み上げ: ステージ選択の章の矢印とタイル', (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pumpApp(tester, prefs: {
+      'records': jsonEncode(const Records(stages: {
+        '1-1': StageRecord(cleared: true, stars: [true, true, false]),
+        '1-2': StageRecord(cleared: true, stars: [true, false, false]),
+      }).toJson()),
+    });
+    await tester.tap(find.text('STAGES'));
+    await _frames(tester, 0.5);
+    expect(find.bySemanticsLabel('Previous chapter'), findsOneWidget);
+    expect(find.bySemanticsLabel('Next chapter'), findsOneWidget);
+    // 名前と、ボタンとしての役割・押せるかが 1 つにまとまっている (最初の章では「前の章」は押せない)
+    expect(tester.getSemantics(find.bySemanticsLabel('Next chapter')),
+        isSemantics(isButton: true, isEnabled: true, hasTapAction: true));
+    expect(tester.getSemantics(find.bySemanticsLabel('Previous chapter')),
+        isSemantics(isButton: true, isEnabled: false));
+    String title(String id) => _campaign.stage(id)!.title.of('en');
+    int stars(String id) => _campaign.stage(id)!.stars.length;
+    expect(find.bySemanticsLabel('1-1 ${title('1-1')}, cleared, 2 of ${stars('1-1')} stars'), findsOneWidget);
+    expect(find.bySemanticsLabel('1-3 ${title('1-3')}, not cleared, 0 of ${stars('1-3')} stars'), findsOneWidget);
+    expect(find.bySemanticsLabel('1-4, locked'), findsOneWidget);
+    // 番号の文字を重ねて読まず、タイルとして押せる
+    expect(find.bySemanticsLabel('1-1'), findsNothing);
+    expect(tester.getSemantics(find.bySemanticsLabel(RegExp(r'^1-3 '))),
+        isSemantics(isButton: true, hasTapAction: true));
+    handle.dispose();
+  });
+
+  testWidgets('読み上げ: 設定の − / +・使えない項目・広告のプライバシー設定', (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pumpApp(tester, ads: _PrivacyAds());
+    await tester.tap(find.text('SETTINGS'));
+    await _frames(tester, 0.5);
+    // 操作のタブ: 移動感度・レールの感度・タイミングの 3 つの目盛り
+    expect(find.bySemanticsLabel('Decrease'), findsNWidgets(3));
+    expect(find.bySemanticsLabel('Increase'), findsNWidgets(3));
+    expect(tester.getSemantics(find.bySemanticsLabel('Increase').first),
+        isSemantics(isButton: true, isEnabled: true, hasTapAction: true));
+    // 既定 (左右に分ける操作) ではレールの感度は使えない
+    expect(tester.getSemantics(find.bySemanticsLabel(RegExp(r'^Rail sensitivity'))),
+        isSemantics(hasEnabledState: true, isEnabled: false));
+    expect(tester.getSemantics(find.bySemanticsLabel(RegExp(r'^Move sensitivity'))),
+        isNot(isSemantics(hasEnabledState: true, isEnabled: false)));
+    await tester.tap(find.text('OTHER'));
+    await _frames(tester, 0.5);
+    expect(find.bySemanticsLabel('Open'), findsOneWidget);
+    expect(find.bySemanticsLabel('›'), findsNothing);
+    expect(tester.getSemantics(find.bySemanticsLabel('Open')), isSemantics(isButton: true, hasTapAction: true));
+    handle.dispose();
+  });
+
+  testWidgets('読み上げ: ゲーム画面のポーズボタンは「Pause」', (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pumpApp(tester, home: GameScreen(stage: _campaign.stage('1-1')));
+    await _frames(tester, 1.2);
+    expect(find.bySemanticsLabel('Pause'), findsOneWidget);
+    expect(find.bySemanticsLabel('PAUSED'), findsNothing);
+    handle.dispose();
+  });
+
   for (final size in const [Size(667, 375), Size(1280, 720)]) {
     testWidgets('遊び方の COMBO / GRAZE のページが ${size.width.toInt()}×${size.height.toInt()} ではみ出さない', (tester) async {
       await _pumpApp(tester, home: const HelpScreen(), size: size);
