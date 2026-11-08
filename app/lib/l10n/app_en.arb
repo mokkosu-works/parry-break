@@ -55,6 +55,8 @@
   "controlsRailV": "Rail (vertical)",
   "settingsSensitivity": "Move sensitivity",
   "settingsRailSensitivity": "Rail sensitivity",
+  "settingsZonesOnly": "Used when Controls is \"Screen halves\"",
+  "settingsRailOnly": "Used when Controls is \"Rail\"",
   "settingsTiming": "Timing offset",
   "settingsTimingHelp": "Input is treated as this much earlier, to cancel display and touch latency",
   "calibrate": "Calibrate",

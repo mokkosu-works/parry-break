@@ -995,4 +995,33 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  // Issue #151: 使えない感度の項目は灰色になるだけで、理由が書かれていなかった
+  testWidgets('設定: 使えない感度の項目に理由が出て、操作方法を切り替えると入れ替わる', (tester) async {
+    await _pumpApp(tester, size: const Size(667, 375));
+    await tester.tap(find.text('SETTINGS'));
+    await _frames(tester, 0.5);
+    // 領域方式 (既定): レール感度の下に理由が出る
+    expect(find.text('Used when Controls is "Rail"'), findsOneWidget);
+    expect(find.text('Used when Controls is "Screen halves"'), findsNothing);
+    await tester.tap(find.text('Rail (horizontal)'));
+    await _frames(tester, 0.3);
+    expect(find.text('Used when Controls is "Screen halves"'), findsOneWidget);
+    expect(find.text('Used when Controls is "Rail"'), findsNothing);
+    await tester.tap(find.text('Screen halves'));
+    await _frames(tester, 0.3);
+    expect(find.text('Used when Controls is "Rail"'), findsOneWidget);
+    expect(find.text('Used when Controls is "Screen halves"'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('設定: 使えない理由は日本語でも出る', (tester) async {
+    await _pumpApp(tester, home: const SettingsScreen(), prefs: {
+      'settings.v1': jsonEncode(const Settings(language: 'ja', controls: ControlScheme.railVertical).toJson()),
+    });
+    await _frames(tester, 0.5);
+    expect(find.text('操作方法が「画面の左右」のときに使います'), findsOneWidget);
+    expect(find.text('操作方法が「レール」のときに使います'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

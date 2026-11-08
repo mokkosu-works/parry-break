@@ -207,6 +207,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRailSensitivity => 'Rail sensitivity';
 
   @override
+  String get settingsZonesOnly => 'Used when Controls is \"Screen halves\"';
+
+  @override
+  String get settingsRailOnly => 'Used when Controls is \"Rail\"';
+
+  @override
   String get settingsTiming => 'Timing offset';
 
   @override
