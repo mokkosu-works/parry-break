@@ -428,6 +428,18 @@ abstract class AppLocalizations {
   /// **'レール感度'**
   String get settingsRailSensitivity;
 
+  /// No description provided for @settingsZonesOnly.
+  ///
+  /// In ja, this message translates to:
+  /// **'操作方法が「画面の左右」のときに使います'**
+  String get settingsZonesOnly;
+
+  /// No description provided for @settingsRailOnly.
+  ///
+  /// In ja, this message translates to:
+  /// **'操作方法が「レール」のときに使います'**
+  String get settingsRailOnly;
+
   /// No description provided for @settingsTiming.
   ///
   /// In ja, this message translates to:

@@ -249,6 +249,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _Row(
             label: l.settingsSensitivity,
             enabled: s.controls == ControlScheme.zones,
+            // 使えないときは、色だけでなく理由も書く
+            help: s.controls == ControlScheme.zones ? null : l.settingsZonesOnly,
             child: _Meter(
               color: color,
               value: s.sensitivity,
@@ -263,6 +265,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _Row(
             label: l.settingsRailSensitivity,
             enabled: s.controls != ControlScheme.zones,
+            help: s.controls != ControlScheme.zones ? null : l.settingsRailOnly,
             child: _Meter(
               color: color,
               value: s.railSensitivity,
