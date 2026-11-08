@@ -197,6 +197,23 @@ void main() {
     expect(w.drainEvents().whereType<BlockRepaired>(), isEmpty);
   });
 
+  // design.md「ボス一覧」の新要素の説明どおりに働くか (#168)。
+  test('ボス6の爆薬: 壊すと隣の装甲を吹き飛ばして破片を撒くが、爆風はコアに届かない', () {
+    final w = bossWorld(5);
+    final bombs = w.blocks.where((b) => b.type == 'B').toList();
+    expect(bombs, hasLength(2));
+    final hp = [for (final c in coresOf(w)) c.hp];
+    for (final bomb in bombs) {
+      final side = w.blocks.firstWhere((b) => b.type == 'N' && b.y == bomb.y && (b.x - bomb.x).abs() == Field.cellW);
+      w.destroyBlock(bomb, DestroyCause.ball);
+      final events = run(w, 0.2);
+      expect(events.whereType<BlastExploded>(), hasLength(1));
+      expect(side.removed, isTrue, reason: '爆薬の隣 (コアの下の装甲) は吹き飛ぶ');
+      expect(w.bullets.where((u) => u.kind == BulletKind.shrapnel), isNotEmpty, reason: '破片を撒く');
+    }
+    expect([for (final c in coresOf(w)) c.hp], hp, reason: '爆風 (半径 84px) はコアに届かない');
+  });
+
   /// パドルの真上から敵弾を撃ち、被弾させる。
   void hitPaddle(World w) {
     w.fireBullet(w.paddle.x, Field.paddleY - 30, math.pi / 2, 300);
