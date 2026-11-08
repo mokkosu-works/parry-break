@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:parry_break/core/blocks/explosive.dart';
+import 'package:parry_break/core/blocks/turret.dart';
 import 'package:parry_break/core/core.dart';
 
 import 'helpers.dart';
@@ -93,6 +95,23 @@ void main() {
           }
         }
       }
+    }
+  });
+
+  // 敵弾を出すのは砲台・爆薬の破片・ボス。崩落の瓦礫だけでは数が足りない。
+  test('グレイズ・撃ち返しの星がある面には、敵弾を出すブロック (砲台・爆薬) かボスがある', () {
+    final registry = standardBlocks();
+    for (final s in campaign.stages) {
+      if (!s.stars.any((c) => c is StatStar && (c.kind == StatKind.graze || c.kind == StatKind.returnKills))) continue;
+      final hasGun = s.rounds.any((w) => switch (w.content) {
+            BossContent() => true, // ボスが弾を撃つ
+            final LayoutContent c => [
+                for (var r = 0; r < c.rows.length; r++)
+                  for (var k = 0; k < c.rows[r].length; k++)
+                    if (c.rows[r][k] != '.') c.blockIdAt(r, k),
+              ].any((id) => registry[id] is GunBlock || registry[id] is ExplosiveBlock),
+          });
+      expect(hasGun, isTrue, reason: '${s.id} は敵弾を使う星があるのに、敵弾を出すブロックがない');
     }
   });
 
