@@ -61,6 +61,25 @@ Object? bulletResultFor(double inputLag, double after) {
   return parries.isEmpty ? null : parries.single.grade;
 }
 
+/// ボールを真下へ落とし、[seconds] 秒後にパドルへ当てる。[press] が null でなければ、接触の [press] 秒前に押す。
+List<GameEvent> dropOnPaddle(World w, double seconds, {double? press}) {
+  final b = w.ball
+    ..attached = false
+    ..x = w.paddle.x
+    ..vx = 0;
+  b.speed = w.targetSpeed;
+  b.vy = b.speed;
+  b.y = Field.paddleY - Field.ballR - b.speed * seconds;
+  final at = press == null ? null : w.t + seconds - press;
+  var pressed = false;
+  return run(w, seconds + 0.1, before: () {
+    if (at != null && !pressed && w.t + World.dt >= at - 0.2) {
+      w.pressAction(at);
+      pressed = true;
+    }
+  });
+}
+
 void main() {
   test('接触の直前に押した: 差に応じて JUST / PERFECT / GOOD', () {
     expect(gradeFor(0.005), ParryGrade.just);
@@ -236,5 +255,47 @@ void main() {
       w.fireBullet(w.paddle.x + w.paddleWidth / 2 + 6 + 10, Field.paddleY - 30, math.pi / 2, 300);
       expect(run(w, 0.5).whereType<Grazed>(), isEmpty);
     });
+  });
+
+  test('PERFECT の後、ブロックに当たらずパドルで通常反射すると貫通が消える (#119)', () {
+    final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
+    run(w, 1.1);
+    dropOnPaddle(w, 0.3, press: 0.02); // PERFECT
+    expect(w.ball.pierce, 3);
+    dropOnPaddle(w, 0.3); // 押さずに通常反射
+    expect(w.ball.pierce, 0);
+    // パリィで跳ね返したときは、そのパリィの値で上書きする
+    w.ball.pierce = 3;
+    dropOnPaddle(w, 0.3, press: 0.06); // GOOD
+    expect(w.ball.pierce, 1);
+  });
+
+  test('接触の後に押したパリィでは、通常反射の後でも貫通が付く (#119)', () {
+    final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
+    run(w, 1.1);
+    dropOnPaddle(w, 0.3, press: -0.02); // 接触の 0.02 秒後に押す: PERFECT
+    expect(w.ball.pierce, 3);
+  });
+
+  test('ボス戦: PERFECT の後に通常反射したボールはコアを削れない (#119)', () {
+    final w = World(mode: endlessMode, inputLag: 0)..start(fromRound: endlessContent.bossEvery);
+    w.sync.identity();
+    run(w, 1.1);
+    w.bullets.clear();
+    dropOnPaddle(w, 0.3, press: 0.02); // PERFECT
+    expect(w.ball.pierce, 3);
+    dropOnPaddle(w, 0.3); // 押さずに通常反射
+    // コアの真下からコアへ当てる
+    w.bullets.clear();
+    final core = w.blocks.firstWhere((b) => b.type == bossCoreId);
+    final o = w.blockCenter(core);
+    final b = w.ball
+      ..x = o.x
+      ..y = o.y + core.h / 2 + Field.ballR + 2
+      ..vx = 0;
+    b.vy = -b.speed;
+    final events = run(w, 0.1);
+    expect(events.whereType<BlockDeflected>().where((e) => identical(e.block, core)), isNotEmpty);
+    expect(events.whereType<CoreDamaged>(), isEmpty);
   });
 }
