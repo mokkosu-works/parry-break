@@ -513,7 +513,7 @@ class FieldPainter extends CustomPainter {
 
   /// FEVER TIME 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
   /// 残り 2 秒を切ると全体が点滅して、終わりが近いことを知らせる。
-  /// 「刺激を弱める」設定では、色をゆっくり送り、点滅はしない。
+  /// 「演出を控えめにする」設定では、色をゆっくり送り、点滅はしない。
   void _marquee() {
     final w = world, calm = fx.reduceEffects;
     if (!calm && w.odTime < 2 && (_t * 8).floor().isEven) return;

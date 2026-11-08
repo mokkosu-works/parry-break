@@ -98,18 +98,6 @@ abstract class AppLocalizations {
     Locale('ja'),
   ];
 
-  /// No description provided for @appTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'PARRY BREAK'**
-  String get appTitle;
-
-  /// No description provided for @menuEndless.
-  ///
-  /// In ja, this message translates to:
-  /// **'エンドレス'**
-  String get menuEndless;
-
   /// No description provided for @menuStages.
   ///
   /// In ja, this message translates to:
@@ -128,29 +116,11 @@ abstract class AppLocalizations {
   /// **'設定'**
   String get menuSettings;
 
-  /// No description provided for @menuRanking.
-  ///
-  /// In ja, this message translates to:
-  /// **'ランキング'**
-  String get menuRanking;
-
   /// No description provided for @back.
   ///
   /// In ja, this message translates to:
   /// **'戻る'**
   String get back;
-
-  /// No description provided for @bestScore.
-  ///
-  /// In ja, this message translates to:
-  /// **'最高スコア'**
-  String get bestScore;
-
-  /// No description provided for @roundN.
-  ///
-  /// In ja, this message translates to:
-  /// **'ラウンド {n}'**
-  String roundN(String n);
 
   /// No description provided for @helpMoveTitle.
   ///
@@ -296,71 +266,11 @@ abstract class AppLocalizations {
   /// **'一時停止中'**
   String get paused;
 
-  /// No description provided for @resume.
-  ///
-  /// In ja, this message translates to:
-  /// **'再開'**
-  String get resume;
-
-  /// No description provided for @retry.
-  ///
-  /// In ja, this message translates to:
-  /// **'リトライ'**
-  String get retry;
-
-  /// No description provided for @toTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'タイトルへ'**
-  String get toTitle;
-
-  /// No description provided for @nextStage.
-  ///
-  /// In ja, this message translates to:
-  /// **'次のステージ'**
-  String get nextStage;
-
-  /// No description provided for @stageSelect.
-  ///
-  /// In ja, this message translates to:
-  /// **'ステージ選択'**
-  String get stageSelect;
-
-  /// No description provided for @gameOver.
-  ///
-  /// In ja, this message translates to:
-  /// **'GAME OVER'**
-  String get gameOver;
-
-  /// No description provided for @stageClear.
-  ///
-  /// In ja, this message translates to:
-  /// **'STAGE CLEAR'**
-  String get stageClear;
-
-  /// No description provided for @stageFailed.
-  ///
-  /// In ja, this message translates to:
-  /// **'STAGE FAILED'**
-  String get stageFailed;
-
-  /// No description provided for @newRecord.
-  ///
-  /// In ja, this message translates to:
-  /// **'NEW RECORD'**
-  String get newRecord;
-
   /// No description provided for @bestScoreClearOnly.
   ///
   /// In ja, this message translates to:
   /// **'クリアした回のみ記録'**
   String get bestScoreClearOnly;
-
-  /// No description provided for @locked.
-  ///
-  /// In ja, this message translates to:
-  /// **'未解放'**
-  String get locked;
 
   /// No description provided for @unlockBy.
   ///
@@ -497,13 +407,13 @@ abstract class AppLocalizations {
   /// No description provided for @controlsRailH.
   ///
   /// In ja, this message translates to:
-  /// **'レール（横）'**
+  /// **'レール(横)'**
   String get controlsRailH;
 
   /// No description provided for @controlsRailV.
   ///
   /// In ja, this message translates to:
-  /// **'レール（縦）'**
+  /// **'レール(縦)'**
   String get controlsRailV;
 
   /// No description provided for @settingsSensitivity.
@@ -569,7 +479,7 @@ abstract class AppLocalizations {
   /// No description provided for @qualityLow.
   ///
   /// In ja, this message translates to:
-  /// **'低（省電力）'**
+  /// **'低(省電力)'**
   String get qualityLow;
 
   /// No description provided for @settingsReduceEffects.
@@ -581,7 +491,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsReduceEffectsHelp.
   ///
   /// In ja, this message translates to:
-  /// **'フラッシュ・点滅・揺れを抑えます'**
+  /// **'フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます'**
   String get settingsReduceEffectsHelp;
 
   /// No description provided for @settingsLanguage.
@@ -635,7 +545,7 @@ abstract class AppLocalizations {
   /// No description provided for @calibrationBody.
   ///
   /// In ja, this message translates to:
-  /// **'縮んでくる輪が、中央の輪に重なる瞬間にタップしてください（{count}回）'**
+  /// **'縮んでくる輪が、中央の輪に重なる瞬間にタップしてください({count}回)'**
   String calibrationBody(String count);
 
   /// No description provided for @calibrationResult.
@@ -665,38 +575,14 @@ abstract class AppLocalizations {
   /// No description provided for @calibrationFailed.
   ///
   /// In ja, this message translates to:
-  /// **'うまく測れませんでした（輪に合ったタップ: {hits}回。{min}回以上必要です）。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください'**
+  /// **'うまく測れませんでした(輪に合ったタップ: {hits}回。{min}回以上必要です)。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください'**
   String calibrationFailed(String hits, String min);
-
-  /// No description provided for @tapToStart.
-  ///
-  /// In ja, this message translates to:
-  /// **'タップで開始'**
-  String get tapToStart;
 
   /// No description provided for @rankingUnavailable.
   ///
   /// In ja, this message translates to:
   /// **'ランキングは現在利用できません'**
   String get rankingUnavailable;
-
-  /// No description provided for @rankingEndlessScore.
-  ///
-  /// In ja, this message translates to:
-  /// **'エンドレス: スコア'**
-  String get rankingEndlessScore;
-
-  /// No description provided for @rankingEndlessRound.
-  ///
-  /// In ja, this message translates to:
-  /// **'エンドレス: 到達ラウンド'**
-  String get rankingEndlessRound;
-
-  /// No description provided for @rankingStages.
-  ///
-  /// In ja, this message translates to:
-  /// **'ステージ: 合計スコア'**
-  String get rankingStages;
 
   /// No description provided for @introKeystone.
   ///
