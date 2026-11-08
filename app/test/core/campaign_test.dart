@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parry_break/core/blocks/explosive.dart';
@@ -64,6 +65,31 @@ void main() {
         final prev = seen[key];
         if (prev != null && !allowed.contains(where)) fail('$where は $prev と同じ配置');
         seen[key] ??= where;
+      }
+    }
+  });
+
+  // design.md 6章「章とステージの並べ方」の難しさの並べ方 (#164)。ボス (10 番目) は除く。
+  // 面の難易度は、その面のラウンドのうち最も高いもの (連戦は通しで見る)。
+  test('難易度は章の中でおおむね上がり、章ごとに上がっていく (新しい攻撃ブロックの初登場から始まる章は例外)', () {
+    const newAttackIntros = {'intro.spread', 'intro.gatling', 'intro.ring', 'intro.spiral', 'intro.sniper'};
+    int level(StageDef s) => s.rounds.map((w) => w.difficulty).reduce(math.max);
+    for (final (i, ch) in campaign.chapters.indexed) {
+      final stages = ch.stages.where((s) => s.rounds.every((w) => w.content is! BossContent)).toList();
+      // 章の中: 直前の面より 2 を超えて下げない
+      for (var k = 1; k < stages.length; k++) {
+        expect(level(stages[k]), greaterThanOrEqualTo(level(stages[k - 1]) - 2),
+            reason: '${stages[k].id} が ${stages[k - 1].id} より下がりすぎている');
+      }
+      if (i == 0) continue;
+      final prev = campaign.chapters[i - 1].stages.where((s) => s.rounds.every((w) => w.content is! BossContent)).toList();
+      final first = stages.first;
+      final prevMax = prev.map(level).reduce(math.max);
+      // 章の終わり (いちばん難しい面) は、前の章より上
+      expect(stages.map(level).reduce(math.max), greaterThan(prevMax), reason: ch.id);
+      // 章の最初の面は前の章の最大以上。新しい攻撃ブロックの初登場から始まる章だけは下げてよい
+      if (!newAttackIntros.contains(first.rounds.first.introKey)) {
+        expect(level(first), greaterThanOrEqualTo(prevMax), reason: first.id);
       }
     }
   });
