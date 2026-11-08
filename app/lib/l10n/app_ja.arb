@@ -49,6 +49,7 @@
   "stageClear": "STAGE CLEAR",
   "stageFailed": "STAGE FAILED",
   "newRecord": "NEW RECORD",
+  "bestScoreClearOnly": "クリアした回のみ記録",
   "locked": "未解放",
   "starClear": "クリア",
   "starNoHit": "一度も被弾せずにクリア",

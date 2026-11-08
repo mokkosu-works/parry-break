@@ -42,6 +42,7 @@
   "stageClear": "STAGE CLEAR",
   "stageFailed": "STAGE FAILED",
   "newRecord": "NEW RECORD",
+  "bestScoreClearOnly": "CLEAR ONLY",
   "locked": "LOCKED",
   "starClear": "Clear",
   "starNoHit": "Clear without getting hit",
