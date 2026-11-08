@@ -148,6 +148,10 @@ class BossPatternRegistry {
 
 double _bulletSpeed(World w, Boss b) => (230 + b.index * 15) * w.round.loopMul * w.difficulty.bulletSpeed;
 
+/// 難易度と周回による攻撃頻度の倍率 (フェーズとボスの強さは含めない)。
+/// 間隔をフェーズとボスの番号の式で決めている攻撃 (レーザー・渦巻き) に使う (design.md 6章「倍率のかかり方」)。
+double _bossRate(World w) => w.difficulty.bossFireRate * w.round.loopMul;
+
 /// 扇状の弾幕 (赤い弾を含む)。コアが複数あるときは 1 つずつ順番に撃つ。
 class FanPattern extends BossPattern {
   FanPattern(super.fromPhase);
@@ -200,7 +204,7 @@ class LaserPattern extends BossPattern {
 
   @override
   void update(World w, Boss boss, List<Block> cores, double dt, double rate) {
-    _t -= dt;
+    _t -= dt * _bossRate(w);
     if (_t > 0) return;
     _t = (boss.phase == 3 ? 3.4 : 5) / (1 + boss.index * 0.06);
     w.fireLaser(w.paddle.x);
@@ -220,7 +224,7 @@ class SpiralPattern extends BossPattern {
     if (_cycle >= 2) return;
     _t -= dt;
     if (_t > 0) return;
-    _t = 0.18 / (1 + boss.index * 0.05) / w.difficulty.bossFireRate;
+    _t = 0.18 / (1 + boss.index * 0.05) / _bossRate(w);
     _angle += 0.45;
     final c = cores[_n++ % cores.length], o = w.blockCenter(c);
     w.fireBullet(o.x, o.y + 20, math.pi / 2 + math.sin(_angle) * 70 * deg, _bulletSpeed(w, boss),
@@ -269,7 +273,7 @@ class LaserGridPattern extends BossPattern {
 
   @override
   void update(World w, Boss boss, List<Block> cores, double dt, double rate) {
-    _t -= dt;
+    _t -= dt * _bossRate(w);
     if (_t > 0) return;
     _t = (boss.phase == 3 ? 5.5 : 7.5) / (1 + boss.index * 0.06);
     for (var x = w.aux.next() * _spacing; x < Field.width; x += _spacing) {
