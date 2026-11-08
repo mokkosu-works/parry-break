@@ -776,6 +776,12 @@ abstract class AppLocalizations {
   /// **'ボールが当たる瞬間にタップしてパリィ'**
   String get introParry;
 
+  /// No description provided for @introParryButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボールが当たる瞬間に PARRY を押してパリィ'**
+  String get introParryButton;
+
   /// No description provided for @introPierce.
   ///
   /// In ja, this message translates to:
