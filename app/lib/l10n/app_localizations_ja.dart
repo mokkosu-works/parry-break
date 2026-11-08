@@ -150,6 +150,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get locked => '未解放';
 
   @override
+  String unlockBy(String stage) {
+    return '$stage をクリアすると開く';
+  }
+
+  @override
   String get starClear => 'クリア';
 
   @override

@@ -118,6 +118,7 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
                 record: recordOf(selected.id),
                 difficulty: diff,
                 unlocked: unlocked(selected),
+                unlockedBy: campaign.unlockedBy(selected)?.id,
                 onStart: () =>
                     Navigator.of(context).push(fadeRoute<void>(GameScreen(stage: selected, difficulty: diff))),
               ),
@@ -387,6 +388,7 @@ class _StageDetail extends StatelessWidget {
     required this.difficulty,
     required this.unlocked,
     required this.onStart,
+    this.unlockedBy,
   });
   final StageDef stage;
   final String title;
@@ -394,6 +396,9 @@ class _StageDetail extends StatelessWidget {
   final Difficulty difficulty;
   final bool unlocked;
   final VoidCallback onStart;
+
+  /// 鍵がかかっているとき、開くためにクリアするステージの番号。
+  final String? unlockedBy;
 
   @override
   Widget build(BuildContext context) {
@@ -449,10 +454,18 @@ class _StageDetail extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: unlocked
               ? PixelButton(label: 'START', filled: true, icon: PixelIcons.play, onPressed: onStart)
-              : Row(mainAxisSize: MainAxisSize.min, children: [
-                  PixelIcon(PixelIcons.lock, size: 14, color: Palette.gray),
-                  const SizedBox(width: 8),
-                  Text('LOCKED', style: pixelFont(14, color: Palette.gray, letterSpacing: 2)),
+              : Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    PixelIcon(PixelIcons.lock, size: 14, color: Palette.gray),
+                    const SizedBox(width: 8),
+                    Text('LOCKED', style: pixelFont(14, color: Palette.gray, letterSpacing: 2)),
+                  ]),
+                  // どれをクリアすると開くか
+                  if (unlockedBy != null) ...[
+                    const SizedBox(height: 6),
+                    Text(l.unlockBy(unlockedBy!),
+                        textAlign: TextAlign.right, style: const TextStyle(fontSize: 14, color: Palette.pale)),
+                  ],
                 ]),
         ),
       ]),

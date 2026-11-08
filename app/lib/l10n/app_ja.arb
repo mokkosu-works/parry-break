@@ -51,6 +51,14 @@
   "newRecord": "NEW RECORD",
   "bestScoreClearOnly": "クリアした回のみ記録",
   "locked": "未解放",
+  "unlockBy": "{stage} をクリアすると開く",
+  "@unlockBy": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
   "starClear": "クリア",
   "starNoHit": "一度も被弾せずにクリア",
   "starTime": "{seconds}秒以内にクリア",
