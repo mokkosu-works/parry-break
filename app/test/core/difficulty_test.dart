@@ -211,13 +211,13 @@ void main() {
       return (lasers, bullets);
     }
 
-    test('ロックオン・レーザー格子の頻度は、難易度と周回で変わる', () {
+    test('ロックオン・レーザー格子の頻度は、EASY で減り、2 周目で増える (HARD は NORMAL と同じ)', () {
       for (final make in <BossPattern Function(int)>[LaserPattern.new, LaserGridPattern.new]) {
         int n(Difficulty d, {int loop = 0}) => fire(bossAt(d, 3, loop: loop), make(1), 120).$1;
         final easy = n(Difficulty.easy), normal = n(Difficulty.normal), hard = n(Difficulty.hard);
         final name = make(1).runtimeType;
         expect(easy, lessThan(normal), reason: '$name: $easy $normal $hard');
-        expect(hard, greaterThan(normal), reason: '$name: $easy $normal $hard');
+        expect(hard, normal, reason: '$name: $easy $normal $hard');
         expect(n(Difficulty.normal, loop: 1), greaterThan(normal), reason: '$name: 2 周目');
       }
     });
