@@ -85,11 +85,23 @@ class FieldPainter extends CustomPainter {
 
   /// HUD の右端に置くポーズボタンの場所 (盤面の座標)。ボタンそのものは game_screen.dart が重ねる。
   static const pauseButton = Rect.fromLTWH(_w - 56, 6, 44, 44);
+  /// HUD のラベル (SCORE・ROUND・FEVER TIME の残り秒数など) が画面上でこれより小さくならないようにする (pt)。
+  static const hudLabelMinPt = 11.0;
+
+  /// HUD のラベルの大きさ (盤面の座標)。[scale] は盤面の 1 単位あたりの画面のピクセル数。
+  /// 倍率が十分な端末では今までどおり 16。倍率が小さい端末 (スマホの横画面) では、画面上で
+  /// [hudLabelMinPt] 以上になるように大きくする。下の数値 (24) と重ならないよう 24 までにする。
+  static double hudLabelSize(double scale) => (hudLabelMinPt / scale).ceilToDouble().clamp(16.0, 24.0);
+
   static final _floor = DitherFloor(const Rect.fromLTWH(0, 440, _w, _h - 440));
   final _rnd = math.Random();
 
   late Canvas _c;
   late double _t, _a, _ox, _oy;
+
+  /// HUD のラベルの大きさ ([hudLabelSize]) と、縦の中心。
+  /// 大きくしたときは、下の端がコンボのメーターの目盛り (y = 24) より上に収まるように上へずらす。
+  late double _label, _labelY;
 
   double _lerp(double a, double b) => a + (b - a) * _a;
 
@@ -101,6 +113,8 @@ class FieldPainter extends CustomPainter {
     final w = world;
     _ox = _lerp(w.form.prevOx, w.form.ox);
     _oy = _lerp(w.form.prevOy, w.form.oy);
+    _label = hudLabelSize(size.width / _w);
+    _labelY = math.min(14.0, 24 - _label / 2);
     canvas.save();
     canvas.scale(size.width / _w);
     canvas.clipRect(const Rect.fromLTWH(0, 0, _w, _h));
@@ -527,31 +541,31 @@ class FieldPainter extends CustomPainter {
 
   void _hud() {
     final w = world;
-    _txt('SCORE', 20, 14, 16, Dot.dim, align: TextAlignH.left);
+    _txt('SCORE', 20, _labelY, _label, Dot.dim, align: TextAlignH.left);
     _txt(formatScore(fx.dispScore), 20, 38, 24, Dot.white, align: TextAlignH.left);
     final boss = w.boss;
-    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND', 400, 14, 16, Dot.dim);
+    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND', 400, _labelY, _label, Dot.dim);
     _txt('${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}', 400, 38, 24, Dot.white);
     final clear = w.round.clear;
     if (boss != null) {
       final tm = boss.time.ceil();
-      _txt('TIME', 530, 14, 16, Dot.dim);
+      _txt('TIME', 530, _labelY, _label, Dot.dim);
       _txt('$tm', 530, 38, 24, tm <= 10 ? Dot.bulletRed : Dot.white);
     } else if (clear is SurviveClear) {
       final left = math.max(0, (clear.seconds - w.roundTime).ceil());
-      _txt('SURVIVE', 530, 14, 16, Dot.dim);
+      _txt('SURVIVE', 530, _labelY, _label, Dot.dim);
       _txt('$left', 530, 38, 24, left <= 5 ? Dot.mustard : Dot.white);
     } else if (clear is ScoreClear) {
-      _txt('GOAL', 530, 14, 16, Dot.dim);
+      _txt('GOAL', 530, _labelY, _label, Dot.dim);
       _txt(formatScore(clear.target), 530, 38, 24, Dot.white);
     } else {
-      _txt('CHAIN', 530, 14, 16, Dot.dim);
+      _txt('CHAIN', 530, _labelY, _label, Dot.dim);
       _txt('${w.streak}', 530, 38, 24, Dot.white);
     }
     // コンボ: ドットのマスを並べたメーター
     const bx = 680.0, by = 28.0, bw = 340.0, bh = 16.0;
     final st = w.od ? 4 : w.stage;
-    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'COMBO LV${st + 1}', bx, 14, 16,
+    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'COMBO LV${st + 1}', bx, _labelY, _label,
         w.od ? Dot.rose : Dot.dim,
         align: TextAlignH.left);
     final tun = w.tuning;
