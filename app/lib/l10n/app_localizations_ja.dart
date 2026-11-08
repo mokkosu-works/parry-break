@@ -10,12 +10,6 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'PARRY BREAK';
-
-  @override
-  String get menuEndless => 'エンドレス';
-
-  @override
   String get menuStages => 'ステージ';
 
   @override
@@ -25,18 +19,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get menuSettings => '設定';
 
   @override
-  String get menuRanking => 'ランキング';
-
-  @override
   String get back => '戻る';
-
-  @override
-  String get bestScore => '最高スコア';
-
-  @override
-  String roundN(String n) {
-    return 'ラウンド $n';
-  }
 
   @override
   String get helpMoveTitle => '移動';
@@ -117,37 +100,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paused => '一時停止中';
 
   @override
-  String get resume => '再開';
-
-  @override
-  String get retry => 'リトライ';
-
-  @override
-  String get toTitle => 'タイトルへ';
-
-  @override
-  String get nextStage => '次のステージ';
-
-  @override
-  String get stageSelect => 'ステージ選択';
-
-  @override
-  String get gameOver => 'GAME OVER';
-
-  @override
-  String get stageClear => 'STAGE CLEAR';
-
-  @override
-  String get stageFailed => 'STAGE FAILED';
-
-  @override
-  String get newRecord => 'NEW RECORD';
-
-  @override
   String get bestScoreClearOnly => 'クリアした回のみ記録';
-
-  @override
-  String get locked => '未解放';
 
   @override
   String unlockBy(String stage) {
@@ -240,10 +193,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get controlsZones => '画面の左右';
 
   @override
-  String get controlsRailH => 'レール（横）';
+  String get controlsRailH => 'レール(横)';
 
   @override
-  String get controlsRailV => 'レール（縦）';
+  String get controlsRailV => 'レール(縦)';
 
   @override
   String get settingsSensitivity => '移動感度';
@@ -277,13 +230,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get qualityHigh => '高';
 
   @override
-  String get qualityLow => '低（省電力）';
+  String get qualityLow => '低(省電力)';
 
   @override
   String get settingsReduceEffects => '演出を控えめにする';
 
   @override
-  String get settingsReduceEffectsHelp => 'フラッシュ・点滅・揺れを抑えます';
+  String get settingsReduceEffectsHelp => 'フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます';
 
   @override
   String get settingsLanguage => '言語';
@@ -311,7 +264,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String calibrationBody(String count) {
-    return '縮んでくる輪が、中央の輪に重なる瞬間にタップしてください（$count回）';
+    return '縮んでくる輪が、中央の輪に重なる瞬間にタップしてください($count回)';
   }
 
   @override
@@ -330,23 +283,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String calibrationFailed(String hits, String min) {
-    return 'うまく測れませんでした（輪に合ったタップ: $hits回。$min回以上必要です）。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください';
+    return 'うまく測れませんでした(輪に合ったタップ: $hits回。$min回以上必要です)。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください';
   }
 
   @override
-  String get tapToStart => 'タップで開始';
-
-  @override
   String get rankingUnavailable => 'ランキングは現在利用できません';
-
-  @override
-  String get rankingEndlessScore => 'エンドレス: スコア';
-
-  @override
-  String get rankingEndlessRound => 'エンドレス: 到達ラウンド';
-
-  @override
-  String get rankingStages => 'ステージ: 合計スコア';
 
   @override
   String get introKeystone => 'NEW: 要石 — 壊すと、支えていたブロックが崩れ落ちる';

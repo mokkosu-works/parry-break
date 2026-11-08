@@ -741,7 +741,7 @@ flutter test test/balance/balance_report.dart --dart-define=stages=6-1,6-6 --dar
 | BGM 音量 / 効果音音量 | 80% / 100% | 0〜100% |
 | 振動 | ON | ON / OFF |
 | 画質 | 高 | 高 / 低(低は床のディザを省く) |
-| 刺激を弱める | OFF | ON / OFF(フラッシュ・点滅・画面の揺れを弱める。FEVER TIME の電飾はゆっくり送り、点滅させない。光過敏性への配慮) |
+| 演出を控えめにする(英語は Reduce effects) | OFF | ON / OFF(フラッシュ・点滅・画面の揺れを弱め、タイトル・遊び方の図・結果画面の動きを止める。FEVER TIME の電飾はゆっくり送り、点滅させない。光過敏性への配慮) |
 | 言語 | 端末の言語 | 日本語 / English |
 
 判定タイミング補正は、画面の表示遅延とタッチの入力遅延を打ち消すため、入力時刻をこの値だけ早めて扱う。キャリブレーション画面では、一定の間隔で縮むリングが目標の輪に重なる瞬間にタップしてもらい、その平均の遅れを測る。
@@ -761,8 +761,9 @@ flutter test test/balance/balance_report.dart --dart-define=stages=6-1,6-6 --dar
 
 ### 9.7 言語
 
-- メニュー・遊び方・ラウンド開始時の説明などの文言は、日本語と英語を用意する。
+- 設定・遊び方・ラウンド開始時の説明・ステージの目標と星の条件などの文言は、日本語と英語を用意する(翻訳ファイル `app_ja.arb` / `app_en.arb`)。
 - 判定やボーナスの名前(PERFECT、COLLAPSE、FEVER TIME など)は、どちらの言語でも英語のまま表示する。
+- アーケード風の見出しとボタン(タイトルのメニュー ENDLESS / STAGES / HOW TO PLAY / SETTINGS / RANKING と START / CONTINUE、ポーズの PAUSED / RESUME / RETRY / SETTINGS / TITLE、結果画面の GAME OVER / STAGE CLEAR / STAGE FAILED / NEW RECORD / NEXT STAGE / STAGES / TITLE、SCORE / HI-SCORE / BEST / LOCKED などの記録の見出し)も、どちらの言語でも英語のまま表示する。翻訳しないので、翻訳ファイルには置かない(使われないキーは `test/l10n/arb_keys_test.dart` で落ちる)。
 - 言葉はアーケードのゲームでなじみのあるものを使う。1面ごとの区切りは「ROUND / ラウンド」と呼び、「WAVE / ウェーブ」は使わない(画面・ストアの文面・文書のどれでも)。BLAZE(ブレイズ)のような、いかにも作り物っぽい言葉も避ける。
 
 ### 9.8 記録とランキング

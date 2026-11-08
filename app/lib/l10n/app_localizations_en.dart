@@ -10,12 +10,6 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'PARRY BREAK';
-
-  @override
-  String get menuEndless => 'ENDLESS';
-
-  @override
   String get menuStages => 'STAGES';
 
   @override
@@ -25,18 +19,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuSettings => 'SETTINGS';
 
   @override
-  String get menuRanking => 'RANKING';
-
-  @override
   String get back => 'BACK';
-
-  @override
-  String get bestScore => 'BEST SCORE';
-
-  @override
-  String roundN(String n) {
-    return 'ROUND $n';
-  }
 
   @override
   String get helpMoveTitle => 'MOVE';
@@ -119,37 +102,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paused => 'PAUSED';
 
   @override
-  String get resume => 'RESUME';
-
-  @override
-  String get retry => 'RETRY';
-
-  @override
-  String get toTitle => 'TITLE';
-
-  @override
-  String get nextStage => 'NEXT STAGE';
-
-  @override
-  String get stageSelect => 'STAGE SELECT';
-
-  @override
-  String get gameOver => 'GAME OVER';
-
-  @override
-  String get stageClear => 'STAGE CLEAR';
-
-  @override
-  String get stageFailed => 'STAGE FAILED';
-
-  @override
-  String get newRecord => 'NEW RECORD';
-
-  @override
   String get bestScoreClearOnly => 'CLEAR ONLY';
-
-  @override
-  String get locked => 'LOCKED';
 
   @override
   String unlockBy(String stage) {
@@ -282,11 +235,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qualityLow => 'Low (battery saver)';
 
   @override
-  String get settingsReduceEffects => 'Reduce flashing';
+  String get settingsReduceEffects => 'Reduce effects';
 
   @override
   String get settingsReduceEffectsHelp =>
-      'Tones down flashes, blinking and shake';
+      'Tones down flashes, blinking, screen shake and menu animations';
 
   @override
   String get settingsLanguage => 'Language';
@@ -338,19 +291,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tapToStart => 'TAP TO START';
-
-  @override
   String get rankingUnavailable => 'Leaderboards are not available';
-
-  @override
-  String get rankingEndlessScore => 'Endless: Score';
-
-  @override
-  String get rankingEndlessRound => 'Endless: Round';
-
-  @override
-  String get rankingStages => 'Stages: Total score';
 
   @override
   String get introKeystone => 'NEW: KEYSTONE — BREAK IT TO COLLAPSE BLOCKS';
