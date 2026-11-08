@@ -116,6 +116,30 @@ abstract class AppLocalizations {
   /// **'設定'**
   String get menuSettings;
 
+  /// No description provided for @menuHistory.
+  ///
+  /// In ja, this message translates to:
+  /// **'プレイ記録'**
+  String get menuHistory;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ記録がありません。結果画面まで遊ぶと、ここに残ります'**
+  String get historyEmpty;
+
+  /// No description provided for @historyCleared.
+  ///
+  /// In ja, this message translates to:
+  /// **'クリア'**
+  String get historyCleared;
+
+  /// No description provided for @historyFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'未クリア'**
+  String get historyFailed;
+
   /// No description provided for @back.
   ///
   /// In ja, this message translates to:

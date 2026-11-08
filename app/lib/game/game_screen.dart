@@ -15,6 +15,7 @@ import '../render/palette.dart';
 import '../render/text_cache.dart';
 import '../services/ads.dart';
 import '../services/content.dart';
+import '../services/history.dart';
 import '../services/leaderboard.dart';
 import '../services/records.dart';
 import '../services/review.dart';
@@ -139,6 +140,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     ref.read(adsProvider).onResult();
     if (stage == null) {
       final newBest = records.submitEndless(score: w.score, round: w.round.number, stats: w.stats);
+      ref.read(historyProvider.notifier).addEndless(score: w.score, round: w.round.number);
       lb.submit(Board.endlessScore, w.score);
       lb.submit(Board.endlessRound, w.round.number);
       _outcome = _Outcome(newBest: newBest);
@@ -147,6 +149,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       final result = StageResult(cleared: cleared, score: w.score, stats: w.stats);
       final stars = stage.evaluate(result);
       final newBest = records.submitStage(stage.id, result, stars, difficulty: widget.difficulty);
+      ref.read(historyProvider.notifier)
+          .addStage(stage.id, score: w.score, cleared: cleared, difficulty: widget.difficulty);
       if (cleared) lb.submit(Board.stagesTotal, ref.read(recordsProvider).stagesTotal);
       _outcome = _Outcome(newBest: newBest, stars: stars, cleared: cleared);
     }

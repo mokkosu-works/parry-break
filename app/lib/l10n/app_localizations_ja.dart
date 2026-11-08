@@ -19,6 +19,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get menuSettings => '設定';
 
   @override
+  String get menuHistory => 'プレイ記録';
+
+  @override
+  String get historyEmpty => 'まだ記録がありません。結果画面まで遊ぶと、ここに残ります';
+
+  @override
+  String get historyCleared => 'クリア';
+
+  @override
+  String get historyFailed => '未クリア';
+
+  @override
   String get back => '戻る';
 
   @override

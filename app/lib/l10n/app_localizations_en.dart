@@ -19,6 +19,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuSettings => 'SETTINGS';
 
   @override
+  String get menuHistory => 'HISTORY';
+
+  @override
+  String get historyEmpty =>
+      'No plays yet. Your results appear here after each game';
+
+  @override
+  String get historyCleared => 'CLEAR';
+
+  @override
+  String get historyFailed => 'FAILED';
+
+  @override
   String get back => 'BACK';
 
   @override
