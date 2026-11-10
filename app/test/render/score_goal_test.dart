@@ -19,19 +19,43 @@ class _RecordingText extends TextCache {
   final drawn = <String>[];
 
   @override
-  void draw(Canvas canvas, String text, double x, double y, double size, Color color,
-      {TextAlignH align = TextAlignH.center, double weight = 700, String? family}) {
+  void draw(
+    Canvas canvas,
+    String text,
+    double x,
+    double y,
+    double size,
+    Color color, {
+    TextAlignH align = TextAlignH.center,
+    double weight = 700,
+    String? family,
+  }) {
     drawn.add(text);
-    super.draw(canvas, text, x, y, size, color, align: align, weight: weight, family: family);
+    super.draw(
+      canvas,
+      text,
+      x,
+      y,
+      size,
+      color,
+      align: align,
+      weight: weight,
+      family: family,
+    );
   }
 }
 
 final _campaign = Campaign.fromJson(
-    jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
+  jsonDecode(File('assets/stages/campaign.json').readAsStringSync())
+      as Map<String, Object?>,
+  endlessContent,
+);
 
 /// [id] の面 (null ならエンドレス) を始め、帯が開ききるまで進めてから 1 枚描き、描いた文字を返す。
 List<String> _draw(String? id, String lang, {double seconds = 0.6}) {
-  final w = World(mode: id == null ? endlessMode : StageMode(_campaign.stage(id)!))..start();
+  final w = World(
+    mode: id == null ? endlessMode : StageMode(_campaign.stage(id)!),
+  )..start();
   final fx = FxState(w);
   for (var i = 0; i < (seconds * 60).round(); i++) {
     w.step(World.dt);

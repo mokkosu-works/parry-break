@@ -30,31 +30,48 @@ void main() {
   }
 
   testWidgets('遊び方に COMBO / FEVER TIME と GRAZE / RICOCHET のページがある', (t) async {
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
-    SharedPreferences.setMockInitialValues({'settings.v1': jsonEncode(const Settings(language: 'en').toJson())});
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    SharedPreferences.setMockInitialValues({
+      'settings.v1': jsonEncode(const Settings(language: 'en').toJson()),
+    });
     final prefs = await SharedPreferences.getInstance();
     final content = await GameContent.load(rootBundle);
-    await t.pumpWidget(ProviderScope(
-      overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-        contentProvider.overrideWithValue(content),
-        leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
-      ],
-      child: const ParryBreakApp(),
-    ));
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
+          contentProvider.overrideWithValue(content),
+          leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
+        ],
+        child: const ParryBreakApp(),
+      ),
+    );
     await t.pump(const Duration(seconds: 3));
     await t.tap(find.text('HOW TO PLAY'));
     await t.pump(const Duration(milliseconds: 600));
     expect(find.byType(HelpScreen), findsOneWidget);
 
     var n = 0;
-    for (final title in ['MOVE', 'LAUNCH / PARRY', 'TIMING', 'CHAIN', 'COMBO / FEVER TIME', 'GRAZE / RICOCHET']) {
+    for (final title in [
+      'MOVE',
+      'LAUNCH / PARRY',
+      'TIMING',
+      'CHAIN',
+      'COMBO / FEVER TIME',
+      'GRAZE / RICOCHET',
+    ]) {
       expect(find.text(title), findsOneWidget, reason: title);
       if (title.startsWith('COMBO') || title.startsWith('GRAZE')) {
         // 動く図の見どころを 2 コマ撮る (3.2 秒で 1 周)
         for (final ms in [1500, 1300]) {
           await t.pump(Duration(milliseconds: ms));
-          await shot(t, 'issue74_0${++n}_${title.substring(0, 4).toLowerCase()}');
+          await shot(
+            t,
+            'issue74_0${++n}_${title.substring(0, 4).toLowerCase()}',
+          );
         }
       }
       await t.tap(find.text('NEXT'));

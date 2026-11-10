@@ -29,7 +29,10 @@ class _FakePlatform implements LeaderboardPlatform {
   }
 
   @override
-  Future<void> showLeaderboards({required String iOSLeaderboardID, required String androidLeaderboardID}) async {}
+  Future<void> showLeaderboards({
+    required String iOSLeaderboardID,
+    required String androidLeaderboardID,
+  }) async {}
 }
 
 void main() {
@@ -37,12 +40,15 @@ void main() {
   late _FakePlatform platform;
 
   Future<void> setPending(Map<String, int> p) async {
-    SharedPreferences.setMockInitialValues({'leaderboard.pending': jsonEncode(p)});
+    SharedPreferences.setMockInitialValues({
+      'leaderboard.pending': jsonEncode(p),
+    });
     prefs = await SharedPreferences.getInstance();
   }
 
-  Map<String, int> pending() =>
-      Map<String, int>.from(jsonDecode(prefs.getString('leaderboard.pending') ?? '{}') as Map);
+  Map<String, int> pending() => Map<String, int>.from(
+    jsonDecode(prefs.getString('leaderboard.pending') ?? '{}') as Map,
+  );
 
   /// 待っている非同期の処理を進める。
   Future<void> flush() => Future<void>.delayed(Duration.zero);

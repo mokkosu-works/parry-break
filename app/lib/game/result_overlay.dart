@@ -105,14 +105,47 @@ class _ResultOverlayState extends State<ResultOverlay>
   }
 
   /// 結果画面のボタン (NEXT STAGE / RETRY / STAGES / TITLE のうち出すもの)。
-  List<({String label, DotSprite icon, VoidCallback onPressed, bool filled, Color? color})> get _buttons => [
-        if (widget.onNext case final next?)
-          (label: 'NEXT STAGE', icon: PixelIcons.skipNext, onPressed: next, filled: true, color: null),
-        (label: 'RETRY', icon: PixelIcons.replay, onPressed: widget.onRetry, filled: widget.onNext == null, color: null),
-        if (widget.onStageSelect case final stages?)
-          (label: 'STAGES', icon: PixelIcons.grid, onPressed: stages, filled: false, color: null),
-        (label: 'TITLE', icon: PixelIcons.home, onPressed: widget.onTitle, filled: false, color: Palette.gray),
-      ];
+  List<
+    ({
+      String label,
+      DotSprite icon,
+      VoidCallback onPressed,
+      bool filled,
+      Color? color,
+    })
+  >
+  get _buttons => [
+    if (widget.onNext case final next?)
+      (
+        label: 'NEXT STAGE',
+        icon: PixelIcons.skipNext,
+        onPressed: next,
+        filled: true,
+        color: null,
+      ),
+    (
+      label: 'RETRY',
+      icon: PixelIcons.replay,
+      onPressed: widget.onRetry,
+      filled: widget.onNext == null,
+      color: null,
+    ),
+    if (widget.onStageSelect case final stages?)
+      (
+        label: 'STAGES',
+        icon: PixelIcons.grid,
+        onPressed: stages,
+        filled: false,
+        color: null,
+      ),
+    (
+      label: 'TITLE',
+      icon: PixelIcons.home,
+      onPressed: widget.onTitle,
+      filled: false,
+      color: Palette.gray,
+    ),
+  ];
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
@@ -125,7 +158,9 @@ class _ResultOverlayState extends State<ResultOverlay>
     }
     final buttons = _buttons;
     if (arrowStep(key) case final step?) {
-      setState(() => _selected = (_selected + step + buttons.length) % buttons.length);
+      setState(
+        () => _selected = (_selected + step + buttons.length) % buttons.length,
+      );
       return KeyEventResult.handled;
     }
     if (isConfirmKey(key)) {
@@ -166,125 +201,139 @@ class _ResultOverlayState extends State<ResultOverlay>
       focusNode: _focus,
       onKeyEvent: _onKey,
       child: GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () {
-        if (_c.value < 1) _c.value = 1;
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ColoredBox(color: withAlpha(Dot.ink, 0.88)),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                // 後ろの盤面が透けて読みにくくならないよう、窓の中に置く
-                child: PixelWindow(
-                  padding: const EdgeInsets.fromLTRB(28, 22, 28, 26),
-                  child: SizedBox(
-                  width: 1000,
-                  height: 470,
-                  child: AnimatedBuilder(
-                    animation: _c,
-                    builder: (context, _) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 見出し (後ろに帯)
-                        _in(
-                          0,
-                          0.16,
-                          CustomPaint(
-                            painter: _Backdrop(color),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const SizedBox(width: 16),
-                                  PixelTitle(title, size: 64, color: color),
-                                  const SizedBox(width: 26),
-                                  // 難易度とミスの理由が並ぶと幅が足りないことがあるので、縮めて収める
-                                  Flexible(
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                        if (stage != null) ...[
-                                          PixelTag(
-                                            'STAGE ${stage.id}',
-                                            color: Palette.sub,
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          if (_c.value < 1) _c.value = 1;
+        },
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ColoredBox(color: withAlpha(Dot.ink, 0.88)),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  // 後ろの盤面が透けて読みにくくならないよう、窓の中に置く
+                  child: PixelWindow(
+                    padding: const EdgeInsets.fromLTRB(28, 22, 28, 26),
+                    child: SizedBox(
+                      width: 1000,
+                      height: 470,
+                      child: AnimatedBuilder(
+                        animation: _c,
+                        builder: (context, _) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 見出し (後ろに帯)
+                            _in(
+                              0,
+                              0.16,
+                              CustomPaint(
+                                painter: _Backdrop(color),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(width: 16),
+                                      PixelTitle(title, size: 64, color: color),
+                                      const SizedBox(width: 26),
+                                      // 難易度とミスの理由が並ぶと幅が足りないことがあるので、縮めて収める
+                                      Flexible(
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          alignment: Alignment.centerLeft,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (stage != null) ...[
+                                                PixelTag(
+                                                  'STAGE ${stage.id}',
+                                                  color: Palette.sub,
+                                                ),
+                                                const SizedBox(width: 10),
+                                                PixelTag(
+                                                  d.difficulty.label,
+                                                  color: difficultyColor(
+                                                    d.difficulty,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 10),
+                                              ],
+                                              if (!win)
+                                                PixelTag(
+                                                  d.reason,
+                                                  color: Palette.sub,
+                                                ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 10),
-                                          PixelTag(d.difficulty.label, color: difficultyColor(d.difficulty)),
-                                          const SizedBox(width: 10),
-                                        ],
-                                        if (!win)
-                                          PixelTag(d.reason, color: Palette.sub),
-                                      ]),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              from: const Offset(-60, 0),
+                            ),
+                            const SizedBox(height: 26),
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(flex: 11, child: _score(d)),
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 28,
                                     ),
+                                    width: 2,
+                                    color: withAlpha(Dot.edge, _p(0.3, 0.5)),
+                                  ),
+                                  Expanded(
+                                    flex: 9,
+                                    child: stage == null
+                                        ? _stats(d)
+                                        : _stars(l, d, stage),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                          from: const Offset(-60, 0),
-                        ),
-                        const SizedBox(height: 26),
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 11, child: _score(d)),
-                              Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 28,
+                            // 出きるまでは押せない (演出を飛ばすつもりのタップが、見えていないボタンに当たらないように)
+                            IgnorePointer(
+                              ignoring: _p(0.78, 0.95) < 1,
+                              child: _in(
+                                0.78,
+                                0.95,
+                                Wrap(
+                                  spacing: 14,
+                                  runSpacing: 10,
+                                  children: [
+                                    for (final (i, b) in _buttons.indexed)
+                                      PixelButton(
+                                        label: b.label,
+                                        filled: b.filled,
+                                        color: b.color,
+                                        icon: b.icon,
+                                        selected: i == _selected,
+                                        onPressed: b.onPressed,
+                                      ),
+                                  ],
                                 ),
-                                width: 2,
-                                color: withAlpha(Dot.edge, _p(0.3, 0.5)),
                               ),
-                              Expanded(
-                                flex: 9,
-                                child: stage == null
-                                    ? _stats(d)
-                                    : _stars(l, d, stage),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        // 出きるまでは押せない (演出を飛ばすつもりのタップが、見えていないボタンに当たらないように)
-                        IgnorePointer(
-                          ignoring: _p(0.78, 0.95) < 1,
-                          child: _in(
-                          0.78,
-                          0.95,
-                          Wrap(
-                            spacing: 14,
-                            runSpacing: 10,
-                            children: [
-                              for (final (i, b) in _buttons.indexed)
-                                PixelButton(
-                                  label: b.label,
-                                  filled: b.filled,
-                                  color: b.color,
-                                  icon: b.icon,
-                                  selected: i == _selected,
-                                  onPressed: b.onPressed,
-                                ),
-                            ],
-                          ),
-                        ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -328,11 +377,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                   const SizedBox(width: 10),
                   Text(
                     'HI-SCORE',
-                    style: pixelFont(
-                      14,
-                      color: Palette.main,
-                      letterSpacing: 4,
-                    ),
+                    style: pixelFont(14, color: Palette.main, letterSpacing: 4),
                   ),
                   const SizedBox(width: 14),
                   Text(
@@ -449,7 +494,10 @@ class _ResultOverlayState extends State<ResultOverlay>
           // 取った星は大きく出て 1 段で収まる
           Transform.scale(
             scale: got && t < 0.6 ? 1.4 : 1,
-            child: SizedBox(width: 40, child: Center(child: PixelStar(got: got, size: 36, shadow: true))),
+            child: SizedBox(
+              width: 40,
+              child: Center(child: PixelStar(got: got, size: 36, shadow: true)),
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -507,7 +555,10 @@ class _Backdrop extends CustomPainter {
       p.color = withAlpha(color, 0.2 - i * 0.06);
       canvas.drawRect(Rect.fromLTWH(w * i / 3, 0, w / 3, h), p);
     }
-    canvas.drawRect(Rect.fromLTWH(0, h, w, 4), p..color = withAlpha(color, 0.7));
+    canvas.drawRect(
+      Rect.fromLTWH(0, h, w, 4),
+      p..color = withAlpha(color, 0.7),
+    );
   }
 
   @override

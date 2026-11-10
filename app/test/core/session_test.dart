@@ -51,7 +51,11 @@ class Clock {
 /// ヒットストップが [hitstop] 秒 (実時間) 続き、その後 [slowmo] 秒 (実時間) は 0.35 倍、その後は等速で進むか。
 ///
 /// [c] は、ヒットストップとスローモーションが始まった直後の状態。
-void expectStopThenSlow(Clock c, {required double hitstop, required double slowmo}) {
+void expectStopThenSlow(
+  Clock c, {
+  required double hitstop,
+  required double slowmo,
+}) {
   final start = c.now;
   final s0 = c.sim;
   final resumed = c.until(() => c.sim > s0 + 1e-9) - tick;
@@ -61,7 +65,10 @@ void expectStopThenSlow(Clock c, {required double hitstop, required double slowm
   final slowStart = start + hitstop;
   // スローモーションの区間 (端は 0.01 秒あける): 0.35 倍
   final from = slowStart + 0.01 - c.now;
-  expect(c.simDuring(from, from + slowmo - 0.02), closeTo(0.35 * (slowmo - 0.02), 0.003));
+  expect(
+    c.simDuring(from, from + slowmo - 0.02),
+    closeTo(0.35 * (slowmo - 0.02), 0.003),
+  );
   // スローモーションが明けた後: 等速
   final after = slowStart + slowmo + 0.01 - c.now;
   expect(c.simDuring(after, after + 0.1), closeTo(0.1, 0.003));
@@ -137,9 +144,15 @@ void main() {
       final frozen = c.sim;
       expect(w.sync.toSim(c.now + 0.05), closeTo(frozen, 1e-9));
       // 明けた後は 0.35 倍
-      expect(w.sync.toSim(c.now + 0.08 + 0.1), closeTo(frozen + 0.35 * 0.1, 1e-9));
+      expect(
+        w.sync.toSim(c.now + 0.08 + 0.1),
+        closeTo(frozen + 0.35 * 0.1, 1e-9),
+      );
       // スローモーションも明けた後は等速
-      expect(w.sync.toSim(c.now + 0.08 + 0.15 + 0.1), closeTo(frozen + 0.35 * 0.15 + 0.1, 1e-9));
+      expect(
+        w.sync.toSim(c.now + 0.08 + 0.15 + 0.1),
+        closeTo(frozen + 0.35 * 0.15 + 0.1, 1e-9),
+      );
     });
 
     test('JUST の直後のスローモーション中に、次の接触の直前に押すと JUST になる', () {
@@ -160,7 +173,10 @@ void main() {
         ..pierce = 0
         ..breaker = false;
       b.vy = b.speed;
-      b.y = Field.paddleY - Field.ballR - b.speed * (0.04 + c.session.alpha * World.dt);
+      b.y =
+          Field.paddleY -
+          Field.ballR -
+          b.speed * (0.04 + c.session.alpha * World.dt);
       // 前のパリィの判定の窓を閉じておく
       w.parry
         ..active = false
@@ -173,7 +189,10 @@ void main() {
       c.advance(0.05);
       w.pressAction(pressWall);
       c.until(() => c.events.whereType<ParrySucceeded>().isNotEmpty);
-      expect(c.events.whereType<ParrySucceeded>().single.grade, ParryGrade.just);
+      expect(
+        c.events.whereType<ParrySucceeded>().single.grade,
+        ParryGrade.just,
+      );
     });
   });
 }

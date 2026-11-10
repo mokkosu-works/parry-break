@@ -44,25 +44,32 @@ class EndlessContent {
       loopSpeedup: (j['loopSpeedup'] as num).toDouble(),
       loopIntro: j['loopIntro'] as String?,
       unlock: {
-        for (final e in ((j['generator'] as Map)['unlock'] as Map<String, Object?>).entries)
+        for (final e
+            in ((j['generator'] as Map)['unlock'] as Map<String, Object?>)
+                .entries)
           e.key: (e.value as num).toInt(),
       },
       handcrafted: hand,
       intros: intros,
-      bosses: [for (var i = 0; i < bosses.length; i++) BossDef.fromJson(i, bosses[i])],
+      bosses: [
+        for (var i = 0; i < bosses.length; i++) BossDef.fromJson(i, bosses[i]),
+      ],
     );
   }
 
   /// 難易度 [base] (1〜[roundsPerLoop]) のラウンドの中身。
   RoundContent contentFor(int base) {
     if (base % bossEvery == 0 && bosses.isNotEmpty) {
-      return BossContent(bosses[(base ~/ bossEvery - 1).clamp(0, bosses.length - 1)]);
+      return BossContent(
+        bosses[(base ~/ bossEvery - 1).clamp(0, bosses.length - 1)],
+      );
     }
     return layoutFor(base);
   }
 
   /// 難易度 [base] の配置 (ボスのラウンド番号でも、ボスではなく配置を返す)。
-  LayoutContent layoutFor(int base) => LayoutContent(handcrafted[base] ?? generateLayout(base, unlock: unlock));
+  LayoutContent layoutFor(int base) =>
+      LayoutContent(handcrafted[base] ?? generateLayout(base, unlock: unlock));
 
   /// エンドレスの [number] 番目のラウンド。
   RoundSpec round(int number) {
@@ -90,12 +97,15 @@ sealed class StarCondition {
   ///
   /// 形が合わない、または `type` が [StatKind] にない場合は例外を投げる。
   static StarCondition fromJson(Map<String, Object?> j) => switch (j) {
-        {'type': 'clear'} => const ClearStar(),
-        {'type': 'noHit'} => const NoHitStar(),
-        {'type': 'time', 'value': final num v} => TimeStar(v.toDouble()),
-        {'type': final String type, 'value': final num v} => StatStar(StatKind.values.byName(type), v.toInt()),
-        _ => throw FormatException('invalid star condition: $j'),
-      };
+    {'type': 'clear'} => const ClearStar(),
+    {'type': 'noHit'} => const NoHitStar(),
+    {'type': 'time', 'value': final num v} => TimeStar(v.toDouble()),
+    {'type': final String type, 'value': final num v} => StatStar(
+      StatKind.values.byName(type),
+      v.toInt(),
+    ),
+    _ => throw FormatException('invalid star condition: $j'),
+  };
 
   bool achieved(StageResult r);
 }
@@ -121,7 +131,16 @@ final class TimeStar extends StarCondition {
   bool achieved(StageResult r) => r.cleared && r.stats.playTime <= seconds;
 }
 
-enum StatKind { score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet }
+enum StatKind {
+  score,
+  just,
+  perfect,
+  collapse,
+  chainBlast,
+  returnKills,
+  graze,
+  ricochet,
+}
 
 /// 数値の目標 (例: JUST を 3 回、COLLAPSE ×14)。クリアしたときだけ数える。
 final class StatStar extends StarCondition {
@@ -130,22 +149,26 @@ final class StatStar extends StarCondition {
   final int value;
 
   int actual(StageResult r) => switch (kind) {
-        StatKind.score => r.score,
-        StatKind.just => r.stats.just,
-        StatKind.perfect => r.stats.perfects,
-        StatKind.collapse => r.stats.bestCollapse,
-        StatKind.chainBlast => r.stats.bestBlast,
-        StatKind.returnKills => r.stats.returnKills,
-        StatKind.graze => r.stats.graze,
-        StatKind.ricochet => r.stats.bestRicochet,
-      };
+    StatKind.score => r.score,
+    StatKind.just => r.stats.just,
+    StatKind.perfect => r.stats.perfects,
+    StatKind.collapse => r.stats.bestCollapse,
+    StatKind.chainBlast => r.stats.bestBlast,
+    StatKind.returnKills => r.stats.returnKills,
+    StatKind.graze => r.stats.graze,
+    StatKind.ricochet => r.stats.bestRicochet,
+  };
 
   @override
   bool achieved(StageResult r) => r.cleared && actual(r) >= value;
 }
 
 class StageResult {
-  const StageResult({required this.cleared, required this.score, required this.stats});
+  const StageResult({
+    required this.cleared,
+    required this.score,
+    required this.stats,
+  });
   final bool cleared;
   final int score;
   final RunStats stats;
@@ -158,11 +181,12 @@ class LocalizedText {
 
   /// 言語ごとの Map から読む。文字列 1 つだけなら英語として扱う。
   factory LocalizedText.fromJson(Object? j) => LocalizedText(switch (j) {
-        final Map<Object?, Object?> m => Map<String, String>.from(m),
-        _ => {'en': '${j ?? ''}'},
-      });
+    final Map<Object?, Object?> m => Map<String, String>.from(m),
+    _ => {'en': '${j ?? ''}'},
+  });
 
-  String of(String lang) => values[lang] ?? values['en'] ?? values.values.firstOrNull ?? '';
+  String of(String lang) =>
+      values[lang] ?? values['en'] ?? values.values.firstOrNull ?? '';
 }
 
 class StageDef {
@@ -183,7 +207,11 @@ class StageDef {
 }
 
 class ChapterDef {
-  const ChapterDef({required this.id, required this.title, required this.stages});
+  const ChapterDef({
+    required this.id,
+    required this.title,
+    required this.stages,
+  });
   final String id;
   final LocalizedText title;
   final List<StageDef> stages;
@@ -228,34 +256,56 @@ class Campaign {
   factory Campaign.fromJson(Map<String, Object?> j, EndlessContent endless) {
     return Campaign([
       for (final c in (j['chapters'] as List).cast<Map<String, Object?>>())
-        ChapterDef(id: c['id'] as String, title: LocalizedText.fromJson(c['title']), stages: [
-          for (final s in (c['stages'] as List).cast<Map<String, Object?>>())
-            StageDef(
-              id: s['id'] as String,
-              chapterId: c['id'] as String,
-              title: LocalizedText.fromJson(s['title']),
-              rounds: [
-                for (final (i, w) in (s['rounds'] as List).cast<Map<String, Object?>>().indexed)
-                  _round(i + 1, w, endless),
-              ],
-              stars: [
-                for (final st in (s['stars'] as List? ?? const [{'type': 'clear'}]).cast<Map<String, Object?>>())
-                  StarCondition.fromJson(st),
-              ],
-            ),
-        ]),
+        ChapterDef(
+          id: c['id'] as String,
+          title: LocalizedText.fromJson(c['title']),
+          stages: [
+            for (final s in (c['stages'] as List).cast<Map<String, Object?>>())
+              StageDef(
+                id: s['id'] as String,
+                chapterId: c['id'] as String,
+                title: LocalizedText.fromJson(s['title']),
+                rounds: [
+                  for (final (i, w)
+                      in (s['rounds'] as List)
+                          .cast<Map<String, Object?>>()
+                          .indexed)
+                    _round(i + 1, w, endless),
+                ],
+                stars: [
+                  for (final st
+                      in (s['stars'] as List? ??
+                              const [
+                                {'type': 'clear'},
+                              ])
+                          .cast<Map<String, Object?>>())
+                    StarCondition.fromJson(st),
+                ],
+              ),
+          ],
+        ),
     ]);
   }
 
-  static RoundSpec _round(int number, Map<String, Object?> w, EndlessContent endless) {
+  static RoundSpec _round(
+    int number,
+    Map<String, Object?> w,
+    EndlessContent endless,
+  ) {
     // 中身と、`difficulty` を省いたときの難易度
     final (RoundContent content, int defaultDifficulty) = switch (w) {
       {'rows': final List<Object?> rows} => (
-          LayoutContent(List<String>.from(rows), legend: Map<String, String>.from((w['legend'] as Map?) ?? const {})),
-          1,
+        LayoutContent(
+          List<String>.from(rows),
+          legend: Map<String, String>.from((w['legend'] as Map?) ?? const {}),
         ),
+        1,
+      ),
       {'endless': final num n} => (endless.layoutFor(n.toInt()), n.toInt()),
-      {'boss': final num i} => (BossContent(endless.bosses[i.toInt()]), (i.toInt() + 1) * endless.bossEvery),
+      {'boss': final num i} => (
+        BossContent(endless.bosses[i.toInt()]),
+        (i.toInt() + 1) * endless.bossEvery,
+      ),
       _ => throw const FormatException('round needs rows, endless or boss'),
     };
     return RoundSpec(
@@ -263,10 +313,12 @@ class Campaign {
       difficulty: (w['difficulty'] as num?)?.toInt() ?? defaultDifficulty,
       content: content,
       clear: ClearCondition.fromJson(w['clear'] as Map<String, Object?>?),
-      introKey: w['intro'] as String? ?? switch (w) {
-        {'endless': final num n} => endless.intros[n.toInt()],
-        _ => null,
-      },
+      introKey:
+          w['intro'] as String? ??
+          switch (w) {
+            {'endless': final num n} => endless.intros[n.toInt()],
+            _ => null,
+          },
       tuning: Map<String, Object?>.from((w['tuning'] as Map?) ?? const {}),
     );
   }

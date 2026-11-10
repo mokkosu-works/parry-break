@@ -13,7 +13,9 @@ const _handcraftedSinceBrowser = {21};
 /// ブラウザ版 (削除済み) の配置生成と一致することを確かめる。
 /// ゴールデンデータはブラウザ版から書き出したもので、作り直すことはできない。
 void main() {
-  final golden = jsonDecode(File('test/core/golden/layouts.json').readAsStringSync()) as Map<String, dynamic>;
+  final golden = jsonDecode(
+    File('test/core/golden/layouts.json').readAsStringSync(),
+  ) as Map<String, dynamic>;
 
   test('mulberry32 はブラウザ版と同じ値を返す', () {
     final rng = golden['rng'] as Map<String, dynamic>;
@@ -34,14 +36,21 @@ void main() {
       final rows = _handcraftedSinceBrowser.contains(n)
           ? generateLayout(n, unlock: endlessContent.unlock)
           : (endlessContent.contentFor(n) as LayoutContent).rows;
-      expect(rows, List<String>.from(e.value as List), reason: 'round ${e.key}');
+      expect(
+        rows,
+        List<String>.from(e.value as List),
+        reason: 'round ${e.key}',
+      );
     }
   });
 
   test('ボス要塞の配置がブラウザ版と一致する', () {
     final bosses = golden['bosses'] as List;
     for (var i = 0; i < bosses.length; i++) {
-      expect(endlessContent.bosses[i].template, List<String>.from(bosses[i] as List));
+      expect(
+        endlessContent.bosses[i].template,
+        List<String>.from(bosses[i] as List),
+      );
     }
   });
 

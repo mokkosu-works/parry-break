@@ -15,29 +15,35 @@ import 'text_cache.dart';
 /// 説明の翻訳キー (`intro.*`) の文言。知らないキーなら null。[loop] は `intro.loop` の周回数。
 /// [scoreTarget] は `intro.score` の目標スコア (スコア目標の面でなければ null で、`intro.score` も null になる)。
 /// [parryButton] はレール方式 (PARRY ボタンで弾く) のとき true で、`intro.parry` をボタン向けの文言にする。
-String? introText(AppLocalizations l10n, String? key, {int loop = 1, int? scoreTarget, bool parryButton = false}) =>
-    switch (key) {
-      'intro.keystone' => l10n.introKeystone,
-      'intro.turret' => l10n.introTurret,
-      'intro.explosive' => l10n.introExplosive,
-      'intro.reflector' => l10n.introReflector,
-      'intro.magnet' => l10n.introMagnet,
-      'intro.splitter' => l10n.introSplitter,
-      'intro.mirror' => l10n.introMirror,
-      'intro.wall' => l10n.introWall,
-      'intro.spread' => l10n.introSpread,
-      'intro.gatling' => l10n.introGatling,
-      'intro.ring' => l10n.introRing,
-      'intro.spiral' => l10n.introSpiral,
-      'intro.sniper' => l10n.introSniper,
-      'intro.loop' => l10n.introLoop('$loop'),
-      'intro.parry' => parryButton ? l10n.introParryButton : l10n.introParry,
-      'intro.pierce' => l10n.introPierce,
-      'intro.feverTime' => l10n.introFeverTime,
-      'intro.survive' => l10n.introSurvive,
-      'intro.score' => scoreTarget == null ? null : l10n.introScore(formatScore(scoreTarget)),
-      _ => null,
-    };
+String? introText(
+  AppLocalizations l10n,
+  String? key, {
+  int loop = 1,
+  int? scoreTarget,
+  bool parryButton = false,
+}) => switch (key) {
+  'intro.keystone' => l10n.introKeystone,
+  'intro.turret' => l10n.introTurret,
+  'intro.explosive' => l10n.introExplosive,
+  'intro.reflector' => l10n.introReflector,
+  'intro.magnet' => l10n.introMagnet,
+  'intro.splitter' => l10n.introSplitter,
+  'intro.mirror' => l10n.introMirror,
+  'intro.wall' => l10n.introWall,
+  'intro.spread' => l10n.introSpread,
+  'intro.gatling' => l10n.introGatling,
+  'intro.ring' => l10n.introRing,
+  'intro.spiral' => l10n.introSpiral,
+  'intro.sniper' => l10n.introSniper,
+  'intro.loop' => l10n.introLoop('$loop'),
+  'intro.parry' => parryButton ? l10n.introParryButton : l10n.introParry,
+  'intro.pierce' => l10n.introPierce,
+  'intro.feverTime' => l10n.introFeverTime,
+  'intro.survive' => l10n.introSurvive,
+  'intro.score' =>
+    scoreTarget == null ? null : l10n.introScore(formatScore(scoreTarget)),
+  _ => null,
+};
 
 /// 盤面 (1200×720) を描く。HUD・コールアウト・バナー・ラウンドクリアの表示も含む。
 ///
@@ -85,13 +91,15 @@ class FieldPainter extends CustomPainter {
 
   /// HUD の右端に置くポーズボタンの場所 (盤面の座標)。ボタンそのものは game_screen.dart が重ねる。
   static const pauseButton = Rect.fromLTWH(_w - 56, 6, 44, 44);
+
   /// HUD のラベル (SCORE・ROUND・FEVER TIME の残り秒数など) が画面上でこれより小さくならないようにする (pt)。
   static const hudLabelMinPt = 11.0;
 
   /// HUD のラベルの大きさ (盤面の座標)。[scale] は盤面の 1 単位あたりの画面のピクセル数。
   /// 倍率が十分な端末では今までどおり 16。倍率が小さい端末 (スマホの横画面) では、画面上で
   /// [hudLabelMinPt] 以上になるように大きくする。下の数値 (24) と重ならないよう 24 までにする。
-  static double hudLabelSize(double scale) => (hudLabelMinPt / scale).ceilToDouble().clamp(16.0, 24.0);
+  static double hudLabelSize(double scale) =>
+      (hudLabelMinPt / scale).ceilToDouble().clamp(16.0, 24.0);
 
   static final _floor = DitherFloor(const Rect.fromLTWH(0, 440, _w, _h - 440));
   final _rnd = math.Random();
@@ -111,7 +119,8 @@ class FieldPainter extends CustomPainter {
 
   /// 帯の説明文の大きさ (盤面の座標)。倍率が十分な端末では今までどおり 15。
   /// 倍率が小さい端末 (スマホの横画面) では、画面上で [bannerSubMinPt] 以上になるように大きくする。
-  static double bannerSubSize(double scale) => math.max(15.0, (bannerSubMinPt / scale).ceilToDouble());
+  static double bannerSubSize(double scale) =>
+      math.max(15.0, (bannerSubMinPt / scale).ceilToDouble());
 
   /// 帯の説明文を折り返すときの 1 行の幅の上限 (盤面の座標)。
   static const bannerSubWidth = _w - 80;
@@ -132,19 +141,31 @@ class FieldPainter extends CustomPainter {
     canvas.save();
     canvas.scale(size.width / _w);
     canvas.clipRect(const Rect.fromLTWH(0, 0, _w, _h));
-    canvas.drawRect(const Rect.fromLTWH(0, 0, _w, _h), pixelPaint(w.od ? Dot.odBg : Dot.ink));
+    canvas.drawRect(
+      const Rect.fromLTWH(0, 0, _w, _h),
+      pixelPaint(w.od ? Dot.odBg : Dot.ink),
+    );
     canvas.save();
     if (fx.shake > 0) {
       // 揺れもドット単位で動かす
       double q(double v) => (v / 2).roundToDouble() * 2;
-      canvas.translate(q((_rnd.nextDouble() - 0.5) * fx.shake), q((_rnd.nextDouble() - 0.5) * fx.shake));
+      canvas.translate(
+        q((_rnd.nextDouble() - 0.5) * fx.shake),
+        q((_rnd.nextDouble() - 0.5) * fx.shake),
+      );
     }
     _background();
     _field();
     for (final b in w.blocks) {
       if (b.behavior.influencesBalls) _magnetField(b);
     }
-    final ctx = BlockPaintContext(canvas, text, _t, fx.blockColor, calm: fx.reduceEffects);
+    final ctx = BlockPaintContext(
+      canvas,
+      text,
+      _t,
+      fx.blockColor,
+      calm: fx.reduceEffects,
+    );
     for (final b in w.blocks) {
       _block(ctx, b, Rect.fromLTWH(b.x + _ox, b.y + _oy, b.w, b.h));
     }
@@ -174,21 +195,57 @@ class FieldPainter extends CustomPainter {
     if (fx.flash > 0) {
       // 光の強さは段階に丸める (なめらかに消えるとドット絵らしくない)
       final k = (math.min(0.35, fx.flash) * 6).floor() / 6;
-      if (k > 0) canvas.drawRect(const Rect.fromLTWH(0, 0, _w, _h), pixelPaint(withAlpha(fx.flashColor, k)));
+      if (k > 0)
+        canvas.drawRect(
+          const Rect.fromLTWH(0, 0, _w, _h),
+          pixelPaint(withAlpha(fx.flashColor, k)),
+        );
     }
     canvas.restore();
   }
 
   /// ドット文字。[size] は 8 の倍数にするとドットが揃う。
-  void _txt(String s, double x, double y, double size, Color color,
-          {TextAlignH align = TextAlignH.center, double weight = 700, String? family}) =>
-      text.draw(_c, s, x, y, size, color, align: align, weight: weight, family: family ?? TextCache.pixel);
+  void _txt(
+    String s,
+    double x,
+    double y,
+    double size,
+    Color color, {
+    TextAlignH align = TextAlignH.center,
+    double weight = 700,
+    String? family,
+  }) => text.draw(
+    _c,
+    s,
+    x,
+    y,
+    size,
+    color,
+    align: align,
+    weight: weight,
+    family: family ?? TextCache.pixel,
+  );
 
   /// 1 ドット右下にずらした硬い影を付けた文字 (見出し・判定)。
-  void _bigTxt(String s, double x, double y, double size, Color color, {Color? shadow, TextAlignH align = TextAlignH.center}) {
+  void _bigTxt(
+    String s,
+    double x,
+    double y,
+    double size,
+    Color color, {
+    Color? shadow,
+    TextAlignH align = TextAlignH.center,
+  }) {
     final o = size / 8;
     final a = color.a;
-    _txt(s, x + o, y + o, size, withAlpha(shadow ?? Dot.dark(color), a), align: align);
+    _txt(
+      s,
+      x + o,
+      y + o,
+      size,
+      withAlpha(shadow ?? Dot.dark(color), a),
+      align: align,
+    );
     _txt(s, x, y, size, color, align: align);
   }
 
@@ -204,7 +261,16 @@ class FieldPainter extends CustomPainter {
   }
 
   /// 点線 (ドットの破線)。
-  void _dashedLine(double x0, double y, double x1, double dash, double gap, double offset, Color col, {double h = _d}) {
+  void _dashedLine(
+    double x0,
+    double y,
+    double x1,
+    double dash,
+    double gap,
+    double offset,
+    Color col, {
+    double h = _d,
+  }) {
     final p = pixelPaint(col);
     var x = x0 - (offset % (dash + gap));
     while (x < x1) {
@@ -243,13 +309,28 @@ class FieldPainter extends CustomPainter {
   }
 
   void _field() {
-    _c.drawRect(const Rect.fromLTWH(0, 0, _w, Field.topY), pixelPaint(world.od ? Dot.odHud : Dot.night));
-    _c.drawRect(const Rect.fromLTWH(0, Field.topY - _d, _w, _d), pixelPaint(Dot.edge));
+    _c.drawRect(
+      const Rect.fromLTWH(0, 0, _w, Field.topY),
+      pixelPaint(world.od ? Dot.odHud : Dot.night),
+    );
+    _c.drawRect(
+      const Rect.fromLTWH(0, Field.topY - _d, _w, _d),
+      pixelPaint(Dot.edge),
+    );
     final danger = world.isDanger;
-    final col = danger ? (_blink(7, calm: true) ? Dot.bulletRed : Dot.brick) : Dot.dark(Dot.brick);
+    final col = danger
+        ? (_blink(7, calm: true) ? Dot.bulletRed : Dot.brick)
+        : Dot.dark(Dot.brick);
     _dashedLine(0, Field.warnY, _w, 16, 8, -_t * 32, col);
     if (attract) return;
-    _txt('DEAD LINE', _w - 16, Field.warnY - 18, 16, danger ? Dot.bulletRed : Dot.brick, align: TextAlignH.right);
+    _txt(
+      'DEAD LINE',
+      _w - 16,
+      Field.warnY - 18,
+      16,
+      danger ? Dot.bulletRed : Dot.brick,
+      align: TextAlignH.right,
+    );
   }
 
   void _magnetField(Block b) {
@@ -257,10 +338,20 @@ class FieldPainter extends CustomPainter {
     final rad = world.tuning.magnetRadius;
     final n = (rad * 2 * math.pi / 24).round();
     final spin = (_t * 20 / rad) % (math.pi * 2 / n);
-    drawDots(_c, ringDots(x, y, rad, n, from: spin, to: spin + math.pi * 2), withAlpha(Dot.sky, 0.35), size: 3);
+    drawDots(
+      _c,
+      ringDots(x, y, rad, n, from: spin, to: spin + math.pi * 2),
+      withAlpha(Dot.sky, 0.35),
+      size: 3,
+    );
     final r = rad - ((_t * 60) % rad);
     final m = math.max(6, (r * 2 * math.pi / 20).round());
-    drawDots(_c, ringDots(x, y, r, m), withAlpha(Dot.sky, 0.3 * r / rad), size: 3);
+    drawDots(
+      _c,
+      ringDots(x, y, r, m),
+      withAlpha(Dot.sky, 0.3 * r / rad),
+      size: 3,
+    );
   }
 
   /// 狙撃砲台の照準線 (ドットの点線)。予兆の間はパドルを追い、固定されると詰まって明滅する。
@@ -269,13 +360,17 @@ class FieldPainter extends CustomPainter {
     final locked = b.fireT <= SniperTurretBlock.lockTime;
     final len = (Field.paddleY - y) / math.max(0.2, math.sin(b.aim));
     final step = locked ? _d * 2 : _d * 4;
-    final col = locked ? (_blink(16, calm: true) ? Dot.white : Dot.bulletRed) : withAlpha(Dot.bulletRed, 0.6);
+    final col = locked
+        ? (_blink(16, calm: true) ? Dot.white : Dot.bulletRed)
+        : withAlpha(Dot.bulletRed, 0.6);
     final n = (len / step).floor();
     final pts = Float32List(n * 2);
     for (var k = 0; k < n; k++) {
       // ドットの格子に揃える
-      pts[k * 2] = ((x + math.cos(b.aim) * k * step) / _d).floorToDouble() * _d + _d / 2;
-      pts[k * 2 + 1] = ((y + math.sin(b.aim) * k * step) / _d).floorToDouble() * _d + _d / 2;
+      pts[k * 2] =
+          ((x + math.cos(b.aim) * k * step) / _d).floorToDouble() * _d + _d / 2;
+      pts[k * 2 + 1] =
+          ((y + math.sin(b.aim) * k * step) / _d).floorToDouble() * _d + _d / 2;
     }
     drawDots(_c, pts, col, size: locked ? _d : _d / 2 + 1);
   }
@@ -286,7 +381,8 @@ class FieldPainter extends CustomPainter {
     // 支えの脈動: 要石から塊へ光が伝わる (どこが繋がっているかが分かる)
     if (b.supported && !b.behavior.anchor) {
       final ph = (_t * 8) % 16;
-      if ((ph - b.depth).abs() < 0.75) _c.drawRect(i, pixelPaint(const Color(0x40FFFFFF)));
+      if ((ph - b.depth).abs() < 0.75)
+        _c.drawRect(i, pixelPaint(const Color(0x40FFFFFF)));
     }
     if (b.flash > 0) _c.drawRect(i, pixelPaint(Dot.white));
   }
@@ -295,15 +391,21 @@ class FieldPainter extends CustomPainter {
   void _cracking() {
     final on = (_t * 25).floor().isEven;
     // 「演出を控えめにする」では白と入れ替えず、明るい色のままにする
-    Color col(Color c) => fx.reduceEffects ? Dot.light(c) : on ? Dot.white : c;
+    Color col(Color c) => fx.reduceEffects
+        ? Dot.light(c)
+        : on
+        ? Dot.white
+        : c;
     for (final f in world.falling) {
       final b = f.block;
-      final x = b.x + _ox + ((_rnd.nextInt(3) - 1) * 2), y = b.y + _oy + ((_rnd.nextInt(3) - 1) * 2);
+      final x = b.x + _ox + ((_rnd.nextInt(3) - 1) * 2),
+          y = b.y + _oy + ((_rnd.nextInt(3) - 1) * 2);
       _debrisRect(Rect.fromLTWH(x, y, b.w, b.h), col(fx.blockColor(b)));
     }
     for (final d in fx.debris) {
       if (d.dropped) continue;
-      final x = d.x + ((_rnd.nextInt(3) - 1) * 2), y = d.y + ((_rnd.nextInt(3) - 1) * 2);
+      final x = d.x + ((_rnd.nextInt(3) - 1) * 2),
+          y = d.y + ((_rnd.nextInt(3) - 1) * 2);
       _debrisRect(Rect.fromLTWH(x, y, d.w, d.h), col(d.color));
     }
   }
@@ -316,7 +418,10 @@ class FieldPainter extends CustomPainter {
       // 回転は 45 度ずつ (ドット絵のコマ送り)
       _c.rotate((d.rot / (math.pi / 4)).round() * math.pi / 4);
       final a = (1 - (d.y - Field.warnY) / 260).clamp(0.15, 1.0);
-      _debrisRect(Rect.fromCenter(center: Offset.zero, width: d.w, height: d.h), withAlpha(d.color, a));
+      _debrisRect(
+        Rect.fromCenter(center: Offset.zero, width: d.w, height: d.h),
+        withAlpha(d.color, a),
+      );
       _c.restore();
     }
   }
@@ -351,15 +456,25 @@ class FieldPainter extends CustomPainter {
         continue;
       }
       // 2 コマで明滅する縁 (弾幕が派手に見え、背景から浮く)
-      final blink = !fx.reduceEffects && ((_t * 12).floor() + u.hashCode).isEven;
+      final blink =
+          !fx.reduceEffects && ((_t * 12).floor() + u.hashCode).isEven;
       if (u.hostile && u.red) {
         _bulletBig.drawCentered(_c, x, y, blink ? Dot.white : c, scale: 1.25);
         _bulletBig.drawCentered(_c, x, y, c);
       } else {
-        _bulletBig.drawCentered(_c, x, y, blink ? Dot.light(c) : Dot.dark(c), scale: 1.25);
+        _bulletBig.drawCentered(
+          _c,
+          x,
+          y,
+          blink ? Dot.light(c) : Dot.dark(c),
+          scale: 1.25,
+        );
         _bullet.drawCentered(_c, x, y, c);
       }
-      _c.drawRect(Rect.fromCenter(center: Offset(x, y), width: _d, height: _d), pixelPaint(Dot.white));
+      _c.drawRect(
+        Rect.fromCenter(center: Offset(x, y), width: _d, height: _d),
+        pixelPaint(Dot.white),
+      );
     }
   }
 
@@ -372,28 +487,49 @@ class FieldPainter extends CustomPainter {
     final col = w.od || b.phantom
         ? Dot.rose
         : b.breaker
-            ? Dot.blush
-            : pierce
-                ? Dot.mustard
-                : const [Dot.white, Dot.white, Dot.peach, Dot.peach][st];
+        ? Dot.blush
+        : pierce
+        ? Dot.mustard
+        : const [Dot.white, Dot.white, Dot.peach, Dot.peach][st];
     final tr = fx.trails[b.id] ?? const <Offset>[];
     // 残像: 古いものほど小さく暗い (3 段階)
     for (var i = 0; i < tr.length; i++) {
       final a = (i + 1) / tr.length;
-      final s = a > 0.66 ? 3.0 : a > 0.33 ? 2.0 : 1.0;
-      final c = a > 0.66 ? col : a > 0.33 ? Dot.dark(col) : Dot.edge;
+      final s = a > 0.66
+          ? 3.0
+          : a > 0.33
+          ? 2.0
+          : 1.0;
+      final c = a > 0.66
+          ? col
+          : a > 0.33
+          ? Dot.dark(col)
+          : Dot.edge;
       if (w.od && i % 4 == 0) {
-        _ballSprite.drawCentered(_c, tr[i].dx, tr[i].dy, withAlpha(Dot.rose, 0.4));
+        _ballSprite.drawCentered(
+          _c,
+          tr[i].dx,
+          tr[i].dy,
+          withAlpha(Dot.rose, 0.4),
+        );
       }
-      _c.drawRect(Rect.fromCenter(center: tr[i], width: _d * s, height: _d * s), pixelPaint(c));
+      _c.drawRect(
+        Rect.fromCenter(center: tr[i], width: _d * s, height: _d * s),
+        pixelPaint(c),
+      );
     }
     final x = _lerp(b.prevX, b.x), y = _lerp(b.prevY, b.y);
-    if (pierce) _ballSprite.drawCentered(_c, x, y, withAlpha(col, 0.35), scale: 1.75);
+    if (pierce)
+      _ballSprite.drawCentered(_c, x, y, withAlpha(col, 0.35), scale: 1.75);
     _ballSprite.drawCentered(_c, x, y, col);
     _c.drawRect(Rect.fromLTWH(x - _d, y - _d, _d, _d), pixelPaint(Dot.white));
     if (b.breaker) {
       final a0 = (_t * 1000 / 120 / (math.pi / 4)).floor() * math.pi / 4;
-      drawDots(_c, ringDots(x, y, 16, 8, from: a0, to: a0 + math.pi * 2), Dot.blush);
+      drawDots(
+        _c,
+        ringDots(x, y, 16, 8, from: a0, to: a0 + math.pi * 2),
+        Dot.blush,
+      );
     }
     if (b.pierce > 0 && !w.od && !b.phantom) {
       final pts = <double>[];
@@ -405,13 +541,26 @@ class FieldPainter extends CustomPainter {
     }
     if (b.phantom || attract) return;
     if (b.flight >= 5 && !b.attached) {
-      _txt('${b.flight} HIT', x, y - 24, 16, b.flight >= 15 ? Dot.mustard : Dot.dim);
+      _txt(
+        '${b.flight} HIT',
+        x,
+        y - 24,
+        16,
+        b.flight >= 15 ? Dot.mustard : Dot.dim,
+      );
     }
     if (b.attached) {
       if (w.countdown > 0) {
         _bigTxt('READY', x, y - 32, 24, Dot.mustard, shadow: Dot.brick);
       } else if ((_t * 2).floor().isEven) {
-        _bigTxt(parryButton ? 'PARRY' : 'TAP', x, y - 32, 24, Dot.white, shadow: Dot.edge);
+        _bigTxt(
+          parryButton ? 'PARRY' : 'TAP',
+          x,
+          y - 32,
+          24,
+          Dot.white,
+          shadow: Dot.edge,
+        );
       }
     }
   }
@@ -453,11 +602,25 @@ class FieldPainter extends CustomPainter {
       drawDots(_c, pts, (k * 3).floor().isEven ? Dot.mustard : Dot.white);
     }
     if (cooling && !stunned) {
-      final k = ((pr.cooldownUntil - w.t) / w.tuning.parryCooldown).clamp(0.0, 1.0);
-      _c.drawRect(Rect.fromLTWH(x, y + Field.paddleH + 6, pw * k, _d), pixelPaint(Dot.dim));
+      final k = ((pr.cooldownUntil - w.t) / w.tuning.parryCooldown).clamp(
+        0.0,
+        1.0,
+      );
+      _c.drawRect(
+        Rect.fromLTWH(x, y + Field.paddleH + 6, pw * k, _d),
+        pixelPaint(Dot.dim),
+      );
     }
     if (stunned) {
-      _c.drawRect(Rect.fromLTWH(x, y + Field.paddleH + 6, pw * (p.stun / w.tuning.stunTime), _d), pixelPaint(Dot.brick));
+      _c.drawRect(
+        Rect.fromLTWH(
+          x,
+          y + Field.paddleH + 6,
+          pw * (p.stun / w.tuning.stunTime),
+          _d,
+        ),
+        pixelPaint(Dot.brick),
+      );
     }
   }
 
@@ -465,7 +628,10 @@ class FieldPainter extends CustomPainter {
     for (final l in world.lasers) {
       if (l.t < l.warn) {
         final blink = _blink(12, calm: true);
-        _c.drawRect(Rect.fromLTWH(l.x - l.w / 2, Field.topY, l.w, _h - Field.topY), pixelPaint(const Color(0x14FF3B5C)));
+        _c.drawRect(
+          Rect.fromLTWH(l.x - l.w / 2, Field.topY, l.w, _h - Field.topY),
+          pixelPaint(const Color(0x14FF3B5C)),
+        );
         final p = pixelPaint(blink ? Dot.bulletRed : Dot.dark(Dot.brick));
         for (final lx in [l.x - l.w / 2, l.x + l.w / 2]) {
           for (var y = Field.topY; y < _h; y += 16) {
@@ -476,9 +642,16 @@ class FieldPainter extends CustomPainter {
       } else {
         // 発射: 中心ほど明るい段階の帯 (グラデーションの代わり)
         final k = math.max(0.0, 1 - (l.t - l.warn) / l.fire);
-        for (final (f, c) in [(1.0, Dot.dark(Dot.brick)), (0.66, Dot.bulletRed), (0.33, Dot.white)]) {
+        for (final (f, c) in [
+          (1.0, Dot.dark(Dot.brick)),
+          (0.66, Dot.bulletRed),
+          (0.33, Dot.white),
+        ]) {
           final hw = l.w * f * (0.4 + 0.6 * k);
-          _c.drawRect(Rect.fromLTWH(l.x - hw, Field.topY, hw * 2, _h - Field.topY), pixelPaint(withAlpha(c, k)));
+          _c.drawRect(
+            Rect.fromLTWH(l.x - hw, Field.topY, hw * 2, _h - Field.topY),
+            pixelPaint(withAlpha(c, k)),
+          );
         }
       }
     }
@@ -491,8 +664,12 @@ class FieldPainter extends CustomPainter {
       final k = r.t / FxRing.life;
       final rad = r.r * (0.2 + 0.8 * math.sqrt(k));
       final n = math.max(8, (rad * 2 * math.pi / 14).round());
-      drawDots(_c, ringDots(r.x, r.y, rad, n), withAlpha(r.color, k < 0.66 ? 1 : 0.5),
-          size: math.max(2.0, r.width * (1 - k) + 2));
+      drawDots(
+        _c,
+        ringDots(r.x, r.y, rad, n),
+        withAlpha(r.color, k < 0.66 ? 1 : 0.5),
+        size: math.max(2.0, r.width * (1 - k) + 2),
+      );
     }
   }
 
@@ -501,14 +678,17 @@ class FieldPainter extends CustomPainter {
       final a = 1 - p.life / p.max;
       // 大きさは 1 ドットか 2 ドット、色は途中で暗くなる
       final s = p.size > 3 && a > 0.5 ? _d * 2 : _d;
-      _c.drawRect(Rect.fromCenter(center: Offset(p.x, p.y), width: s, height: s),
-          pixelPaint(a > 0.4 ? p.color : Dot.dark(p.color)));
+      _c.drawRect(
+        Rect.fromCenter(center: Offset(p.x, p.y), width: s, height: s),
+        pixelPaint(a > 0.4 ? p.color : Dot.dark(p.color)),
+      );
     }
   }
 
   void _popups() {
     for (final p in fx.popups) {
-      if (!fx.reduceEffects && p.t > 0.6 && (p.t * 20).floor().isEven) continue; // 消える前に点滅
+      if (!fx.reduceEffects && p.t > 0.6 && (p.t * 20).floor().isEven)
+        continue; // 消える前に点滅
       _txt(p.text, p.x, p.y, p.size, p.color);
     }
   }
@@ -519,9 +699,14 @@ class FieldPainter extends CustomPainter {
     if (w.od) {
       _marquee();
     } else if (w.stage >= 2) {
-      _edgeBands(w.stage == 3 ? Dot.mustard : Dot.orange, 0.3, (_t * 4).floor().isEven ? 3 : 2);
+      _edgeBands(
+        w.stage == 3 ? Dot.mustard : Dot.orange,
+        0.3,
+        (_t * 4).floor().isEven ? 3 : 2,
+      );
     }
-    if (w.isDanger) _edgeBands(Dot.bulletRed, 0.45, _blink(7, calm: true) ? 4 : 2);
+    if (w.isDanger)
+      _edgeBands(Dot.bulletRed, 0.45, _blink(7, calm: true) ? 4 : 2);
   }
 
   /// FEVER TIME 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
@@ -549,7 +734,12 @@ class FieldPainter extends CustomPainter {
     final phase = (_t * (calm ? 3 : 12)).floor();
     final cols = [Dot.white, Dot.rose, Dot.dark(Dot.rose)];
     for (var i = 0; i < 3; i++) {
-      drawDots(_c, Float32List.fromList(pts[i]), cols[(i + phase) % 3], size: _d * 2);
+      drawDots(
+        _c,
+        Float32List.fromList(pts[i]),
+        cols[(i + phase) % 3],
+        size: _d * 2,
+      );
     }
   }
 
@@ -569,10 +759,29 @@ class FieldPainter extends CustomPainter {
   void _hud() {
     final w = world;
     _txt('SCORE', 20, _labelY, _label, Dot.dim, align: TextAlignH.left);
-    _txt(formatScore(fx.dispScore), 20, 38, 24, Dot.white, align: TextAlignH.left);
+    _txt(
+      formatScore(fx.dispScore),
+      20,
+      38,
+      24,
+      Dot.white,
+      align: TextAlignH.left,
+    );
     final boss = w.boss;
-    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND', 400, _labelY, _label, Dot.dim);
-    _txt('${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}', 400, 38, 24, Dot.white);
+    _txt(
+      boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND',
+      400,
+      _labelY,
+      _label,
+      Dot.dim,
+    );
+    _txt(
+      '${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}',
+      400,
+      38,
+      24,
+      Dot.white,
+    );
     final clear = w.round.clear;
     if (boss != null) {
       final tm = boss.time.ceil();
@@ -592,13 +801,22 @@ class FieldPainter extends CustomPainter {
     // コンボ: ドットのマスを並べたメーター
     const bx = 680.0, by = 28.0, bw = 340.0, bh = 16.0;
     final st = w.od ? 4 : w.stage;
-    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'COMBO LV${st + 1}', bx, _labelY, _label,
-        w.od ? Dot.rose : Dot.dim,
-        align: TextAlignH.left);
+    _txt(
+      w.od
+          ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s'
+          : 'COMBO LV${st + 1}',
+      bx,
+      _labelY,
+      _label,
+      w.od ? Dot.rose : Dot.dim,
+      align: TextAlignH.left,
+    );
     final tun = w.tuning;
     const cell = 12.0, gap = 4.0;
     final cells = ((bw + gap) / (cell + gap)).floor();
-    final k = w.od ? (w.odTime / tun.odMaxTime).clamp(0.0, 1.0) : (w.combo / tun.odCombo).clamp(0.0, 1.0);
+    final k = w.od
+        ? (w.odTime / tun.odMaxTime).clamp(0.0, 1.0)
+        : (w.combo / tun.odCombo).clamp(0.0, 1.0);
     final lit = (cells * k).ceil();
     for (var i = 0; i < cells; i++) {
       final r = Rect.fromLTWH(bx + i * (cell + gap), by, cell, bh);
@@ -606,8 +824,11 @@ class FieldPainter extends CustomPainter {
         _c.drawRect(r, pixelPaint(Dot.dither));
         continue;
       }
-      final step = (_t * (fx.reduceEffects ? 3 : 12)).floor(); // 控えめでは電飾と同じくゆっくり送る
-      final c = w.od ? ((i + step) % 3 == 0 ? Dot.white : Dot.rose) : Palette.comboBar[st];
+      final step = (_t * (fx.reduceEffects ? 3 : 12))
+          .floor(); // 控えめでは電飾と同じくゆっくり送る
+      final c = w.od
+          ? ((i + step) % 3 == 0 ? Dot.white : Dot.rose)
+          : Palette.comboBar[st];
       bevelRect(_c, r, c);
     }
     if (!w.od) {
@@ -615,7 +836,10 @@ class FieldPainter extends CustomPainter {
       final p = pixelPaint(Dot.dim);
       for (final m in tun.stageMin.skip(1)) {
         final i = (cells * m / tun.odCombo).round();
-        _c.drawRect(Rect.fromLTWH(bx + i * (cell + gap) - gap / 2 - 1, by - 4, 2, bh + 8), p);
+        _c.drawRect(
+          Rect.fromLTWH(bx + i * (cell + gap) - gap / 2 - 1, by - 4, 2, bh + 8),
+          p,
+        );
       }
     }
     final m = w.mult, mc = Palette.multColor[st];
@@ -624,7 +848,12 @@ class FieldPainter extends CustomPainter {
       final hp = w.bossHp;
       const bw2 = 360.0, x = _w / 2 - bw2 / 2, y = Field.topY + 6;
       _c.drawRect(const Rect.fromLTWH(x, y, bw2, 8), pixelPaint(Dot.night));
-      bevelRect(_c, Rect.fromLTWH(x, y, bw2 * hp / boss.maxHp, 8), Palette.blocks['C']!, d: 2);
+      bevelRect(
+        _c,
+        Rect.fromLTWH(x, y, bw2 * hp / boss.maxHp, 8),
+        Palette.blocks['C']!,
+        d: 2,
+      );
       final p = pixelPaint(Dot.ink);
       for (final th in boss.def.phaseThresholds) {
         _c.drawRect(Rect.fromLTWH(x + bw2 * th - 1, y, 2, 8), p);
@@ -634,7 +863,13 @@ class FieldPainter extends CustomPainter {
     if (j != null && w.phase == WorldPhase.playing) {
       // 出た瞬間だけ 1 段大きく (なめらかに縮めない)
       final size = (j.big ? 40.0 : 32.0) + (j.t < 0.08 ? 8 : 0);
-      _bigTxt(j.text, w.paddle.x, Field.paddleY - 36 - (j.t * 20 / 4).floor() * 4, size, j.color);
+      _bigTxt(
+        j.text,
+        w.paddle.x,
+        Field.paddleY - 36 - (j.t * 20 / 4).floor() * 4,
+        size,
+        j.color,
+      );
     }
   }
 
@@ -647,7 +882,8 @@ class FieldPainter extends CustomPainter {
       final pop = c.t < 0.08 ? 8.0 : 0.0;
       final y = 210.0 + i * 64;
       _bigTxt(c.text, _w / 2, y, c.size + pop, c.color);
-      if (c.sub.isNotEmpty) _txt(c.sub, _w / 2, y + c.size * 0.8, 16, Dot.white);
+      if (c.sub.isNotEmpty)
+        _txt(c.sub, _w / 2, y + c.size * 0.8, 16, Dot.white);
     }
   }
 
@@ -656,15 +892,29 @@ class FieldPainter extends CustomPainter {
     final b = fx.banner;
     if (b == null || world.phase == WorldPhase.over) return;
     final (title, sub, color) = switch (b.kind) {
-      BannerKind.round => ('ROUND ${_roundNo(b.value)}', _introText(b.introKey) ?? _goalText(), Dot.white),
-      BannerKind.boss => ('WARNING', 'BOSS ${b.value}  —  ${l10n.bannerBoss}', Dot.bulletRed),
+      BannerKind.round => (
+        'ROUND ${_roundNo(b.value)}',
+        _introText(b.introKey) ?? _goalText(),
+        Dot.white,
+      ),
+      BannerKind.boss => (
+        'WARNING',
+        'BOSS ${b.value}  —  ${l10n.bannerBoss}',
+        Dot.bulletRed,
+      ),
       BannerKind.feverTime => ('FEVER TIME', l10n.bannerFeverTime, Dot.rose),
-      BannerKind.bossPhase => ('PHASE ${b.value}', b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3, Dot.white),
+      BannerKind.bossPhase => (
+        'PHASE ${b.value}',
+        b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3,
+        Dot.white,
+      ),
       BannerKind.timeOver => ('TIME OVER', l10n.bannerTimeOver, Dot.bulletRed),
     };
     b.describe(sub);
     final size = bannerSubSize(_scale), lineH = (size * 1.25).ceilToDouble();
-    final lines = sub == null || sub.isEmpty ? const <String>[] : wrapText(sub, size, bannerSubWidth);
+    final lines = sub == null || sub.isEmpty
+        ? const <String>[]
+        : wrapText(sub, size, bannerSubWidth);
     // 説明が 2 行以上になったら、その分だけ帯を下へ広げる
     final extra = math.max(0, lines.length - 1) * lineH;
     // 帯は上下から開いて閉じる (高さを 4 段階で変える)
@@ -676,16 +926,31 @@ class FieldPainter extends CustomPainter {
     _c.drawRect(Rect.fromLTWH(0, band.top, _w, _d), pixelPaint(color));
     _c.drawRect(Rect.fromLTWH(0, band.bottom - _d, _w, _d), pixelPaint(color));
     if (open < 0.7) return;
-    _bigTxt(title, _w / 2, 360, 40, color, shadow: color == Dot.white ? Dot.edge : Dot.dark(color));
+    _bigTxt(
+      title,
+      _w / 2,
+      360,
+      40,
+      color,
+      shadow: color == Dot.white ? Dot.edge : Dot.dark(color),
+    );
     for (var i = 0; i < lines.length; i++) {
-      _txt(lines[i], _w / 2, 400 + i * lineH, size, Dot.white, family: TextCache.jp);
+      _txt(
+        lines[i],
+        _w / 2,
+        400 + i * lineH,
+        size,
+        Dot.white,
+        family: TextCache.jp,
+      );
     }
   }
 
   /// [s] を、大きさ [size] の説明文の字で 1 行が [maxWidth] に収まるように折り返す。
   /// 英語は空白で、日本語は字の間で折り返す。
   List<String> wrapText(String s, double size, double maxWidth) {
-    double width(String t) => text.get(t, size, Dot.white, family: TextCache.jp).width;
+    double width(String t) =>
+        text.get(t, size, Dot.white, family: TextCache.jp).width;
     if (width(s) <= maxWidth) return [s];
     final lines = <String>[];
     var line = '';
@@ -697,7 +962,10 @@ class FieldPainter extends CustomPainter {
       }
       // 英単語の途中なら、直前の空白で切る
       final sp = line.lastIndexOf(' ');
-      if (ch != ' ' && sp > 0 && !line.endsWith(' ') && line.codeUnitAt(line.length - 1) < 0x2000) {
+      if (ch != ' ' &&
+          sp > 0 &&
+          !line.endsWith(' ') &&
+          line.codeUnitAt(line.length - 1) < 0x2000) {
         lines.add(line.substring(0, sp).trimRight());
         line = line.substring(sp + 1) + ch;
       } else {
@@ -711,14 +979,21 @@ class FieldPainter extends CustomPainter {
 
   /// ラウンドの番号。ステージモードで 2 ラウンド以上ある面は「いま/全体」で出す。
   String _roundNo(int n) => switch (world.mode) {
-        StageMode(:final stage) when stage.rounds.length > 1 => '$n/${stage.rounds.length}',
-        _ => '$n',
-      };
+    StageMode(:final stage) when stage.rounds.length > 1 =>
+      '$n/${stage.rounds.length}',
+    _ => '$n',
+  };
 
-  String? _introText(String? key) => introText(l10n, key,
-      loop: world.round.loop + 1,
-      scoreTarget: switch (world.round.clear) { ScoreClear(:final target) => target, _ => null },
-      parryButton: parryButton);
+  String? _introText(String? key) => introText(
+    l10n,
+    key,
+    loop: world.round.loop + 1,
+    scoreTarget: switch (world.round.clear) {
+      ScoreClear(:final target) => target,
+      _ => null,
+    },
+    parryButton: parryButton,
+  );
 
   /// ステージモードでは、説明がなければクリア条件を出す。
   String? _goalText() {
@@ -733,32 +1008,56 @@ class FieldPainter extends CustomPainter {
   void _clearScreen() {
     final w = world;
     final k = math.min(1.0, w.clearT / 0.3);
-    _c.drawRect(const Rect.fromLTWH(0, 0, _w, _h), pixelPaint(withAlpha(Dot.ink, (k * 3).ceil() / 3 * 0.8)));
+    _c.drawRect(
+      const Rect.fromLTWH(0, 0, _w, _h),
+      pixelPaint(withAlpha(Dot.ink, (k * 3).ceil() / 3 * 0.8)),
+    );
     if (k < 1) return;
     final last = w.mode.roundAt(w.round.number + 1) == null;
     final title = w.round.ending
         ? 'ALL ROUNDS CLEAR'
         : last && w.mode is StageMode
-            ? 'STAGE CLEAR'
-            : w.boss != null
-                ? 'BOSS DESTROYED'
-                : 'ROUND ${w.round.number} CLEAR';
-    _bigTxt(title, _w / 2, 220, 40, w.round.ending ? Dot.rose : Dot.mustard,
-        shadow: w.round.ending ? Dot.violet : Dot.brick);
+        ? 'STAGE CLEAR'
+        : w.boss != null
+        ? 'BOSS DESTROYED'
+        : 'ROUND ${w.round.number} CLEAR';
+    _bigTxt(
+      title,
+      _w / 2,
+      220,
+      40,
+      w.round.ending ? Dot.rose : Dot.mustard,
+      shadow: w.round.ending ? Dot.violet : Dot.brick,
+    );
     final bon = w.bonuses;
     for (var i = 0; i < bon.length; i++) {
       if (w.clearT < 0.3 + i * 0.18) continue;
       final y = 290.0 + i * 34;
       _txt(bon[i].label, _w / 2 - 220, y, 16, Dot.dim, align: TextAlignH.left);
-      _txt('+${formatScore(bon[i].points)}', _w / 2 + 220, y, 16, Dot.mustard, align: TextAlignH.right);
+      _txt(
+        '+${formatScore(bon[i].points)}',
+        _w / 2 + 220,
+        y,
+        16,
+        Dot.mustard,
+        align: TextAlignH.right,
+      );
     }
     final y = 290.0 + bon.length * 34 + 20;
     if (w.clearT > 0.3 + bon.length * 0.18) {
       _dashedLine(_w / 2 - 220, y - 14, _w / 2 + 220, 8, 4, 0, Dot.edge);
       _txt('SCORE', _w / 2 - 220, y + 10, 16, Dot.dim, align: TextAlignH.left);
-      _txt(formatScore(fx.dispScore), _w / 2 + 220, y + 10, 24, Dot.white, align: TextAlignH.right);
+      _txt(
+        formatScore(fx.dispScore),
+        _w / 2 + 220,
+        y + 10,
+        24,
+        Dot.white,
+        align: TextAlignH.right,
+      );
     }
-    if (w.round.ending) _txt(l10n.endingSub, _w / 2, y + 60, 16, Dot.rose, family: TextCache.jp);
+    if (w.round.ending)
+      _txt(l10n.endingSub, _w / 2, y + 60, 16, Dot.rose, family: TextCache.jp);
   }
 
   @override

@@ -22,11 +22,13 @@ abstract final class AdsConfig {
   // Google のテスト用の広告ユニット。デバッグビルドではこちらを使う
   // (開発中に本番の広告を表示・クリックすると、AdMob の規約違反になるため)。
   static const _testIosInterstitial = 'ca-app-pub-3940256099942544/4411468910';
-  static const _testAndroidInterstitial = 'ca-app-pub-3940256099942544/1033173712';
+  static const _testAndroidInterstitial =
+      'ca-app-pub-3940256099942544/1033173712';
 
   static String get interstitial {
     final ios = defaultTargetPlatform == TargetPlatform.iOS;
-    if (kDebugMode) return ios ? _testIosInterstitial : _testAndroidInterstitial;
+    if (kDebugMode)
+      return ios ? _testIosInterstitial : _testAndroidInterstitial;
     return ios ? iosInterstitial : androidInterstitial;
   }
 }
@@ -37,7 +39,11 @@ abstract final class AdsConfig {
 /// - 前回から [minGap] 以上あける
 /// - 1 日 [dailyCap] 回まで
 class InterstitialPolicy {
-  InterstitialPolicy(this._prefs, {DateTime Function()? now, this.freeResults = 3}) : _now = now ?? DateTime.now;
+  InterstitialPolicy(
+    this._prefs, {
+    DateTime Function()? now,
+    this.freeResults = 3,
+  }) : _now = now ?? DateTime.now;
 
   final SharedPreferences _prefs;
   final DateTime Function() _now;
@@ -65,7 +71,9 @@ class InterstitialPolicy {
     return '${d.year}-${d.month}-${d.day}';
   }
 
-  int get _countToday => _prefs.getString(_dayKey) == _today ? _prefs.getInt(_dayCountKey) ?? 0 : 0;
+  int get _countToday => _prefs.getString(_dayKey) == _today
+      ? _prefs.getInt(_dayCountKey) ?? 0
+      : 0;
 
   /// 今日の上限 ([dailyCap] 回) まで出したか。日付が変わると false に戻る。
   bool get cappedToday => _countToday >= dailyCap;
@@ -147,10 +155,14 @@ abstract class AdsSdk {
 }
 
 class AdMobAds implements AdsService {
-  AdMobAds(this._policy, {AdsSdk? sdk, DateTime Function()? now, Timer Function(Duration, void Function())? timer})
-    : _sdk = sdk ?? GoogleAdsSdk(),
-      _now = now ?? DateTime.now,
-      _timer = timer ?? Timer.new;
+  AdMobAds(
+    this._policy, {
+    AdsSdk? sdk,
+    DateTime Function()? now,
+    Timer Function(Duration, void Function())? timer,
+  }) : _sdk = sdk ?? GoogleAdsSdk(),
+       _now = now ?? DateTime.now,
+       _timer = timer ?? Timer.new;
 
   final InterstitialPolicy _policy;
   final AdsSdk _sdk;
@@ -161,13 +173,22 @@ class AdMobAds implements AdsService {
   static const maxAge = Duration(minutes: 50);
 
   /// 読み込みに失敗したときの再試行の間隔。使い切ったら、次に結果画面が出るか前面に戻るまで試さない。
-  static const retryDelays = [Duration(seconds: 30), Duration(minutes: 1), Duration(minutes: 2), Duration(minutes: 4)];
+  static const retryDelays = [
+    Duration(seconds: 30),
+    Duration(minutes: 1),
+    Duration(minutes: 2),
+    Duration(minutes: 4),
+  ];
 
   /// 出してから表示の通知 (onShown) が来るまで待つ長さ。表示の通知も閉じた通知も来ないまま
   /// これを過ぎたら、待つのをやめて結果画面から戻れるようにする。表示の通知が来たあとは、閉じるまで待つ。
   static const showTimeout = Duration(seconds: 5);
 
-  bool _initDone = false, _consentUpdated = false, _starting = false, _ready = false, _loading = false;
+  bool _initDone = false,
+      _consentUpdated = false,
+      _starting = false,
+      _ready = false,
+      _loading = false;
   LoadedInterstitial? _ad;
   DateTime? _loadedAt;
   int _failures = 0;
@@ -208,7 +229,8 @@ class AdMobAds implements AdsService {
   Future<void> _gatherConsent() async {
     // 失敗しても、前回までの同意で広告を出せることがある (canRequestAds で確かめる)
     _consentUpdated = await _sdk.gatherConsent();
-    if (_consentUpdated) privacyOptionsRequired = await _sdk.privacyOptionsRequired();
+    if (_consentUpdated)
+      privacyOptionsRequired = await _sdk.privacyOptionsRequired();
   }
 
   Future<void> _start() async {
@@ -226,7 +248,8 @@ class AdMobAds implements AdsService {
     _preload();
   }
 
-  bool get _expired => _loadedAt != null && _now().difference(_loadedAt!) >= maxAge;
+  bool get _expired =>
+      _loadedAt != null && _now().difference(_loadedAt!) >= maxAge;
 
   void _discard() {
     _ad?.dispose();
@@ -242,7 +265,8 @@ class AdMobAds implements AdsService {
 
   void _preload({bool fromRetryTimer = false}) {
     // 今日の上限まで出した日は、出せない広告を読み込まない (表示率が下がり、通信量も無駄になる)。日付が変わったあとの呼び出しで読み込む
-    if (!_ready || _loading || !_policy.pastGrace || _policy.cappedToday) return;
+    if (!_ready || _loading || !_policy.pastGrace || _policy.cappedToday)
+      return;
     if (_ad != null) {
       if (!_expired) return;
       _discard();
@@ -263,7 +287,10 @@ class AdMobAds implements AdsService {
     } on Object catch (e) {
       debugPrint('interstitial load failed: $e');
       if (_failures < retryDelays.length) {
-        _retry = _timer(retryDelays[_failures], () => _preload(fromRetryTimer: true));
+        _retry = _timer(
+          retryDelays[_failures],
+          () => _preload(fromRetryTimer: true),
+        );
       }
       _failures++;
     } finally {
@@ -350,7 +377,9 @@ class GoogleAdsSdk implements AdsSdk {
   Future<void> requestTracking() async {
     if (defaultTargetPlatform != TargetPlatform.iOS) return;
     try {
-      if (await AppTrackingTransparency.trackingAuthorizationStatus != TrackingStatus.notDetermined) return;
+      if (await AppTrackingTransparency.trackingAuthorizationStatus !=
+          TrackingStatus.notDetermined)
+        return;
       // アプリがアクティブでないとダイアログが出ずに終わるので、前面に出るのを待つ。
       // 同意画面を閉じた直後もしばらくアクティブでないことがあるので、少し間をあける
       await _untilResumed();
@@ -363,7 +392,8 @@ class GoogleAdsSdk implements AdsSdk {
 
   Future<void> _untilResumed() {
     final binding = WidgetsBinding.instance;
-    if (binding.lifecycleState == AppLifecycleState.resumed) return Future.value();
+    if (binding.lifecycleState == AppLifecycleState.resumed)
+      return Future.value();
     final done = Completer<void>();
     late final AppLifecycleListener listener;
     listener = AppLifecycleListener(
@@ -440,7 +470,9 @@ class _GoogleInterstitial implements LoadedInterstitial {
 final adsProvider = Provider<AdsService>((ref) => DisabledAds());
 
 AdsService createAdsService(SharedPreferences prefs) {
-  final mobile = defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android;
+  final mobile =
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android;
   if (!AdsConfig.enabled || kIsWeb || !mobile) return DisabledAds();
   // デバッグビルドでは猶予を外し、すぐに広告を確かめられるようにする
   return AdMobAds(InterstitialPolicy(prefs, freeResults: kDebugMode ? 0 : 3));

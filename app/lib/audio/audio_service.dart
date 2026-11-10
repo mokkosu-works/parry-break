@@ -137,7 +137,11 @@ class SoLoudAudio implements AudioService {
       case BlockDestroyed():
         if (_throttle('brk', 0.022)) play('brk${_rnd.nextInt(3)}');
       case ParrySucceeded(:final grade):
-        play(switch (grade) { ParryGrade.just => 'just', ParryGrade.perfect => 'perfect', ParryGrade.good => 'good' });
+        play(switch (grade) {
+          ParryGrade.just => 'just',
+          ParryGrade.perfect => 'perfect',
+          ParryGrade.good => 'good',
+        });
       case ParryMissed():
         play('miss');
       case BulletFired():
@@ -171,7 +175,8 @@ class SoLoudAudio implements AudioService {
       case BallLaunched():
         play('launch');
       case BlockFell(:final noteIndex):
-        if (_throttle('note', 0.018)) play('note${math.min(noteIndex, noteCount - 1)}');
+        if (_throttle('note', 0.018))
+          play('note${math.min(noteIndex, noteCount - 1)}');
       case CollapseStarted():
         play('crumble', gap: 0.1);
       case KeystoneBroken():
@@ -231,7 +236,8 @@ class SoLoudAudio implements AudioService {
   @override
   void setMusicLevel(int level) {
     _targetLevel = level;
-    if (!_musicOn || _music == null || level == _level || _switch != null) return;
+    if (!_musicOn || _music == null || level == _level || _switch != null)
+      return;
     // 次の小節の頭で切り替える (ベースの進行の位置は保つ)
     final bar = barSeconds(_level), loop = bar * 4;
     final pos = (_now - _musicStartedAt) % loop;
@@ -265,7 +271,8 @@ class SoLoudAudio implements AudioService {
     final h = _music;
     if (h != null) _sl.setPause(h, paused);
     _sl.setGlobalVolume(paused ? 0 : 1);
-    if (!paused && h != null) _musicStartedAt = _now - _sl.getPosition(h).inMicroseconds / 1e6;
+    if (!paused && h != null)
+      _musicStartedAt = _now - _sl.getPosition(h).inMicroseconds / 1e6;
   }
 
   @override

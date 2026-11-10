@@ -40,7 +40,8 @@ class CoreBlock extends BlockBehavior {
   }
 
   @override
-  void onBlast(World w, Block b, {required bool breaker}) => w.damageCore(b, breaker ? 2 : 1);
+  void onBlast(World w, Block b, {required bool breaker}) =>
+      w.damageCore(b, breaker ? 2 : 1);
 
   @override
   bool onReturnedBullet(World w, Block b, Bullet u) {

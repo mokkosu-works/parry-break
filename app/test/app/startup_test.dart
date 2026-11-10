@@ -49,8 +49,13 @@ void main() {
     });
 
     ErrorLog.install();
-    FlutterError.reportError(FlutterErrorDetails(exception: StateError('build failed')));
-    expect(dispatcher.onError!(StateError('async failed'), StackTrace.current), isTrue);
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: StateError('build failed')),
+    );
+    expect(
+      dispatcher.onError!(StateError('async failed'), StackTrace.current),
+      isTrue,
+    );
     expect(ErrorLog.recent, hasLength(2));
     expect(ErrorLog.recent[0], contains('build failed'));
     expect(ErrorLog.recent[1], contains('async failed'));

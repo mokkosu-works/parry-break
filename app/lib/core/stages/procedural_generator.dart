@@ -13,26 +13,43 @@ const _cols = 14, _half = 7;
 /// (新しいブロックを自動生成に入れるときは、ここに出現率を足す)。
 List<String> generateLayout(int b, {required Map<String, int> unlock}) {
   final rng = Mulberry32(b * 7919 + 3);
-  final types = [for (final e in unlock.entries) if (b >= e.value) e.key];
+  final types = [
+    for (final e in unlock.entries)
+      if (b >= e.value) e.key,
+  ];
   final cellTypes = types.where((t) => t != 'K').toList();
   final newest = cellTypes.last;
   final combo = b % 2 == 0; // 偶数: 組み合わせ / 奇数: 最新ギミックの学習寄り
   final rows = math.min(8, 4 + b ~/ 7);
-  const shapes = ['full', 'checker', 'diamond', 'pillars', 'vee', 'holes', 'ladder'];
+  const shapes = [
+    'full',
+    'checker',
+    'diamond',
+    'pillars',
+    'vee',
+    'holes',
+    'ladder',
+  ];
   final shape = shapes[(rng.next() * shapes.length).floor()];
 
   bool mask(int r, int c) => switch (shape) {
-        'checker' => (r + c) % 2 == 0 || r == 0,
-        'diamond' => (6 - c) + (r - (rows - 1) / 2).abs() * 1.6 <= 6.8,
-        'pillars' => c % 3 != 2 || r == 0,
-        'vee' => c >= r * 0.8 - 0.5,
-        'holes' => rng.next() < 0.74,
-        'ladder' => r % 3 != 1 || c % 2 == 0,
-        _ => true,
-      };
+    'checker' => (r + c) % 2 == 0 || r == 0,
+    'diamond' => (6 - c) + (r - (rows - 1) / 2).abs() * 1.6 <= 6.8,
+    'pillars' => c % 3 != 2 || r == 0,
+    'vee' => c >= r * 0.8 - 0.5,
+    'holes' => rng.next() < 0.74,
+    'ladder' => r % 3 != 1 || c % 2 == 0,
+    _ => true,
+  };
 
   final grid = List.generate(rows, (_) => List.filled(_cols, '.'));
-  final caps = {'T': math.min(3, 1 + b ~/ 15), 'M': 2, 'X': 3, 'B': 2 + b ~/ 15, '#': 2};
+  final caps = {
+    'T': math.min(3, 1 + b ~/ 15),
+    'M': 2,
+    'X': 3,
+    'B': 2 + b ~/ 15,
+    '#': 2,
+  };
   final cnt = {'T': 0, 'M': 0, 'X': 0, 'B': 0, '#': 0};
   for (var r = 0; r < rows; r++) {
     for (var c = 0; c < _half; c++) {
@@ -66,7 +83,8 @@ List<String> generateLayout(int b, {required Map<String, int> unlock}) {
           break;
         }
       }
-      if (b >= 12 && r > 0 && cnt['#']! < caps['#']! && rng.next() < 0.05) pick = '#';
+      if (b >= 12 && r > 0 && cnt['#']! < caps['#']! && rng.next() < 0.05)
+        pick = '#';
       if (cnt.containsKey(pick)) cnt[pick] = cnt[pick]! + 1;
       grid[r][c] = pick;
       grid[r][_cols - 1 - c] = pick;
@@ -99,7 +117,13 @@ void _placeKeystones(List<List<String>> grid, Mulberry32 rng) {
         cells.add((y, x));
         for (final (dy, dx) in const [(1, 0), (-1, 0), (0, 1), (0, -1)]) {
           final ny = y + dy, nx = x + dx;
-          if (ny < 0 || ny >= rows || nx < 0 || nx >= _cols || seen[ny][nx] || !structural(grid[ny][nx])) continue;
+          if (ny < 0 ||
+              ny >= rows ||
+              nx < 0 ||
+              nx >= _cols ||
+              seen[ny][nx] ||
+              !structural(grid[ny][nx]))
+            continue;
           seen[ny][nx] = true;
           q.add((ny, nx));
         }
@@ -109,7 +133,8 @@ void _placeKeystones(List<List<String>> grid, Mulberry32 rng) {
       if (cells.any((e) => grid[e.$1][e.$2] == 'K')) continue;
       final left = cells.where((e) => e.$2 <= 6).toList();
       final top = left.map((e) => e.$1).reduce(math.min);
-      final cand = left.where((e) => e.$1 == top).toList()..sort((a, b) => a.$2 - b.$2);
+      final cand = left.where((e) => e.$1 == top).toList()
+        ..sort((a, b) => a.$2 - b.$2);
       final picks = cells.length >= 36 && cand.length > 1
           ? [cand.first, cand.last]
           : [cand[(rng.next() * cand.length).floor()]];

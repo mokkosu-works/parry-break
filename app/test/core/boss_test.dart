@@ -5,11 +5,13 @@ import 'package:parry_break/core/core.dart';
 
 import 'helpers.dart';
 
-List<Block> coresOf(World w) => w.blocks.where((b) => b.type == bossCoreId).toList();
+List<Block> coresOf(World w) =>
+    w.blocks.where((b) => b.type == bossCoreId).toList();
 
 /// エンドレスの [index] 体目のボス戦を始める (カウントダウンは済ませる)。
 World bossWorld(int index) {
-  final w = World(mode: endlessMode)..start(fromRound: (index + 1) * endlessContent.bossEvery);
+  final w = World(mode: endlessMode)
+    ..start(fromRound: (index + 1) * endlessContent.bossEvery);
   run(w, 1.1);
   return w;
 }
@@ -41,7 +43,6 @@ double bulletRate(int index, int phase) {
   return seen.length / 30;
 }
 
-
 /// ボスの残り HP が [target] になるまで、コアを壊さないように削る。
 void damageTo(World w, int target) {
   var left = w.bossHp - target;
@@ -62,7 +63,8 @@ void damageTo(World w, int target) {
 bool overlaps(World w, Ball ball, Block b) {
   final ax = b.x + w.form.ox, ay = b.y + w.form.oy;
   final nx = ball.x.clamp(ax, ax + b.w), ny = ball.y.clamp(ay, ay + b.h);
-  return math.pow(ball.x - nx, 2) + math.pow(ball.y - ny, 2) <= Field.ballR * Field.ballR;
+  return math.pow(ball.x - nx, 2) + math.pow(ball.y - ny, 2) <=
+      Field.ballR * Field.ballR;
 }
 
 /// コアの真下からボールを真上へ飛ばし、コアに当たったステップまで進める。そのステップまでのイベントを返す。
@@ -91,19 +93,32 @@ void main() {
   final bosses = endlessContent.bosses;
 
   test('ボスは後になるほど硬く、時間あたりに削る量が増える', () {
-    int hp(BossDef b) => b.coreHp * bossCoreId.allMatches(b.template.join()).length;
+    int hp(BossDef b) =>
+        b.coreHp * bossCoreId.allMatches(b.template.join()).length;
     for (var i = 1; i < bosses.length; i++) {
-      expect(hp(bosses[i]), greaterThan(hp(bosses[i - 1])), reason: 'boss ${i + 1}');
-      expect(hp(bosses[i]) / bosses[i].timeLimit, greaterThan(hp(bosses[i - 1]) / bosses[i - 1].timeLimit),
-          reason: 'boss ${i + 1}');
-      expect(bosses[i].sway, greaterThanOrEqualTo(bosses[i - 1].sway), reason: 'boss ${i + 1}');
+      expect(
+        hp(bosses[i]),
+        greaterThan(hp(bosses[i - 1])),
+        reason: 'boss ${i + 1}',
+      );
+      expect(
+        hp(bosses[i]) / bosses[i].timeLimit,
+        greaterThan(hp(bosses[i - 1]) / bosses[i - 1].timeLimit),
+        reason: 'boss ${i + 1}',
+      );
+      expect(
+        bosses[i].sway,
+        greaterThanOrEqualTo(bosses[i - 1].sway),
+        reason: 'boss ${i + 1}',
+      );
     }
   });
 
   test('ボスごとに要塞の配置か攻撃の組み合わせが違う', () {
     final seen = <String>{};
     for (final b in bosses) {
-      final key = '${b.template}|${[for (final p in b.patterns) '${p.type}@${p.fromPhase}']}';
+      final key =
+          '${b.template}|${[for (final p in b.patterns) '${p.type}@${p.fromPhase}']}';
       expect(seen.add(key), isTrue, reason: key);
     }
   });
@@ -119,12 +134,17 @@ void main() {
       [6.0, 9.5, 13.5],
     ];
     final rates = [
-      for (var i = 0; i < bosses.length; i++) [for (var p = 1; p <= 3; p++) bulletRate(i, p)],
+      for (var i = 0; i < bosses.length; i++)
+        [for (var p = 1; p <= 3; p++) bulletRate(i, p)],
     ];
     for (var i = 0; i < bosses.length; i++) {
       final r = rates[i];
       for (var p = 0; p < 3; p++) {
-        expect(r[p], lessThanOrEqualTo(caps[i][p]), reason: 'boss ${i + 1} phase ${p + 1}: $r');
+        expect(
+          r[p],
+          lessThanOrEqualTo(caps[i][p]),
+          reason: 'boss ${i + 1} phase ${p + 1}: $r',
+        );
       }
       expect(r[1], greaterThan(r[0]), reason: 'boss ${i + 1}: $r');
       expect(r[2], greaterThan(r[1]), reason: 'boss ${i + 1}: $r');
@@ -164,7 +184,10 @@ void main() {
       }
     }
     expect(gapAt, greaterThan(0));
-    final reds = [for (final u in w.bullets) if (u.red) u.x]..sort();
+    final reds = [
+      for (final u in w.bullets)
+        if (u.red) u.x,
+    ]..sort();
     expect(reds, [xs[gapAt - 1], xs[gapAt]]);
   });
 
@@ -183,7 +206,12 @@ void main() {
   test('修復: 壊された装甲を、支えのあるブロックに接する場所に作り直す', () {
     final w = bossWorld(4);
     final boss = w.boss!;
-    final armor = w.blocks.firstWhere((b) => b.type == 'N' && b.y == Field.gridY0 + Field.cellH && b.x == boss.left);
+    final armor = w.blocks.firstWhere(
+      (b) =>
+          b.type == 'N' &&
+          b.y == Field.gridY0 + Field.cellH &&
+          b.x == boss.left,
+    );
     w.blocks.remove(armor);
     final events = <GameEvent>[];
     final p = RepairPattern(1);
@@ -206,14 +234,27 @@ void main() {
     expect(bombs, hasLength(2));
     final hp = [for (final c in coresOf(w)) c.hp];
     for (final bomb in bombs) {
-      final side = w.blocks.firstWhere((b) => b.type == 'N' && b.y == bomb.y && (b.x - bomb.x).abs() == Field.cellW);
+      final side = w.blocks.firstWhere(
+        (b) =>
+            b.type == 'N' &&
+            b.y == bomb.y &&
+            (b.x - bomb.x).abs() == Field.cellW,
+      );
       w.destroyBlock(bomb, DestroyCause.ball);
       final events = run(w, 0.2);
       expect(events.whereType<BlastExploded>(), hasLength(1));
       expect(side.removed, isTrue, reason: '爆薬の隣 (コアの下の装甲) は吹き飛ぶ');
-      expect(w.bullets.where((u) => u.kind == BulletKind.shrapnel), isNotEmpty, reason: '破片を撒く');
+      expect(
+        w.bullets.where((u) => u.kind == BulletKind.shrapnel),
+        isNotEmpty,
+        reason: '破片を撒く',
+      );
     }
-    expect([for (final c in coresOf(w)) c.hp], hp, reason: '爆風 (半径 84px) はコアに届かない');
+    expect(
+      [for (final c in coresOf(w)) c.hp],
+      hp,
+      reason: '爆風 (半径 84px) はコアに届かない',
+    );
   });
 
   /// パドルの真上から敵弾を撃ち、被弾させる。
@@ -246,7 +287,13 @@ void main() {
     final before = w.odTime;
     hitPaddle(w);
     expect(w.od, isTrue);
-    expect(w.odTime, inInclusiveRange(before - w.tuning.bossOdHurtPenalty - 0.25, before - w.tuning.bossOdHurtPenalty));
+    expect(
+      w.odTime,
+      inInclusiveRange(
+        before - w.tuning.bossOdHurtPenalty - 0.25,
+        before - w.tuning.bossOdHurtPenalty,
+      ),
+    );
     w.odTime = 1;
     run(w, w.tuning.hurtInvuln);
     hitPaddle(w);
@@ -272,11 +319,19 @@ void main() {
       damageTo(w, hp2 + 1);
       expect(w.boss!.phase, 1, reason: 'boss ${i + 1}');
       damageTo(w, hp2);
-      expect(w.boss!.phase, 2, reason: 'boss ${i + 1}: 残り $hp2 / ${w.boss!.maxHp}');
+      expect(
+        w.boss!.phase,
+        2,
+        reason: 'boss ${i + 1}: 残り $hp2 / ${w.boss!.maxHp}',
+      );
       damageTo(w, hp3 + 1);
       expect(w.boss!.phase, 2, reason: 'boss ${i + 1}');
       damageTo(w, hp3);
-      expect(w.boss!.phase, 3, reason: 'boss ${i + 1}: 残り $hp3 / ${w.boss!.maxHp}');
+      expect(
+        w.boss!.phase,
+        3,
+        reason: 'boss ${i + 1}: 残り $hp3 / ${w.boss!.maxHp}',
+      );
     }
   });
 
@@ -291,7 +346,10 @@ void main() {
     expect(w.od, isTrue);
     w.drainEvents();
     c.behavior.onBlast(w, c, breaker: true);
-    final phases = [for (final e in w.drainEvents()) if (e is BossPhaseChanged) e.phase];
+    final phases = [
+      for (final e in w.drainEvents())
+        if (e is BossPhaseChanged) e.phase,
+    ];
     expect(phases, [2, 3]);
     expect(w.boss!.phase, 3);
   });
@@ -317,18 +375,24 @@ void main() {
   });
 
   for (final fever in [false, true]) {
-    test('フェーズ移行のヒットでコアに入るダメージは 1 回だけ${fever ? ' (FEVER TIME 中は 2)' : ''} (#107)', () {
-      final w = bossWorld(0);
-      final core = coresOf(w).single;
-      damageTo(w, phaseHps(w).$1 + 1);
-      if (fever) w.addCombo(w.tuning.odCombo);
-      expect(w.od, fever);
-      final hp = core.hp;
-      final events = [...shootCoreFromBelow(w, core, pierce: 3), ...run(w, 0.5)];
-      expect(events.whereType<BossPhaseChanged>().map((e) => e.phase), [2]);
-      expect(events.whereType<CoreDamaged>(), hasLength(1));
-      expect(hp - core.hp, fever ? w.tuning.odCoreDamageMul : 1);
-    });
+    test(
+      'フェーズ移行のヒットでコアに入るダメージは 1 回だけ${fever ? ' (FEVER TIME 中は 2)' : ''} (#107)',
+      () {
+        final w = bossWorld(0);
+        final core = coresOf(w).single;
+        damageTo(w, phaseHps(w).$1 + 1);
+        if (fever) w.addCombo(w.tuning.odCombo);
+        expect(w.od, fever);
+        final hp = core.hp;
+        final events = [
+          ...shootCoreFromBelow(w, core, pierce: 3),
+          ...run(w, 0.5),
+        ];
+        expect(events.whereType<BossPhaseChanged>().map((e) => e.phase), [2]);
+        expect(events.whereType<CoreDamaged>(), hasLength(1));
+        expect(hp - core.hp, fever ? w.tuning.odCoreDamageMul : 1);
+      },
+    );
   }
 
   test('フェーズ移行の前後で要塞の位置がつながっている (#110)', () {
@@ -351,8 +415,12 @@ void main() {
         var prev = w.form.ox;
         for (var k = 0; k < 120; k++) {
           run(w, World.dt);
-          expect((w.form.ox - prev).abs(), lessThanOrEqualTo(normal * 1.6),
-              reason: 'boss ${i + 1} phase ${b.phase} step $k: amp $amp0 -> ${b.amp}');
+          expect(
+            (w.form.ox - prev).abs(),
+            lessThanOrEqualTo(normal * 1.6),
+            reason:
+                'boss ${i + 1} phase ${b.phase} step $k: amp $amp0 -> ${b.amp}',
+          );
           prev = w.form.ox;
         }
       }
@@ -370,15 +438,29 @@ void main() {
         run(w, World.dt);
       }
       damageTo(w, phaseHps(w).$1);
-      final added = w.blocks.where((x) => x.type == 'T' && !before.contains(x)).toList();
+      final added = w.blocks
+          .where((x) => x.type == 'T' && !before.contains(x))
+          .toList();
       expect(added, hasLength(2), reason: 'boss ${i + 1}');
       run(w, Boss.ampBlendTime);
       // 1 周期以上揺らす
-      for (var k = 0; k < (2 * math.pi / b.def.sway / World.dt).ceil() + 60; k++) {
+      for (
+        var k = 0;
+        k < (2 * math.pi / b.def.sway / World.dt).ceil() + 60;
+        k++
+      ) {
         run(w, World.dt);
         for (final t in added) {
-          expect(t.x + w.form.ox, greaterThanOrEqualTo(-1e-6), reason: 'boss ${i + 1}');
-          expect(t.x + w.form.ox + t.w, lessThanOrEqualTo(Field.width + 1e-6), reason: 'boss ${i + 1}');
+          expect(
+            t.x + w.form.ox,
+            greaterThanOrEqualTo(-1e-6),
+            reason: 'boss ${i + 1}',
+          );
+          expect(
+            t.x + w.form.ox + t.w,
+            lessThanOrEqualTo(Field.width + 1e-6),
+            reason: 'boss ${i + 1}',
+          );
         }
       }
     }
@@ -388,18 +470,34 @@ void main() {
 /// パドルの真上から敵弾を落とし、接触の少し前に押して撃ち返す。撃ち返した弾を返す。
 Bullet parryBulletFrom(World w, Block? source, {required bool red}) {
   w.bullets.clear();
-  w.fireBullet(w.paddle.x, Field.paddleY - 30, math.pi / 2, 300, source: source, red: red);
+  w.fireBullet(
+    w.paddle.x,
+    Field.paddleY - 30,
+    math.pi / 2,
+    300,
+    source: source,
+    red: red,
+  );
   final u = w.bullets.last;
   // 弾の下端がパドル上面に触れるのは 24px / 300 = 0.08 秒後
   final press = w.t + 0.07;
   var pressed = false;
-  final events = run(w, 0.12, before: () {
-    if (!pressed && w.t + World.dt >= press - 0.2) {
-      w.pressAction(press);
-      pressed = true;
-    }
-  });
-  expect(events.whereType<ParrySucceeded>().where((e) => e.target == ParryTarget.bullet), hasLength(1));
+  final events = run(
+    w,
+    0.12,
+    before: () {
+      if (!pressed && w.t + World.dt >= press - 0.2) {
+        w.pressAction(press);
+        pressed = true;
+      }
+    },
+  );
+  expect(
+    events.whereType<ParrySucceeded>().where(
+      (e) => e.target == ParryTarget.bullet,
+    ),
+    hasLength(1),
+  );
   expect(u.hostile, isFalse);
   return u;
 }
@@ -413,7 +511,9 @@ bool headsTo(World w, Bullet u, Block b) {
 
 /// [u] から見て、自分より上にある最寄りのクリア対象ブロック。
 Block nearestClearable(World w, Bullet u) {
-  final cand = w.blocks.where((b) => b.behavior.clearable && w.blockCenter(b).y <= u.y).toList();
+  final cand = w.blocks
+      .where((b) => b.behavior.clearable && w.blockCenter(b).y <= u.y)
+      .toList();
   double d2(Block b) {
     final o = w.blockCenter(b);
     return (o.x - u.x) * (o.x - u.x) + (o.y - u.y) * (o.y - u.y);
@@ -425,7 +525,8 @@ Block nearestClearable(World w, Bullet u) {
 void returnedBulletTests() {
   /// ボス1 (入力時刻 = シミュレーション時刻)。ボールはパドルに付けたまま、パドルの下に置いておく。
   World boss() {
-    final w = World(mode: endlessMode, inputLag: 0)..start(fromRound: endlessContent.bossEvery);
+    final w = World(mode: endlessMode, inputLag: 0)
+      ..start(fromRound: endlessContent.bossEvery);
     w.sync.identity();
     run(w, 1.1);
     w.ball

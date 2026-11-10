@@ -12,7 +12,14 @@ extension _BossSystem on World {
         if (ch == '.') continue;
         final x = left + c * Field.cellW, y = Field.gridY0 + r * Field.cellH;
         if (ch == bossCoreId) {
-          addBlock(ch, x, y, Field.cellW, Field.cellH * 2, def.coreHp); // コアは 2 行分の高さ
+          addBlock(
+            ch,
+            x,
+            y,
+            Field.cellW,
+            Field.cellH * 2,
+            def.coreHp,
+          ); // コアは 2 行分の高さ
         } else {
           addBlock(ch, x, y);
         }
@@ -54,13 +61,18 @@ extension _BossSystem on World {
     }
     final cores = blocks.where((x) => x.type == bossCoreId).toList();
     if (cores.isEmpty) return;
-    final rate = const [1.0, 1.15, 1.3][b.phase - 1] * (1 + b.index * 0.05) * round.loopMul * difficulty.bossFireRate;
+    final rate =
+        const [1.0, 1.15, 1.3][b.phase - 1] *
+        (1 + b.index * 0.05) *
+        round.loopMul *
+        difficulty.bossFireRate;
     for (final p in b.patterns) {
       if (b.phase >= p.fromPhase) p.update(this, b, cores, dt, rate);
     }
   }
 
-  double _swayOx(Boss b) => math.sin(b.t * b.def.sway) * b.amp * math.min(1, b.t / 2);
+  double _swayOx(Boss b) =>
+      math.sin(b.t * b.def.sway) * b.amp * math.min(1, b.t / 2);
 
   void _checkBossPhase() {
     final b = boss;
@@ -81,15 +93,22 @@ extension _BossSystem on World {
     }
   }
 
-  bool _occupied(double x, double y) =>
-      blocks.any((b) => x < b.x + b.w && x + Field.cellW > b.x && y < b.y + b.h && y + Field.cellH > b.y);
+  bool _occupied(double x, double y) => blocks.any(
+    (b) =>
+        x < b.x + b.w &&
+        x + Field.cellW > b.x &&
+        y < b.y + b.h &&
+        y + Field.cellH > b.y,
+  );
 
   /// [x], [y] (要塞の座標) の 1 マスに、ボールが重なる (次のサブステップで入りうる) か。
   bool _ballOnCell(double x, double y) {
     final sx = x + form.ox, sy = y + form.oy;
     for (final ball in [this.ball, ...phantoms]) {
       if (ball.attached) continue;
-      if (rectDist(ball.x, ball.y, sx, sy, Field.cellW, Field.cellH) < Field.ballR + 4) return true;
+      if (rectDist(ball.x, ball.y, sx, sy, Field.cellW, Field.cellH) <
+          Field.ballR + 4)
+        return true;
     }
     return false;
   }
@@ -112,7 +131,8 @@ extension _BossSystem on World {
     if (b.phase == 2 && b.def.reinforce > 0) {
       for (final x in [b.left - Field.cellW, b.left + b.cols * Field.cellW]) {
         if (x < 0 || x + Field.cellW > Field.width) continue;
-        if (!_occupied(x, Field.gridY0)) addBlock('T', x, Field.gridY0).fireT = 1.5 + aux.next();
+        if (!_occupied(x, Field.gridY0))
+          addBlock('T', x, Field.gridY0).fireT = 1.5 + aux.next();
       }
     }
     var minX = Field.width, maxX = 0.0;

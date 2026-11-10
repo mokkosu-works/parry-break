@@ -33,13 +33,13 @@ class PlayEntry {
   bool get endless => stageId == null;
 
   Map<String, Object?> toJson() => {
-        'at': at.millisecondsSinceEpoch,
-        if (stageId != null) 'stage': stageId,
-        'difficulty': difficulty.name,
-        'score': score,
-        if (stageId == null) 'round': round,
-        if (stageId != null) 'cleared': cleared,
-      };
+    'at': at.millisecondsSinceEpoch,
+    if (stageId != null) 'stage': stageId,
+    'difficulty': difficulty.name,
+    'score': score,
+    if (stageId == null) 'round': round,
+    if (stageId != null) 'cleared': cleared,
+  };
 
   /// 読めない (必要な項目がない・型が違う) ときは null。
   static PlayEntry? fromJson(Object? j) {
@@ -48,7 +48,9 @@ class PlayEntry {
     final diff = j['difficulty'], round = j['round'], cleared = j['cleared'];
     if (at is! int || score is! num || !score.isFinite) return null;
     if (stage != null && stage is! String) return null;
-    final difficulty = Difficulty.values.where((d) => d.name == diff).firstOrNull;
+    final difficulty = Difficulty.values
+        .where((d) => d.name == diff)
+        .firstOrNull;
     if (diff != null && difficulty == null) return null;
     return PlayEntry(
       at: DateTime.fromMillisecondsSinceEpoch(at),
@@ -72,12 +74,13 @@ class PlayHistory {
   static const maxEntries = 50;
 
   /// [e] を先頭に足し、[maxEntries] 件を超えたぶんの古いものを消す。
-  PlayHistory add(PlayEntry e) => PlayHistory([e, ...entries.take(maxEntries - 1)]);
+  PlayHistory add(PlayEntry e) =>
+      PlayHistory([e, ...entries.take(maxEntries - 1)]);
 
   Map<String, Object?> toJson() => {
-        'version': version,
-        'entries': [for (final e in entries) e.toJson()],
-      };
+    'version': version,
+    'entries': [for (final e in entries) e.toJson()],
+  };
 
   /// 保存した文字列を読む。`intact` が false なら、読めない項目がある・今より新しい版のデータで、
   /// そのまま上書きすると元のデータを失う。
@@ -88,7 +91,8 @@ class PlayHistory {
     } on FormatException {
       return (history: const PlayHistory(), intact: false);
     }
-    if (json is! Map<String, Object?>) return (history: const PlayHistory(), intact: false);
+    if (json is! Map<String, Object?>)
+      return (history: const PlayHistory(), intact: false);
     final v = json['version'];
     var intact = v == null || (v is int && v <= version);
     final list = json['entries'];
@@ -107,7 +111,9 @@ class PlayHistory {
 }
 
 /// 履歴に付ける日時。テストでは偽の時刻に差し替える。
-final historyClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+final historyClockProvider = Provider<DateTime Function()>(
+  (ref) => DateTime.now,
+);
 
 class PlayHistoryNotifier extends Notifier<PlayHistory> {
   static const key = 'history.v1';
@@ -131,18 +137,27 @@ class PlayHistoryNotifier extends Notifier<PlayHistory> {
   }
 
   /// エンドレスのゲームオーバーを残す。
-  void addEndless({required int score, required int round}) =>
-      _add(PlayEntry(at: ref.read(historyClockProvider)(), score: score, round: round));
+  void addEndless({required int score, required int round}) => _add(
+    PlayEntry(at: ref.read(historyClockProvider)(), score: score, round: round),
+  );
 
   /// ステージの結果 (クリア・失敗) を残す。
-  void addStage(String id, {required int score, required bool cleared, Difficulty difficulty = Difficulty.normal}) =>
-      _add(PlayEntry(
-        at: ref.read(historyClockProvider)(),
-        stageId: id,
-        difficulty: difficulty,
-        score: score,
-        cleared: cleared,
-      ));
+  void addStage(
+    String id, {
+    required int score,
+    required bool cleared,
+    Difficulty difficulty = Difficulty.normal,
+  }) => _add(
+    PlayEntry(
+      at: ref.read(historyClockProvider)(),
+      stageId: id,
+      difficulty: difficulty,
+      score: score,
+      cleared: cleared,
+    ),
+  );
 }
 
-final historyProvider = NotifierProvider<PlayHistoryNotifier, PlayHistory>(PlayHistoryNotifier.new);
+final historyProvider = NotifierProvider<PlayHistoryNotifier, PlayHistory>(
+  PlayHistoryNotifier.new,
+);

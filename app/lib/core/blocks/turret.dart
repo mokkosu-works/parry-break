@@ -28,7 +28,8 @@ abstract class GunBlock extends BlockBehavior {
   double get intervalScale => 1;
 
   @override
-  void onDestroyed(World w, Block b, double cx, double cy) => w.killBulletsOf(b);
+  void onDestroyed(World w, Block b, double cx, double cy) =>
+      w.killBulletsOf(b);
 
   /// 最初の発射までの時間をラウンドの固定シードでばらつかせる。
   @override
@@ -48,14 +49,25 @@ abstract class GunBlock extends BlockBehavior {
 
   /// 敵弾の基準の速さ (px/秒)。
   double bulletSpeed(World w) =>
-      w.tuning.bulletSpeed(w.round.difficulty, w.round.loopMul) * w.difficulty.bulletSpeed;
+      w.tuning.bulletSpeed(w.round.difficulty, w.round.loopMul) *
+      w.difficulty.bulletSpeed;
 
   /// パドルを狙う角度。[lead] はパドルの移動先を予測する割合 (0 なら今の位置)。
-  double aimAtPaddle(World w, double x, double y, double sp, {double lead = 0}) {
+  double aimAtPaddle(
+    World w,
+    double x,
+    double y,
+    double sp, {
+    double lead = 0,
+  }) {
     final p = w.paddle, pw = w.paddleWidth;
     var tx = p.x;
     if (lead > 0) {
-      tx = clampD(p.x + p.vx * (hypot(p.x - x, Field.paddleY - y) / sp) * lead, pw / 2, Field.width - pw / 2);
+      tx = clampD(
+        p.x + p.vx * (hypot(p.x - x, Field.paddleY - y) / sp) * lead,
+        pw / 2,
+        Field.width - pw / 2,
+      );
     }
     return math.atan2(Field.paddleY - y, tx - x);
   }
@@ -140,7 +152,13 @@ class SpreadTurretBlock extends GunBlock {
     final sp = bulletSpeed(w) * 0.85;
     final ang = aimAtPaddle(w, x, y, sp);
     for (var i = 0; i < n; i++) {
-      w.fireBullet(x, y, ang - spread / 2 + spread * i / (n - 1), sp, source: b);
+      w.fireBullet(
+        x,
+        y,
+        ang - spread / 2 + spread * i / (n - 1),
+        sp,
+        source: b,
+      );
     }
     w.emit(const BulletFired());
     return interval(w);
@@ -166,7 +184,8 @@ class GatlingTurretBlock extends GunBlock {
     w.fireBullet(x, y, aimAtPaddle(w, x, y, sp), sp, source: b);
     w.emit(const BulletFired());
     b.shots++;
-    if (b.shots < w.difficulty.pick(3, 5, 8)) return w.difficulty.pick(0.14, 0.11, 0.085);
+    if (b.shots < w.difficulty.pick(3, 5, 8))
+      return w.difficulty.pick(0.14, 0.11, 0.085);
     b.shots = 0;
     return interval(w);
   }

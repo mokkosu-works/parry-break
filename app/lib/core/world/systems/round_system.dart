@@ -6,7 +6,9 @@ extension _RoundSystem on World {
     _finishCascade();
     _finishBlastChain();
     round = spec;
-    tuning = spec.tuning.isEmpty ? baseTuning : baseTuning.copyWith(spec.tuning);
+    tuning = spec.tuning.isEmpty
+        ? baseTuning
+        : baseTuning.copyWith(spec.tuning);
     rng = Mulberry32(spec.seed);
     aux = Mulberry32(spec.seed * 7 + 1);
     form
@@ -24,7 +26,11 @@ extension _RoundSystem on World {
         for (var r = 0; r < c.rows.length; r++) {
           for (var col = 0; col < Field.cols; col++) {
             if (c.rows[r][col] == '.') continue;
-            addBlock(c.blockIdAt(r, col), Field.gridX0 + col * Field.cellW, Field.gridY0 + r * Field.cellH);
+            addBlock(
+              c.blockIdAt(r, col),
+              Field.gridX0 + col * Field.cellW,
+              Field.gridY0 + r * Field.cellH,
+            );
           }
         }
       case BossContent c:
@@ -34,7 +40,12 @@ extension _RoundSystem on World {
       b.behavior.onRoundStart(this, b);
     }
     _initSupport();
-    ball = Ball(x: paddle.x, y: Field.paddleY - Field.ballR - 1, speed: targetSpeed, attached: true);
+    ball = Ball(
+      x: paddle.x,
+      y: Field.paddleY - Field.ballR - 1,
+      speed: targetSpeed,
+      attached: true,
+    );
     countdown = tuning.countdown;
     roundTime = 0;
     launched = false;
@@ -45,10 +56,23 @@ extension _RoundSystem on World {
     phase = WorldPhase.playing;
     lowest = 0;
     final b = boss;
-    emit(RoundStarted(number: spec.number, loop: spec.loop, bossIndex: b?.index, introKey: spec.introKey));
-    emit(b != null
-        ? Banner(BannerKind.boss, value: b.index + 1)
-        : Banner(BannerKind.round, value: spec.number, introKey: spec.introKey));
+    emit(
+      RoundStarted(
+        number: spec.number,
+        loop: spec.loop,
+        bossIndex: b?.index,
+        introKey: spec.introKey,
+      ),
+    );
+    emit(
+      b != null
+          ? Banner(BannerKind.boss, value: b.index + 1)
+          : Banner(
+              BannerKind.round,
+              value: spec.number,
+              introKey: spec.introKey,
+            ),
+    );
   }
 
   void _updatePlay(double dt) {
@@ -135,7 +159,8 @@ extension _RoundSystem on World {
     final annihilated = boss != null
         ? !blocks.any((b) => b.type == bossCoreId)
         : !blocks.any((b) => b.behavior.clearable);
-    final cleared = annihilated ||
+    final cleared =
+        annihilated ||
         switch (round.clear) {
           AnnihilateClear() => false,
           ScoreClear(:final target) => score >= target,
@@ -150,13 +175,15 @@ extension _RoundSystem on World {
       low = math.max(low, b.y + form.oy + b.h);
     }
     lowest = low;
-    if (low >= Field.warnY) _gameOver(boss?.plunge ?? false ? 'TIME OVER' : 'BLOCKS BREACHED');
+    if (low >= Field.warnY)
+      _gameOver(boss?.plunge ?? false ? 'TIME OVER' : 'BLOCKS BREACHED');
   }
 
   void _roundClear() {
     final m = mult, bon = <Bonus>[];
     final b = boss;
-    if (b != null) bon.add(Bonus('BOSS DESTROYED', 50000 + b.time.floor() * 500));
+    if (b != null)
+      bon.add(Bonus('BOSS DESTROYED', 50000 + b.time.floor() * 500));
     bon.add(Bonus('ROUND CLEAR  ×$m', 5000 * m));
     if (b == null) {
       final dist = math.max(0.0, Field.warnY - lowest).round();
@@ -180,7 +207,9 @@ extension _RoundSystem on World {
     if (phantoms.isNotEmpty) _popPhantoms();
     phase = WorldPhase.clearing;
     clearT = 0;
-    emit(RoundCleared(bonuses: bon, remaining: remaining, ending: round.ending));
+    emit(
+      RoundCleared(bonuses: bon, remaining: remaining, ending: round.ending),
+    );
   }
 
   void _updateClear(double dt) {
@@ -206,6 +235,8 @@ extension _RoundSystem on World {
     lasers = [];
     _finishCascade();
     _finishBlastChain();
-    emit(GameOver(reason: reason, score: score, round: round.number, stats: stats));
+    emit(
+      GameOver(reason: reason, score: score, round: round.number, stats: stats),
+    );
   }
 }

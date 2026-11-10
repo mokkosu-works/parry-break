@@ -7,8 +7,8 @@ import 'dart:typed_data';
 /// 純粋な Dart なので、別の isolate で実行できる。
 class Synth {
   Synth(double seconds, {this.sampleRate = 44100, int seed = 1})
-      : buf = Float32List((seconds * sampleRate).ceil()),
-        _rnd = math.Random(seed);
+    : buf = Float32List((seconds * sampleRate).ceil()),
+      _rnd = math.Random(seed);
 
   final int sampleRate;
   final Float32List buf;
@@ -37,10 +37,18 @@ class Synth {
   }
 
   /// 指数ランプ (WebAudio の exponentialRampToValueAtTime と同じ形)。
-  static double _exp(double v0, double v1, double k) => v0 * math.pow(v1 / v0, k.clamp(0.0, 1.0));
+  static double _exp(double v0, double v1, double k) =>
+      v0 * math.pow(v1 / v0, k.clamp(0.0, 1.0));
 
   /// `tone(f, d, type, v, f2, when)`: 周波数 [f] (→ [f2]) の発振器を、音量 [v] から 0 へ指数的に減衰させる。
-  void tone(double f, double d, String type, double v, {double f2 = 0, double when = 0}) {
+  void tone(
+    double f,
+    double d,
+    String type,
+    double v, {
+    double f2 = 0,
+    double when = 0,
+  }) {
     final start = (when * sampleRate).round();
     final n = ((d + 0.02) * sampleRate).round();
     var phase = 0.0;
@@ -55,7 +63,13 @@ class Synth {
   }
 
   /// `noise(d, v, freq, when, ftype)`: ホワイトノイズを biquad フィルタ (Q=1) に通し、指数的に減衰させる。
-  void noise(double d, double v, double freq, {double when = 0, String filter = 'bandpass'}) {
+  void noise(
+    double d,
+    double v,
+    double freq, {
+    double when = 0,
+    String filter = 'bandpass',
+  }) {
     final start = (when * sampleRate).round();
     final n = ((d + 0.02) * sampleRate).round();
     final bq = _Biquad(filter, freq, sampleRate.toDouble());
@@ -71,7 +85,9 @@ class Synth {
     final pcm = Int16List(buf.length);
     for (var i = 0; i < buf.length; i++) {
       final x = buf[i] * gain;
-      final y = x.abs() < 0.9 ? x : x.sign * (0.9 + 0.1 * _tanh((x.abs() - 0.9) / 0.1));
+      final y = x.abs() < 0.9
+          ? x
+          : x.sign * (0.9 + 0.1 * _tanh((x.abs() - 0.9) / 0.1));
       pcm[i] = (y.clamp(-1.0, 1.0) * 32767).round();
     }
     final data = pcm.buffer.asUint8List();

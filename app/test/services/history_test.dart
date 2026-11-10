@@ -11,13 +11,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   var now = DateTime(2026, 11, 8, 14, 5);
 
-  Future<(ProviderContainer, SharedPreferences)> load([Map<String, Object> prefs = const {}]) async {
+  Future<(ProviderContainer, SharedPreferences)> load([
+    Map<String, Object> prefs = const {},
+  ]) async {
     SharedPreferences.setMockInitialValues(prefs);
     final sp = await SharedPreferences.getInstance();
-    final c = ProviderContainer(overrides: [
-      sharedPrefsProvider.overrideWithValue(sp),
-      historyClockProvider.overrideWithValue(() => now),
-    ]);
+    final c = ProviderContainer(
+      overrides: [
+        sharedPrefsProvider.overrideWithValue(sp),
+        historyClockProvider.overrideWithValue(() => now),
+      ],
+    );
     addTearDown(c.dispose);
     return (c, sp);
   }
@@ -66,7 +70,12 @@ void main() {
     final (c, sp) = await load();
     c.read(historyProvider.notifier)
       ..addEndless(score: 4500, round: 3)
-      ..addStage('2-1', score: 9900, cleared: true, difficulty: Difficulty.easy);
+      ..addStage(
+        '2-1',
+        score: 9900,
+        cleared: true,
+        difficulty: Difficulty.easy,
+      );
     final raw = sp.getString(PlayHistoryNotifier.key)!;
 
     final (c2, sp2) = await load({PlayHistoryNotifier.key: raw});
@@ -84,7 +93,8 @@ void main() {
 
   test('履歴を足す前の保存データ: 最高記録・進み具合・難易度ごとの星はそのまま読め、上書きもされない', () async {
     // 履歴を足す前 (version 1) の records。NORMAL はステージ ID、ほかの難易度は @easy / @hard が付く
-    const old = '{"version":1,'
+    const old =
+        '{"version":1,'
         '"endless":{"bestScore":123456,"bestRound":9,"bestCollapse":4,"bestBlast":2,"bestRicochet":5},'
         '"stages":{"1-1":{"cleared":true,"bestScore":5000,"stars":[true,false,true]},'
         '"1-1@hard":{"cleared":true,"bestScore":7000,"stars":[true,true,false]},'
@@ -95,10 +105,14 @@ void main() {
     // 結果画面と同じ順で、記録と履歴に残す
     c.read(historyProvider.notifier).addEndless(score: 100, round: 1);
     expect(sp.getString('records'), old, reason: '履歴は別のキーに保存し、records には触らない');
-    c.read(recordsProvider.notifier).submitEndless(score: 100, round: 1, stats: RunStats());
+    c
+        .read(recordsProvider.notifier)
+        .submitEndless(score: 100, round: 1, stats: RunStats());
     c.read(historyProvider.notifier).addStage('1-2', score: 10, cleared: false);
 
-    final r = Records.fromJson(jsonDecode(sp.getString('records')!) as Map<String, Object?>);
+    final r = Records.fromJson(
+      jsonDecode(sp.getString('records')!) as Map<String, Object?>,
+    );
     expect(r.endless.bestScore, 123456);
     expect(r.endless.bestRound, 9);
     expect(r.endless.bestRicochet, 5);
@@ -121,7 +135,13 @@ void main() {
           'x',
           {'at': 'yesterday', 'score': 1},
           {'at': 2000, 'stage': '1-1', 'difficulty': 'nightmare', 'score': 1},
-          {'at': 3000, 'stage': '1-2', 'difficulty': 'hard', 'score': 900, 'cleared': true},
+          {
+            'at': 3000,
+            'stage': '1-2',
+            'difficulty': 'hard',
+            'score': 900,
+            'cleared': true,
+          },
         ],
       });
       final (c, sp) = await load({PlayHistoryNotifier.key: raw});

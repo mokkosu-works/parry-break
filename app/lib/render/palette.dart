@@ -48,7 +48,13 @@ abstract final class Palette {
 
   /// コンボ段階 (1〜4, FEVER TIME) の色。
   static const comboBar = [Dot.sky, Dot.mint, Dot.mustard, Dot.orange];
-  static const multColor = [Dot.white, Dot.peach, Dot.mint, Dot.mustard, Dot.rose];
+  static const multColor = [
+    Dot.white,
+    Dot.peach,
+    Dot.mint,
+    Dot.mustard,
+    Dot.rose,
+  ];
 }
 
 /// 盤面のドット絵の色 (16 色)。陰影は [Dot.light] / [Dot.dark] で作る。
@@ -68,6 +74,7 @@ abstract final class Dot {
   static const orange = Color(0xFFFF7A0F);
   static const rose = Color(0xFFFF2FA8);
   static const blush = Color(0xFFFF9ADB);
+
   /// 撃ち返した弾・GOOD・跳弾など、こちらの手柄の淡い色。
   static const peach = Color(0xFFFFC9A8);
 
@@ -87,4 +94,5 @@ abstract final class Dot {
   static Color dark(Color c) => Color.lerp(c, ink, 0.6)!;
 }
 
-Color withAlpha(Color c, double a) => c.withValues(alpha: (c.a * a).clamp(0.0, 1.0));
+Color withAlpha(Color c, double a) =>
+    c.withValues(alpha: (c.a * a).clamp(0.0, 1.0));

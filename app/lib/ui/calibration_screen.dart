@@ -25,15 +25,19 @@ class CalibrationScreen extends ConsumerStatefulWidget {
   ConsumerState<CalibrationScreen> createState() => _CalibrationScreenState();
 }
 
-class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with SingleTickerProviderStateMixin {
+class _CalibrationScreenState extends ConsumerState<CalibrationScreen>
+    with SingleTickerProviderStateMixin {
   static const _beats = 10, _interval = 0.8, _leadIn = 1.6;
 
   /// 結果を出すのに要る、拍に合ったタップの数。
   static const _minHits = 4;
 
-  late final InputClock _clock = InputClock(source: ref.read(timeSourceProvider));
+  late final InputClock _clock = InputClock(
+    source: ref.read(timeSourceProvider),
+  );
   late final Ticker _ticker;
   final ValueNotifier<double> _now = ValueNotifier(0);
+
   /// 測定を始めた時刻。null ならまだ始めていない (「スタート」を待っている)。
   double? _start;
   final List<double> _offsets = [];
@@ -44,9 +48,11 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
     super.initState();
     _ticker = createTicker((_) {
       _now.value = _clock.now;
-      if (_start != null && _result == null && _clock.now > _beatTime(_beats - 1) + 0.6) _finish();
-    })
-      ..start();
+      if (_start != null &&
+          _result == null &&
+          _clock.now > _beatTime(_beats - 1) + 0.6)
+        _finish();
+    })..start();
   }
 
   @override
@@ -56,7 +62,8 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
     super.dispose();
   }
 
-  double _beatTime(int i) => (_start ?? double.infinity) + _leadIn + i * _interval;
+  double _beatTime(int i) =>
+      (_start ?? double.infinity) + _leadIn + i * _interval;
 
   void _restart() {
     _start = _clock.now;
@@ -84,7 +91,9 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
   double _resultAt = 0;
 
   void _apply(int r) {
-    ref.read(settingsProvider.notifier).update((s) => s.copyWith(timingOffsetMs: r));
+    ref
+        .read(settingsProvider.notifier)
+        .update((s) => s.copyWith(timingOffsetMs: r));
     Navigator.of(context).pop();
   }
 
@@ -101,7 +110,8 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
     if (r != null) {
       final buttons = r >= 0 ? 2 : 1;
       if (arrowStep(key) case final step?) {
-        if (buttons > 1) setState(() => _button = (_button + step + buttons) % buttons);
+        if (buttons > 1)
+          setState(() => _button = (_button + step + buttons) % buttons);
         return KeyEventResult.handled;
       }
       if (!isConfirmKey(key)) return KeyEventResult.ignored;
@@ -145,57 +155,87 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> with Sing
       autofocus: true,
       onKeyEvent: _onKey,
       child: ScreenFrame(
-      title: l.calibrationTitle,
-      child: Listener(
-        behavior: HitTestBehavior.opaque,
-        onPointerDown: _tap,
-        child: Column(children: [
-          Text(l.calibrationBody('$_beats'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
-          Expanded(
-            child: ValueListenableBuilder(
-              valueListenable: _now,
-              builder: (_, now, _) => CustomPaint(
-                size: Size.infinite,
-                painter: _BeatPainter(now: now, beatTime: _beatTime, beats: _beats, interval: _interval, hits: _offsets.length),
+        title: l.calibrationTitle,
+        child: Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: _tap,
+          child: Column(
+            children: [
+              Text(
+                l.calibrationBody('$_beats'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
               ),
-            ),
-          ),
-          if (_start == null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Center(
-                child: PixelButton(
-                    label: l.calibrationStart, filled: true, icon: PixelIcons.play, selected: true, onPressed: _restart),
-              ),
-            ),
-          if (r != null && r < 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(l.calibrationFailed('${_offsets.length}', '$_minHits'),
-                  textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Palette.yellow)),
-            ),
-          if (r != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Wrap(spacing: 16, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                if (r >= 0) Text(l.calibrationResult('$r'), style: pixelFont(20, color: Palette.main)),
-                PixelButton(
-                    label: l.calibrationRetry,
-                    icon: PixelIcons.replay,
-                    selected: r < 0 || _button == 0,
-                    onPressed: _restart),
-                if (r >= 0)
-                  PixelButton(
-                    label: l.calibrationApply,
-                    filled: true,
-                    icon: PixelIcons.check,
-                    selected: _button == 1,
-                    onPressed: () => _apply(r),
+              Expanded(
+                child: ValueListenableBuilder(
+                  valueListenable: _now,
+                  builder: (_, now, _) => CustomPaint(
+                    size: Size.infinite,
+                    painter: _BeatPainter(
+                      now: now,
+                      beatTime: _beatTime,
+                      beats: _beats,
+                      interval: _interval,
+                      hits: _offsets.length,
+                    ),
                   ),
-              ]),
-            ),
-        ]),
-      ),
+                ),
+              ),
+              if (_start == null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Center(
+                    child: PixelButton(
+                      label: l.calibrationStart,
+                      filled: true,
+                      icon: PixelIcons.play,
+                      selected: true,
+                      onPressed: _restart,
+                    ),
+                  ),
+                ),
+              if (r != null && r < 0)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    l.calibrationFailed('${_offsets.length}', '$_minHits'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16, color: Palette.yellow),
+                  ),
+                ),
+              if (r != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (r >= 0)
+                        Text(
+                          l.calibrationResult('$r'),
+                          style: pixelFont(20, color: Palette.main),
+                        ),
+                      PixelButton(
+                        label: l.calibrationRetry,
+                        icon: PixelIcons.replay,
+                        selected: r < 0 || _button == 0,
+                        onPressed: _restart,
+                      ),
+                      if (r >= 0)
+                        PixelButton(
+                          label: l.calibrationApply,
+                          filled: true,
+                          icon: PixelIcons.check,
+                          selected: _button == 1,
+                          onPressed: () => _apply(r),
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -225,13 +265,28 @@ class _BeatPainter extends CustomPainter {
       if (dt < -0.15 || dt > interval * 1.5) continue;
       if (dt >= 0) {
         final rad = r * (1 + dt / interval * 1.6);
-        drawDots(canvas, ringDots(c.dx, c.dy, rad, n(rad)), dt < interval * 0.75 ? Palette.main : Dot.dark(Palette.main), size: 5);
+        drawDots(
+          canvas,
+          ringDots(c.dx, c.dy, rad, n(rad)),
+          dt < interval * 0.75 ? Palette.main : Dot.dark(Palette.main),
+          size: 5,
+        );
       } else {
-        pixelDisc(canvas, c.dx, c.dy, r / 6, withAlpha(Palette.yellow, 0.6), d: 6);
+        pixelDisc(
+          canvas,
+          c.dx,
+          c.dy,
+          r / 6,
+          withAlpha(Palette.yellow, 0.6),
+          d: 6,
+        );
       }
     }
     final tp = TextPainter(
-      text: TextSpan(text: '$hits / $beats', style: pixelFont(18, color: Palette.pale)),
+      text: TextSpan(
+        text: '$hits / $beats',
+        style: pixelFont(18, color: Palette.pale),
+      ),
       textDirection: TextDirection.ltr,
     )..layout();
     tp.paint(canvas, c - Offset(tp.width / 2, tp.height / 2));

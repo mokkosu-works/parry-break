@@ -12,7 +12,12 @@ enum HitResult {
 
 /// ボールがブロックに当たったときの状況。
 class BallHit {
-  const BallHit(this.ball, {required this.pierce, required this.main, required this.cause});
+  const BallHit(
+    this.ball, {
+    required this.pierce,
+    required this.main,
+    required this.cause,
+  });
   final Ball ball;
 
   /// 貫通弾として当たったか (貫通回数が残っている / FEVER TIME 中 / 分身弾)。
@@ -63,7 +68,8 @@ abstract class BlockBehavior {
   void afterBounce(World w, Block b, Ball ball, double nx, double ny) {}
 
   /// 爆風・衝撃波を受けた。[breaker] は JUST パリィの衝撃波。
-  void onBlast(World w, Block b, {required bool breaker}) => w.destroyBlock(b, DestroyCause.blast);
+  void onBlast(World w, Block b, {required bool breaker}) =>
+      w.destroyBlock(b, DestroyCause.blast);
 
   /// 撃ち返し弾が当たった。弾が消えるなら true を返す。
   bool onReturnedBullet(World w, Block b, Bullet u) {
@@ -101,7 +107,8 @@ class BlockRegistry {
   final Map<String, BlockBehavior> _byId = {};
 
   void register(BlockBehavior b) {
-    if (_byId.containsKey(b.id)) throw ArgumentError('duplicate block id: ${b.id}');
+    if (_byId.containsKey(b.id))
+      throw ArgumentError('duplicate block id: ${b.id}');
     _byId[b.id] = b;
   }
 

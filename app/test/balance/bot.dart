@@ -6,7 +6,14 @@ import 'package:parry_break/game/autoplay_bot.dart';
 export 'package:parry_break/game/autoplay_bot.dart' show Bot;
 
 class RunResult {
-  RunResult(this.cleared, this.hurt, this.time, this.reason, this.score, this.bullets);
+  RunResult(
+    this.cleared,
+    this.hurt,
+    this.time,
+    this.reason,
+    this.score,
+    this.bullets,
+  );
   final bool cleared;
   final int hurt;
   final double time;
@@ -18,7 +25,13 @@ class RunResult {
 }
 
 /// [mode] を [difficulty] で最後まで (最大 [limit] 秒) 遊ぶ。
-RunResult playOut(GameMode mode, Difficulty difficulty, {int seed = 1, double sigma = 0.035, double limit = 400}) {
+RunResult playOut(
+  GameMode mode,
+  Difficulty difficulty, {
+  int seed = 1,
+  double sigma = 0.035,
+  double limit = 400,
+}) {
   final w = World(mode: mode, difficulty: difficulty, inputLag: 0)..start();
   w.sync
     ..wall = 0
@@ -38,6 +51,12 @@ RunResult playOut(GameMode mode, Difficulty difficulty, {int seed = 1, double si
     if (w.phase == WorldPhase.over || w.phase == WorldPhase.completed) break;
   }
   final cleared = w.phase == WorldPhase.completed;
-  return RunResult(cleared, w.stats.hurt, w.stats.playTime, cleared ? 'CLEAR' : w.overReason, w.score,
-      fired / math.max(1, w.stats.playTime));
+  return RunResult(
+    cleared,
+    w.stats.hurt,
+    w.stats.playTime,
+    cleared ? 'CLEAR' : w.overReason,
+    w.score,
+    fired / math.max(1, w.stats.playTime),
+  );
 }

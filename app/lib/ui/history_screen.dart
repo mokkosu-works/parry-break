@@ -19,7 +19,10 @@ class HistoryScreen extends ConsumerWidget {
       title: l.menuHistory,
       actions: [
         if (entries.isNotEmpty)
-          Text('${entries.length} / ${PlayHistory.maxEntries}', style: pixelFont(14, color: Palette.pale)),
+          Text(
+            '${entries.length} / ${PlayHistory.maxEntries}',
+            style: pixelFont(14, color: Palette.pale),
+          ),
         const SizedBox(width: 8),
       ],
       child: Padding(
@@ -30,14 +33,19 @@ class HistoryScreen extends ConsumerWidget {
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Text(l.historyEmpty,
-                        textAlign: TextAlign.center, style: pixelFont(16, color: Palette.pale, weight: 400)),
+                    child: Text(
+                      l.historyEmpty,
+                      textAlign: TextAlign.center,
+                      style: pixelFont(16, color: Palette.pale, weight: 400),
+                    ),
                   ),
                 )
               : ListView.separated(
                   itemCount: entries.length,
-                  separatorBuilder: (_, _) => Container(height: 1, color: Dot.edge),
-                  itemBuilder: (context, i) => HistoryRow(entry: entries[i], latest: i == 0),
+                  separatorBuilder: (_, _) =>
+                      Container(height: 1, color: Dot.edge),
+                  itemBuilder: (context, i) =>
+                      HistoryRow(entry: entries[i], latest: i == 0),
                 ),
         ),
       ),
@@ -63,35 +71,70 @@ class HistoryRow extends StatelessWidget {
     const tab = [FontFeature.tabularFigures()];
     final e = entry;
     // ENDLESS / ROUND はタイトルや HUD と同じく、どちらの言語でも英語のまま (design.md 9.7)
-    final mode = e.endless ? 'ENDLESS' : 'STAGE ${e.stageId}  ${e.difficulty.label}';
+    final mode = e.endless
+        ? 'ENDLESS'
+        : 'STAGE ${e.stageId}  ${e.difficulty.label}';
     final (detail, detailColor) = e.endless
         ? ('ROUND ${e.round.toString().padLeft(2, '0')}', Palette.pale)
         : e.cleared
-            ? (l.historyCleared, Dot.mint)
-            : (l.historyFailed, Palette.sub);
-    Widget cell(String text, TextStyle style, {TextAlign align = TextAlign.left}) => FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: align == TextAlign.right ? Alignment.centerRight : Alignment.centerLeft,
-          child: Text(text, maxLines: 1, style: style.copyWith(fontFeatures: tab)),
-        );
+        ? (l.historyCleared, Dot.mint)
+        : (l.historyFailed, Palette.sub);
+    Widget cell(
+      String text,
+      TextStyle style, {
+      TextAlign align = TextAlign.left,
+    }) => FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: align == TextAlign.right
+          ? Alignment.centerRight
+          : Alignment.centerLeft,
+      child: Text(text, maxLines: 1, style: style.copyWith(fontFeatures: tab)),
+    );
     return SizedBox(
       height: 40,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(children: [
-          SizedBox(width: 14, child: latest ? const BlinkCursor(size: 12) : null),
-          const SizedBox(width: 6),
-          Expanded(flex: 5, child: cell(formatPlayedAt(e.at), pixelFont(12, color: Palette.gray, letterSpacing: 1))),
-          const SizedBox(width: 12),
-          Expanded(flex: 5, child: cell(mode, pixelFont(14, color: e.endless ? Palette.accent : Palette.white))),
-          const SizedBox(width: 12),
-          Expanded(flex: 3, child: cell(detail, pixelFont(13, color: detailColor))),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 4,
-            child: cell(formatScore(e.score), pixelFont(16, weight: 900, color: Palette.yellow), align: TextAlign.right),
-          ),
-        ]),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 14,
+              child: latest ? const BlinkCursor(size: 12) : null,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              flex: 5,
+              child: cell(
+                formatPlayedAt(e.at),
+                pixelFont(12, color: Palette.gray, letterSpacing: 1),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 5,
+              child: cell(
+                mode,
+                pixelFont(
+                  14,
+                  color: e.endless ? Palette.accent : Palette.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 3,
+              child: cell(detail, pixelFont(13, color: detailColor)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 4,
+              child: cell(
+                formatScore(e.score),
+                pixelFont(16, weight: 900, color: Palette.yellow),
+                align: TextAlign.right,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

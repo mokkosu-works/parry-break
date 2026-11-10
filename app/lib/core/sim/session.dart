@@ -14,6 +14,7 @@ class Session {
 
   /// シミュレーションが 1 ステップ進むたびに呼ばれる (演出をステップ単位で進めるため)。
   final void Function(double dt)? onStep;
+
   /// スローモーション中の速さ (実時間 1 秒あたりに進むシミュレーション時間)。
   static const slowScale = 0.35;
 

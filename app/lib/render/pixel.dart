@@ -18,13 +18,13 @@ Paint pixelPaint(Color c) => _fill..color = c;
 /// 文字列で描いた小さな絵。`#` が塗るドット、それ以外は透明。
 class DotSprite {
   DotSprite(List<String> rows)
-      : w = rows.fold(0, (m, r) => math.max(m, r.length)),
-        h = rows.length,
-        _cells = [
-          for (var j = 0; j < rows.length; j++)
-            for (var i = 0; i < rows[j].length; i++)
-              if (rows[j][i] == '#') (i, j),
-        ];
+    : w = rows.fold(0, (m, r) => math.max(m, r.length)),
+      h = rows.length,
+      _cells = [
+        for (var j = 0; j < rows.length; j++)
+          for (var i = 0; i < rows[j].length; i++)
+            if (rows[j][i] == '#') (i, j),
+      ];
 
   final int w, h;
   final List<(int, int)> _cells;
@@ -38,25 +38,39 @@ class DotSprite {
       pts[k * 2 + 1] = y + (_cells[k].$2 + 0.5) * d;
     }
     c.drawRawPoints(
-        PointMode.points,
-        pts,
-        _dots
-          ..color = color
-          ..strokeWidth = d);
+      PointMode.points,
+      pts,
+      _dots
+        ..color = color
+        ..strokeWidth = d,
+    );
   }
 
   /// 中心を ([cx], [cy]) にして描く。
-  void drawCentered(Canvas c, double cx, double cy, Color color, {double scale = 1}) =>
-      draw(c, cx - w * Dot.px * scale / 2, cy - h * Dot.px * scale / 2, color, scale: scale);
+  void drawCentered(
+    Canvas c,
+    double cx,
+    double cy,
+    Color color, {
+    double scale = 1,
+  }) => draw(
+    c,
+    cx - w * Dot.px * scale / 2,
+    cy - h * Dot.px * scale / 2,
+    color,
+    scale: scale,
+  );
 }
 
 /// 点の並び ([pts] は x, y の組) を、1 ドットの四角で描く。
-void drawDots(Canvas c, Float32List pts, Color color, {double size = Dot.px}) => c.drawRawPoints(
-    PointMode.points,
-    pts,
-    _dots
-      ..color = color
-      ..strokeWidth = size);
+void drawDots(Canvas c, Float32List pts, Color color, {double size = Dot.px}) =>
+    c.drawRawPoints(
+      PointMode.points,
+      pts,
+      _dots
+        ..color = color
+        ..strokeWidth = size,
+    );
 
 /// 上と左が明るく、下と右が暗い、1 ドットの縁の付いた四角 (ファミコン風の陰影)。
 void bevelRect(Canvas c, Rect r, Color col, {double d = Dot.px}) {
@@ -79,7 +93,14 @@ void pixelFrame(Canvas c, Rect r, Color col, {double d = Dot.px}) {
 }
 
 /// 半径 [r] ドットの、ドットで描いた円 (塗り)。
-void pixelDisc(Canvas c, double cx, double cy, double r, Color col, {double d = Dot.px}) {
+void pixelDisc(
+  Canvas c,
+  double cx,
+  double cy,
+  double r,
+  Color col, {
+  double d = Dot.px,
+}) {
   _fill.color = col;
   final n = r.ceil();
   for (var j = -n; j < n; j++) {
@@ -92,10 +113,20 @@ void pixelDisc(Canvas c, double cx, double cy, double r, Color col, {double d = 
 }
 
 /// 半径 [r] (論理 px) の円周上に、[n] 個のドットを置いた点の並び。[from]〜[to] (ラジアン) の弧だけにもできる。
-Float32List ringDots(double cx, double cy, double r, int n, {double from = 0, double to = math.pi * 2}) {
+Float32List ringDots(
+  double cx,
+  double cy,
+  double r,
+  int n, {
+  double from = 0,
+  double to = math.pi * 2,
+}) {
   final pts = Float32List(n * 2);
   for (var k = 0; k < n; k++) {
-    final a = from + (to - from) * (n == 1 ? 0.5 : k / (to - from >= math.pi * 2 ? n : n - 1));
+    final a =
+        from +
+        (to - from) *
+            (n == 1 ? 0.5 : k / (to - from >= math.pi * 2 ? n : n - 1));
     pts[k * 2] = cx + math.cos(a) * r;
     pts[k * 2 + 1] = cy + math.sin(a) * r;
   }
@@ -104,7 +135,9 @@ Float32List ringDots(double cx, double cy, double r, int n, {double from = 0, do
 
 /// 下に行くほど濃くなる市松のディザ (盤面の床)。描くたびに作らないよう、範囲ごとに使い回す。
 class DitherFloor {
-  DitherFloor(Rect area, {double d = Dot.px * 2}) : _pts = _build(area, d), _d = d;
+  DitherFloor(Rect area, {double d = Dot.px * 2})
+    : _pts = _build(area, d),
+      _d = d;
   final Float32List _pts;
   final double _d;
 
@@ -117,8 +150,8 @@ class DitherFloor {
         final on = t > 0.66
             ? (i + j).isEven
             : t > 0.33
-                ? i.isEven && j.isEven
-                : i % 4 == 0 && j % 4 == 0;
+            ? i.isEven && j.isEven
+            : i % 4 == 0 && j % 4 == 0;
         if (on) out.addAll([a.left + (i + 0.5) * d, a.top + (j + 0.5) * d]);
       }
     }

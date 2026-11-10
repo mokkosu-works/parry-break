@@ -48,10 +48,16 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
     return (r, r.isEven ? k : _StageMap.cols - 1 - k);
   }
 
-  static int _indexAt(int row, int col) => row * _StageMap.cols + (row.isEven ? col : _StageMap.cols - 1 - col);
+  static int _indexAt(int row, int col) =>
+      row * _StageMap.cols + (row.isEven ? col : _StageMap.cols - 1 - col);
 
   /// 矢印キーで選ぶステージを動かす。動いた先のステージ (と章) を返す。動けなければ null。
-  (int chapter, StageDef stage)? _move(Campaign c, int chapterIndex, StageDef selected, LogicalKeyboardKey key) {
+  (int chapter, StageDef stage)? _move(
+    Campaign c,
+    int chapterIndex,
+    StageDef selected,
+    LogicalKeyboardKey key,
+  ) {
     final stages = c.chapters[chapterIndex].stages;
     final at = stages.indexOf(selected);
     if (at < 0) return null;
@@ -70,12 +76,18 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
         if (ch < 0 || ch >= c.chapters.length) return null;
         final next = c.chapters[ch].stages;
         final nextRows = (next.length / _StageMap.cols).ceil();
-        final i = _indexAt(math.min(row, nextRows - 1), left ? _StageMap.cols - 1 : 0);
+        final i = _indexAt(
+          math.min(row, nextRows - 1),
+          left ? _StageMap.cols - 1 : 0,
+        );
         return (ch, next[i.clamp(0, next.length - 1)]);
       case LogicalKeyboardKey.arrowUp || LogicalKeyboardKey.arrowDown:
         final to = row + (key == LogicalKeyboardKey.arrowUp ? -1 : 1);
         if (to < 0 || to >= rows) return null;
-        return (chapterIndex, stages[_indexAt(to, col).clamp(0, stages.length - 1)]);
+        return (
+          chapterIndex,
+          stages[_indexAt(to, col).clamp(0, stages.length - 1)],
+        );
     }
     return null;
   }
@@ -90,14 +102,21 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
     final diff = ref.watch(settingsProvider.select((s) => s.difficulty));
     StageRecord recordOf(String id) => records.stage(id, diff);
     final totalStars = campaign.stages.fold(0, (s, st) => s + st.stars.length);
-    final gotStars = campaign.stages.fold(0, (s, st) => s + recordOf(st.id).starCount);
+    final gotStars = campaign.stages.fold(
+      0,
+      (s, st) => s + recordOf(st.id).starCount,
+    );
 
-    final selected = campaign.stage(_selected ?? '') ?? _initial(campaign, records, debug);
-    final chapterIndex = _chapter ?? campaign.chapters.indexWhere((c) => c.id == selected.chapterId);
+    final selected =
+        campaign.stage(_selected ?? '') ?? _initial(campaign, records, debug);
+    final chapterIndex =
+        _chapter ??
+        campaign.chapters.indexWhere((c) => c.id == selected.chapterId);
     final chapter = campaign.chapters[chapterIndex];
     bool unlocked(StageDef st) => debug || records.isUnlocked(campaign, st);
 
-    void start() => Navigator.of(context).push(fadeRoute<void>(GameScreen(stage: selected, difficulty: diff)));
+    void start() => Navigator.of(context)
+        .push(fadeRoute<void>(GameScreen(stage: selected, difficulty: diff)));
 
     KeyEventResult onKey(FocusNode node, KeyEvent e) {
       if (e is! KeyDownEvent) return KeyEventResult.ignored;
@@ -113,7 +132,10 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
         return KeyEventResult.handled;
       }
       if (arrowStep(key) == null) return KeyEventResult.ignored;
-      if (_move(campaign, chapterIndex, selected, key) case (final ch, final st)) {
+      if (_move(campaign, chapterIndex, selected, key) case (
+        final ch,
+        final st,
+      )) {
         ref.read(audioProvider).play('count');
         setState(() {
           _chapter = ch;
@@ -127,74 +149,87 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
       autofocus: true,
       onKeyEvent: onKey,
       child: ScreenFrame(
-      title: l.menuStages,
-      actions: [
-        _DifficultyPicker(
-          value: diff,
-          label: l.difficulty,
-          onChanged: (d) {
-            ref.read(audioProvider).play('count');
-            ref.read(settingsProvider.notifier).update((s) => s.copyWith(difficulty: d));
-          },
-        ),
-        const SizedBox(width: 16),
-        const PixelStar(got: true, size: 22),
-        const SizedBox(width: 6),
-        Text('$gotStars / $totalStars', style: pixelFont(16)),
-        const SizedBox(width: 8),
-      ],
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: LayoutBuilder(builder: (context, c) {
-          final panelW = math.min(320.0, c.maxWidth * 0.38);
-          return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                _ChapterPager(
-                  title: chapter.title.of(lang),
-                  index: chapterIndex,
-                  count: campaign.chapters.length,
-                  onChange: (i) {
-                    ref.read(audioProvider).play('count');
-                    setState(() {
-                      _chapter = i;
-                      // めくった章のうち、遊べる最後のステージを選ぶ
-                      final stages = campaign.chapters[i].stages;
-                      _selected = (stages.lastWhere(unlocked, orElse: () => stages.first)).id;
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: _StageMap(
-                    stages: chapter.stages,
-                    selected: selected.id,
-                    recordOf: recordOf,
-                    unlocked: unlocked,
-                    onSelect: (st) => setState(() {
-                      _selected = st.id;
-                      _chapter = chapterIndex;
-                    }),
+        title: l.menuStages,
+        actions: [
+          _DifficultyPicker(
+            value: diff,
+            label: l.difficulty,
+            onChanged: (d) {
+              ref.read(audioProvider).play('count');
+              ref
+                  .read(settingsProvider.notifier)
+                  .update((s) => s.copyWith(difficulty: d));
+            },
+          ),
+          const SizedBox(width: 16),
+          const PixelStar(got: true, size: 22),
+          const SizedBox(width: 6),
+          Text('$gotStars / $totalStars', style: pixelFont(16)),
+          const SizedBox(width: 8),
+        ],
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final panelW = math.min(320.0, c.maxWidth * 0.38);
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ChapterPager(
+                          title: chapter.title.of(lang),
+                          index: chapterIndex,
+                          count: campaign.chapters.length,
+                          onChange: (i) {
+                            ref.read(audioProvider).play('count');
+                            setState(() {
+                              _chapter = i;
+                              // めくった章のうち、遊べる最後のステージを選ぶ
+                              final stages = campaign.chapters[i].stages;
+                              _selected = (stages.lastWhere(
+                                unlocked,
+                                orElse: () => stages.first,
+                              )).id;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        Expanded(
+                          child: _StageMap(
+                            stages: chapter.stages,
+                            selected: selected.id,
+                            recordOf: recordOf,
+                            unlocked: unlocked,
+                            onSelect: (st) => setState(() {
+                              _selected = st.id;
+                              _chapter = chapterIndex;
+                            }),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ]),
-            ),
-            const SizedBox(width: 16),
-            SizedBox(
-              width: panelW,
-              child: _StageDetail(
-                stage: selected,
-                title: selected.title.of(lang),
-                record: recordOf(selected.id),
-                difficulty: diff,
-                unlocked: unlocked(selected),
-                unlockedBy: campaign.unlockedBy(selected)?.id,
-                onStart: start,
-              ),
-            ),
-          ]);
-        }),
-      ),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    width: panelW,
+                    child: _StageDetail(
+                      stage: selected,
+                      title: selected.title.of(lang),
+                      record: recordOf(selected.id),
+                      difficulty: diff,
+                      unlocked: unlocked(selected),
+                      unlockedBy: campaign.unlockedBy(selected)?.id,
+                      onStart: start,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -202,7 +237,12 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
 
 /// 「◀ CHAPTER 1  BASICS ▶」。章の数だけ点を並べ、いまの章を黄にする。
 class _ChapterPager extends StatelessWidget {
-  const _ChapterPager({required this.title, required this.index, required this.count, required this.onChange});
+  const _ChapterPager({
+    required this.title,
+    required this.index,
+    required this.count,
+    required this.onChange,
+  });
   final String title;
   final int index, count;
   final ValueChanged<int> onChange;
@@ -222,35 +262,52 @@ class _ChapterPager extends StatelessWidget {
             color: Palette.sub,
             disabledColor: withAlpha(Palette.pale, 0.15),
             icon: next
-                ? Transform.flip(flipX: true, child: PixelIcon(PixelIcons.chevronLeft, size: 21))
+                ? Transform.flip(
+                    flipX: true,
+                    child: PixelIcon(PixelIcons.chevronLeft, size: 21),
+                  )
                 : PixelIcon(PixelIcons.chevronLeft, size: 21),
           ),
         ),
       );
     }
 
-    return Row(children: [
-      arrow(false),
-      Expanded(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(title, style: pixelFont(20, color: Palette.main).copyWith(shadows: hardShadow(20, color: Palette.sub))),
-          ),
-          const SizedBox(height: 6),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            for (var i = 0; i < count; i++)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: i == index ? 20 : 8,
-                height: 4,
-                color: i == index ? Palette.main : Dot.edge,
+    return Row(
+      children: [
+        arrow(false),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  title,
+                  style: pixelFont(
+                    20,
+                    color: Palette.main,
+                  ).copyWith(shadows: hardShadow(20, color: Palette.sub)),
+                ),
               ),
-          ]),
-        ]),
-      ),
-      arrow(true),
-    ]);
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < count; i++)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: i == index ? 20 : 8,
+                      height: 4,
+                      color: i == index ? Palette.main : Dot.edge,
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        arrow(true),
+      ],
+    );
   }
 }
 
@@ -272,31 +329,40 @@ class _StageMap extends StatelessWidget {
   static const cols = 5;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
-        final rows = (stages.length / cols).ceil();
-        final cellW = c.maxWidth / cols;
-        // ブロックは画面の大きさに合わせる (横は列の幅、縦は段の数で決まる上限まで)
-        final tileW = math.min(150.0, cellW - 28);
-        final tileH = math.max(40.0, math.min(tileW * 0.62, (c.maxHeight - 14) / rows - 46));
-        // 1 段の高さ: ブロック + 星 + すき間
-        final rowH = tileH + 46;
-        // 上下の中央に置く
-        final top = math.max(14.0, (c.maxHeight - rowH * rows) / 2 + 14);
-        Offset center(int i) {
-          final r = i ~/ cols, k = i % cols;
-          final col = r.isEven ? k : cols - 1 - k;
-          return Offset(cellW * (col + 0.5), top + rowH * r + tileH / 2);
-        }
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, c) {
+      final rows = (stages.length / cols).ceil();
+      final cellW = c.maxWidth / cols;
+      // ブロックは画面の大きさに合わせる (横は列の幅、縦は段の数で決まる上限まで)
+      final tileW = math.min(150.0, cellW - 28);
+      final tileH = math.max(
+        40.0,
+        math.min(tileW * 0.62, (c.maxHeight - 14) / rows - 46),
+      );
+      // 1 段の高さ: ブロック + 星 + すき間
+      final rowH = tileH + 46;
+      // 上下の中央に置く
+      final top = math.max(14.0, (c.maxHeight - rowH * rows) / 2 + 14);
+      Offset center(int i) {
+        final r = i ~/ cols, k = i % cols;
+        final col = r.isEven ? k : cols - 1 - k;
+        return Offset(cellW * (col + 0.5), top + rowH * r + tileH / 2);
+      }
 
-        final centers = [for (var i = 0; i < stages.length; i++) center(i)];
-        final cleared = [for (final st in stages) recordOf(st.id).cleared];
-        // 段の折り返しは、ブロックの外側を回り込む (星の上を横切らない)
-        final turn = tileW / 2 + 12;
-        return SingleChildScrollView(
-          child: SizedBox(
-            height: math.max(c.maxHeight, 14 + rowH * rows),
-            child: Stack(children: [
-              Positioned.fill(child: CustomPaint(painter: _PathPainter(centers, cleared, turn))),
+      final centers = [for (var i = 0; i < stages.length; i++) center(i)];
+      final cleared = [for (final st in stages) recordOf(st.id).cleared];
+      // 段の折り返しは、ブロックの外側を回り込む (星の上を横切らない)
+      final turn = tileW / 2 + 12;
+      return SingleChildScrollView(
+        child: SizedBox(
+          height: math.max(c.maxHeight, 14 + rowH * rows),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _PathPainter(centers, cleared, turn),
+                ),
+              ),
               for (var i = 0; i < stages.length; i++)
                 Positioned(
                   left: centers[i].dx - tileW / 2,
@@ -311,10 +377,12 @@ class _StageMap extends StatelessWidget {
                     onTap: () => onSelect(stages[i]),
                   ),
                 ),
-            ]),
+            ],
           ),
-        );
-      });
+        ),
+      );
+    },
+  );
 }
 
 /// ステージをつなぐ点線 (コース)。クリアした区間は黄、まだの区間は暗い色。
@@ -332,7 +400,10 @@ class _PathPainter extends CustomPainter {
     void dots(Offset a, Offset b) {
       final d = b - a, len = d.distance;
       for (var t = 0.0; t < len; t += 12) {
-        canvas.drawRect(Rect.fromCenter(center: a + d * (t / len), width: 6, height: 6), p);
+        canvas.drawRect(
+          Rect.fromCenter(center: a + d * (t / len), width: 6, height: 6),
+          p,
+        );
       }
     }
 
@@ -376,19 +447,34 @@ class _StageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = Text(stage.id,
-        style: pixelFont((height * 0.28).clamp(14.0, 24.0), color: record.cleared ? Dot.ink : unlocked ? Palette.white : Palette.gray));
+    final label = Text(
+      stage.id,
+      style: pixelFont(
+        (height * 0.28).clamp(14.0, 24.0),
+        color: record.cleared
+            ? Dot.ink
+            : unlocked
+            ? Palette.white
+            : Palette.gray,
+      ),
+    );
     // 狭い画面では、番号を折り返さずに縮めて 1 行で収める
     final fitted = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: FittedBox(fit: BoxFit.scaleDown, child: label),
     );
     final face = record.cleared
-        ? BevelBox(color: Palette.main, child: Center(child: fitted))
+        ? BevelBox(
+            color: Palette.main,
+            child: Center(child: fitted),
+          )
         : Container(
             decoration: BoxDecoration(
               color: Dot.night,
-              border: Border.all(color: unlocked ? Palette.sub : Dot.edge, width: 3),
+              border: Border.all(
+                color: unlocked ? Palette.sub : Dot.edge,
+                width: 3,
+              ),
             ),
             child: Center(
               child: unlocked
@@ -397,11 +483,18 @@ class _StageTile extends StatelessWidget {
                       padding: const EdgeInsets.all(3),
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Column(mainAxisSize: MainAxisSize.min, children: [
-                          PixelIcon(PixelIcons.lock, size: 14, color: Palette.gray),
-                          const SizedBox(height: 4),
-                          label,
-                        ]),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PixelIcon(
+                              PixelIcons.lock,
+                              size: 14,
+                              color: Palette.gray,
+                            ),
+                            const SizedBox(height: 4),
+                            label,
+                          ],
+                        ),
                       ),
                     ),
             ),
@@ -415,8 +508,8 @@ class _StageTile extends StatelessWidget {
       label: !unlocked
           ? l.stageTileLocked(stage.id)
           : record.cleared
-              ? l.stageTileCleared(stage.id, title, got, total)
-              : l.stageTileNotCleared(stage.id, title, got, total),
+          ? l.stageTileCleared(stage.id, title, got, total)
+          : l.stageTileNotCleared(stage.id, title, got, total),
       container: true,
       // 番号の文字は名前に含めたので、重ねて読まない (下の GestureDetector の分も外れるので、タップはここで渡す)
       excludeSemantics: true,
@@ -427,40 +520,54 @@ class _StageTile extends StatelessWidget {
         child: SizedBox(
           width: width,
           height: height + 30,
-          child: Stack(clipBehavior: Clip.none, children: [
-            Positioned(
-              left: 0,
-              top: 0,
-              width: width,
-              height: height,
-              child: Container(
-                decoration: BoxDecoration(
-                  boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
-                  border: selected ? Border.all(color: Dot.white, width: 3) : null,
-                ),
-                padding: selected ? const EdgeInsets.all(2) : EdgeInsets.zero,
-                child: face,
-              ),
-            ),
-            // 星 (取ったものは ★)
-            Positioned(
-              left: 0,
-              right: 0,
-              top: height + 8,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  for (var i = 0; i < stage.stars.length; i++) PixelStar(got: record.hasStar(i), size: 14),
-                ]),
-              ),
-            ),
-            if (selected)
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
               Positioned(
-                left: width / 2 - 8,
-                top: -20,
-                child: const RotatedBox(quarterTurns: 1, child: BlinkCursor(size: 16)),
+                left: 0,
+                top: 0,
+                width: width,
+                height: height,
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black, offset: Offset(4, 4)),
+                    ],
+                    border: selected
+                        ? Border.all(color: Dot.white, width: 3)
+                        : null,
+                  ),
+                  padding: selected ? const EdgeInsets.all(2) : EdgeInsets.zero,
+                  child: face,
+                ),
               ),
-          ]),
+              // 星 (取ったものは ★)
+              Positioned(
+                left: 0,
+                right: 0,
+                top: height + 8,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (var i = 0; i < stage.stars.length; i++)
+                        PixelStar(got: record.hasStar(i), size: 14),
+                    ],
+                  ),
+                ),
+              ),
+              if (selected)
+                Positioned(
+                  left: width / 2 - 8,
+                  top: -20,
+                  child: const RotatedBox(
+                    quarterTurns: 1,
+                    child: BlinkCursor(size: 16),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -493,114 +600,216 @@ class _StageDetail extends StatelessWidget {
     final l = AppLocalizations.of(context);
     return PixelWindow(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Text('STAGE ${stage.id}', style: pixelFont(14, color: Palette.sub, letterSpacing: 2)),
-          const Spacer(),
-          Text(difficulty.label, style: pixelFont(14, color: difficultyColor(difficulty), letterSpacing: 2)),
-        ]),
-        const SizedBox(height: 6),
-        Text(title,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'STAGE ${stage.id}',
+                style: pixelFont(14, color: Palette.sub, letterSpacing: 2),
+              ),
+              const Spacer(),
+              Text(
+                difficulty.label,
+                style: pixelFont(
+                  14,
+                  color: difficultyColor(difficulty),
+                  letterSpacing: 2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: pixelFont(22, color: Palette.white).copyWith(shadows: hardShadow(22), height: 1.2)),
-        const SizedBox(height: 10),
-        Container(height: 2, color: Dot.edge),
-        const SizedBox(height: 10),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(goalText(l, stage), style: const TextStyle(fontSize: 15, color: Palette.main)),
-              const SizedBox(height: 4),
-              Text(difficultyText(l, difficulty), style: TextStyle(fontSize: 12, color: difficultyColor(difficulty))),
-              const SizedBox(height: 10),
-              for (var i = 0; i < stage.stars.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    PixelStar(got: record.hasStar(i), size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(starText(l, stage.stars[i]),
-                          style: TextStyle(fontSize: 14, color: record.hasStar(i) ? Palette.white : Palette.pale)),
-                    ),
-                  ]),
-                ),
-              if (record.bestScore > 0) ...[
-                const SizedBox(height: 6),
-                Row(children: [
-                  Text('BEST', style: pixelFont(12, color: Palette.main, letterSpacing: 2)),
-                  const SizedBox(width: 10),
-                  Text(formatScore(record.bestScore), style: pixelFont(18)),
-                ]),
-              ],
-            ]),
+            style: pixelFont(
+              22,
+              color: Palette.white,
+            ).copyWith(shadows: hardShadow(22), height: 1.2),
           ),
-        ),
-        const SizedBox(height: 10),
-        Align(
-          alignment: Alignment.centerRight,
-          child: unlocked
-              ? PixelButton(label: 'START', filled: true, icon: PixelIcons.play, onPressed: onStart)
-              : Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
-                  Row(mainAxisSize: MainAxisSize.min, children: [
-                    PixelIcon(PixelIcons.lock, size: 14, color: Palette.gray),
-                    const SizedBox(width: 8),
-                    Text('LOCKED', style: pixelFont(14, color: Palette.gray, letterSpacing: 2)),
-                  ]),
-                  // どれをクリアすると開くか
-                  if (unlockedBy != null) ...[
+          const SizedBox(height: 10),
+          Container(height: 2, color: Dot.edge),
+          const SizedBox(height: 10),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    goalText(l, stage),
+                    style: const TextStyle(fontSize: 15, color: Palette.main),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    difficultyText(l, difficulty),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: difficultyColor(difficulty),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  for (var i = 0; i < stage.stars.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          PixelStar(got: record.hasStar(i), size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              starText(l, stage.stars[i]),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: record.hasStar(i)
+                                    ? Palette.white
+                                    : Palette.pale,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (record.bestScore > 0) ...[
                     const SizedBox(height: 6),
-                    Text(l.unlockBy(unlockedBy!),
-                        textAlign: TextAlign.right, style: const TextStyle(fontSize: 14, color: Palette.pale)),
+                    Row(
+                      children: [
+                        Text(
+                          'BEST',
+                          style: pixelFont(
+                            12,
+                            color: Palette.main,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          formatScore(record.bestScore),
+                          style: pixelFont(18),
+                        ),
+                      ],
+                    ),
                   ],
-                ]),
-        ),
-      ]),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: unlocked
+                ? PixelButton(
+                    label: 'START',
+                    filled: true,
+                    icon: PixelIcons.play,
+                    onPressed: onStart,
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          PixelIcon(
+                            PixelIcons.lock,
+                            size: 14,
+                            color: Palette.gray,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'LOCKED',
+                            style: pixelFont(
+                              14,
+                              color: Palette.gray,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // どれをクリアすると開くか
+                      if (unlockedBy != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          l.unlockBy(unlockedBy!),
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Palette.pale,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 /// 難易度の切り替え (EASY / NORMAL / HARD)。選んでいるものは難易度の色で塗る。
 class _DifficultyPicker extends StatelessWidget {
-  const _DifficultyPicker({required this.value, required this.label, required this.onChanged});
+  const _DifficultyPicker({
+    required this.value,
+    required this.label,
+    required this.onChanged,
+  });
   final Difficulty value;
   final String label;
   final ValueChanged<Difficulty> onChanged;
 
   @override
   Widget build(BuildContext context) => Semantics(
-        label: label,
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          for (final d in Difficulty.values)
-            Padding(
-              padding: const EdgeInsets.only(left: 6),
-              child: Semantics(
-                button: true,
-                selected: d == value,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onChanged(d),
-                  // 見た目の枠はそのままで、押せる範囲を上下に広げて高さ 44pt 以上にする
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 44),
-                    child: Align(
-                      widthFactor: 1,
-                      heightFactor: 1,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: d == value ? difficultyColor(d) : Dot.night,
-                          border: Border.all(color: d == value ? difficultyColor(d) : Dot.edge, width: 3),
+    label: label,
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final d in Difficulty.values)
+          Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: Semantics(
+              button: true,
+              selected: d == value,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onChanged(d),
+                // 見た目の枠はそのままで、押せる範囲を上下に広げて高さ 44pt 以上にする
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Align(
+                    widthFactor: 1,
+                    heightFactor: 1,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: d == value ? difficultyColor(d) : Dot.night,
+                        border: Border.all(
+                          color: d == value ? difficultyColor(d) : Dot.edge,
+                          width: 3,
                         ),
-                        child: Text(d.label,
-                            style: pixelFont(13, color: d == value ? Dot.ink : Palette.gray, letterSpacing: 1.5)),
+                      ),
+                      child: Text(
+                        d.label,
+                        style: pixelFont(
+                          13,
+                          color: d == value ? Dot.ink : Palette.gray,
+                          letterSpacing: 1.5,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-        ]),
-      );
+          ),
+      ],
+    ),
+  );
 }

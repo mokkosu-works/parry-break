@@ -29,7 +29,8 @@ final class BossContent extends RoundContent {
 sealed class ClearCondition {
   const ClearCondition();
 
-  static ClearCondition fromJson(Map<String, Object?>? j) => switch (j?['type']) {
+  static ClearCondition fromJson(Map<String, Object?>? j) =>
+      switch (j?['type']) {
         null || 'annihilate' => const AnnihilateClear(),
         'score' => ScoreClear((j!['value'] as num).toInt()),
         'survive' => SurviveClear((j!['value'] as num).toDouble()),
@@ -96,20 +97,26 @@ class RoundSpec {
   /// 反射ブロック・砲台の初期タイマーに使う固定シード (ブラウザ版と同じ式)。
   int get seed => number * 131 + 7;
 
-  RoundSpec copyWith({int? number, int? loop, double? loopMul, String? introKey, bool? ending}) => RoundSpec(
-        number: number ?? this.number,
-        difficulty: difficulty,
-        content: content,
-        loop: loop ?? this.loop,
-        loopMul: loopMul ?? this.loopMul,
-        clear: clear,
-        introKey: introKey ?? this.introKey,
-        ending: ending ?? this.ending,
-        tuning: tuning,
-      );
+  RoundSpec copyWith({
+    int? number,
+    int? loop,
+    double? loopMul,
+    String? introKey,
+    bool? ending,
+  }) => RoundSpec(
+    number: number ?? this.number,
+    difficulty: difficulty,
+    content: content,
+    loop: loop ?? this.loop,
+    loopMul: loopMul ?? this.loopMul,
+    clear: clear,
+    introKey: introKey ?? this.introKey,
+    ending: ending ?? this.ending,
+    tuning: tuning,
+  );
 
   BossDef? get boss => switch (content) {
-        BossContent(:final boss) => boss,
-        LayoutContent() => null,
-      };
+    BossContent(:final boss) => boss,
+    LayoutContent() => null,
+  };
 }

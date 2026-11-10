@@ -28,13 +28,16 @@ class AttractDemo extends ConsumerStatefulWidget {
   ConsumerState<AttractDemo> createState() => _AttractDemoState();
 }
 
-class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProviderStateMixin {
+class _AttractDemoState extends ConsumerState<AttractDemo>
+    with SingleTickerProviderStateMixin {
   /// 見栄えのするラウンド (要石・爆薬・砲台・鏡面が揃うもの) を順に流す。
   static const _rounds = [23, 6, 26, 12, 21, 3, 17];
   static const _runSeconds = 32.0;
 
   late final Ticker _ticker;
-  late final InputClock _clock = InputClock(source: ref.read(timeSourceProvider));
+  late final InputClock _clock = InputClock(
+    source: ref.read(timeSourceProvider),
+  );
   final TextCache _text = TextCache();
   final ValueNotifier<int> _frame = ValueNotifier(0);
   final math.Random _rnd = math.Random();
@@ -43,7 +46,10 @@ class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProv
   late FxState _fx;
   FieldPainter? _painter;
   int _run = 0;
-  double _startedAt = 0, _lastFrame = 0, _paddleX = Field.width / 2, _launchAt = 0;
+  double _startedAt = 0,
+      _lastFrame = 0,
+      _paddleX = Field.width / 2,
+      _launchAt = 0;
   bool _armed = true;
 
   @override
@@ -73,7 +79,8 @@ class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProv
 
   void _newRun() {
     final content = ref.read(contentProvider);
-    _world = World(mode: EndlessMode(content.endless), inputLag: 0)..start(fromRound: _rounds[_run++ % _rounds.length]);
+    _world = World(mode: EndlessMode(content.endless), inputLag: 0)
+      ..start(fromRound: _rounds[_run++ % _rounds.length]);
     _fx = FxState(_world, reduceEffects: true);
     _session = Session(_world, onStep: _onStep);
     _startedAt = _clock.now;
@@ -136,14 +143,20 @@ class _AttractDemoState extends ConsumerState<AttractDemo> with SingleTickerProv
     var soon = false;
     if (b.vy > 0) {
       final ttc = (Field.paddleY - (b.y + Field.ballR)) / b.vy;
-      soon = ttc > 0 && ttc < 0.016 && (b.x - w.paddle.x).abs() < w.paddleWidth / 2 + 8;
+      soon =
+          ttc > 0 &&
+          ttc < 0.016 &&
+          (b.x - w.paddle.x).abs() < w.paddleWidth / 2 + 8;
     } else {
       _armed = true;
     }
     for (final u in w.bullets) {
       if (!u.hostile || u.vy <= 0) continue;
       final ttc = (Field.paddleY - (u.y + u.r)) / u.vy;
-      if (ttc > 0 && ttc < 0.016 && (u.x - w.paddle.x).abs() < w.paddleWidth / 2 + u.r) soon = true;
+      if (ttc > 0 &&
+          ttc < 0.016 &&
+          (u.x - w.paddle.x).abs() < w.paddleWidth / 2 + u.r)
+        soon = true;
     }
     if (soon && _armed && _rnd.nextDouble() < 0.97) {
       w.pressAction(now);

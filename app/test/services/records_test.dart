@@ -21,7 +21,13 @@ void main() {
     });
 
     test('JSON を往復しても同じ値になる', () {
-      final r = StageRecord.fromJson(const StageRecord(cleared: true, bestScore: 1200, stars: [true, false]).toJson());
+      final r = StageRecord.fromJson(
+        const StageRecord(
+          cleared: true,
+          bestScore: 1200,
+          stars: [true, false],
+        ).toJson(),
+      );
       expect(r.cleared, isTrue);
       expect(r.bestScore, 1200);
       expect(r.stars, [true, false]);
@@ -31,13 +37,19 @@ void main() {
   test('ステージの星は一度達成したら残る', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(prefs)]);
+    final container = ProviderContainer(
+      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+    );
     addTearDown(container.dispose);
     final notifier = container.read(recordsProvider.notifier);
 
     StageResult result({required bool cleared, int score = 0}) =>
         StageResult(cleared: cleared, score: score, stats: RunStats());
-    notifier.submitStage('1-1', result(cleared: true, score: 500), [true, false, true]);
+    notifier.submitStage('1-1', result(cleared: true, score: 500), [
+      true,
+      false,
+      true,
+    ]);
     notifier.submitStage('1-1', result(cleared: false), [false, true, false]);
 
     final rec = container.read(recordsProvider).stage('1-1');
@@ -48,37 +60,57 @@ void main() {
 
   group('難易度', () {
     final campaign = Campaign.fromJson(
-        jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
+      jsonDecode(File('assets/stages/campaign.json').readAsStringSync())
+          as Map<String, Object?>,
+      endlessContent,
+    );
     final s1 = campaign.stage('1-1')!, s2 = campaign.stage('1-2')!;
 
-    Future<ProviderContainer> container([Map<String, Object> prefs = const {}]) async {
+    Future<ProviderContainer> container([
+      Map<String, Object> prefs = const {},
+    ]) async {
       SharedPreferences.setMockInitialValues(prefs);
       final sp = await SharedPreferences.getInstance();
-      final c = ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(sp)]);
+      final c = ProviderContainer(
+        overrides: [sharedPrefsProvider.overrideWithValue(sp)],
+      );
       addTearDown(c.dispose);
       return c;
     }
 
-    StageResult clear(int score) => StageResult(cleared: true, score: score, stats: RunStats());
+    StageResult clear(int score) =>
+        StageResult(cleared: true, score: score, stats: RunStats());
 
     test('記録は難易度ごとに分けて残し、NORMAL は以前と同じキーを使う', () async {
       final c = await container();
       final n = c.read(recordsProvider.notifier);
       n.submitStage('1-1', clear(1000), [true, false, false]);
-      n.submitStage('1-1', clear(5000), [true, true, false], difficulty: Difficulty.hard);
+      n.submitStage('1-1', clear(5000), [
+        true,
+        true,
+        false,
+      ], difficulty: Difficulty.hard);
       final r = c.read(recordsProvider);
       expect(r.stage('1-1').bestScore, 1000);
       expect(r.stage('1-1', Difficulty.hard).bestScore, 5000);
       expect(r.stage('1-1', Difficulty.hard).starCount, 2);
       expect(r.stage('1-1', Difficulty.easy).cleared, isFalse);
-      expect(r.toJson()['stages'], containsPair('1-1', isA<Map<String, Object?>>()));
-      expect(r.toJson()['stages'], containsPair('1-1@hard', isA<Map<String, Object?>>()));
+      expect(
+        r.toJson()['stages'],
+        containsPair('1-1', isA<Map<String, Object?>>()),
+      );
+      expect(
+        r.toJson()['stages'],
+        containsPair('1-1@hard', isA<Map<String, Object?>>()),
+      );
     });
 
     test('どの難易度でクリアしても次のステージが開く', () async {
       final c = await container();
       expect(c.read(recordsProvider).isUnlocked(campaign, s2), isFalse);
-      c.read(recordsProvider.notifier).submitStage('1-1', clear(1000), [true], difficulty: Difficulty.easy);
+      c.read(recordsProvider.notifier).submitStage('1-1', clear(1000), [
+        true,
+      ], difficulty: Difficulty.easy);
       expect(c.read(recordsProvider).isUnlocked(campaign, s2), isTrue);
       expect(c.read(recordsProvider).isUnlocked(campaign, s1), isTrue);
     });
@@ -94,9 +126,16 @@ void main() {
 
     test('選んだ難易度は設定に保存される', () async {
       final c = await container();
-      c.read(settingsProvider.notifier).update((s) => s.copyWith(difficulty: Difficulty.hard));
-      final raw = (await SharedPreferences.getInstance()).getString('settings.v1')!;
-      expect(Settings.fromJson(jsonDecode(raw) as Map<String, Object?>).difficulty, Difficulty.hard);
+      c
+          .read(settingsProvider.notifier)
+          .update((s) => s.copyWith(difficulty: Difficulty.hard));
+      final raw = (await SharedPreferences.getInstance()).getString(
+        'settings.v1',
+      )!;
+      expect(
+        Settings.fromJson(jsonDecode(raw) as Map<String, Object?>).difficulty,
+        Difficulty.hard,
+      );
       expect(Settings.fromJson(const {}).difficulty, Difficulty.normal);
     });
   });
@@ -105,31 +144,44 @@ void main() {
     Future<(ProviderContainer, SharedPreferences)> load(String raw) async {
       SharedPreferences.setMockInitialValues({'records': raw});
       final sp = await SharedPreferences.getInstance();
-      final c = ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(sp)]);
+      final c = ProviderContainer(
+        overrides: [sharedPrefsProvider.overrideWithValue(sp)],
+      );
       addTearDown(c.dispose);
       return (c, sp);
     }
 
-    StageResult clear(int score) => StageResult(cleared: true, score: score, stats: RunStats());
+    StageResult clear(int score) =>
+        StageResult(cleared: true, score: score, stats: RunStats());
 
     test('ステージの 1 件が壊れていても、他のステージとエンドレスの記録は読める', () async {
-      const raw = '{"version":1,"endless":{"bestScore":5000},"stages":{"1-1":{"cleared":true},"1-2":"x"}}';
+      const raw =
+          '{"version":1,"endless":{"bestScore":5000},"stages":{"1-1":{"cleared":true},"1-2":"x"}}';
       final (c, sp) = await load(raw);
       final r = c.read(recordsProvider);
       expect(r.endless.bestScore, 5000);
       expect(r.stage('1-1').cleared, isTrue);
       expect(r.stages.containsKey('1-2'), isFalse);
-      expect(sp.getString('records.broken'), raw, reason: '捨てた項目があるので、元のデータを退避する');
+      expect(
+        sp.getString('records.broken'),
+        raw,
+        reason: '捨てた項目があるので、元のデータを退避する',
+      );
 
-      c.read(recordsProvider.notifier).submitEndless(score: 100, round: 1, stats: RunStats());
-      final saved = Records.fromJson(jsonDecode(sp.getString('records')!) as Map<String, Object?>);
+      c
+          .read(recordsProvider.notifier)
+          .submitEndless(score: 100, round: 1, stats: RunStats());
+      final saved = Records.fromJson(
+        jsonDecode(sp.getString('records')!) as Map<String, Object?>,
+      );
       expect(saved.endless.bestScore, 5000);
       expect(saved.stage('1-1').cleared, isTrue);
       expect(sp.getString('records.broken'), raw);
     });
 
     test('項目の型が違うときは、その項目だけ初期値にして残りは読む', () async {
-      const raw = '{"version":1,"endless":{"bestScore":"x","bestRound":7},'
+      const raw =
+          '{"version":1,"endless":{"bestScore":"x","bestRound":7},'
           '"stages":{"1-1":{"cleared":"yes","bestScore":800,"stars":[true,false]},"1-2":{"cleared":true,"stars":3}}}';
       final (c, sp) = await load(raw);
       final r = c.read(recordsProvider);
@@ -179,15 +231,25 @@ void main() {
       expect(r.stage('1-1').bestScore, 700);
       expect(sp.getString('records.broken'), raw);
 
-      c.read(recordsProvider.notifier).submitEndless(score: 10, round: 1, stats: RunStats());
+      c
+          .read(recordsProvider.notifier)
+          .submitEndless(score: 10, round: 1, stats: RunStats());
       expect(sp.getString('records.broken'), raw, reason: '新しい版のデータは上書きで失わない');
     });
 
     test('正しいデータでは退避しない', () async {
-      final raw = jsonEncode(const Records(
-        endless: EndlessRecord(bestScore: 10),
-        stages: {'1-1': StageRecord(cleared: true, bestScore: 5, stars: [true, false])},
-      ).toJson());
+      final raw = jsonEncode(
+        const Records(
+          endless: EndlessRecord(bestScore: 10),
+          stages: {
+            '1-1': StageRecord(
+              cleared: true,
+              bestScore: 5,
+              stars: [true, false],
+            ),
+          },
+        ).toJson(),
+      );
       final (c, sp) = await load(raw);
       expect(c.read(recordsProvider).stage('1-1').stars, [true, false]);
       expect(sp.getString('records.broken'), isNull);

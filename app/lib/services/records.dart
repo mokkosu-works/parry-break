@@ -57,10 +57,10 @@ class _Reader {
   }
 
   StageRecord stage(Map<String, Object?> j) => StageRecord(
-        cleared: bool_(j['cleared']),
-        bestScore: int_(j['bestScore']),
-        stars: bools(j['stars']),
-      );
+    cleared: bool_(j['cleared']),
+    bestScore: int_(j['bestScore']),
+    stars: bools(j['stars']),
+  );
 
   Records records(Map<String, Object?> j) {
     final v = j['version'];
@@ -91,19 +91,24 @@ class EndlessRecord {
   final int bestScore, bestRound, bestCollapse, bestBlast, bestRicochet;
 
   Map<String, Object?> toJson() => {
-        'bestScore': bestScore,
-        'bestRound': bestRound,
-        'bestCollapse': bestCollapse,
-        'bestBlast': bestBlast,
-        'bestRicochet': bestRicochet,
-      };
+    'bestScore': bestScore,
+    'bestRound': bestRound,
+    'bestCollapse': bestCollapse,
+    'bestBlast': bestBlast,
+    'bestRicochet': bestRicochet,
+  };
 
   /// 型の違う項目は 0 として読む。
-  factory EndlessRecord.fromJson(Map<String, Object?> j) => _Reader().endless(j);
+  factory EndlessRecord.fromJson(Map<String, Object?> j) =>
+      _Reader().endless(j);
 }
 
 class StageRecord {
-  const StageRecord({this.cleared = false, this.bestScore = 0, this.stars = const []});
+  const StageRecord({
+    this.cleared = false,
+    this.bestScore = 0,
+    this.stars = const [],
+  });
   final bool cleared;
   final int bestScore;
 
@@ -115,7 +120,11 @@ class StageRecord {
   /// [index] 番目の星を達成したか。記録より後に足した条件は未達成として扱う。
   bool hasStar(int index) => index < stars.length && stars[index];
 
-  Map<String, Object?> toJson() => {'cleared': cleared, 'bestScore': bestScore, 'stars': stars};
+  Map<String, Object?> toJson() => {
+    'cleared': cleared,
+    'bestScore': bestScore,
+    'stars': stars,
+  };
 
   /// 型の違う項目は初期値として読む。
   factory StageRecord.fromJson(Map<String, Object?> j) => _Reader().stage(j);
@@ -133,10 +142,12 @@ class Records {
   StageRecord stage(String id, [Difficulty difficulty = Difficulty.normal]) =>
       stages[stageKey(id, difficulty)] ?? const StageRecord();
 
-  static String stageKey(String id, Difficulty difficulty) => '$id${difficulty.recordSuffix}';
+  static String stageKey(String id, Difficulty difficulty) =>
+      '$id${difficulty.recordSuffix}';
 
   /// どれかの難易度でクリアしたか。
-  bool clearedAny(String id) => Difficulty.values.any((d) => stage(id, d).cleared);
+  bool clearedAny(String id) =>
+      Difficulty.values.any((d) => stage(id, d).cleared);
 
   /// ステージごとの最高スコア (難易度をまたいだ最大) の合計。ランキングに送る。
   int get stagesTotal {
@@ -166,10 +177,10 @@ class Records {
   }
 
   Map<String, Object?> toJson() => {
-        'version': version,
-        'endless': endless.toJson(),
-        'stages': {for (final e in stages.entries) e.key: e.value.toJson()},
-      };
+    'version': version,
+    'endless': endless.toJson(),
+    'stages': {for (final e in stages.entries) e.key: e.value.toJson()},
+  };
 
   /// 壊れた項目 (形の違うステージの 1 件、型の違う値) だけを捨て、読める項目は残す。
   factory Records.fromJson(Map<String, Object?> j) => _Reader().records(j);
@@ -183,7 +194,8 @@ class Records {
     } on FormatException {
       return (records: const Records(), intact: false);
     }
-    if (json is! Map<String, Object?>) return (records: const Records(), intact: false);
+    if (json is! Map<String, Object?>)
+      return (records: const Records(), intact: false);
     final reader = _Reader();
     final records = reader.records(json);
     return (records: records, intact: !reader.lossy);
@@ -213,39 +225,59 @@ class RecordsNotifier extends Notifier<Records> {
   }
 
   /// エンドレスの結果を記録する。最高スコアを更新したら true。
-  bool submitEndless({required int score, required int round, required RunStats stats}) {
+  bool submitEndless({
+    required int score,
+    required int round,
+    required RunStats stats,
+  }) {
     final e = state.endless;
     final newBest = score > e.bestScore;
-    _save(Records(
-      endless: EndlessRecord(
-        bestScore: math.max(e.bestScore, score),
-        bestRound: math.max(e.bestRound, round),
-        bestCollapse: math.max(e.bestCollapse, stats.bestCollapse),
-        bestBlast: math.max(e.bestBlast, stats.bestBlast),
-        bestRicochet: math.max(e.bestRicochet, stats.bestRicochet),
+    _save(
+      Records(
+        endless: EndlessRecord(
+          bestScore: math.max(e.bestScore, score),
+          bestRound: math.max(e.bestRound, round),
+          bestCollapse: math.max(e.bestCollapse, stats.bestCollapse),
+          bestBlast: math.max(e.bestBlast, stats.bestBlast),
+          bestRicochet: math.max(e.bestRicochet, stats.bestRicochet),
+        ),
+        stages: state.stages,
       ),
-      stages: state.stages,
-    ));
+    );
     return newBest;
   }
 
   /// ステージの結果を記録する。最高スコアを更新したら true。
-  bool submitStage(String id, StageResult result, List<bool> stars, {Difficulty difficulty = Difficulty.normal}) {
+  bool submitStage(
+    String id,
+    StageResult result,
+    List<bool> stars, {
+    Difficulty difficulty = Difficulty.normal,
+  }) {
     final old = state.stage(id, difficulty);
     final merged = [
       for (var i = 0; i < stars.length; i++) stars[i] || old.hasStar(i),
     ];
     final newBest = result.cleared && result.score > old.bestScore;
-    _save(Records(endless: state.endless, stages: {
-      ...state.stages,
-      Records.stageKey(id, difficulty): StageRecord(
-        cleared: old.cleared || result.cleared,
-        bestScore: result.cleared ? math.max(old.bestScore, result.score) : old.bestScore,
-        stars: merged,
+    _save(
+      Records(
+        endless: state.endless,
+        stages: {
+          ...state.stages,
+          Records.stageKey(id, difficulty): StageRecord(
+            cleared: old.cleared || result.cleared,
+            bestScore: result.cleared
+                ? math.max(old.bestScore, result.score)
+                : old.bestScore,
+            stars: merged,
+          ),
+        },
       ),
-    }));
+    );
     return newBest;
   }
 }
 
-final recordsProvider = NotifierProvider<RecordsNotifier, Records>(RecordsNotifier.new);
+final recordsProvider = NotifierProvider<RecordsNotifier, Records>(
+  RecordsNotifier.new,
+);

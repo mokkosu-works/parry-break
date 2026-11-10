@@ -7,8 +7,8 @@ import '../config/field.dart';
 /// `x + form.ox`, `y + form.oy` になる。
 class Block {
   Block(this.behavior, this.x, this.y, this.w, this.h, int hp)
-      : hp = hp,
-        maxHp = hp;
+    : hp = hp,
+      maxHp = hp;
 
   final BlockBehavior behavior;
   double x, y;
@@ -199,7 +199,12 @@ class BlastChainTally {
 }
 
 class RunStats {
-  int just = 0, graze = 0, bestCollapse = 0, bestBlast = 0, bestRicochet = 0, hurt = 0;
+  int just = 0,
+      graze = 0,
+      bestCollapse = 0,
+      bestBlast = 0,
+      bestRicochet = 0,
+      hurt = 0;
 
   /// パリィの成功数 / うち PERFECT 以上の数 / 撃ち返し弾で壊したブロック数。
   int parries = 0, perfects = 0, returnKills = 0;

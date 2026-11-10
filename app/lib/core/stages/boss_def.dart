@@ -11,7 +11,11 @@ const bossCoreId = 'C';
 
 /// 攻撃パターンの指定 (ボスの定義に書く)。
 class PatternSpec {
-  const PatternSpec(this.type, {required this.fromPhase, this.params = const {}});
+  const PatternSpec(
+    this.type, {
+    required this.fromPhase,
+    this.params = const {},
+  });
   final String type;
 
   /// このフェーズ以降で動く (1〜3)。
@@ -58,23 +62,28 @@ class BossDef {
   final int reinforce;
 
   factory BossDef.fromJson(int index, Map<String, Object?> j) => BossDef(
-        index: index,
-        template: List<String>.from(j['template'] as List),
-        coreHp: (j['coreHp'] as num).toInt(),
-        timeLimit: (j['timeLimit'] as num).toDouble(),
-        patterns: _patterns(j['patterns'] as List<Object?>),
-        hardPatterns: _patterns(j['hard'] as List<Object?>? ?? const []),
-        phaseThresholds: [
-          for (final v in (j['phases'] as List?) ?? defaultPhaseThresholds) (v as num).toDouble(),
-        ],
-        sway: (j['sway'] as num?)?.toDouble() ?? 0.55,
-        reinforce: (j['reinforce'] as num?)?.toInt() ?? 2,
-      );
+    index: index,
+    template: List<String>.from(j['template'] as List),
+    coreHp: (j['coreHp'] as num).toInt(),
+    timeLimit: (j['timeLimit'] as num).toDouble(),
+    patterns: _patterns(j['patterns'] as List<Object?>),
+    hardPatterns: _patterns(j['hard'] as List<Object?>? ?? const []),
+    phaseThresholds: [
+      for (final v in (j['phases'] as List?) ?? defaultPhaseThresholds)
+        (v as num).toDouble(),
+    ],
+    sway: (j['sway'] as num?)?.toDouble() ?? 0.55,
+    reinforce: (j['reinforce'] as num?)?.toInt() ?? 2,
+  );
 
   static List<PatternSpec> _patterns(List<Object?> l) => [
-        for (final p in l.cast<Map<String, Object?>>())
-          PatternSpec(p['type'] as String, fromPhase: (p['from'] as num?)?.toInt() ?? 1, params: p),
-      ];
+    for (final p in l.cast<Map<String, Object?>>())
+      PatternSpec(
+        p['type'] as String,
+        fromPhase: (p['from'] as num?)?.toInt() ?? 1,
+        params: p,
+      ),
+  ];
 }
 
 /// 戦闘中のボスの状態。
@@ -121,7 +130,10 @@ abstract class BossPattern {
   void update(World w, Boss boss, List<Block> cores, double dt, double rate);
 }
 
-typedef BossPatternFactory = BossPattern Function(int fromPhase, Map<String, Object?> params);
+typedef BossPatternFactory = BossPattern Function(
+  int fromPhase,
+  Map<String, Object?> params,
+);
 
 class BossPatternRegistry {
   BossPatternRegistry(this._factories);
@@ -146,14 +158,16 @@ class BossPatternRegistry {
   });
 }
 
-double _bulletSpeed(World w, Boss b) => (230 + b.index * 15) * w.round.loopMul * w.difficulty.bulletSpeed;
+double _bulletSpeed(World w, Boss b) =>
+    (230 + b.index * 15) * w.round.loopMul * w.difficulty.bulletSpeed;
 
 /// 難易度と周回による攻撃頻度の倍率 (フェーズとボスの強さは含めない)。
 /// 間隔をフェーズとボスの番号の式で決めている攻撃 (渦巻き) に使う (design.md 6章「倍率のかかり方」)。
 double _bossRate(World w) => w.difficulty.bossFireRate * w.round.loopMul;
 
 /// レーザー (ロックオン・格子) の頻度の倍率。見て避ける攻撃なので、HARD でも増やさない (EASY だけ減らす)。
-double _laserRate(World w) => math.min(1.0, w.difficulty.bossFireRate) * w.round.loopMul;
+double _laserRate(World w) =>
+    math.min(1.0, w.difficulty.bossFireRate) * w.round.loopMul;
 
 /// 扇状の弾幕 (赤い弾を含む)。コアが複数あるときは 1 つずつ順番に撃つ。
 class FanPattern extends BossPattern {
@@ -194,7 +208,14 @@ class AimedPattern extends BossPattern {
     final a = math.atan2(Field.paddleY - o.y, w.paddle.x - o.x);
     final side = w.difficulty.pick(1, 1, 2);
     for (var k = -side; k <= side; k++) {
-      w.fireBullet(o.x, o.y + 20, a + k * 10 * deg, sp * 1.25, source: c, red: k == 0);
+      w.fireBullet(
+        o.x,
+        o.y + 20,
+        a + k * 10 * deg,
+        sp * 1.25,
+        source: c,
+        red: k == 0,
+      );
     }
     w.emit(const BulletFired());
   }
@@ -211,7 +232,8 @@ class LaserPattern extends BossPattern {
     if (_t > 0) return;
     _t = (boss.phase == 3 ? 3.4 : 5) / (1 + boss.index * 0.06);
     w.fireLaser(w.paddle.x);
-    if (boss.phase == 3 && boss.index >= 1) w.fireLaser(w.paddle.x + (w.paddle.vx >= 0 ? 1 : -1) * 160);
+    if (boss.phase == 3 && boss.index >= 1)
+      w.fireLaser(w.paddle.x + (w.paddle.vx >= 0 ? 1 : -1) * 160);
   }
 }
 
@@ -230,8 +252,14 @@ class SpiralPattern extends BossPattern {
     _t = 0.18 / (1 + boss.index * 0.05) / _bossRate(w);
     _angle += 0.45;
     final c = cores[_n++ % cores.length], o = w.blockCenter(c);
-    w.fireBullet(o.x, o.y + 20, math.pi / 2 + math.sin(_angle) * 70 * deg, _bulletSpeed(w, boss),
-        source: c, red: _n % 5 == 0);
+    w.fireBullet(
+      o.x,
+      o.y + 20,
+      math.pi / 2 + math.sin(_angle) * 70 * deg,
+      _bulletSpeed(w, boss),
+      source: c,
+      red: _n % 5 == 0,
+    );
     if (_n % 3 == 0) w.emit(const BulletFired());
   }
 }
@@ -301,7 +329,8 @@ class RepairPattern extends BossPattern {
     for (var r = 0; r < tpl.length; r++) {
       for (var c = 0; c < tpl[r].length; c++) {
         if (tpl[r][c] != 'N') continue;
-        final x = boss.left + c * Field.cellW, y = Field.gridY0 + r * Field.cellH;
+        final x = boss.left + c * Field.cellW,
+            y = Field.gridY0 + r * Field.cellH;
         if (_blockAt(w, x, y) != null || _ballNear(w, x, y)) continue;
         final from = _supportedNeighbor(w, x, y);
         if (from != null) cand.add((x, y, from));
@@ -319,14 +348,23 @@ class RepairPattern extends BossPattern {
   /// マス (x, y) に重なるブロック (要塞の座標系)。
   static Block? _blockAt(World w, double x, double y) {
     for (final b in w.blocks) {
-      if (x + 2 < b.x + b.w && x + Field.cellW - 2 > b.x && y + 2 < b.y + b.h && y + Field.cellH - 2 > b.y) return b;
+      if (x + 2 < b.x + b.w &&
+          x + Field.cellW - 2 > b.x &&
+          y + 2 < b.y + b.h &&
+          y + Field.cellH - 2 > b.y)
+        return b;
     }
     return null;
   }
 
   /// 上下左右のマスにある、支えのあるブロック。
   static Block? _supportedNeighbor(World w, double x, double y) {
-    for (final (dx, dy) in const [(0.0, -1.0), (-1.0, 0.0), (1.0, 0.0), (0.0, 1.0)]) {
+    for (final (dx, dy) in const [
+      (0.0, -1.0),
+      (-1.0, 0.0),
+      (1.0, 0.0),
+      (0.0, 1.0),
+    ]) {
       final b = _blockAt(w, x + dx * Field.cellW, y + dy * Field.cellH);
       if (b != null && b.supported && b.behavior.structural) return b;
     }
@@ -337,7 +375,9 @@ class RepairPattern extends BossPattern {
   static bool _ballNear(World w, double x, double y) {
     final sx = x + w.form.ox, sy = y + w.form.oy;
     for (final ball in [w.ball, ...w.phantoms]) {
-      if (rectDist(ball.x, ball.y, sx, sy, Field.cellW, Field.cellH) < Field.ballR + 40) return true;
+      if (rectDist(ball.x, ball.y, sx, sy, Field.cellW, Field.cellH) <
+          Field.ballR + 40)
+        return true;
     }
     return false;
   }
@@ -359,7 +399,14 @@ class RingPattern extends BossPattern {
     final sp = _bulletSpeed(w, boss) * 0.8;
     _rot += 0.37;
     for (var i = 0; i < n; i++) {
-      w.fireBullet(o.x, o.y + 20, _rot + 2 * math.pi * i / n, sp, source: c, red: i % 5 == 0);
+      w.fireBullet(
+        o.x,
+        o.y + 20,
+        _rot + 2 * math.pi * i / n,
+        sp,
+        source: c,
+        red: i % 5 == 0,
+      );
     }
     w.emit(const BulletFired());
   }
@@ -383,7 +430,12 @@ class RainPattern extends BossPattern {
     final sp = _bulletSpeed(w, boss) * 0.7;
     for (var i = 0; i < n; i++) {
       final x = 40 + w.aux.next() * (Field.width - 80);
-      w.fireBullet(x, y + 10, math.pi / 2 + w.aux.range(-0.18, 0.18), sp * w.aux.range(0.85, 1.15));
+      w.fireBullet(
+        x,
+        y + 10,
+        math.pi / 2 + w.aux.range(-0.18, 0.18),
+        sp * w.aux.range(0.85, 1.15),
+      );
     }
     w.emit(const BulletFired());
   }
