@@ -9,6 +9,8 @@
 - ブランチとリリースの運用 (CI/CD・Claude による自動化): [docs/release-flow.md](docs/release-flow.md)
 - アプリ本体: [app/](app/)
 
+使う Flutter の版は `app/pubspec.yaml` の `environment.flutter` に書いてある (CI も同じ値を読む)。版が違うと `flutter pub get` が止まるので、その版の Flutter を入れる (`flutter --version` で確かめる)。
+
 ```sh
 cd app
 flutter pub get
