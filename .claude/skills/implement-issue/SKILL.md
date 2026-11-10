@@ -5,7 +5,7 @@ description: Issue を読んで実装し、Android エミュレーター(手元�
 
 # Issue の実装
 
-運用の全体は `docs/release-flow.md`。この手順で作った PR は、`pr.yml` のチェック・エミュレーターでのスモークテスト・Claude のレビュー(`.claude/skills/pr-review/SKILL.md`)を通り、**人が Approve するとマージされる**。人は PR の本文と画面を見て Approve するかを決めるので、**何を確かめて、何を確かめられなかったか** を正直に、具体的に書く。
+運用の全体は `docs/release-flow.md`。この手順で作った PR は、`pr.yml` のチェック・Claude のレビュー(`.claude/skills/pr-review/SKILL.md`)を通り、**人が Approve するとマージされる**。人は PR の本文と画面を見て Approve するかを決めるので、**何を確かめて、何を確かめられなかったか** を正直に、具体的に書く。
 
 **自分でしないこと**: `dev` / `main` への push、PR のマージ、Approve、ラベルの `hold` を外すこと、`.github/` の変更(Issue で頼まれていない限り)。
 
@@ -46,7 +46,7 @@ CI ではエミュレーター `emulator-5554` が起動済みで、デバッグ
 
 ### 3.1 スモークテスト
 
-起動からタイトル・ステージ選択・エンドレス・一時停止・タイトルへの戻りまでを通す。`pr.yml` の `e2e` と同じもの。
+起動からタイトル・ステージ選択・エンドレス・一時停止・タイトルへの戻りまでを通す。`pr.yml` の `e2e` と同じもの。`e2e` は `dev` 向けの PR では動かないので、ここで流すのが `dev` に入る前の唯一のエミュレーターでの確認になる。
 
 ```sh
 cd app

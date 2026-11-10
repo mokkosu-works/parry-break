@@ -1,6 +1,6 @@
 # Issue のコメントで @claude と書くと、Claude がその Issue を実装し、Android エミュレーターで確かめてから dev 向けの PR を作る。
 # 手順と PR の書き方は .claude/skills/implement-issue/SKILL.md に書く。
-# PR は Claude の GitHub アプリ (claude[bot]) が作るので、pr.yml (チェック・e2e・レビュー) がそのまま動く。マージは人が Approve してから。
+# PR は Claude の GitHub アプリ (claude[bot]) が作るので、pr.yml (チェック・レビュー) がそのまま動く (e2e は main 向けの PR だけ)。マージは人が Approve してから。
 # 同じ Issue でもう一度 @claude と書くと (質問への回答など)、同じブランチ・同じ PR で続きをする。
 # Claude がブランチに変更を残したのに PR を作らずに終わったときは、ワークフローが下書きの PR を作る。
 name: implement

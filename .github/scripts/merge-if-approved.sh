@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # dev 向けの PR を、次がすべてそろっていれば squash でマージする。どれかが欠けていれば、理由を出して何もしない。
 #   - 人 (OWNER / MEMBER / COLLABORATOR) が、いまの先頭のコミットを Approve している
-#   - pr.yml の check・e2e・review が、いまの先頭のコミットで成功している
+#   - pr.yml の check・review が、いまの先頭のコミットで成功している (e2e は main 向けの PR でしか動かないので見ない)
 #   - hold / needs-fix のラベルが付いていない
 # pr.yml (チェックが終わったとき) と merge.yml (人が Approve したとき) から呼ぶ。順番はどちらが先でもよい。
 #
@@ -42,7 +42,7 @@ approvers=$(gh api --paginate "repos/$repo/pulls/$pr/reviews" | jq -rs --arg hea
 
 # pr.yml のジョブの結果 (同じ名前が何度も走っていれば、最後のもの)
 runs=$(gh api --paginate "repos/$repo/commits/$head/check-runs" | jq -s 'map(.check_runs) | add')
-for name in "check / check" e2e review; do
+for name in "check / check" review; do
   conclusion=$(jq -r --arg n "$name" 'map(select(.name == $n)) | max_by(.started_at) | .conclusion // "なし"' <<<"$runs")
   [ "$conclusion" = success ] || skip "$name が成功していない ($conclusion)。終われば自動でマージする"
 done

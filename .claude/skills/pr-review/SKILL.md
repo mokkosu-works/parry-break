@@ -15,7 +15,7 @@ gh pr diff <番号>
 ```
 
 - 差分だけで判断しない。変更した関数の呼び出し元・テスト・関連する JSON は、チェックアウトしたファイルを読んで確かめる(CI ではチェックアウトが PR の内容になっている)。
-- `flutter analyze` / `flutter test` は `check.yml` が、スモークテスト(`integration_test/smoke_test.dart`)は `pr.yml` の `e2e` が別に動かすので、ここでは実行しない。テストが **足りないか** だけを見る。
+- `flutter analyze` / `flutter test` は `check.yml` が、スモークテスト(`integration_test/smoke_test.dart`)は `implement.yml` と `main` 向けの PR の `pr.yml` の `e2e` が別に動かすので、ここでは実行しない。テストが **足りないか** だけを見る。
 - `app/lib/l10n/app_localizations*.dart` は生成物なので、中身は読まずに `.arb` と合っているかだけを見る。
 
 ## 2. 観点
