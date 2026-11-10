@@ -141,6 +141,8 @@ App Store の名前・説明文・キーワード・URL などの掲載文は `a
 
 リリース準備を GitHub Actions ではなく Claude Code で動かすのは、Actions の `GITHUB_TOKEN` で作った PR では CI が動かないため。Claude Code ならユーザーとして PR を作るので、CI と Claude のレビューがそのまま動く。`implement.yml` は Actions の中で動くが、PR を `GITHUB_TOKEN` ではなく Claude の GitHub アプリのトークンで作る(作者は `claude[bot]`)ので、CI が動く。作者が自分でないので、Approve もできる。
 
+Claude の GitHub アプリには、ワークフローのファイル(`.github/workflows/`)を書き換える権限がない([claude-code-action の FAQ](https://github.com/anthropics/claude-code-action/blob/main/docs/faq.md) の「Why won't Claude update workflow files when I ask it to?」。このリポジトリで実際に push を試してはいない)。`implement.yml`・`pr.yml` の `fix`・`claude.yml` の push はどれもこのアプリのトークンなので、ワークフローを変えるコミットは push できない。そのため、CI で動くファイル(`.github/workflows/`・`.github/actions/`・`.github/scripts/`)を変える Issue に `@claude` と書くと、Claude は実装せずに「人が直す」と Issue にコメントして終わり、`fix` もそれらへの指摘を人に回す(`.claude/skills/implement-issue/SKILL.md` 1 章、`.claude/skills/pr-fix/SKILL.md`)。人が直すか、手元の Claude Code(ユーザーの権限で push する)で `/implement-issue <番号>` を使う。
+
 ## 7. ホットフィックス
 
 `dev` に、まだ出せない変更が入っているときに使う。`dev` がそのまま出せるなら、`fix/*` → `dev` → `/release`(パッチ)の通常の流れでよい。
