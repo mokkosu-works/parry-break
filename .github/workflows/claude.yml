@@ -35,8 +35,8 @@ jobs:
       # 直したあとに flutter analyze / flutter test を回してから push できるように入れる
       - uses: subosito/flutter-action@v2
         with:
-          # check.yml と同じ値にする
-          flutter-version: 3.47.6
+          # 版は app/pubspec.yaml の environment.flutter で決める
+          flutter-version-file: app/pubspec.yaml
           channel: stable
           cache: true
       - uses: anthropics/claude-code-action@v1
