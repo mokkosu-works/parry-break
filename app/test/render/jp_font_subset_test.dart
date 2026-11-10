@@ -67,8 +67,9 @@ Set<int> _readCmap(Uint8List bytes) {
   int? cmapOff;
   for (var i = 0; i < numTables; i++) {
     final rec = 12 + i * 16;
-    if (ascii.decode(bytes.sublist(rec, rec + 4)) == 'cmap')
+    if (ascii.decode(bytes.sublist(rec, rec + 4)) == 'cmap') {
       cmapOff = d.getUint32(rec + 8);
+    }
   }
   if (cmapOff == null) throw StateError('cmap がない');
 

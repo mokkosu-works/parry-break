@@ -194,8 +194,9 @@ class Records {
     } on FormatException {
       return (records: const Records(), intact: false);
     }
-    if (json is! Map<String, Object?>)
+    if (json is! Map<String, Object?>) {
       return (records: const Records(), intact: false);
+    }
     final reader = _Reader();
     final records = reader.records(json);
     return (records: records, intact: !reader.lossy);

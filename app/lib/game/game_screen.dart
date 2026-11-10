@@ -176,8 +176,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
             cleared: cleared,
             difficulty: widget.difficulty,
           );
-      if (cleared)
+      if (cleared) {
         lb.submit(Board.stagesTotal, ref.read(recordsProvider).stagesTotal);
+      }
       _outcome = _Outcome(newBest: newBest, stars: stars, cleared: cleared);
     }
   }
@@ -188,11 +189,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final k = HardwareKeyboard.instance;
     var axis = 0.0;
     if (k.isLogicalKeyPressed(LogicalKeyboardKey.arrowLeft) ||
-        k.isLogicalKeyPressed(LogicalKeyboardKey.keyA))
+        k.isLogicalKeyPressed(LogicalKeyboardKey.keyA)) {
       axis -= 1;
+    }
     if (k.isLogicalKeyPressed(LogicalKeyboardKey.arrowRight) ||
-        k.isLogicalKeyPressed(LogicalKeyboardKey.keyD))
+        k.isLogicalKeyPressed(LogicalKeyboardKey.keyD)) {
       axis += 1;
+    }
     final input = _ctl.world.input;
     if (axis != 0) input.useTarget = false;
     input.axis = axis;
@@ -261,8 +264,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _ctl.audio.setPaused(true);
       try {
         // ステージを星 3 つでクリアして戻るときは、評価の依頼を出す (出したときは、続けて広告は出さない)
-        if (!await _askReview())
+        if (!await _askReview()) {
           await ref.read(adsProvider).showInterstitialIfDue();
+        }
       } on Object catch (e) {
         // 広告や評価の依頼でつまずいても、結果画面に閉じ込めない
         debugPrint('leave result failed: $e');

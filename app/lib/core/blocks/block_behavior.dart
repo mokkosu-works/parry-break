@@ -107,8 +107,9 @@ class BlockRegistry {
   final Map<String, BlockBehavior> _byId = {};
 
   void register(BlockBehavior b) {
-    if (_byId.containsKey(b.id))
+    if (_byId.containsKey(b.id)) {
       throw ArgumentError('duplicate block id: ${b.id}');
+    }
     _byId[b.id] = b;
   }
 

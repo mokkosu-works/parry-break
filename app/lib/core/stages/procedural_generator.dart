@@ -83,8 +83,9 @@ List<String> generateLayout(int b, {required Map<String, int> unlock}) {
           break;
         }
       }
-      if (b >= 12 && r > 0 && cnt['#']! < caps['#']! && rng.next() < 0.05)
+      if (b >= 12 && r > 0 && cnt['#']! < caps['#']! && rng.next() < 0.05) {
         pick = '#';
+      }
       if (cnt.containsKey(pick)) cnt[pick] = cnt[pick]! + 1;
       grid[r][c] = pick;
       grid[r][_cols - 1 - c] = pick;
@@ -122,8 +123,9 @@ void _placeKeystones(List<List<String>> grid, Mulberry32 rng) {
               nx < 0 ||
               nx >= _cols ||
               seen[ny][nx] ||
-              !structural(grid[ny][nx]))
+              !structural(grid[ny][nx])) {
             continue;
+          }
           seen[ny][nx] = true;
           q.add((ny, nx));
         }

@@ -25,8 +25,9 @@ extension _BlockSystem on World {
           ? 4
           : 2,
     );
-    if (cause == DestroyCause.ball || cause == DestroyCause.pierce)
+    if (cause == DestroyCause.ball || cause == DestroyCause.pierce) {
       ball.flight++;
+    }
     emit(BlockDestroyed(bl, c.x, c.y, cause, v));
     bl.behavior.onDestroyed(this, bl, c.x, c.y);
     if (cause != DestroyCause.blast) _revenge(c.x, c.y);
@@ -36,8 +37,9 @@ extension _BlockSystem on World {
   /// パドルのすぐ近くからは撃たない (避けようがないため)。
   void _revenge(double x, double y) {
     final chance = difficulty.revengeChance;
-    if (chance <= 0 || phase != WorldPhase.playing || bullets.length >= 160)
+    if (chance <= 0 || phase != WorldPhase.playing || bullets.length >= 160) {
       return;
+    }
     if (aux.next() >= chance) return;
     if (hypot(paddle.x - x, Field.paddleY - y) < 240) return;
     final a =
@@ -114,10 +116,11 @@ extension _BlockSystem on World {
     final bc = blastChain;
     bc.n++;
     bc.t = 0.7;
-    if (bc.n >= 3)
+    if (bc.n >= 3) {
       emit(
         Callout(CalloutChannel.chainBlast, 'CHAIN BLAST ×${bc.n}', hold: true),
       );
+    }
     if (bc.n >= 4) slowmo = math.max(slowmo, 0.25);
     // 破片: 下方向へ 3 発 (パリィで撃ち返せる)
     if (e.shrapnel && phase == WorldPhase.playing) {

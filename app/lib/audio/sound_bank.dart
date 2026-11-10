@@ -217,14 +217,17 @@ Synth _music(int level) {
     final st = step % 16, bar = step ~/ 16;
     final tr = i == 4 ? 5 : (i >= 3 ? 2 : 0);
     final root = _bassProg[bar] + tr;
-    if (st % 4 == 0 || (i == 4 && st == 14))
+    if (st % 4 == 0 || (i == 4 && st == 14)) {
       s.tone(150, 0.16, 'sine', 0.55, f2: 40, when: t);
-    if (i >= 1 && st % 4 == 2)
+    }
+    if (i >= 1 && st % 4 == 2) {
       s.noise(0.05, 0.12, 9000, when: t, filter: 'highpass');
-    if (i >= 3 && st % 2 == 1)
+    }
+    if (i >= 3 && st % 2 == 1) {
       s.noise(0.025, 0.05, 11000, when: t, filter: 'highpass');
+    }
     if (i >= 2 && (st == 4 || st == 12)) s.noise(0.12, 0.18, 1800, when: t);
-    if (st % 2 == 0)
+    if (st % 2 == 0) {
       s.tone(
         nf(root - 12 + (st % 8 == 6 ? 12 : 0)),
         sp * 1.8,
@@ -232,6 +235,7 @@ Synth _music(int level) {
         0.1,
         when: t,
       );
+    }
     if (i >= 2) {
       const ch = [0, 3, 7, 12, 15, 12, 7, 3];
       s.tone(nf(root + 12 + ch[st % 8]), sp * 0.9, 'square', 0.025, when: t);
@@ -271,7 +275,7 @@ Synth _titleMusic() {
     }
     if (st == 8) s.tone(150, 0.16, 'sine', 0.3, f2: 40, when: t);
     if (st % 4 == 2) s.noise(0.04, 0.06, 9000, when: t, filter: 'highpass');
-    if (st % 2 == 0)
+    if (st % 2 == 0) {
       s.tone(
         nf(root + 12 + _titleArp[(st ~/ 2) % 8]),
         sp * 1.6,
@@ -279,7 +283,8 @@ Synth _titleMusic() {
         0.022,
         when: t,
       );
-    if (st == 0 && bar % 2 == 0)
+    }
+    if (st == 0 && bar % 2 == 0) {
       s.tone(
         nf(root + 24 + (bar >= 4 ? 3 : 7)),
         sp * 14,
@@ -287,6 +292,7 @@ Synth _titleMusic() {
         0.05,
         when: t,
       );
+    }
   }
   return s;
 }

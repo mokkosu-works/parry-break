@@ -207,8 +207,9 @@ class World {
       case WorldPhase.completed:
         break;
     }
-    if (phase == WorldPhase.playing || phase == WorldPhase.clearing)
+    if (phase == WorldPhase.playing || phase == WorldPhase.clearing) {
       _updateCombos(dt);
+    }
     _updateFalling(dt);
   }
 

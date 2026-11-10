@@ -80,8 +80,17 @@ extension _BulletSystem on World {
       // 撃ち返し弾 vs ブロック
       for (var k = 0; k < blocks.length; k++) {
         final b = blocks[k];
-        if (!circleRect(u.x, u.y, u.r, b.x + form.ox, b.y + form.oy, b.w, b.h))
+        if (!circleRect(
+          u.x,
+          u.y,
+          u.r,
+          b.x + form.ox,
+          b.y + form.oy,
+          b.w,
+          b.h,
+        )) {
           continue;
+        }
         if (b.behavior.onReturnedBullet(this, b, u)) {
           final j = bullets.indexOf(u);
           if (j >= 0) bullets.removeAt(j);
@@ -135,8 +144,9 @@ extension _BulletSystem on World {
     }
     // 発射元がコアの赤くない弾は、コアにはじかれるだけなので、発射元がない弾と同じく最寄りのブロックへ (#123)
     final src = u.source;
-    if (to == null && src != null && !src.removed && src.type != bossCoreId)
+    if (to == null && src != null && !src.removed && src.type != bossCoreId) {
       to = blockCenter(src);
+    }
     if (to == null) {
       final nb = _nearestBlock(u.x, u.y);
       if (nb != null) to = blockCenter(nb);

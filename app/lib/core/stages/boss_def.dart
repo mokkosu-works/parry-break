@@ -232,8 +232,9 @@ class LaserPattern extends BossPattern {
     if (_t > 0) return;
     _t = (boss.phase == 3 ? 3.4 : 5) / (1 + boss.index * 0.06);
     w.fireLaser(w.paddle.x);
-    if (boss.phase == 3 && boss.index >= 1)
+    if (boss.phase == 3 && boss.index >= 1) {
       w.fireLaser(w.paddle.x + (w.paddle.vx >= 0 ? 1 : -1) * 160);
+    }
   }
 }
 
@@ -351,8 +352,9 @@ class RepairPattern extends BossPattern {
       if (x + 2 < b.x + b.w &&
           x + Field.cellW - 2 > b.x &&
           y + 2 < b.y + b.h &&
-          y + Field.cellH - 2 > b.y)
+          y + Field.cellH - 2 > b.y) {
         return b;
+      }
     }
     return null;
   }
@@ -376,8 +378,9 @@ class RepairPattern extends BossPattern {
     final sx = x + w.form.ox, sy = y + w.form.oy;
     for (final ball in [w.ball, ...w.phantoms]) {
       if (rectDist(ball.x, ball.y, sx, sy, Field.cellW, Field.cellH) <
-          Field.ballR + 40)
+          Field.ballR + 40) {
         return true;
+      }
     }
     return false;
   }

@@ -131,8 +131,9 @@ extension _ParrySystem on World {
       );
       hitstop = math.max(hitstop, 0.03);
     }
-    if (wasOd && perfect)
+    if (wasOd && perfect) {
       odTime = math.min(odTime + (just ? 2 : 1), tuning.odMaxTime);
+    }
     if (just) slowmo = math.max(slowmo, 0.15);
     emit(
       ParrySucceeded(
@@ -144,12 +145,14 @@ extension _ParrySystem on World {
         streak: streak,
       ),
     );
-    if (pr.hits >= 3)
+    if (pr.hits >= 3) {
       emit(Callout(CalloutChannel.multiParry, 'MULTI PARRY ×${pr.hits}'));
-    if (streak >= 2)
+    }
+    if (streak >= 2) {
       emit(
         Popup(paddle.x, Field.paddleY - 64, 'CHAIN $streak', PopupKind.chain),
       );
+    }
   }
 
   void _startFeverTime() {

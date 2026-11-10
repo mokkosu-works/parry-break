@@ -50,8 +50,9 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen>
       _now.value = _clock.now;
       if (_start != null &&
           _result == null &&
-          _clock.now > _beatTime(_beats - 1) + 0.6)
+          _clock.now > _beatTime(_beats - 1) + 0.6) {
         _finish();
+      }
     })..start();
   }
 
@@ -110,8 +111,9 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen>
     if (r != null) {
       final buttons = r >= 0 ? 2 : 1;
       if (arrowStep(key) case final step?) {
-        if (buttons > 1)
+        if (buttons > 1) {
           setState(() => _button = (_button + step + buttons) % buttons);
+        }
         return KeyEventResult.handled;
       }
       if (!isConfirmKey(key)) return KeyEventResult.ignored;

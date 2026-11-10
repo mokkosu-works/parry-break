@@ -164,14 +164,16 @@ void _wall(BlockPaintContext ctx, Block b, Rect r) {
 void _keystone(BlockPaintContext ctx, Block b, Rect r) {
   final c = ctx.canvas, i = _inner(r);
   // 外側の枠が 2 段階で明滅する (要石だと分かるように)
-  if ((ctx.time * 3).floor().isEven)
+  if ((ctx.time * 3).floor().isEven) {
     pixelFrame(c, i.inflate(2), withAlpha(Dot.white, 0.5), d: 2);
+  }
   bevelRect(c, i, Dot.white);
   _diamond.drawCentered(c, r.center.dx, r.center.dy, Dot.mustard);
   if (b.hp < b.maxHp) {
     _crackL.draw(c, i.left + _d * 2, i.top + _d, Dot.violet);
-    if (b.hp < b.maxHp - 1)
+    if (b.hp < b.maxHp - 1) {
       _crackR.draw(c, i.right - _d * 4, i.top + _d, Dot.violet);
+    }
   }
 }
 

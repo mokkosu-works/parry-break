@@ -48,8 +48,9 @@ extension _BallSystem on World {
     b.speed += (targetSpeed - b.speed) * math.min(1, (od ? 2 : 4) * dt);
     if (od) b.speed = math.min(b.speed, odTopSpeed);
     for (final bl in blocks) {
-      if (bl.behavior.influencesBalls)
+      if (bl.behavior.influencesBalls) {
         bl.behavior.influenceBall(this, bl, b, dt);
+      }
     }
     final s = hypot(b.vx, b.vy);
     final sn = s == 0 ? 1.0 : s;

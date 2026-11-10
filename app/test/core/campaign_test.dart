@@ -62,8 +62,9 @@ void main() {
           ('Z', 'spiral'),
           ('P', 'sniper'),
         ]) {
-          if (ids.contains(id) && seen.add(id))
+          if (ids.contains(id) && seen.add(id)) {
             expect(w.introKey, 'intro.$intro', reason: '${s.id} で $id が初登場');
+          }
         }
       }
     }
@@ -88,8 +89,9 @@ void main() {
             ].join(),
         ].join('/');
         final prev = seen[key];
-        if (prev != null && !allowed.contains(where))
+        if (prev != null && !allowed.contains(where)) {
           fail('$where は $prev と同じ配置');
+        }
         seen[key] ??= where;
       }
     }
@@ -104,8 +106,9 @@ void main() {
   test('崩落の星がある面には、崩落の支点 (要石・ボスのコア) がある', () {
     final registry = standardBlocks();
     for (final s in campaign.stages) {
-      if (!s.stars.any((c) => c is StatStar && c.kind == StatKind.collapse))
+      if (!s.stars.any((c) => c is StatStar && c.kind == StatKind.collapse)) {
         continue;
+      }
       final hasAnchor = s.rounds.any(
         (w) => switch (w.content) {
           BossContent() => true, // ボスのコアが支点になる
@@ -168,8 +171,9 @@ void main() {
         (c) =>
             c is StatStar &&
             (c.kind == StatKind.graze || c.kind == StatKind.returnKills),
-      ))
+      )) {
         continue;
+      }
       final hasGun = s.rounds.any(
         (w) => switch (w.content) {
           BossContent() => true, // ボスが弾を撃つ

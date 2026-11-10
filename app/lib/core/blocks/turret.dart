@@ -184,8 +184,9 @@ class GatlingTurretBlock extends GunBlock {
     w.fireBullet(x, y, aimAtPaddle(w, x, y, sp), sp, source: b);
     w.emit(const BulletFired());
     b.shots++;
-    if (b.shots < w.difficulty.pick(3, 5, 8))
+    if (b.shots < w.difficulty.pick(3, 5, 8)) {
       return w.difficulty.pick(0.14, 0.11, 0.085);
+    }
     b.shots = 0;
     return interval(w);
   }

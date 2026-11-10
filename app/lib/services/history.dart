@@ -91,8 +91,9 @@ class PlayHistory {
     } on FormatException {
       return (history: const PlayHistory(), intact: false);
     }
-    if (json is! Map<String, Object?>)
+    if (json is! Map<String, Object?>) {
       return (history: const PlayHistory(), intact: false);
+    }
     final v = json['version'];
     var intact = v == null || (v is int && v <= version);
     final list = json['entries'];

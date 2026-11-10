@@ -49,11 +49,12 @@ Future<void> _paint(
     ),
   );
   expect(tester.takeException(), isNull);
-  if (_shots)
+  if (_shots) {
     await expectLater(
       find.byType(RepaintBoundary).first,
       matchesGoldenFile('screenshots/$name.png'),
     );
+  }
 }
 
 /// イベントを演出に流しながら進める。

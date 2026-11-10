@@ -107,8 +107,9 @@ extension _BossSystem on World {
     for (final ball in [this.ball, ...phantoms]) {
       if (ball.attached) continue;
       if (rectDist(ball.x, ball.y, sx, sy, Field.cellW, Field.cellH) <
-          Field.ballR + 4)
+          Field.ballR + 4) {
         return true;
+      }
     }
     return false;
   }
@@ -131,8 +132,9 @@ extension _BossSystem on World {
     if (b.phase == 2 && b.def.reinforce > 0) {
       for (final x in [b.left - Field.cellW, b.left + b.cols * Field.cellW]) {
         if (x < 0 || x + Field.cellW > Field.width) continue;
-        if (!_occupied(x, Field.gridY0))
+        if (!_occupied(x, Field.gridY0)) {
           addBlock('T', x, Field.gridY0).fireT = 1.5 + aux.next();
+        }
       }
     }
     var minX = Field.width, maxX = 0.0;

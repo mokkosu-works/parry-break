@@ -155,8 +155,9 @@ class _AttractDemoState extends ConsumerState<AttractDemo>
       final ttc = (Field.paddleY - (u.y + u.r)) / u.vy;
       if (ttc > 0 &&
           ttc < 0.016 &&
-          (u.x - w.paddle.x).abs() < w.paddleWidth / 2 + u.r)
+          (u.x - w.paddle.x).abs() < w.paddleWidth / 2 + u.r) {
         soon = true;
+      }
     }
     if (soon && _armed && _rnd.nextDouble() < 0.97) {
       w.pressAction(now);

@@ -195,11 +195,12 @@ class FieldPainter extends CustomPainter {
     if (fx.flash > 0) {
       // 光の強さは段階に丸める (なめらかに消えるとドット絵らしくない)
       final k = (math.min(0.35, fx.flash) * 6).floor() / 6;
-      if (k > 0)
+      if (k > 0) {
         canvas.drawRect(
           const Rect.fromLTWH(0, 0, _w, _h),
           pixelPaint(withAlpha(fx.flashColor, k)),
         );
+      }
     }
     canvas.restore();
   }
@@ -381,8 +382,9 @@ class FieldPainter extends CustomPainter {
     // 支えの脈動: 要石から塊へ光が伝わる (どこが繋がっているかが分かる)
     if (b.supported && !b.behavior.anchor) {
       final ph = (_t * 8) % 16;
-      if ((ph - b.depth).abs() < 0.75)
+      if ((ph - b.depth).abs() < 0.75) {
         _c.drawRect(i, pixelPaint(const Color(0x40FFFFFF)));
+      }
     }
     if (b.flash > 0) _c.drawRect(i, pixelPaint(Dot.white));
   }
@@ -519,8 +521,9 @@ class FieldPainter extends CustomPainter {
       );
     }
     final x = _lerp(b.prevX, b.x), y = _lerp(b.prevY, b.y);
-    if (pierce)
+    if (pierce) {
       _ballSprite.drawCentered(_c, x, y, withAlpha(col, 0.35), scale: 1.75);
+    }
     _ballSprite.drawCentered(_c, x, y, col);
     _c.drawRect(Rect.fromLTWH(x - _d, y - _d, _d, _d), pixelPaint(Dot.white));
     if (b.breaker) {
@@ -687,8 +690,9 @@ class FieldPainter extends CustomPainter {
 
   void _popups() {
     for (final p in fx.popups) {
-      if (!fx.reduceEffects && p.t > 0.6 && (p.t * 20).floor().isEven)
+      if (!fx.reduceEffects && p.t > 0.6 && (p.t * 20).floor().isEven) {
         continue; // 消える前に点滅
+      }
       _txt(p.text, p.x, p.y, p.size, p.color);
     }
   }
@@ -705,8 +709,9 @@ class FieldPainter extends CustomPainter {
         (_t * 4).floor().isEven ? 3 : 2,
       );
     }
-    if (w.isDanger)
+    if (w.isDanger) {
       _edgeBands(Dot.bulletRed, 0.45, _blink(7, calm: true) ? 4 : 2);
+    }
   }
 
   /// FEVER TIME 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
@@ -882,8 +887,9 @@ class FieldPainter extends CustomPainter {
       final pop = c.t < 0.08 ? 8.0 : 0.0;
       final y = 210.0 + i * 64;
       _bigTxt(c.text, _w / 2, y, c.size + pop, c.color);
-      if (c.sub.isNotEmpty)
+      if (c.sub.isNotEmpty) {
         _txt(c.sub, _w / 2, y + c.size * 0.8, 16, Dot.white);
+      }
     }
   }
 
@@ -1056,8 +1062,9 @@ class FieldPainter extends CustomPainter {
         align: TextAlignH.right,
       );
     }
-    if (w.round.ending)
+    if (w.round.ending) {
       _txt(l10n.endingSub, _w / 2, y + 60, 16, Dot.rose, family: TextCache.jp);
+    }
   }
 
   @override

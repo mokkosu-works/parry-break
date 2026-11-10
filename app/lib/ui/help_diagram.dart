@@ -227,8 +227,9 @@ class _DiagramPainter extends CustomPainter {
           ? Palette.normalTiers[tier >= 0 ? tier : (y ~/ 24) % 3]
           : Palette.blocks[b.type] ?? Palette.white,
     );
-    if (alpha < 1)
+    if (alpha < 1) {
       _c.saveLayer(null, Paint()..color = Color.fromRGBO(0, 0, 0, alpha));
+    }
     _painters.of(type)(ctx, b, Rect.fromLTWH(x, y, 60, 24));
     if (alpha < 1) _c.restore();
   }
@@ -453,8 +454,9 @@ class _DiagramPainter extends CustomPainter {
         col: t < 0.3 ? Palette.yellow : Palette.accent,
         parry: t < 0.3,
       );
-      if (t < 0.6)
+      if (t < 0.6) {
         _label('PERFECT', cx, paddleY - 60, Palette.yellow, size: 26);
+      }
     } else {
       const hit = Offset(cx, 120);
       final k = _span(t, 0.35, 0.7);
@@ -533,8 +535,9 @@ class _DiagramPainter extends CustomPainter {
           _block(i.isEven ? 'B' : 'N', xs[i], y);
         } else if (i.isEven) {
           final k = _span(t, at, at + 0.25);
-          if (k < 0.3)
+          if (k < 0.3) {
             pixelDisc(_c, xs[i] + 30, y + 12, 6, Palette.orange, d: 4);
+          }
           _ring(Offset(xs[i] + 30, y + 12), 20 + k * 70, Palette.orange, 1 - k);
         }
       }
@@ -673,15 +676,17 @@ class _DiagramPainter extends CustomPainter {
       var idx = 0;
       for (var i = 0; i < 4; i++) {
         for (var j = 0; j < 5; j++) {
-          if (idx++ >= n * 20 / 14)
+          if (idx++ >= n * 20 / 14) {
             _block('N', cx - 150 + j * 60, 40.0 + i * 24, tier: i % 3);
+          }
         }
       }
       // 塊の中をジグザグに跳ね回る
       final zig = (t * 7) % 2;
       final bx = cx - 130 + 260 * (zig < 1 ? zig : 2 - zig);
-      if (t < 0.95)
+      if (t < 0.95) {
         _ball(Offset(bx, 100 + 40 * math.sin(t * 20)), col: Palette.yellow);
+      }
       _paddle(cx);
       _label('RICOCHET ×${n + 4}', cx, 230, Palette.yellow, size: 26);
     }
@@ -787,20 +792,22 @@ class _DiagramPainter extends CustomPainter {
         _fill..color = Palette.white,
       );
     }
-    if (_t > 0.2 && _t < 0.4)
+    if (_t > 0.2 && _t < 0.4) {
       _arrow(
         const Offset(480, 110),
         const Offset(540, 56),
         withAlpha(Palette.pale, 0.7),
       );
+    }
     _finger(btn + const Offset(-10, 46), down: pressed);
-    if (pressed)
+    if (pressed) {
       _ring(
         btn,
         24 + _span(_t, 0.35, 0.45) * 30,
         Palette.sub,
         1 - _span(_t, 0.35, 0.45),
       );
+    }
   }
 
   @override

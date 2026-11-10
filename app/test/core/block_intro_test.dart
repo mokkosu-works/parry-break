@@ -47,8 +47,9 @@ List<String> _missing(
     if (c is! LayoutContent) continue; // ボス戦では配置も説明も使われない
     for (final id in _ids(c)) {
       if (!seen.add(id) || !blockIntros.containsKey(id)) continue;
-      if (spec.introKey != blockIntros[id] && !pending.contains(id))
+      if (spec.introKey != blockIntros[id] && !pending.contains(id)) {
         missing.add('$where: $id (${spec.introKey})');
+      }
     }
   }
   expect(seen, containsAll(appear), reason: '出てくるはずの種類が出てこない');
@@ -97,8 +98,9 @@ void main() {
     expect(endlessContent.handcrafted[12], isNull);
     for (var n = 1; n < 12; n++) {
       final c = endlessMode.roundAt(n).content;
-      if (c is LayoutContent)
+      if (c is LayoutContent) {
         expect(_ids(c), isNot(contains('#')), reason: 'R$n');
+      }
     }
 
     final s28 = campaign.stage('2-8')!.rounds.single;

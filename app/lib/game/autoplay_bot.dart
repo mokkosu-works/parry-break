@@ -106,15 +106,17 @@ class Bot {
         final want = land + _offset;
         final miss = (x - want).abs();
         // 今 x へ動いても、落下までに受けられる位置へ戻れるか
-        if ((x - land).abs() - (pw / 2 - 6) > speed * math.max(0, tb - 0.03))
+        if ((x - land).abs() - (pw / 2 - 6) > speed * math.max(0, tb - 0.03)) {
           cost += 1e5;
+        }
         cost += miss * (tb < 0.5 ? 6 : 1.5);
       } else {
         cost += (x - b.x).abs() * 0.4;
       }
       for (final (tu, xu, r) in threats) {
-        if ((xu - x).abs() < pw / 2 + r + 12)
+        if ((xu - x).abs() < pw / 2 + r + 12) {
           cost += 400 / (math.max(0, tu) + 0.15);
+        }
       }
       for (final l in lasers) {
         if ((x - l.x).abs() < pw / 2 + l.w / 2 + 6) cost += 3000;
@@ -135,11 +137,15 @@ class Bot {
     final pr = w.parry;
     if (pr.active || w.t < pr.cooldownUntil || p.stun > 0) return;
     double? next;
-    if (tb != null && land != null && (land - nx).abs() <= pw / 2 + Field.ballR)
+    if (tb != null &&
+        land != null &&
+        (land - nx).abs() <= pw / 2 + Field.ballR) {
       next = tb;
+    }
     for (final (tu, xu, r) in threats) {
-      if ((xu - nx).abs() <= pw / 2 + r && (next == null || tu < next))
+      if ((xu - nx).abs() <= pw / 2 + r && (next == null || tu < next)) {
         next = tu;
+      }
     }
     if (next == null || next > 0.2) return;
     final at =

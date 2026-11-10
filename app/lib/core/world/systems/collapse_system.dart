@@ -83,7 +83,7 @@ extension _CollapseSystem on World {
     final c = cascade;
     c.n += list.length;
     c.t = 0.9;
-    if (c.n >= 5)
+    if (c.n >= 5) {
       emit(
         Callout(
           CalloutChannel.collapse,
@@ -92,6 +92,7 @@ extension _CollapseSystem on World {
           level: _collapseLevel(c.n),
         ),
       );
+    }
     // 崩落の瓦礫が降ってくる (パリィで撃ち返せる)
     if (list.length >= 4 && phase == WorldPhase.playing) {
       final k = math.min(6, (list.length / 5).ceil());

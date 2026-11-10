@@ -69,8 +69,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _Tab tab,
     List<_Row> rows,
   ) {
-    if (e is! KeyDownEvent && e is! KeyRepeatEvent)
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
+    }
     final key = e.logicalKey;
     final repeat = e is KeyRepeatEvent;
     if (key == LogicalKeyboardKey.escape) {

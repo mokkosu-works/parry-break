@@ -27,8 +27,9 @@ void main() {
           final id = c.blockIdAt(r, k);
           if (first.containsKey(id)) continue;
           first[id] = n;
-          if (_intros[id] case final intro?)
+          if (_intros[id] case final intro?) {
             expect(spec.introKey, intro, reason: 'R$n で $id が初登場');
+          }
         }
       }
     }

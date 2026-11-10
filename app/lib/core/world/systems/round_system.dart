@@ -175,15 +175,17 @@ extension _RoundSystem on World {
       low = math.max(low, b.y + form.oy + b.h);
     }
     lowest = low;
-    if (low >= Field.warnY)
+    if (low >= Field.warnY) {
       _gameOver(boss?.plunge ?? false ? 'TIME OVER' : 'BLOCKS BREACHED');
+    }
   }
 
   void _roundClear() {
     final m = mult, bon = <Bonus>[];
     final b = boss;
-    if (b != null)
+    if (b != null) {
       bon.add(Bonus('BOSS DESTROYED', 50000 + b.time.floor() * 500));
+    }
     bon.add(Bonus('ROUND CLEAR  ×$m', 5000 * m));
     if (b == null) {
       final dist = math.max(0.0, Field.warnY - lowest).round();

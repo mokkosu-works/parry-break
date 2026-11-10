@@ -514,11 +514,12 @@ class _BackgroundPainter extends CustomPainter {
             : k > 0.33
             ? i.isEven && j.isEven
             : i % 4 == 0 && j % 4 == 0;
-        if (on)
+        if (on) {
           canvas.drawRect(
             Rect.fromLTWH(i * cell, top + j * cell, cell, cell),
             p,
           );
+        }
       }
     }
   }

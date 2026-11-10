@@ -27,8 +27,9 @@ abstract final class AdsConfig {
 
   static String get interstitial {
     final ios = defaultTargetPlatform == TargetPlatform.iOS;
-    if (kDebugMode)
+    if (kDebugMode) {
       return ios ? _testIosInterstitial : _testAndroidInterstitial;
+    }
     return ios ? iosInterstitial : androidInterstitial;
   }
 }
@@ -229,8 +230,9 @@ class AdMobAds implements AdsService {
   Future<void> _gatherConsent() async {
     // 失敗しても、前回までの同意で広告を出せることがある (canRequestAds で確かめる)
     _consentUpdated = await _sdk.gatherConsent();
-    if (_consentUpdated)
+    if (_consentUpdated) {
       privacyOptionsRequired = await _sdk.privacyOptionsRequired();
+    }
   }
 
   Future<void> _start() async {
@@ -265,8 +267,9 @@ class AdMobAds implements AdsService {
 
   void _preload({bool fromRetryTimer = false}) {
     // 今日の上限まで出した日は、出せない広告を読み込まない (表示率が下がり、通信量も無駄になる)。日付が変わったあとの呼び出しで読み込む
-    if (!_ready || _loading || !_policy.pastGrace || _policy.cappedToday)
+    if (!_ready || _loading || !_policy.pastGrace || _policy.cappedToday) {
       return;
+    }
     if (_ad != null) {
       if (!_expired) return;
       _discard();
@@ -378,8 +381,9 @@ class GoogleAdsSdk implements AdsSdk {
     if (defaultTargetPlatform != TargetPlatform.iOS) return;
     try {
       if (await AppTrackingTransparency.trackingAuthorizationStatus !=
-          TrackingStatus.notDetermined)
+          TrackingStatus.notDetermined) {
         return;
+      }
       // アプリがアクティブでないとダイアログが出ずに終わるので、前面に出るのを待つ。
       // 同意画面を閉じた直後もしばらくアクティブでないことがあるので、少し間をあける
       await _untilResumed();
@@ -392,8 +396,9 @@ class GoogleAdsSdk implements AdsSdk {
 
   Future<void> _untilResumed() {
     final binding = WidgetsBinding.instance;
-    if (binding.lifecycleState == AppLifecycleState.resumed)
+    if (binding.lifecycleState == AppLifecycleState.resumed) {
       return Future.value();
+    }
     final done = Completer<void>();
     late final AppLifecycleListener listener;
     listener = AppLifecycleListener(
