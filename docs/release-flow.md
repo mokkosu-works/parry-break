@@ -70,7 +70,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 
 | ワークフロー | きっかけ | 内容 |
 | --- | --- | --- |
-| `check.yml` | 下の2つから呼ぶ | `flutter analyze`、`flutter test` |
+| `check.yml` | `pr.yml` と `release.yml` から呼ぶ | `flutter analyze`、`flutter test` |
 | `implement.yml` | Issue のコメントの `@claude` | Android エミュレーターを起動し、Claude が Issue を実装・テストし、エミュレーターで確かめて `dev` 向けの PR を作る(`.claude/skills/implement-issue/SKILL.md`)。撮った画面は実行の Artifacts に残る |
 | `pr.yml` | PR の作成・更新(手動実行も可) | チェック、Claude のレビュー。エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)は `main` 向けの PR と手動実行だけで動かす。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
 | `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` の `check`・`review` が通っていれば squash でマージする |

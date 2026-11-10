@@ -8,6 +8,10 @@
 - Play Store の掲載情報: [docs/play-store.md](docs/play-store.md)
 - ブランチとリリースの運用 (CI/CD・Claude による自動化): [docs/release-flow.md](docs/release-flow.md)
 - アプリ本体: [app/](app/)
+- アイコンと日本語フォントを作る道具: [tools/](tools/) (`make_icons.py` はアイコンと起動画面のドット絵、`subset_jp_font.sh` は日本語のドット文字を使っている字だけに絞る)
+- 宣伝動画を作る道具: [promo/](promo/) (実機の画面録画から SNS 向けの縦動画を作る。使い方は [promo/README.md](promo/README.md))
+- 宣伝動画の投稿文: [posts/](posts/) (動画ごとの投稿文と一覧)
+- 宣伝動画の記録: [records/](records/) (`videos.csv` に作成日・投稿日・媒体・再生数などを残す)
 
 使う Flutter の版は `app/pubspec.yaml` の `environment.flutter` に書いてある (CI も同じ値を読む)。版が違うと `flutter pub get` が止まるので、その版の Flutter を入れる (`flutter --version` で確かめる)。
 
@@ -18,7 +22,7 @@ flutter run
 flutter test
 ```
 
-各ステージの動作確認には、デバッグモードが使える。タイトル右下の `VER 1.0.0` を 3 回続けてタップすると入り、もう一度 3 回タップするか、設定画面のスイッチで抜ける。デバッグモード中は全ステージの鍵が外れ、プレイ結果は記録にもランキングにも残らない。画面の左下には DEBUG の帯が出る。
+各ステージの動作確認には、デバッグモードが使える。タイトル右下の版番号 (`VER x.y.z`) を 3 回続けてタップすると入り、もう一度 3 回タップするか、設定画面のスイッチで抜ける。デバッグモード中は全ステージの鍵が外れ、プレイ結果は記録にもランキングにも残らない。画面の左下には DEBUG の帯が出る。
 
 難易度 (EASY / NORMAL / HARD) のバランスは、自動プレイで全ステージを遊んだクリア率で確かめられる (`flutter test test/balance/balance_report.dart`。見方は design.md 6章「難易度」)。
 
