@@ -1226,4 +1226,47 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  group('端末の動きを減らす設定 (#105)', () {
+    // 端末の設定 (iOS の「視差効果を減らす」、Android の「アニメーションを削除」) は、
+    // MaterialApp の MediaQuery に disableAnimations として届く
+    void setDisableAnimations(WidgetTester tester, bool on) {
+      tester.platformDispatcher.accessibilityFeaturesTestValue = FakeAccessibilityFeatures(disableAnimations: on);
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    }
+
+    testWidgets('アプリの「演出を控えめにする」が OFF でも、盤面のフラッシュ・揺れを控えめにする', (tester) async {
+      setDisableAnimations(tester, true);
+      await _pumpApp(tester, home: const GameScreen());
+      await _frames(tester, 0.2);
+      final fx = GameScreen.debugLastController!.fx;
+      expect(fx.reduceEffects, isTrue);
+      fx.handle(const FeverTimeStarted()); // 画面全体のフラッシュ (0.5) と同じ
+      expect(fx.flash, lessThanOrEqualTo(0.08));
+    });
+
+    testWidgets('遊んでいる途中で端末の設定を変えても反映される', (tester) async {
+      await _pumpApp(tester, home: const GameScreen());
+      await _frames(tester, 0.2);
+      final fx = GameScreen.debugLastController!.fx;
+      expect(fx.reduceEffects, isFalse);
+
+      setDisableAnimations(tester, true);
+      await _frames(tester, 0.1);
+      expect(fx.reduceEffects, isTrue);
+
+      setDisableAnimations(tester, false);
+      await _frames(tester, 0.1);
+      expect(fx.reduceEffects, isFalse);
+    });
+
+    testWidgets('端末の設定が OFF でも、アプリの設定が ON なら控えめのまま', (tester) async {
+      setDisableAnimations(tester, false);
+      await _pumpApp(tester, home: const GameScreen(), prefs: {
+        'settings.v1': jsonEncode(const Settings(language: 'en', reduceEffects: true).toJson()),
+      });
+      await _frames(tester, 0.2);
+      expect(GameScreen.debugLastController!.fx.reduceEffects, isTrue);
+    });
+  });
 }

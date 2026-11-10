@@ -117,9 +117,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   }
 
   void _applySettings(Settings s) {
-    _ctl
-      ..setInputLag(s.timingOffsetMs / 1000)
-      ..fx.reduceEffects = s.reduceEffects;
+    _ctl.setInputLag(s.timingOffsetMs / 1000);
     _ctl.audio.setVolumes(bgm: s.bgmVolume, sfx: s.sfxVolume);
   }
 
@@ -280,6 +278,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final settings = ref.watch(settingsProvider);
+    // 盤面のフラッシュ・揺れ・点滅は、アプリの「演出を控えめにする」か、端末の動きを減らす設定
+    // (iOS の「視差効果を減らす」、Android の「アニメーションを削除」) のどちらかで控えめにする。
+    // どちらも変われば build し直されるので、遊んでいる途中の変更も反映される
+    _ctl.fx.reduceEffects = settings.reduceEffects || MediaQuery.disableAnimationsOf(context);
     // ポーズ中に設定で言語・画質を変えたら、盤面の描画役を作り直す
     if (_painter case final p?
         when p.l10n.localeName != l.localeName || p.highQuality != (settings.quality == GraphicsQuality.high)) {
