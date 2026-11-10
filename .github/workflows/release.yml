@@ -21,6 +21,10 @@ on:
         options: [ios, android, both]
         default: ios
 
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
+
 concurrency:
   group: release
   cancel-in-progress: false
