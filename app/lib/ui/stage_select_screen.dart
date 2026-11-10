@@ -209,16 +209,23 @@ class _ChapterPager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     Widget arrow(bool next) {
       final to = index + (next ? 1 : -1);
       final enabled = to >= 0 && to < count;
-      return IconButton(
-        onPressed: enabled ? () => onChange(to) : null,
-        color: Palette.sub,
-        disabledColor: withAlpha(Palette.pale, 0.15),
-        icon: next
-            ? Transform.flip(flipX: true, child: PixelIcon(PixelIcons.chevronLeft, size: 21))
-            : PixelIcon(PixelIcons.chevronLeft, size: 21),
+      // 読み上げで「前の章」「次の章」と読む (アイコンだけでは名前がない)
+      return MergeSemantics(
+        child: Semantics(
+          label: next ? l.chapterNext : l.chapterPrev,
+          child: IconButton(
+            onPressed: enabled ? () => onChange(to) : null,
+            color: Palette.sub,
+            disabledColor: withAlpha(Palette.pale, 0.15),
+            icon: next
+                ? Transform.flip(flipX: true, child: PixelIcon(PixelIcons.chevronLeft, size: 21))
+                : PixelIcon(PixelIcons.chevronLeft, size: 21),
+          ),
+        ),
       );
     }
 
@@ -399,10 +406,21 @@ class _StageTile extends StatelessWidget {
                     ),
             ),
           );
+    final l = AppLocalizations.of(context);
+    final title = stage.title.of(Localizations.localeOf(context).languageCode);
+    final got = '${record.starCount}', total = '${stage.stars.length}';
     return Semantics(
       button: true,
       selected: selected,
-      label: stage.id,
+      label: !unlocked
+          ? l.stageTileLocked(stage.id)
+          : record.cleared
+              ? l.stageTileCleared(stage.id, title, got, total)
+              : l.stageTileNotCleared(stage.id, title, got, total),
+      container: true,
+      // 番号の文字は名前に含めたので、重ねて読まない (下の GestureDetector の分も外れるので、タップはここで渡す)
+      excludeSemantics: true,
+      onTap: onTap,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,

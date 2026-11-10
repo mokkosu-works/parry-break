@@ -284,12 +284,6 @@ abstract class AppLocalizations {
   /// **'次へ'**
   String get helpNext;
 
-  /// No description provided for @paused.
-  ///
-  /// In ja, this message translates to:
-  /// **'一時停止中'**
-  String get paused;
-
   /// No description provided for @bestScoreClearOnly.
   ///
   /// In ja, this message translates to:
@@ -811,6 +805,60 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。'**
   String get startupErrorBody;
+
+  /// No description provided for @chapterPrev.
+  ///
+  /// In ja, this message translates to:
+  /// **'前の章'**
+  String get chapterPrev;
+
+  /// No description provided for @chapterNext.
+  ///
+  /// In ja, this message translates to:
+  /// **'次の章'**
+  String get chapterNext;
+
+  /// No description provided for @stepDown.
+  ///
+  /// In ja, this message translates to:
+  /// **'下げる'**
+  String get stepDown;
+
+  /// No description provided for @stepUp.
+  ///
+  /// In ja, this message translates to:
+  /// **'上げる'**
+  String get stepUp;
+
+  /// No description provided for @open.
+  ///
+  /// In ja, this message translates to:
+  /// **'開く'**
+  String get open;
+
+  /// No description provided for @pauseGame.
+  ///
+  /// In ja, this message translates to:
+  /// **'一時停止する'**
+  String get pauseGame;
+
+  /// No description provided for @stageTileCleared.
+  ///
+  /// In ja, this message translates to:
+  /// **'{id} {title}、クリア済み、星 {got} / {total}'**
+  String stageTileCleared(String id, String title, String got, String total);
+
+  /// No description provided for @stageTileNotCleared.
+  ///
+  /// In ja, this message translates to:
+  /// **'{id} {title}、未クリア、星 {got} / {total}'**
+  String stageTileNotCleared(String id, String title, String got, String total);
+
+  /// No description provided for @stageTileLocked.
+  ///
+  /// In ja, this message translates to:
+  /// **'{id}、未解放'**
+  String stageTileLocked(String id);
 }
 
 class _AppLocalizationsDelegate

@@ -31,7 +31,6 @@
   "helpKeysPause": "キーボード:Esc か P で一時停止",
   "helpPrev": "前へ",
   "helpNext": "次へ",
-  "paused": "一時停止中",
   "bestScoreClearOnly": "クリアした回のみ記録",
   "unlockBy": "{stage} をクリアすると開く",
   "@unlockBy": {
@@ -240,5 +239,53 @@
   "difficultyNormal": "標準の難しさ",
   "difficultyHard": "弾幕モード。弾が増え、壊したブロックが撃ち返してくる",
   "startupErrorTitle": "起動できませんでした",
-  "startupErrorBody": "ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。"
+  "startupErrorBody": "ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。",
+  "chapterPrev": "前の章",
+  "chapterNext": "次の章",
+  "stepDown": "下げる",
+  "stepUp": "上げる",
+  "open": "開く",
+  "pauseGame": "一時停止する",
+  "stageTileCleared": "{id} {title}、クリア済み、星 {got} / {total}",
+  "@stageTileCleared": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "got": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "stageTileNotCleared": "{id} {title}、未クリア、星 {got} / {total}",
+  "@stageTileNotCleared": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "got": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "stageTileLocked": "{id}、未解放",
+  "@stageTileLocked": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }

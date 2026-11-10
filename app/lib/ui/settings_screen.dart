@@ -380,6 +380,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               label: l.settingsAdPrivacy,
               child: _SmallButton(
                 label: '›',
+                semanticLabel: l.open,
                 color: color,
                 onTap: ref.read(adsProvider).showPrivacyOptions,
               ),
@@ -487,18 +488,23 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-      Text(label,
-          style: TextStyle(
-              fontSize: 16,
-              color: enabled ? Palette.white : Palette.gray)),
-      if (help != null) ...[
-        const SizedBox(height: 3),
-        Text(help!,
+    // 使えない項目は、灰色にするだけでなく読み上げでも使えないと伝える
+    final name = Semantics(
+      container: true,
+      enabled: enabled ? null : false,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        Text(label,
             style: TextStyle(
-                fontSize: 12, height: 1.4, color: withAlpha(Palette.pale, 0.55))),
-      ],
-    ]);
+                fontSize: 16,
+                color: enabled ? Palette.white : Palette.gray)),
+        if (help != null) ...[
+          const SizedBox(height: 3),
+          Text(help!,
+              style: TextStyle(
+                  fontSize: 12, height: 1.4, color: withAlpha(Palette.pale, 0.55))),
+        ],
+      ]),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: LayoutBuilder(builder: (context, c) {
@@ -683,6 +689,7 @@ class _Meter extends StatelessWidget implements _KeyControl {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final col = enabled ? color : Palette.gray;
     final k = ((value - min) / (max - min)).clamp(0.0, 1.0);
     // −/+ (48px ずつ) と数値の欄を除いた幅に収める
@@ -696,7 +703,7 @@ class _Meter extends StatelessWidget implements _KeyControl {
               onIncrease: enabled ? () => _step(1) : null,
               onDecrease: enabled ? () => _step(-1) : null,
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                _StepButton(icon: PixelIcons.minus, color: col, onTap: enabled && value > min ? () => _step(-1) : null),
+                _StepButton(icon: PixelIcons.minus, label: l.stepDown, color: col, onTap: enabled && value > min ? () => _step(-1) : null),
                 SizedBox(
                   width: (outer.maxWidth - 176).clamp(60.0, 240.0),
                   child: LayoutBuilder(builder: (context, c) {
@@ -711,7 +718,7 @@ class _Meter extends StatelessWidget implements _KeyControl {
                     );
                   }),
                 ),
-                _StepButton(icon: PixelIcons.plus, color: col, onTap: enabled && value < max ? () => _step(1) : null),
+                _StepButton(icon: PixelIcons.plus, label: l.stepUp, color: col, onTap: enabled && value < max ? () => _step(1) : null),
                 SizedBox(
                   width: 76,
                   child: Text(format(value),
@@ -764,27 +771,38 @@ class _MeterPainter extends CustomPainter {
 }
 
 class _StepButton extends StatelessWidget {
-  const _StepButton({required this.icon, required this.color, required this.onTap});
+  const _StepButton({required this.icon, required this.label, required this.color, required this.onTap});
   final DotSprite icon;
+
+  /// 読み上げる名前 (下げる / 上げる)。
+  final String label;
   final Color color;
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => IconButton(
-        onPressed: onTap,
-        icon: PixelIcon(icon, size: 18),
-        color: color,
-        disabledColor: withAlpha(Palette.pale, 0.2),
-        // 押せる範囲は 44pt 以上 (目盛りの幅は、この 48 を 2 つ分引いて決めている)
-        constraints: const BoxConstraints(minWidth: 48, minHeight: 44),
-        padding: EdgeInsets.zero,
+  Widget build(BuildContext context) => MergeSemantics(
+        child: Semantics(
+          label: label,
+          child: IconButton(
+            onPressed: onTap,
+            icon: PixelIcon(icon, size: 18),
+            color: color,
+            disabledColor: withAlpha(Palette.pale, 0.2),
+            // 押せる範囲は 44pt 以上 (目盛りの幅は、この 48 を 2 つ分引いて決めている)
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 44),
+            padding: EdgeInsets.zero,
+          ),
+        ),
       );
 }
 
 /// 枠付きの小さなボタン (測定する など)。
 class _SmallButton extends StatelessWidget implements _KeyControl {
-  const _SmallButton({required this.label, required this.color, required this.onTap, this.icon});
+  const _SmallButton({required this.label, required this.color, required this.onTap, this.icon, this.semanticLabel});
   final String label;
+
+  /// 読み上げる名前。見た目の [label] が記号 (›) のときに付ける。
+  final String? semanticLabel;
   final DotSprite? icon;
   final Color color;
   final VoidCallback onTap;
@@ -800,7 +818,12 @@ class _SmallButton extends StatelessWidget implements _KeyControl {
 
   @override
   Widget build(BuildContext context) => Semantics(
+        container: true,
         button: true,
+        label: semanticLabel,
+        // 名前を付けたときは見た目の文字を読まない (下の GestureDetector の分も外れるので、タップはここで渡す)
+        excludeSemantics: semanticLabel != null,
+        onTap: onTap,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,

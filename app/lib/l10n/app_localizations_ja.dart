@@ -109,9 +109,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpNext => '次へ';
 
   @override
-  String get paused => '一時停止中';
-
-  @override
   String get bestScoreClearOnly => 'クリアした回のみ記録';
 
   @override
@@ -407,4 +404,42 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get startupErrorBody =>
       'ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。';
+
+  @override
+  String get chapterPrev => '前の章';
+
+  @override
+  String get chapterNext => '次の章';
+
+  @override
+  String get stepDown => '下げる';
+
+  @override
+  String get stepUp => '上げる';
+
+  @override
+  String get open => '開く';
+
+  @override
+  String get pauseGame => '一時停止する';
+
+  @override
+  String stageTileCleared(String id, String title, String got, String total) {
+    return '$id $title、クリア済み、星 $got / $total';
+  }
+
+  @override
+  String stageTileNotCleared(
+    String id,
+    String title,
+    String got,
+    String total,
+  ) {
+    return '$id $title、未クリア、星 $got / $total';
+  }
+
+  @override
+  String stageTileLocked(String id) {
+    return '$id、未解放';
+  }
 }
