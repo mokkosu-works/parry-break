@@ -48,6 +48,30 @@ void main() {
     expect(seen, {'F', 'G', 'O', 'Z', 'P'});
   });
 
+  // 同じ配置を別の面で使い回すと、遊ぶ側には同じ面に見える (#165)。
+  // 意図して使い回すときは、ここに '<面>:<ラウンド>' を足して理由を書く。
+  test('別の面 (同じ面の別ラウンドも) で同じ配置を使っていない', () {
+    const allowed = <String>{};
+    final seen = <String, String>{};
+    for (final s in campaign.stages) {
+      for (final (i, w) in s.rounds.indexed) {
+        final c = w.content;
+        if (c is! LayoutContent) continue;
+        final where = '${s.id}:${i + 1}';
+        final key = [
+          for (var r = 0; r < c.rows.length; r++) [for (var k = 0; k < c.rows[r].length; k++) c.rows[r][k] == '.' ? '.' : c.blockIdAt(r, k)].join(),
+        ].join('/');
+        final prev = seen[key];
+        if (prev != null && !allowed.contains(where)) fail('$where は $prev と同じ配置');
+        seen[key] ??= where;
+      }
+    }
+  });
+
+  test('6-9 のラウンドは第6章の難易度帯 (50 以上) にある (#165)', () {
+    expect([for (final w in campaign.stage('6-9')!.rounds) w.difficulty], everyElement(greaterThanOrEqualTo(50)));
+  });
+
   test('崩落の星がある面には、崩落の支点 (要石・ボスのコア) がある', () {
     final registry = standardBlocks();
     for (final s in campaign.stages) {
