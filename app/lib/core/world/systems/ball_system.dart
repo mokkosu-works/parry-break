@@ -113,6 +113,8 @@ extension _BallSystem on World {
     _reflectOffPaddle(b);
     if (b.flight >= 8) _ricochetBonus(b);
     b.flight = 0;
+    // 貫通は、そのパリィの後の 1 往復だけ。パドルに戻ったら消し、パリィならその値で付け直す (#119)
+    b.pierce = 0;
     final grade = _judgeContact(tc);
     if (grade != null) {
       _applyParry(grade, ParryTarget.ball, b.x, Field.paddleY);
