@@ -52,20 +52,28 @@ class PixelTag extends StatelessWidget {
 
 /// 計器風の数値表示 (小さなラベルと大きな数字)。
 class StatReadout extends StatelessWidget {
-  const StatReadout({super.key, required this.label, required this.value, this.highlight = false});
+  const StatReadout({super.key, required this.label, required this.value, this.highlight = false, this.compact = false});
   final String label, value;
   final bool highlight;
+
+  /// 狭い画面用の小さめの表示 (ラベル 12・数字 20)。
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: pixelFont(14, color: Palette.pale, letterSpacing: 2)),
-          const SizedBox(height: 6),
-          Text(value,
-              style: pixelFont(28, color: highlight ? Palette.main : Palette.white, weight: 900)
-                  .copyWith(fontFeatures: const [FontFeature.tabularFigures()], height: 1)),
+          Text(label, style: pixelFont(compact ? 12 : 14, color: Palette.pale, letterSpacing: compact ? 1 : 2)),
+          SizedBox(height: compact ? 4 : 6),
+          // 狭い欄では、長い数字 (59:59.0 など) を折り返さずに少し縮める
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value,
+                style: pixelFont(compact ? 20 : 28, color: highlight ? Palette.main : Palette.white, weight: 900)
+                    .copyWith(fontFeatures: const [FontFeature.tabularFigures()], height: 1)),
+          ),
         ],
       );
 }
