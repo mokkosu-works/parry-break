@@ -32,17 +32,45 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_BUILD: ${{ inputs.build_number }}
+          PLATFORM: ${{ inputs.platform }}
         run: |
           tag=$(git tag --list 'v*' --sort=-v:refname | head -n1)
-          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          if [ -z "$tag" ]; then
+            echo "::error::v で始まるタグがない。release.yml でリリースしてから実行し直す"
+            exit 1
+          fi
           if [ -n "$INPUT_BUILD" ]; then
             build="$INPUT_BUILD"
+            from="入力 (build_number)"
           else
-            # GitHub Release の本文の「ビルド番号: N」から読む
-            build=$(gh release view "$tag" --json body -q .body | sed -n 's/^ビルド番号: *//p')
+            # GitHub Release の本文の「ビルド番号: N」から読む (Web で直した本文は改行が CRLF になるので \r を落とす)
+            build=$(gh release view "$tag" --json body -q .body | tr -d '\r' | sed -n 's/^ビルド番号: *//p' | head -n1)
+            from="GitHub Release $tag の本文"
           fi
+          build=$(printf '%s' "$build" | tr -d '[:space:]')
+          # 空や数字でない番号のまま fastlane に渡すと、Android は 0 を昇格しようとして分かりにくく失敗する。ストアには何も送らずに止める
+          if ! [[ "$build" =~ ^[0-9]+$ ]]; then
+            if [ -n "$INPUT_BUILD" ]; then
+              echo "::error::入力の build_number が数字でない ('${build}')。数字を入力して実行し直す"
+            else
+              echo "::error::GitHub Release ($tag) の本文にビルド番号がない ('ビルド番号: N' の行が読めない)。build_number を入力して実行し直す"
+            fi
+            exit 1
+          fi
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
           echo "build_number=$build" >> "$GITHUB_OUTPUT"
           echo "$tag / ビルド $build"
+          # 何を出すかを、実行の画面 (Summary) で見られるようにする
+          {
+            echo "## 本番に出すビルド"
+            echo
+            echo "| 項目 | 値 |"
+            echo "| --- | --- |"
+            echo "| タグ | \`$tag\` |"
+            echo "| バージョン名 | ${tag#v} |"
+            echo "| ビルド番号 | $build ($from) |"
+            echo "| 対象の OS | $PLATFORM |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   ios:
     needs: resolve
