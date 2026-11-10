@@ -68,13 +68,17 @@ Oct 4, 2026 · @watsuwo
 | 項目 | 初期値 | 範囲 |
 | --- | --- | --- |
 | 操作方式 | 領域方式 | 領域方式 / 操作レール(横) / 操作レール(縦) |
-| 移動感度 | ×2.0 | ×1.0〜×4.0 |
+| 移動感度 | ×2.0 | ×1.0〜×4.0(領域方式のときだけ使う) |
+| レール感度 | ×1.0 | ×0.5〜×2.0(操作レールのときだけ使う。×1.0 でレールの端から端が盤面の端から端) |
 | 判定タイミング補正 | 36ms(タッチ) | 0〜100ms(キャリブレーションで設定可) |
 | BGM 音量 / 効果音音量 | 80% / 100% | 0〜100% |
 | 振動 | ON | ON / OFF |
 | 画質 | 高 | 高 / 低 |
 | 演出を控えめにする | OFF | ON / OFF(フラッシュ・点滅・揺れ・メニューの動き) |
 | 言語 | 端末の言語 | 日本語 / English |
+| 難易度 | NORMAL | EASY / NORMAL / HARD。設定の画面ではなく、ステージ選択の右上で選ぶ。最後に選んだものを保存する。エンドレスは常に NORMAL |
+
+設定は `SharedPreferences` の `settings.v1` に JSON で保存する(`lib/services/settings.dart`)。範囲の外の値は読み込むときに範囲へ丸める。ほかに、開発者向けのデバッグモード(タイトルの版番号を 3 回続けてタップで切り替え。全ステージを開け、結果を記録・ランキングに残さない)も同じところに保存する。
 
 ## 4. ステージモードとランキング
 
@@ -135,7 +139,7 @@ app/
   lib/
     core/                         # 純粋 Dart(flutter を import しない)。core.dart でまとめて公開
       sim/        session.dart(実時間 → 固定ステップ), time_sync.dart, rng.dart(mulberry32 互換), geom.dart
-      config/     field.dart(盤面の座標), tuning.dart(バランス値)
+      config/     field.dart(盤面の座標), tuning.dart(バランス値), difficulty.dart(難易度 EASY / NORMAL / HARD の倍率)
       entities/   entities.dart(Block, Ball, Bullet, Laser, …)
       blocks/     block_behavior.dart(抽象 + BlockRegistry), standard_blocks.dart(登録一覧),
                   normal / turret / reflector(反射・磁力) / splitter / mirror / wall / keystone / explosive / core_block.dart
@@ -147,14 +151,20 @@ app/
                   content.dart(JSON の読み込み: EndlessContent / Campaign / StageDef / 星の条件)
       modes/      game_mode.dart(GameMode + EndlessMode + StageMode)
       events/     game_event.dart
-    game/         game_controller.dart(実時間で進め、イベントを演出・音・振動へ配る), game_screen.dart
+    app/          providers.dart(音・振動・デバッグモードなど、画面をまたいで使う Provider)
+    game/         game_controller.dart(実時間で進め、イベントを演出・音・振動へ配る), game_screen.dart,
+                  result_overlay.dart(結果画面), autoplay_bot.dart(撮影用ビルドだけの自動プレイ。promo/ で使う)
     render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿),
                   fx.dart(パーティクル・ポップアップ・コールアウトなど), pixel.dart(ドット絵の部品), text_cache.dart, palette.dart(16 色のパレットと画面の 3 色)
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
     input/        input_clock.dart(タッチの時刻の換算), touch_controls.dart(領域方式・レール・PARRY)
-    services/     settings.dart, records.dart, content.dart, leaderboard.dart
-    ui/           title / stage_select / help / settings / calibration _screen.dart, widgets.dart, stage_text.dart
+    services/     settings.dart, records.dart(記録), history.dart(最近のプレイの履歴), content.dart, leaderboard.dart,
+                  ads.dart(インタースティシャル広告と頻度の制限), review.dart(評価の依頼), error_log.dart(予期しない例外の記録)
+    ui/           stage_select / help / history / settings / calibration _screen.dart, widgets.dart, stage_text.dart,
+                  arcade.dart(タイトル・結果・ポーズで使うドット絵の部品), pixel_icons.dart(ドット絵のアイコン),
+                  help_diagram.dart(遊び方の動く図)
+      title/      title_screen.dart, title_logo.dart, attract_demo.dart(背景のデモプレイ)
     l10n/         app_ja.arb(テンプレート), app_en.arb
   assets/
     stages/endless.json               # エンドレス: 手作り配置・説明・自動生成の解禁・ボス
@@ -165,11 +175,17 @@ app/
   test/app/                           # 画面のテスト(偽の時刻でアプリ全体を動かす)と画面写真
   test/render/                        # 盤面の描画のテストと画面写真
   test/audio/                         # 効果音・BGM の書き出しのテスト
-  test/services/                      # 記録・広告のテスト
-  integration_test/                   # 実機・エミュレーターで動かすテスト(flutter drive)
+  test/services/                      # 記録・履歴・設定・広告・ランキング・評価の依頼のテスト
+  test/game/ test/ui/                 # 結果画面・キャリブレーションなどの画面部品のテスト
+  test/l10n/                          # 翻訳ファイル(日本語 / 英語)のキーが揃っているかのテスト
+  test/balance/                       # 難易度の確認用。全ステージを自動プレイし、クリア率などを出す(flutter test で明示して動かす)
+  integration_test/                   # 実機・エミュレーターで動かすテスト(flutter drive)。smoke_test.dart は CI の e2e が使う
 tools/
   subset_jp_font.sh  # 日本語のドット文字 (DotGothic16) を使っている文字だけに絞る
   make_icons.py      # アプリのアイコンと起動画面の画像をドット絵で描く
+promo/               # 実機の画面録画から SNS 向けの宣伝動画を作る道具(promo/README.md)
+posts/               # 宣伝動画の投稿文(動画の ID ごとの .txt と 一覧.md)
+records/             # 宣伝動画の記録(videos.csv。作成日・投稿日・媒体・再生数など)
 ```
 
 ### 5.4 コアの主要な型
@@ -291,12 +307,13 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 
 ## 8. 実装の状況
 
-フェーズ 0〜5 のコードは実装済み。この環境には Android SDK と完全な Xcode がないため、**iOS / Android の実機・シミュレーターでの動作は未確認**である。代わりに次を確認した。
+フェーズ 0〜5 のコードは実装済みで、iOS(App Store)と Android(Google Play)に公開している。今の版は `app/pubspec.yaml` の `version` と GitHub の Releases(`vX.Y.Z`)を見る。版ごとの確認は次のように分けている。
 
-| 確認 | 結果 |
+| 確認 | どこで |
 | --- | --- |
-| `flutter analyze` | 指摘なし |
-| `flutter test`(29件) | すべて成功。コア(配置・乱数の一致、パリィ判定、崩落、分身弾、ボスのフェーズ、決定性、全ラウンドの読み込み、ステージと星)、音の生成、アプリ全体(タイトル → エンドレス → 発射 → ポーズ → 再開、タッチ操作、ボス戦の失敗 → リザルト、ステージ選択、設定)、盤面の描画(FEVER TIME 中のボス戦、崩落、ラウンドクリア) |
+| `flutter analyze`・`flutter test` | CI の `check.yml`(PR ごととリリースの前)。テストは `app/test/` の `*_test.dart`(件数は増え続けるので書かない。数えるときは `flutter test` の最後の行を見る) |
+| エミュレーターでのスモークテスト | CI の `pr.yml` の `e2e`(`integration_test/smoke_test.dart`)と、Issue から実装するときの `implement.yml`。どの PR で動くかは [release-flow.md](release-flow.md) 第2章 |
+| 実機での確認 | テスト配信(TestFlight / Play の内部テスト)のあとに人が行う([release-flow.md](release-flow.md) 第8章) |
 | 画面写真 | `test/app/screenshots/` と `test/render/screenshots/` に、テストで描いた画面の写真がある(作り直すには `flutter test test/app test/render --dart-define=screenshots=true --update-goldens`) |
 | Web ビルド | `flutter build web` が通る(開発中に Chrome で確認するためだけに使う。ストアには出さない。音とランキングは無効) |
 
@@ -343,7 +360,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
    | `com.watsuwo.parrybreak.endless_wave` | エンドレスの到達ラウンド | エンドレス: 到達ラウンド / Endless: Round |
    | `com.watsuwo.parrybreak.stages_total` | 全ステージの最高スコアの合計 | ステージ: 合計スコア / Stages: Total Score |
 
-4. **ビルドとアップロード**: `cd app && flutter build ipa --release`。できた `build/ios/archive/Runner.xcarchive` を Xcode の Organizer で開き、Distribute App → App Store Connect でアップロードする。2回目以降は `pubspec.yaml` の `version` のビルド番号(`+` の後ろ)を上げる。
+4. **ビルドとアップロード**: `cd app && flutter build ipa --release`。できた `build/ios/archive/Runner.xcarchive` を Xcode の Organizer で開き、Distribute App → App Store Connect でアップロードする。これは最初の公開の手順。2回目以降は CI(`release.yml`)がビルドしてアップロードし、ビルド番号には `release.yml の実行番号 + 100` を付ける([release-flow.md](release-flow.md) 第1章)。`pubspec.yaml` の `+` の後ろは手元のビルド用で、ストアには使わない。
 5. **TestFlight**: 実機で、操作感・判定・音・振動・Game Center(サインイン、スコアの送信、ランキング画面)を確かめる。トラッキング許可のダイアログは最初の起動で、同意の画面のあとに出る(アプリが `app_tracking_transparency` で直接聞く)。広告は結果画面を3回見るまで出ない(9.3)。
 6. **審査に出す**: [app-store.md](app-store.md) の内容(App のプライバシーでの広告の申告を含む)を入力し、スクリーンショットを載せて提出する。
 
@@ -406,16 +423,15 @@ flutter build appbundle     # Android (要: key.properties、第9章)
   3. 鍵ファイルとパスワードを、別々の場所にバックアップする。
 
   いまのアップロード鍵は iliveoyama-creator が保管している(`CN=watsuwo, O=watsuwo, C=JP`、SHA-256 `11:AE:30:B4:E2:C8:D9:86:D1:B9:73:FF:E9:FE:87:68:1B:D4:A9:19:A1:9C:7A:C0:BC:E1:3A:C7:43:EE:3E:8F`)。
-- **ビルド**: `cd app && flutter build appbundle`。できた `build/app/outputs/bundle/release/app-release.aab` を Play Console に上げる。`keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab` の Owner と SHA-256 がアップロード鍵と同じなら、正しく署名できている。2回目以降は、iOS と同じく `pubspec.yaml` の `version` のビルド番号(`+` の後ろ)を上げる。
+- **ビルド**: `cd app && flutter build appbundle`。できた `build/app/outputs/bundle/release/app-release.aab` を Play Console に上げる。`keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab` の Owner と SHA-256 がアップロード鍵と同じなら、正しく署名できている。2回目以降は、iOS と同じく CI(`release.yml`)がビルドしてアップロードし、ビルド番号を付ける([release-flow.md](release-flow.md) 第1章)。
 
 ## 10. 残作業
 
 | 項目 | 内容 |
 | --- | --- |
-| 実機での確認 | iOS / Android の実機で、操作感・判定(キャリブレーション後)・音の遅延・振動・描画速度(FEVER TIME 中や大崩落)を確認する。画質「低」との差も見る |
-| ストアの設定 | 第9章。iOS は 9.2 の手順(署名・App Store Connect・リーダーボード・スクリーンショット)が残っている。Android は 9.4 |
+| Android のランキング | Play Games サービスの設定(9.4)。設定するまで `LeaderboardConfig.androidEnabled` は `false` のまま |
 | iPad のレイアウト | 4:3 では上下に余白が出る。HUD を盤面の外に出す配置は未対応 |
 | 音の共存 | iOS で他アプリの音楽を流しながら遊ぶ設定は未対応(オーディオセッションの設定が必要) |
 | ゲームパッド | 入力は抽象化済み。ゲームパッドの読み取りは未実装 |
-| 広告 | 本番 ID への置き換えなどのリリース前の作業(9.3)。リワード広告とボス練習モード |
+| 広告 | リワード広告とボス練習モード |
 
