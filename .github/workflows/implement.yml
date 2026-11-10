@@ -38,7 +38,10 @@ jobs:
       - name: 着手したことを Issue に書く
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "着手しました。実装して Android エミュレーターで確かめてから PR を作ります。([進み具合]($RUN_URL))"
+        run: |
+          # ジョブの開始時刻 (Claude に渡す時間を決めるのに使う)
+          echo "JOB_STARTED=$(date +%s)" >> "$GITHUB_ENV"
+          gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "着手しました。実装して Android エミュレーターで確かめてから PR を作ります。([進み具合]($RUN_URL))"
 
       - uses: actions/checkout@v4
         with:
@@ -55,7 +58,24 @@ jobs:
 
       - uses: ./.github/actions/android-emulator
 
+      # Claude の作業には、ジョブの上限 (timeout-minutes) から、ここまでにかかった時間とあとの片付けの分 (RESERVE) を引いた時間を渡す。
+      # ジョブの上限で止まると結果が cancelled になり、あとのステップ (下書きの PR・失敗のコメント) が動かないので、
+      # Claude のステップの上限で先に止めて failure にする。ジョブの上限を変えるときは JOB_MINUTES も変える
+      - name: Claude に渡す時間を決める
+        id: budget
+        env:
+          JOB_MINUTES: 120
+          RESERVE: 10
+        run: |
+          elapsed=$(( ($(date +%s) - ${JOB_STARTED:-$(date +%s)}) / 60 ))
+          minutes=$(( JOB_MINUTES - RESERVE - elapsed ))
+          [ "$minutes" -ge 10 ] || minutes=10
+          echo "ジョブの開始から $elapsed 分。Claude には $minutes 分を渡す"
+          echo "minutes=$minutes" >> "$GITHUB_OUTPUT"
+          echo "CLAUDE_STARTED=$(date +%s)" >> "$GITHUB_ENV"
+
       - id: claude
+        timeout-minutes: ${{ fromJSON(steps.budget.outputs.minutes) }}
         uses: anthropics/claude-code-action@v1
         env:
           # flutter drive の撮った画面の置き場所 (test_driver/integration_test.dart が読む)
@@ -83,6 +103,11 @@ jobs:
           claude_args: >-
             --max-turns 300
             --allowedTools "Skill,Read,Write,Edit,Glob,Grep,TodoWrite,Bash(flutter:*),Bash(dart:*),Bash(adb:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git add:*),Bash(git commit:*),Bash(git switch:*),Bash(git restore:*),Bash(git checkout --:*),Bash(git rev-parse:*),Bash(git fetch:*),Bash(git stash:*),Bash(git rm:*),Bash(git mv:*),Bash(git push -u origin ${{ env.BRANCH }}),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr edit --body-file app/build/pr_body.md),Bash(gh pr ready:*),Bash(gh pr comment:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(grep:*),Bash(wc:*),Bash(sed -n:*)"
+
+      # Claude のステップにかかった時間を残す (失敗のコメントで、時間切れかを見分ける)
+      - name: Claude にかかった時間を残す
+        if: always() && env.CLAUDE_STARTED != ''
+        run: echo "CLAUDE_SECONDS=$(( $(date +%s) - CLAUDE_STARTED ))" >> "$GITHUB_ENV"
 
       # Claude が途中で止まった・PR を作り忘れたときも、やったことが PR として残るようにする。
       # Claude の GitHub アプリのトークンで作るので、Approve できるのは「準備完了」にしたあと pr.yml が通ってから
@@ -144,8 +169,20 @@ jobs:
             app/build/emulator.log
           if-no-files-found: ignore
 
+      # 手で Cancel したとき (cancelled) は書かない。時間切れは Claude のステップの上限で failure になるので、ここで書く
       - name: 失敗したことを Issue に書く
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "途中で失敗しました。[ログ]($RUN_URL) を確かめてください。もう一度 \`@claude\` と書くと、続きからやり直します。"
+          CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
+          CLAUDE_MINUTES: ${{ steps.budget.outputs.minutes }}
+        run: |
+          retry="もう一度 \`@claude\` と書くと、続きからやり直します。"
+          # 上限で止められたステップも failure になるので、かかった時間で見分ける
+          if [ "$CLAUDE_OUTCOME" = failure ] && [ -n "$CLAUDE_SECONDS" ] && [ -n "$CLAUDE_MINUTES" ] &&
+             [ "$CLAUDE_SECONDS" -ge $(( CLAUDE_MINUTES * 60 - 30 )) ]; then
+            body="時間切れ(Claude の作業の上限 $CLAUDE_MINUTES 分)で途中で止まりました。[ログ]($RUN_URL) を確かめてください。コミット済みの変更は下書きの PR に残っていることがあります。$retry"
+          else
+            body="途中で失敗しました。[ログ]($RUN_URL) を確かめてください。$retry"
+          fi
+          gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "$body"
