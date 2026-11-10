@@ -99,7 +99,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | 8 | リリース PR | 🧑 | 新機能の文面とバージョン名を確認して、**Create a merge commit** でマージする(**人の判断 1**) |
 | 9 | マージ直後 | ⚙️ | `release.yml`: Android を Play の内部テストに、iOS を TestFlight に上げ、`vX.Y.Z` のタグと GitHub Release を作る。`sync-dev.yml`: `main` を `dev` に戻す |
 | 10 | 配信後(30分ほど) | 🧑 | 実機で第8章の確認をする(**人の判断 2**)。だめなら `fix/*` で直し、手順 3 からパッチでやり直す |
-| 11 | 確認後 | 🧑 | Actions → `promote` を実行する(**人の判断 3**) |
+| 11 | 確認後 | 🧑 | Actions → `promote` を実行する(**人の判断 3**)。出すタグ・ビルド番号は実行の Summary に出る。GitHub Release の本文からビルド番号が読めなければ、ストアに何も送らずに止まるので、`build_number` を入力して実行し直す |
 | 12 | 〃 | ⚙️ | iOS: 新機能の文面を入れて審査に提出する(承認されたら自動で段階的リリース)。Android: 本番トラックに昇格し、全員に公開する |
 | 13 | 審査で却下されたら | 🤖🧑 | App Store Connect の却下理由を Claude に貼る。Claude が原因を調べ、修正の PR か返信の下書きを作る |
 
