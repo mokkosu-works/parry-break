@@ -2,9 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../render/palette.dart';
 import '../render/pixel.dart';
+import '../services/settings.dart';
 import 'pixel_icons.dart';
 
 /// 英数字のドット文字。
@@ -265,17 +267,17 @@ class PixelWindow extends StatelessWidget {
       );
 }
 
-/// 選んでいる項目に付ける ▶ (点滅する。動きを減らす設定では点けたまま)。
-class BlinkCursor extends StatefulWidget {
+/// 選んでいる項目に付ける ▶ (点滅する。端末の動きを減らす設定・「演出を控えめにする」では点けたまま)。
+class BlinkCursor extends ConsumerStatefulWidget {
   const BlinkCursor({super.key, this.color = Palette.yellow, this.size = 18});
   final Color color;
   final double size;
 
   @override
-  State<BlinkCursor> createState() => _BlinkCursorState();
+  ConsumerState<BlinkCursor> createState() => _BlinkCursorState();
 }
 
-class _BlinkCursorState extends State<BlinkCursor> with SingleTickerProviderStateMixin {
+class _BlinkCursorState extends ConsumerState<BlinkCursor> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
 
   @override
@@ -292,7 +294,8 @@ class _BlinkCursorState extends State<BlinkCursor> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final still = MediaQuery.disableAnimationsOf(context);
+    final still =
+        MediaQuery.disableAnimationsOf(context) || ref.watch(settingsProvider.select((s) => s.reduceEffects));
     return AnimatedBuilder(
       animation: _c,
       builder: (_, _) => Opacity(

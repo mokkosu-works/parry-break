@@ -8,13 +8,16 @@ import 'text_cache.dart';
 
 /// ブロックを描くときに使えるもの。
 class BlockPaintContext {
-  BlockPaintContext(this.canvas, this.text, this.time, this.colorOf);
+  BlockPaintContext(this.canvas, this.text, this.time, this.colorOf, {this.calm = false});
   final Canvas canvas;
   final TextCache text;
 
   /// 実時間 (秒)。明滅などのアニメーションに使う。
   double time;
   final Color Function(Block) colorOf;
+
+  /// 「演出を控えめにする」。速い点滅をやめ、点けたままにする。
+  final bool calm;
 }
 
 /// [rect] (画面上の位置) にブロック [b] を描く。
@@ -76,7 +79,7 @@ void _eachInnerDot(Rect i, void Function(int col, int row, double x, double y) f
 /// 通常・砲台 (攻撃ブロック)・反射・磁力・分裂の描き方 (陰影の付いた四角 + 種類ごとのドットの印 + 残り HP)。
 void paintStandardBlock(BlockPaintContext ctx, Block b, Rect r) {
   final c = ctx.canvas, col = ctx.colorOf(b), i = _inner(r);
-  final warn = b.telegraph && (ctx.time * 16).floor().isEven;
+  final warn = b.telegraph && (ctx.calm || (ctx.time * 16).floor().isEven);
   bevelRect(c, i, warn ? Dot.white : col);
   final cx = r.center.dx, cy = r.center.dy;
   void muzzle() =>
