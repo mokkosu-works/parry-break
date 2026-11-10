@@ -23,5 +23,12 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      # 整形のずれを止める。生成物の lib/l10n/app_localizations*.dart は除く。
+      # 落ちたら、手元で同じ find の結果に dart format をかけてコミットする
+      - name: 整形 (dart format)
+        run: >-
+          find lib test integration_test test_driver -name '*.dart'
+          -not -path 'lib/l10n/app_localizations*.dart' -print0
+          | xargs -0 dart format --output=none --set-exit-if-changed
       - run: flutter analyze
       - run: flutter test

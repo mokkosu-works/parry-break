@@ -70,7 +70,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 
 | ワークフロー | きっかけ | 内容 |
 | --- | --- | --- |
-| `check.yml` | 下の2つから呼ぶ | `flutter analyze`、`flutter test` |
+| `check.yml` | 下の2つから呼ぶ | 整形のずれの確認(`dart format`。生成物の `lib/l10n/app_localizations*.dart` は除く)、`flutter analyze`、`flutter test` |
 | `implement.yml` | Issue のコメントの `@claude` | Android エミュレーターを起動し、Claude が Issue を実装・テストし、エミュレーターで確かめて `dev` 向けの PR を作る(`.claude/skills/implement-issue/SKILL.md`)。撮った画面は実行の Artifacts に残る |
 | `pr.yml` | PR の作成・更新(手動実行も可) | チェック、Claude のレビュー。エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)は `main` 向けの PR と手動実行だけで動かす。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
 | `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` の `check`・`review` が通っていれば squash でマージする |
@@ -210,7 +210,6 @@ CI のマシンには Xcode のアカウントがないので、配布用の証�
 
 | 項目 | 内容 |
 | --- | --- |
-| `dart format` のチェック | いまのコードは大半が `dart format` の結果と違う(79ファイル中68)。一度まとめて整形する PR を入れてから、`check.yml` に `dart format --output=none --set-exit-if-changed lib test integration_test` を足す |
 | Google Play の掲載文の自動送信 | 説明文などを `app/android/fastlane/metadata/android/<言語>/` に移し、`promote` で送る。いまは更新が少ないので手で入力する(App Store は送っている) |
 | スクリーンショットの自動化 | `integration_test/store_screenshots_test.dart` を CI のシミュレータで動かし、fastlane の `screenshots/` に置いて送る。macOS の時間がかかるので、画面が変わったときだけ手動で実行するワークフローにする |
 | Android の段階的公開 | いまは最初から全員に出す。利用者が増えたら、`promote` で一部(例: 20%)に出し、クラッシュ率を見て割合を上げる形に戻す。クラッシュの収集(Crashlytics など)を入れてから |

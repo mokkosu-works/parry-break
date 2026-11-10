@@ -29,11 +29,13 @@ gh pr list --head claude/issue-<番号> --state open   # 前回の続きか
 ## 2. 実装する
 
 - 手を入れる前に、関係する仕様(`design.md`、`docs/native-app-spec.md`)とコードを読む。レビューは `.claude/skills/pr-review/SKILL.md` の観点で行われるので、先に読んで、当てはまる節(コアの決定性、保存データ、ステージの JSON、広告、文言の `.arb` など)を守る。
-- 変更は Issue の範囲に絞る。ついでの整理・整形はしない。
+- 変更は Issue の範囲に絞る。ついでの整理はしない。
 - テストは `pr-review` スキルの 2.7 の表に従って足す。不具合の修正なら、直す前に落ちるテストを先に書く。
+- コミットの前に、変えた・足した `.dart` ファイルを `dart format` で整形する(`check.yml` が整形のずれで落ちる)。コードはすでに整形済みなので、変えた行のほかに差分は出ない。生成物の `lib/l10n/app_localizations*.dart` は整形しない(`.arb` を変えたら `flutter gen-l10n` で作り直す)。
 
 ```sh
 cd app
+dart format <変えた .dart ファイル>
 flutter analyze
 flutter test
 ```
