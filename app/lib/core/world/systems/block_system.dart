@@ -93,7 +93,7 @@ extension _BlockSystem on World {
     if (e.shrapnel && phase == WorldPhase.playing) {
       for (var k = -1; k <= 1; k++) {
         final a = math.pi / 2 + k * 28 * deg + aux.range(-0.1, 0.1);
-        final sp = 250 * round.loopMul;
+        final sp = 250 * difficulty.bulletSpeed * round.loopMul;
         _spawnHostile(e.x, e.y, math.cos(a) * sp, math.sin(a) * sp, BulletKind.shrapnel);
       }
     }

@@ -186,4 +186,117 @@ void main() {
       expect(w.blocks.firstWhere((b) => b.type == 'T').fireT, closeTo(t.turretInterval(20, 1), 1e-9));
     });
   });
+
+  group('倍率がかからなかった攻撃 (#126)', () {
+    /// [index] 体目のボス戦 ([loop] 周目)。カウントダウンは済ませる。
+    World bossAt(Difficulty d, int index, {int loop = 0}) {
+      final c = endlessContent;
+      final w = World(mode: endlessMode, difficulty: d)
+        ..start(fromRound: loop * c.roundsPerLoop + (index + 1) * c.bossEvery);
+      run(w, 1.1);
+      return w;
+    }
+
+    /// [p] だけを [seconds] 秒動かし、撃ったレーザーの本数と敵弾の数を返す。
+    (int, int) fire(World w, BossPattern p, double seconds) {
+      final cores = w.blocks.where((b) => b.type == bossCoreId).toList();
+      var lasers = 0, bullets = 0;
+      for (var i = 0; i < (seconds / World.dt).round(); i++) {
+        w.lasers.clear();
+        w.bullets.clear();
+        p.update(w, w.boss!, cores, World.dt, 1);
+        lasers += w.lasers.length;
+        bullets += w.bullets.length;
+      }
+      return (lasers, bullets);
+    }
+
+    test('ロックオン・レーザー格子の頻度は、EASY で減り、2 周目で増える (HARD は NORMAL と同じ)', () {
+      for (final make in <BossPattern Function(int)>[LaserPattern.new, LaserGridPattern.new]) {
+        int n(Difficulty d, {int loop = 0}) => fire(bossAt(d, 3, loop: loop), make(1), 120).$1;
+        final easy = n(Difficulty.easy), normal = n(Difficulty.normal), hard = n(Difficulty.hard);
+        final name = make(1).runtimeType;
+        expect(easy, lessThan(normal), reason: '$name: $easy $normal $hard');
+        expect(hard, normal, reason: '$name: $easy $normal $hard');
+        expect(n(Difficulty.normal, loop: 1), greaterThan(normal), reason: '$name: 2 周目');
+      }
+    });
+
+    test('渦巻きの頻度は、難易度と周回で変わる (フェーズの倍率はかけない)', () {
+      int n(Difficulty d, {int loop = 0, int phase = 1}) {
+        final w = bossAt(d, 1, loop: loop);
+        w.boss!.phase = phase;
+        return fire(w, SpiralPattern(1), 20).$2;
+      }
+
+      final normal = n(Difficulty.normal);
+      expect(n(Difficulty.easy), lessThan(normal));
+      expect(n(Difficulty.hard), greaterThan(normal));
+      expect(n(Difficulty.normal, loop: 1), greaterThan(normal));
+      expect(n(Difficulty.normal, phase: 3), normal);
+    });
+
+    /// [d] の [rows] で [act] を行い、そのあと 2 秒の間に出た [kind] の敵弾の、出たときの速度 (vx, vy)。
+    List<(double, double)> speeds(Difficulty d, List<String> rows, BulletKind kind, void Function(World) act) {
+      final w = gunWorld(rows, d, level: 1);
+      w.bullets.clear();
+      act(w);
+      final seen = <Bullet, (double, double)>{};
+      run(w, 2, before: () {
+        for (final u in w.bullets) {
+          if (u.kind == kind) seen.putIfAbsent(u, () => (u.vx, u.vy));
+        }
+      });
+      return seen.values.toList();
+    }
+
+    /// EASY / HARD の下向きの速さが、NORMAL の速さに難易度の弾速をかけたものになっている。
+    /// [sideways] のときは横向きの速さにもかける (瓦礫の横の揺れはかけない)。
+    void expectScaled(List<(double, double)> Function(Difficulty) of, {bool sideways = true}) {
+      final normal = of(Difficulty.normal);
+      expect(normal, isNotEmpty);
+      for (final d in [Difficulty.easy, Difficulty.hard]) {
+        final v = of(d);
+        expect(v.length, normal.length, reason: d.name);
+        for (var i = 0; i < v.length; i++) {
+          expect(v[i].$2, closeTo(normal[i].$2 * d.bulletSpeed, 1e-6), reason: d.name);
+          expect(v[i].$1, closeTo(normal[i].$1 * (sideways ? d.bulletSpeed : 1), 1e-6), reason: d.name);
+        }
+      }
+    }
+
+    void bomb(World w) => w.queueBlast(Field.width / 2, 600, 0, 10, shrapnel: true, kind: BlastKind.bomb);
+
+    test('爆発の破片の速さに、難易度の弾速がかかる', () {
+      expectScaled((d) => speeds(d, [_row], BulletKind.shrapnel, bomb));
+      for (final (vx, vy) in speeds(Difficulty.normal, [_row], BulletKind.shrapnel, bomb)) {
+        expect(math.sqrt(vx * vx + vy * vy), closeTo(250, 1e-6), reason: 'NORMAL はこれまでと同じ');
+      }
+    });
+
+    test('崩落の瓦礫の速さに、難易度の弾速がかかる', () {
+      const rows = ['...K......K...', '...N......N...', '.NNNNN..NNNNN.', '.NNNNN..NNNNN.'];
+      expectScaled((d) => speeds(d, rows, BulletKind.shard, (w) {
+            // 爆風で壊す (HARD の撃ち返しで乱数の順番が変わらないように)
+            w.destroyBlock(w.blocks.firstWhere((b) => b.type == 'K'), DestroyCause.blast);
+          }), sideways: false);
+    });
+
+    test('鏡面が跳ね返す弾の速さに、難易度の弾速がかかる', () {
+      double speed(Difficulty d) {
+        final w = gunWorld(['......X.......', _row], d);
+        final m = w.blocks.firstWhere((b) => b.type == 'X');
+        final c = w.blockCenter(m);
+        final u = Bullet(x: c.x, y: c.y, vx: 0, vy: -400, kind: BulletKind.bullet)..hostile = false;
+        m.behavior.onReturnedBullet(w, m, u);
+        expect(u.hostile, isTrue);
+        return math.sqrt(u.vx * u.vx + u.vy * u.vy);
+      }
+
+      const t = Tuning();
+      for (final d in Difficulty.values) {
+        expect(speed(d), closeTo(t.mirrorReturnSpeed * d.bulletSpeed, 1e-6), reason: d.name);
+      }
+    });
+  });
 }
