@@ -103,7 +103,7 @@ extension _BulletSystem on World {
     emit(Popup(u.x, Field.paddleY - 8, 'GRAZE', PopupKind.graze, amount: v));
   }
 
-  /// 敵弾を撃ち返す。赤い弾はコアへ、それ以外は発射元 (なければ最寄りのブロック) へ向かう。
+  /// 敵弾を撃ち返す。赤い弾はコアへ、それ以外は発射元の砲台 (なければ最寄りのブロック) へ向かう。
   void _parryBullet(Bullet u, ParryGrade grade) {
     u
       ..hostile = false
@@ -115,8 +115,9 @@ extension _BulletSystem on World {
       final tg = u.target;
       if (tg != null) to = blockCenter(tg);
     }
+    // 発射元がコアの赤くない弾は、コアにはじかれるだけなので、発射元がない弾と同じく最寄りのブロックへ (#123)
     final src = u.source;
-    if (to == null && src != null && !src.removed) to = blockCenter(src);
+    if (to == null && src != null && !src.removed && src.type != bossCoreId) to = blockCenter(src);
     if (to == null) {
       final nb = _nearestBlock(u.x, u.y);
       if (nb != null) to = blockCenter(nb);

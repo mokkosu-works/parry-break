@@ -86,6 +86,8 @@ List<GameEvent> shootCoreFromBelow(World w, Block core, {int pierce = 1}) {
 }
 
 void main() {
+  group('ボス戦の撃ち返し弾の行き先', returnedBulletTests);
+
   final bosses = endlessContent.bosses;
 
   test('ボスは後になるほど硬く、時間あたりに削る量が増える', () {
@@ -363,5 +365,88 @@ void main() {
         }
       }
     }
+  });
+}
+
+/// パドルの真上から敵弾を落とし、接触の少し前に押して撃ち返す。撃ち返した弾を返す。
+Bullet parryBulletFrom(World w, Block? source, {required bool red}) {
+  w.bullets.clear();
+  w.fireBullet(w.paddle.x, Field.paddleY - 30, math.pi / 2, 300, source: source, red: red);
+  final u = w.bullets.last;
+  // 弾の下端がパドル上面に触れるのは 24px / 300 = 0.08 秒後
+  final press = w.t + 0.07;
+  var pressed = false;
+  final events = run(w, 0.12, before: () {
+    if (!pressed && w.t + World.dt >= press - 0.2) {
+      w.pressAction(press);
+      pressed = true;
+    }
+  });
+  expect(events.whereType<ParrySucceeded>().where((e) => e.target == ParryTarget.bullet), hasLength(1));
+  expect(u.hostile, isFalse);
+  return u;
+}
+
+/// [u] の進む向きが、[u] から [b] の中心への向きと合っているか。
+bool headsTo(World w, Bullet u, Block b) {
+  final o = w.blockCenter(b);
+  final want = math.atan2(o.y - u.y, o.x - u.x), cur = math.atan2(u.vy, u.vx);
+  return (want - cur).abs() < 0.03;
+}
+
+/// [u] から見て、自分より上にある最寄りのクリア対象ブロック。
+Block nearestClearable(World w, Bullet u) {
+  final cand = w.blocks.where((b) => b.behavior.clearable && w.blockCenter(b).y <= u.y).toList();
+  double d2(Block b) {
+    final o = w.blockCenter(b);
+    return (o.x - u.x) * (o.x - u.x) + (o.y - u.y) * (o.y - u.y);
+  }
+
+  return cand.reduce((a, b) => d2(a) <= d2(b) ? a : b);
+}
+
+void returnedBulletTests() {
+  /// ボス1 (入力時刻 = シミュレーション時刻)。ボールはパドルに付けたまま、パドルの下に置いておく。
+  World boss() {
+    final w = World(mode: endlessMode, inputLag: 0)..start(fromRound: endlessContent.bossEvery);
+    w.sync.identity();
+    run(w, 1.1);
+    w.ball
+      ..attached = false
+      ..x = 40
+      ..y = Field.paddleY - 300
+      ..vx = 0
+      ..vy = -w.ball.speed;
+    return w;
+  }
+
+  test('ボスのコアが撃った赤くない弾を撃ち返すと、コアではなく最寄りのクリア対象ブロックへ向かう (#123)', () {
+    final w = boss();
+    final core = coresOf(w).first;
+    final u = parryBulletFrom(w, core, red: false);
+    expect(headsTo(w, u, core), isFalse);
+    expect(headsTo(w, u, nearestClearable(w, u)), isTrue);
+  });
+
+  test('ボスの赤い弾は、これまでどおり最寄りのコアへ誘導される (#123)', () {
+    final w = boss();
+    final core = coresOf(w).first;
+    final u = parryBulletFrom(w, core, red: true);
+    expect(u.target, same(core));
+    expect(headsTo(w, u, core), isTrue);
+  });
+
+  test('砲台の弾は、これまでどおり発射元の砲台へ向かう (#123)', () {
+    final w = testWorld(const SingleRoundMode(['NNNNNNTNNNNNNN']));
+    run(w, 1.1);
+    w.ball
+      ..attached = false
+      ..x = 40
+      ..y = Field.paddleY - 300
+      ..vx = 0
+      ..vy = -w.ball.speed;
+    final turret = w.blocks.firstWhere((b) => b.type == 'T');
+    final u = parryBulletFrom(w, turret, red: false);
+    expect(headsTo(w, u, turret), isTrue);
   });
 }
