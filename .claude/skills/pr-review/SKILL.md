@@ -33,11 +33,22 @@ gh pr diff <番号>
 - 描画・音・振動を直接呼んでいる → `GameEvent` を発行して購読側で処理する
 - 浮動小数の比較・境界(`<` と `<=`)、1 フレームの取りこぼし、リストを回しながら消す、を変更した箇所で疑う
 
-### 2.2 保存データ(`app/lib/services/records.dart`・`settings.dart`・`ads.dart`)
+### 2.2 保存データ(`app/lib/services/` の `SharedPreferences` に書くファイルすべて)
 
 上書きインストールで記録と設定が残ることは、実機確認の項目(`docs/release-flow.md` 第8章)。壊れると取り返せない。
 
-- `SharedPreferences` のキー(`records`、`settings.v1`、`ads.*`)を変えた、または消した → 不具合(前の記録が読めなくなる)。変えるなら古いキーを読んで移す処理が要る
+いま保存しているキーは次のとおり。この一覧は古くなりうるので、`SharedPreferences` に書くファイル・キーは `grep -rn "SharedPreferences\|static const .*[kK]ey" app/lib` で探し、一覧にないものも同じように見る。
+
+| ファイル | キー | 中身 |
+| --- | --- | --- |
+| `records.dart` | `records`、`records.broken` | 記録(最高スコア・ステージごとの星など)。読めなかった元の文字列の退避 |
+| `history.dart` | `history.v1`、`history.broken` | 最近のプレイの履歴。読めなかった元の文字列の退避 |
+| `settings.dart` | `settings.v1` | 設定 |
+| `ads.dart` | `ads.*` | 広告の頻度の制限(結果画面の回数・前回の表示・その日の回数) |
+| `leaderboard.dart` | `leaderboard.pending` | 送れなかったスコア(次の起動・サインインで送る) |
+| `review.dart` | `review.lastAsked`、`review.count` | 評価の依頼を出した日時と回数(2.4 の条件の判定に使う) |
+
+- `SharedPreferences` のキーを変えた、または消した → 不具合(前の記録が読めなくなる。`review.*` なら、上限を超えて評価のダイアログが出る。`leaderboard.pending` なら、送れなかったスコアが消える)。変えるなら古いキーを読んで移す処理が要る
 - `toJson` のフィールド名・型を変えた → 古い JSON を `fromJson` で読めるか。足したフィールドは欠けていても既定値で読めるか
 - `Records.version` を上げた → 前のバージョンからの移行と、そのテストがあるか。互換をなくすならメジャーバージョン(`release-flow.md` 第1章)
 - 記録はステージの `id` をキーに、星は `stars` の **並び順** で持っている → 次の 2.3 も見る
@@ -50,7 +61,7 @@ gh pr diff <番号>
 - `title` の `ja` / `en` の片方がない
 - 未完成のステージを入れた → ユーザーに見えない状態か(`release-flow.md` 第1章「未完成の機能」)
 
-### 2.4 広告(`app/lib/services/ads.dart`・呼び出し側)
+### 2.4 広告・評価の依頼(`app/lib/services/ads.dart`・`review.dart`・呼び出し側)
 
 審査とアカウントの停止に直結する。
 
@@ -59,6 +70,8 @@ gh pr diff <番号>
 - `InterstitialPolicy`(結果画面を3回見るまでは出さない・3分あける・1日8回まで)を通さずに広告を出す、プレイ中(ラウンドの途中・ボス戦)に出す → 不具合
 - iOS でトラッキング許可(ATT)のダイアログより先に広告を読み込む、同意(UMP)の処理を飛ばす → 審査で落ちる
 - 広告の読み込み・表示の失敗で画面遷移が止まる(`await` したまま戻らない、例外が漏れる) → 不具合(結果画面からタイトルに戻れなくなる)
+- 評価の依頼(`app/lib/services/review.dart`、呼び出しは `game/game_screen.dart` の `_askReview`): `ReviewPolicy` の条件(クリア5面以上・前回から60日以上・通算3回まで)を変えた、`ReviewPolicy` を通さずに `InAppReview.requestReview` を呼ぶ、星3つでクリアして結果画面から戻るとき以外(プレイ中・起動直後など)に出す → 不具合(Apple のガイドラインでは年3回まで。しつこい依頼は審査とストアの評価に響く)。条件を変えるなら、`docs/native-app-spec.md` 9.1 の「評価の依頼」も直す
+- 評価の依頼を出した回にも広告を出す、デバッグモードのプレイで評価の依頼や広告を出す → 不具合(`_leaveResult` は、依頼を出したらその回の広告は出さない)
 
 ### 2.5 UI・文言(`app/lib/ui/`・`app/lib/game/`・`app/lib/l10n/`)
 
@@ -81,6 +94,7 @@ gh pr diff <番号>
 | 新しいブロック・ボスの攻撃・クリア条件・星の条件 | 少なくとも 1 つ、それが働くことのテスト |
 | 保存データの形式 | 古い JSON を読めるテスト |
 | 広告の頻度の制限 | `app/test/services/ads_test.dart` に、時刻を差し替えたテスト |
+| 評価の依頼の条件(`ReviewPolicy`) | `app/test/services/review_test.dart` に、時刻を差し替えたテスト(回数・間隔の境界を含む) |
 | 不具合の修正 | 直す前に落ちるテスト(回帰テスト) |
 
 ### 2.8 Issue から作った PR(作者が `claude[bot]`、ブランチが `claude/issue-*`)
