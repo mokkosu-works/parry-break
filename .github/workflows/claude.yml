@@ -19,6 +19,12 @@ jobs:
       contains(github.event.comment.body, '@claude') &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # 同じ PR への依頼は 1 つずつ動かす (2 つの Claude が同じブランチに push しないように)。
+    # 動いている間に来た依頼は待つ。待ちは 1 つだけで、さらに来ると前の待ちが取り消される
+    concurrency:
+      group: claude-pr-${{ github.event.issue.number || github.event.pull_request.number }}
+      cancel-in-progress: false
     permissions:
       contents: write
       pull-requests: write
@@ -26,7 +32,21 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+      # 直したあとに flutter analyze / flutter test を回してから push できるように入れる
+      - uses: subosito/flutter-action@v2
+        with:
+          # check.yml と同じ値にする
+          flutter-version: 3.47.6
+          channel: stable
+          cache: true
       - uses: anthropics/claude-code-action@v1
+        env:
+          # flutter test は既定の 2 分を超えうる
+          BASH_DEFAULT_TIMEOUT_MS: '600000'
+          BASH_MAX_TIMEOUT_MS: '1200000'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           base_branch: dev
+          # pr.yml の fix の一覧を元にする。push はアクションが PR のブランチへの分を許す。ラベル・マージに使えるコマンドは許さない
+          claude_args: >-
+            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,TodoWrite,Bash(flutter:*),Bash(dart:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git add:*),Bash(git commit:*),Bash(git checkout --:*),Bash(git rev-parse:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh issue view:*),Bash(cat:*),Bash(ls:*),Bash(cd:*),Bash(wc:*),Bash(grep:*)"

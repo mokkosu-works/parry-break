@@ -74,7 +74,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | `implement.yml` | Issue のコメントの `@claude` | Android エミュレーターを起動し、Claude が Issue を実装・テストし、エミュレーターで確かめて `dev` 向けの PR を作る(`.claude/skills/implement-issue/SKILL.md`)。撮った画面は実行の Artifacts に残る |
 | `pr.yml` | PR の作成・更新(手動実行も可) | チェック、Claude のレビュー。エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)は `main` 向けの PR と手動実行だけで動かす。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
 | `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` の `check`・`review` が通っていれば squash でマージする |
-| `claude.yml` | PR のコメントの `@claude` | Claude が依頼に応える(レビューの指摘の修正など) |
+| `claude.yml` | PR のコメントの `@claude` | Claude が依頼に応える(レビューの指摘の修正など)。Flutter を入れてあり、Claude が `flutter analyze` / `flutter test` を回してから PR のブランチに push できる。同じ PR への依頼は 1 つずつ動き、上限は 60 分 |
 | `release.yml` | `main` への push(手動実行も可) | バージョン名のタグがまだなければ、チェックのあと両 OS をビルドしてテスト配信し、タグと GitHub Release を作る |
 | `sync-dev.yml` | `main` への push | `main` を `dev` にマージする |
 | `promote.yml` | 手動実行 | テスト配信中のビルドを本番に出す(iOS は審査に提出、Android は全員に公開) |
@@ -134,7 +134,7 @@ App Store の名前・説明文・キーワード・URL などの掲載文は `a
 | Issue の実装 | `implement.yml`(Issue に `@claude` とコメント)+ `.claude/skills/implement-issue/SKILL.md` | 実装・単体テスト・Android エミュレーターでの確認(スモークテストと、完了条件を確かめる `integration_test/<確かめる内容>_test.dart`、撮った画面を Claude が見る)をして、`dev` 向けの PR を作る。「先に聞いてほしい」項目が残っていれば、実装せずに Issue で質問する。手元でも `/implement-issue <番号>` で同じことができる |
 | PR のレビュー | `pr.yml`(`anthropics/claude-code-action`)+ `.claude/skills/pr-review/SKILL.md` | 不具合・テストの漏れ・設計書との食い違い・完了条件を満たしているかを見る。直すべき問題があれば `needs-fix` を付けて、マージを止める。観点と重さの基準はスキルに書く。手元でも `/pr-review <番号>` で同じレビューができる |
 | 指摘の自動修正 | `pr.yml` の `fix` + `.claude/skills/pr-fix/SKILL.md` | `needs-fix` が付いたら、`[要修正]` の指摘を 1 つずつ確かめる(コードを追う・落ちるテストを書く)。妥当なものだけ直してコミットし、ワークフローが `flutter analyze` / `flutter test` を通してから Claude の GitHub アプリのトークンで push する(再レビューが動く)。妥当でない・人の判断が要る指摘は、スレッドに理由を返して人に回す。続けて 2 回まで。`main` 向けの PR では動かない。手元でも `/pr-fix <番号>` で同じことができる |
-| PR での依頼 | `claude.yml`(PR に `@claude` を付けてコメント) | 指摘の修正 |
+| PR での依頼 | `claude.yml`(PR に `@claude` を付けてコメント) | 指摘の修正、テストの実行など。Claude は `flutter analyze` / `flutter test` を回して確かめてから PR のブランチに push する(`@claude flutter test を回して` で結果だけを返させることもできる)。許すコマンドは `pr.yml` の `fix` に合わせ、ラベルの付け外し・マージはしない。エミュレーターはないので、画面での確認はできない。動いている間に同じ PR で `@claude` と書くと、終わるまで待つ(待てるのは 1 つで、さらに書くと前の待ちが取り消される) |
 | リリース準備 | `.claude/skills/release/SKILL.md`(`/release`) | 第3章の手順 4〜7。Claude Code(ターミナル・Web・アプリ)で実行する |
 | リリース準備の定期実行 | Claude Code のルーティン(claude.ai/code の Routines) | 例: 隔週の月曜に `/release` を実行する。前回のタグから出す価値のある変更がなければ何もしない |
 | 審査の却下・CI の失敗 | Claude Code で依頼 | 却下理由やログを渡すと、原因を調べて修正の PR を作る |
