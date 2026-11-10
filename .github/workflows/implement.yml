@@ -76,9 +76,13 @@ jobs:
 
             implement-issue スキル(.claude/skills/implement-issue/SKILL.md)の手順で、この Issue を実装し、
             エミュレーターで確かめてから dev 向けの PR を作る(すでに PR があればそこに push する)。
+          # dev / main への push、ラベルの付け外し、マージに使えるコマンドは許さない。
+          # git はサブコマンドごとに許し、push は作業ブランチへの決まった形だけ (末尾に :* を付けず、完全一致にする)。
+          # gh pr edit は、いまのブランチの PR の本文を差し替える決まった形だけ (--add-label / --remove-label を付けられない)。
+          # 長いコマンドは BASH_DEFAULT_TIMEOUT_MS に任せ、timeout や find -exec で包む形は許さない (ファイルは Glob で探す)
           claude_args: >-
             --max-turns 300
-            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,TodoWrite,Bash(flutter:*),Bash(dart:*),Bash(adb:*),Bash(git:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr ready:*),Bash(gh pr comment:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(grep:*),Bash(find:*),Bash(wc:*),Bash(sed -n:*),Bash(timeout:*)"
+            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,TodoWrite,Bash(flutter:*),Bash(dart:*),Bash(adb:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git add:*),Bash(git commit:*),Bash(git switch:*),Bash(git restore:*),Bash(git checkout --:*),Bash(git rev-parse:*),Bash(git fetch:*),Bash(git stash:*),Bash(git rm:*),Bash(git mv:*),Bash(git push -u origin ${{ env.BRANCH }}),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr edit --body-file app/build/pr_body.md),Bash(gh pr ready:*),Bash(gh pr comment:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(grep:*),Bash(wc:*),Bash(sed -n:*)"
 
       # Claude が途中で止まった・PR を作り忘れたときも、やったことが PR として残るようにする。
       # Claude の GitHub アプリのトークンで作るので、Approve できるのは「準備完了」にしたあと pr.yml が通ってから
