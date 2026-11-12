@@ -29,8 +29,19 @@
    python3 promo/build.py promo/spec.x.json   # promo/out/{パターン名}_{A|B|C}.mp4 と、records と posts への追記
    ```
    `--dry-run` で長さの確認だけ、`--no-record` で記録なしの試験出力、`--posts-only` で投稿文だけを作る。既存のファイルは上書きしない。
-3. **投稿する**: `posts/{ID}.txt` の YouTube 用・TikTok 用の文を使う。ID は YouTube のタグ欄にも入れる。`python3 promo/make_index.py` で、`posts/一覧.md` (ID・投稿日・長さ・字幕の一覧) を作り直せる。
+3. **投稿する**: `posts/{ID}.txt` の YouTube 用・TikTok 用の文を使う。ID は YouTube のタグ欄にも入れる。`python3 promo/make_index.py` で、`posts/一覧.md` (ID・投稿日・長さ・字幕の一覧) を作り直せる。長さは `build.py` が `records/videos.csv` の「長さ(秒)」に書いたものを使うので、`promo/out/` のない環境で作り直しても同じ表になる。
 4. **記録する**: 再生数と視聴率 (視聴 vs スワイプ) は `records/videos.csv` に手で書く。
+
+## 録画の前に (`capture.sh`)
+
+`capture.sh` は画面の決まった位置をタップして進めるので、端末を次の状態にしておく。合わないときは、録画を始める前にエラーで止まる (解像度・章の数・ボスのステージ)。
+
+- **解像度**: 2400x1080 (`adb shell wm size` が `2400x1080` か `1080x2400`)。タップの座標はこの解像度の値。ほかの解像度の端末では止まるので、同じ縦横比なら `adb shell wm size 1080x2400` で合わせる (戻すときは `adb shell wm size reset`)。
+- **向き**: アプリは横画面で開く。端末を横に置いて、画面が横向きになっていることを確かめる。
+- **デバッグモード**: タイトルの `VER` を 3 回タップしておく (全ステージを選べる)。オフだと、まだ開いていないステージを押しても始まらない。
+- **章**: ステージ選択は「まだクリアしていない最初のステージ」の章で開くので、`capture.sh` は ← キー (`KEYCODE_DPAD_LEFT`) で第1章へ戻してから、「次の章へ」で目的の章へ進める。普段遊んでいる端末でもそのまま撮れる。
+- **端末は 1 台だけ** つなぐ (`adb devices`)。
+- 録画に失敗すると (scrcpy が始まらない・終わり方がおかしい・ファイルが空)、scrcpy のログの末尾を出して 0 以外で終わる。ログは `promo/raw/<録画と同じ名前>.log` に残る。
 
 ## 決めごと
 

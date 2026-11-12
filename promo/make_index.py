@@ -2,6 +2,7 @@
 """posts/一覧.md を作る (何度でも作り直せる。動画や記録は触らない)。
 
 YouTube Studio で動画のタイトルを変えても、「長さ」と「冒頭の字幕」から、どの ID か分かるようにする。
+長さは records/videos.csv の「長さ(秒)」を使う (build.py が書く)。空のときだけ promo/out/ の動画を測る。
   python3 promo/make_index.py
 """
 import csv, json, pathlib, subprocess
@@ -30,7 +31,10 @@ def main():
         cap = spec["hooks"][hook]["caption"] if spec else "?"
         body = spec["body"]["caption"] if spec else "?"
         video = ROOT / r["ファイルパス"]
-        sec = f"{duration(video)}秒" if video.exists() else "?"
+        if (r.get("長さ(秒)") or "").strip():
+            sec = f"{round(float(r['長さ(秒)']))}秒"
+        else:
+            sec = f"{duration(video)}秒" if video.exists() else "?"
         lines.append(f"| {r['id']} | {r['投稿日'] or '-'} | {name} | {hook} {HOOK_TYPE[hook]} | {sec} | {cap} | {body} | `{pathlib.Path(r['ファイルパス']).name}` |")
     (ROOT / "posts/一覧.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"posts/一覧.md を作った ({len(rows)} 行)")

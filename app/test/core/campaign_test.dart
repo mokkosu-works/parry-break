@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parry_break/core/blocks/explosive.dart';
@@ -97,10 +98,89 @@ void main() {
     }
   });
 
+  // design.md 6章「章とステージの並べ方」の難しさの並べ方 (#164)。ボス (10 番目) は除く。
+  // 面の難易度は、その面のラウンドのうち最も高いもの (連戦は通しで見る)。
+  test('難易度は章の中でおおむね上がり、章ごとに上がっていく (新しい攻撃ブロックの初登場から始まる章は例外)', () {
+    const newAttackIntros = {
+      'intro.spread',
+      'intro.gatling',
+      'intro.ring',
+      'intro.spiral',
+      'intro.sniper',
+    };
+    int level(StageDef s) => s.rounds.map((w) => w.difficulty).reduce(math.max);
+    for (final (i, ch) in campaign.chapters.indexed) {
+      final stages = ch.stages
+          .where((s) => s.rounds.every((w) => w.content is! BossContent))
+          .toList();
+      // 章の中: 直前の面より 2 を超えて下げない
+      for (var k = 1; k < stages.length; k++) {
+        expect(
+          level(stages[k]),
+          greaterThanOrEqualTo(level(stages[k - 1]) - 2),
+          reason: '${stages[k].id} が ${stages[k - 1].id} より下がりすぎている',
+        );
+      }
+      if (i == 0) continue;
+      final prev = campaign.chapters[i - 1].stages
+          .where((s) => s.rounds.every((w) => w.content is! BossContent))
+          .toList();
+      final first = stages.first;
+      final prevMax = prev.map(level).reduce(math.max);
+      // 章の終わり (いちばん難しい面) は、前の章より上
+      expect(
+        stages.map(level).reduce(math.max),
+        greaterThan(prevMax),
+        reason: ch.id,
+      );
+      // 章の最初の面は前の章の最大以上。新しい攻撃ブロックの初登場から始まる章だけは下げてよい
+      if (!newAttackIntros.contains(first.rounds.first.introKey)) {
+        expect(level(first), greaterThanOrEqualTo(prevMax), reason: first.id);
+      }
+    }
+  });
+
   test('6-9 のラウンドは第6章の難易度帯 (50 以上) にある (#165)', () {
     expect([
       for (final w in campaign.stage('6-9')!.rounds) w.difficulty,
     ], everyElement(greaterThanOrEqualTo(50)));
+  });
+
+  // design.md 6章「章とステージの並べ方」の星とクリア条件の並べ方 (#166)。
+  // 星の並び順は記録の互換のため変えられないので、方針から外れる面は例外として design.md に書いてある。
+  test('星は ★1 がクリア、★3 が縛り (被弾なし・時間)。スコアの面は ★2 がスコア (例外は design.md に書いた面)', () {
+    // ★3 が縛りでない面: 1-3 は貫通の練習で ★3 も判定の課題、スコアの面は ★3 がギミック
+    const star3NotLimit = {'1-3', '2-8', '3-5', '5-7', '6-6'};
+    // ★2 がギミックでなく縛りの面: 1-6 は反射を数える統計がない
+    const star2Limit = {'1-6'};
+    for (final s in campaign.stages) {
+      expect(s.stars, hasLength(3), reason: s.id);
+      expect(s.stars[0], isA<ClearStar>(), reason: s.id);
+      final limit3 = s.stars[2] is NoHitStar || s.stars[2] is TimeStar;
+      expect(limit3, !star3NotLimit.contains(s.id), reason: '${s.id} の ★3');
+      final limit2 = s.stars[1] is NoHitStar || s.stars[1] is TimeStar;
+      expect(limit2, star2Limit.contains(s.id), reason: '${s.id} の ★2');
+      if (s.rounds.first.clear is ScoreClear) {
+        expect(
+          (s.stars[1] as StatStar).kind,
+          StatKind.score,
+          reason: '${s.id} はスコアの面',
+        );
+      }
+    }
+  });
+
+  test('スコア・耐久のクリア条件の面は各章に 1 つずつ (第4章にはスコアの面を置かない)', () {
+    for (final ch in campaign.chapters) {
+      int count(bool Function(ClearCondition) f) =>
+          ch.stages.where((s) => s.rounds.any((w) => f(w.clear))).length;
+      expect(
+        count((c) => c is ScoreClear),
+        ch.id == 'ch04' ? 0 : 1,
+        reason: '${ch.id} のスコアの面',
+      );
+      expect(count((c) => c is SurviveClear), 1, reason: '${ch.id} の耐久の面');
+    }
   });
 
   test('崩落の星がある面には、崩落の支点 (要石・ボスのコア) がある', () {

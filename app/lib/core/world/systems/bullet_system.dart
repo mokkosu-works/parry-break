@@ -16,7 +16,7 @@ extension _BulletSystem on World {
 
   void _updateBullets(double dt) {
     final p = paddle;
-    final tcB = t - dt * 0.5; // 敵弾の接触時刻はステップの中央とみなす
+    final t0 = t - dt;
     for (var i = bullets.length - 1; i >= 0; i--) {
       if (i >= bullets.length) continue;
       final u = bullets[i];
@@ -32,13 +32,14 @@ extension _BulletSystem on World {
           u.contact = null;
           if (p.invuln <= 0) {
             bullets.removeAt(i);
-            _hurt(since: tcB - tc);
+            _hurt(since: t - dt * 0.5 - tc);
           }
         }
         continue;
       }
       u.life += dt;
       if (!u.hostile && u.red) _homeToCore(u, dt);
+      final ux0 = u.x, uy0 = u.y;
       u.x += u.vx * dt;
       u.y += u.vy * dt;
       if (u.x < -20 ||
@@ -62,6 +63,7 @@ extension _BulletSystem on World {
         }
         if (u.vy > 0 &&
             circleRect(u.x, u.y, u.r, px, Field.paddleY, pw, Field.paddleH)) {
+          final tcB = t0 + dt * _contactFraction(u, ux0, uy0, px, pw);
           final grade = _judgeContact(tcB);
           if (grade != null) {
             _parryBullet(u, grade);
@@ -98,6 +100,37 @@ extension _BulletSystem on World {
         break;
       }
     }
+  }
+
+  /// このステップの移動 ([x0], [y0] → 今の位置) のうち、弾がパドルの矩形に初めて触れた割合 (0〜1)。
+  /// 線分上で円と矩形が重なる範囲は 1 つの区間なので、二分法で求める (#97)。
+  double _contactFraction(
+    Bullet u,
+    double x0,
+    double y0,
+    double px,
+    double pw,
+  ) {
+    bool hits(double s) => circleRect(
+      x0 + (u.x - x0) * s,
+      y0 + (u.y - y0) * s,
+      u.r,
+      px,
+      Field.paddleY,
+      pw,
+      Field.paddleH,
+    );
+    if (hits(0)) return 0;
+    var lo = 0.0, hi = 1.0;
+    for (var k = 0; k < 20; k++) {
+      final mid = (lo + hi) / 2;
+      if (hits(mid)) {
+        hi = mid;
+      } else {
+        lo = mid;
+      }
+    }
+    return hi;
   }
 
   /// 撃ち返した赤い弾は最寄りのコアへ誘導する。

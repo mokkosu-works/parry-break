@@ -65,6 +65,7 @@ body:
         - 音
         - UI・メニュー
         - ランキング・記録
+        - 開発の仕組み(CI・リリース・ストア)
         - その他
     validations:
       required: false

@@ -7,13 +7,14 @@
 - 字幕は最初のフレームから出す。音はゲーム内の BGM と効果音 (録画の音声) をそのまま使う。外部の BGM は使わない。
 - 出力は promo/out/{パターン名}_{A|B|C}.mp4 。既存ファイルは上書きせず、そこで止まる。
 - 1 本作るごとに records/videos.csv へ 1 行追記し、posts/{id}.txt に投稿文を書く。
+  長さ (秒) も csv に書くので、出力動画のない環境でも make_index.py が同じ一覧を作れる。
 """
 import csv, datetime, json, pathlib, re, shutil, subprocess, sys, tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 HOOK_SEC, OUTRO_SEC = 3, 2
 CSV_COLS = ["id", "作成日", "パターン名", "冒頭の種類", "タイトル", "説明文", "ファイルパス",
-            "投稿日", "媒体", "再生数", "視聴率(視聴 vs スワイプ)"]
+            "投稿日", "媒体", "再生数", "視聴率(視聴 vs スワイプ)", "長さ(秒)"]
 
 
 def run(cmd):
@@ -168,6 +169,25 @@ def post_text(spec, rid=None):
             + (f"\n=== 管理 ===\n管理ID: {rid}\nYouTube のタグ欄に入れる: {rid}\n" if rid else ""))
 
 
+def csv_columns(path):
+    """records/videos.csv の列。ない列 (CSV_COLS にあって csv にない) があれば、末尾に足して書き直す。
+
+    手で足した列や並べ替えた列は、そのまま残す。"""
+    if not path.exists():
+        return list(CSV_COLS)
+    with path.open(encoding="utf-8-sig", newline="") as f:
+        r = csv.DictReader(f)
+        cols, rows = list(r.fieldnames or []), list(r)
+    missing = [c for c in CSV_COLS if c not in cols]
+    if missing:
+        cols += missing
+        with path.open("w", encoding="utf-8-sig", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=cols, restval="")
+            w.writeheader()
+            w.writerows(rows)
+    return cols
+
+
 def next_id():
     p = ROOT / "records/videos.csv"
     if not p.exists():
@@ -245,17 +265,19 @@ def main():
     (ROOT / "records").mkdir(exist_ok=True)
     (ROOT / "posts").mkdir(exist_ok=True)
     csv_path = ROOT / "records/videos.csv"
-    new = not csv_path.exists()
     vid = next_id()
     today = datetime.date.today().isoformat()
+    cols = csv_columns(csv_path)
     with csv_path.open("a", encoding="utf-8-sig", newline="") as f:
-        w = csv.writer(f)
-        if new:
-            w.writerow(CSV_COLS)
+        w = csv.DictWriter(f, fieldnames=cols, restval="")
+        if f.tell() == 0:
+            w.writeheader()
         for i, k in enumerate(hooks):
             rid = f"{vid}{k.lower()}"
-            w.writerow([rid, today, name, k, spec["title"], spec["description"],
-                        outs[k].relative_to(ROOT), "", "", "", ""])
+            w.writerow({"id": rid, "作成日": today, "パターン名": name, "冒頭の種類": k,
+                        "タイトル": spec["title"], "説明文": spec["description"],
+                        "ファイルパス": outs[k].relative_to(ROOT).as_posix(),
+                        "長さ(秒)": round(duration(outs[k]))})
             post = ROOT / f"posts/{rid}.txt"
             if post.exists():
                 print("投稿文は既にある、スキップ:", post)

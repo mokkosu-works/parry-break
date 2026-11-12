@@ -70,11 +70,11 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 
 | ワークフロー | きっかけ | 内容 |
 | --- | --- | --- |
-| `check.yml` | 下の2つから呼ぶ | 整形のずれの確認(`dart format`。生成物の `lib/l10n/app_localizations*.dart` は除く)、`flutter analyze`、`flutter test` |
+| `check.yml` | `pr.yml` と `release.yml` から呼ぶ | 整形のずれの確認(`dart format`。生成物の `lib/l10n/app_localizations*.dart` は除く)、`flutter analyze`、`flutter test` |
 | `implement.yml` | Issue のコメントの `@claude` | Android エミュレーターを起動し、Claude が Issue を実装・テストし、エミュレーターで確かめて `dev` 向けの PR を作る(`.claude/skills/implement-issue/SKILL.md`)。撮った画面は実行の Artifacts に残る |
 | `pr.yml` | PR の作成・更新(手動実行も可) | チェック、Claude のレビュー。エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)は `main` 向けの PR と手動実行だけで動かす。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
 | `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` の `check`・`review` が通っていれば squash でマージする |
-| `claude.yml` | PR のコメントの `@claude` | Claude が依頼に応える(レビューの指摘の修正など) |
+| `claude.yml` | PR のコメントの `@claude` | Claude が依頼に応える(レビューの指摘の修正など)。Flutter を入れてあり、Claude が `flutter analyze` / `flutter test` を回してから PR のブランチに push できる。同じ PR への依頼は 1 つずつ動き、上限は 60 分 |
 | `release.yml` | `main` への push(手動実行も可) | バージョン名のタグがまだなければ、チェックのあと両 OS をビルドしてテスト配信し、タグと GitHub Release を作る |
 | `sync-dev.yml` | `main` への push | `main` を `dev` にマージする |
 | `promote.yml` | 手動実行 | テスト配信中のビルドを本番に出す(iOS は審査に提出、Android は全員に公開) |
@@ -99,7 +99,7 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | 8 | リリース PR | 🧑 | 新機能の文面とバージョン名を確認して、**Create a merge commit** でマージする(**人の判断 1**) |
 | 9 | マージ直後 | ⚙️ | `release.yml`: Android を Play の内部テストに、iOS を TestFlight に上げ、`vX.Y.Z` のタグと GitHub Release を作る。`sync-dev.yml`: `main` を `dev` に戻す |
 | 10 | 配信後(30分ほど) | 🧑 | 実機で第8章の確認をする(**人の判断 2**)。だめなら `fix/*` で直し、手順 3 からパッチでやり直す |
-| 11 | 確認後 | 🧑 | Actions → `promote` を実行する(**人の判断 3**) |
+| 11 | 確認後 | 🧑 | Actions → `promote` を実行する(**人の判断 3**)。出すタグ・ビルド番号は実行の Summary に出る。GitHub Release の本文からビルド番号が読めなければ、ストアに何も送らずに止まるので、`build_number` を入力して実行し直す |
 | 12 | 〃 | ⚙️ | iOS: 新機能の文面を入れて審査に提出する(承認されたら自動で段階的リリース)。Android: 本番トラックに昇格し、全員に公開する |
 | 13 | 審査で却下されたら | 🤖🧑 | App Store Connect の却下理由を Claude に貼る。Claude が原因を調べ、修正の PR か返信の下書きを作る |
 
@@ -134,12 +134,14 @@ App Store の名前・説明文・キーワード・URL などの掲載文は `a
 | Issue の実装 | `implement.yml`(Issue に `@claude` とコメント)+ `.claude/skills/implement-issue/SKILL.md` | 実装・単体テスト・Android エミュレーターでの確認(スモークテストと、完了条件を確かめる `integration_test/<確かめる内容>_test.dart`、撮った画面を Claude が見る)をして、`dev` 向けの PR を作る。「先に聞いてほしい」項目が残っていれば、実装せずに Issue で質問する。手元でも `/implement-issue <番号>` で同じことができる |
 | PR のレビュー | `pr.yml`(`anthropics/claude-code-action`)+ `.claude/skills/pr-review/SKILL.md` | 不具合・テストの漏れ・設計書との食い違い・完了条件を満たしているかを見る。直すべき問題があれば `needs-fix` を付けて、マージを止める。観点と重さの基準はスキルに書く。手元でも `/pr-review <番号>` で同じレビューができる |
 | 指摘の自動修正 | `pr.yml` の `fix` + `.claude/skills/pr-fix/SKILL.md` | `needs-fix` が付いたら、`[要修正]` の指摘を 1 つずつ確かめる(コードを追う・落ちるテストを書く)。妥当なものだけ直してコミットし、ワークフローが `flutter analyze` / `flutter test` を通してから Claude の GitHub アプリのトークンで push する(再レビューが動く)。妥当でない・人の判断が要る指摘は、スレッドに理由を返して人に回す。続けて 2 回まで。`main` 向けの PR では動かない。手元でも `/pr-fix <番号>` で同じことができる |
-| PR での依頼 | `claude.yml`(PR に `@claude` を付けてコメント) | 指摘の修正 |
+| PR での依頼 | `claude.yml`(PR に `@claude` を付けてコメント) | 指摘の修正、テストの実行など。Claude は `flutter analyze` / `flutter test` を回して確かめてから PR のブランチに push する(`@claude flutter test を回して` で結果だけを返させることもできる)。許すコマンドは `pr.yml` の `fix` に合わせ、ラベルの付け外し・マージはしない。エミュレーターはないので、画面での確認はできない。動いている間に同じ PR で `@claude` と書くと、終わるまで待つ(待てるのは 1 つで、さらに書くと前の待ちが取り消される) |
 | リリース準備 | `.claude/skills/release/SKILL.md`(`/release`) | 第3章の手順 4〜7。Claude Code(ターミナル・Web・アプリ)で実行する |
 | リリース準備の定期実行 | Claude Code のルーティン(claude.ai/code の Routines) | 例: 隔週の月曜に `/release` を実行する。前回のタグから出す価値のある変更がなければ何もしない |
 | 審査の却下・CI の失敗 | Claude Code で依頼 | 却下理由やログを渡すと、原因を調べて修正の PR を作る |
 
 リリース準備を GitHub Actions ではなく Claude Code で動かすのは、Actions の `GITHUB_TOKEN` で作った PR では CI が動かないため。Claude Code ならユーザーとして PR を作るので、CI と Claude のレビューがそのまま動く。`implement.yml` は Actions の中で動くが、PR を `GITHUB_TOKEN` ではなく Claude の GitHub アプリのトークンで作る(作者は `claude[bot]`)ので、CI が動く。作者が自分でないので、Approve もできる。
+
+Claude の GitHub アプリには、ワークフローのファイル(`.github/workflows/`)を書き換える権限がない([claude-code-action の FAQ](https://github.com/anthropics/claude-code-action/blob/main/docs/faq.md) の「Why won't Claude update workflow files when I ask it to?」。このリポジトリで実際に push を試してはいない)。`implement.yml`・`pr.yml` の `fix`・`claude.yml` の push はどれもこのアプリのトークンなので、ワークフローを変えるコミットは push できない。そのため、CI で動くファイル(`.github/workflows/`・`.github/actions/`・`.github/scripts/`)を変える Issue に `@claude` と書くと、Claude は実装せずに「人が直す」と Issue にコメントして終わり、`fix` もそれらへの指摘を人に回す(`.claude/skills/implement-issue/SKILL.md` 1 章、`.claude/skills/pr-fix/SKILL.md`)。人が直すか、手元の Claude Code(ユーザーの権限で push する)で `/implement-issue <番号>` を使う。
 
 ## 7. ホットフィックス
 

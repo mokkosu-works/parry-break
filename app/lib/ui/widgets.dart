@@ -198,6 +198,7 @@ class PixelButton extends StatefulWidget {
     this.icon,
     this.fontSize = 18,
     this.selected = false,
+    this.dense = false,
   });
 
   final String label;
@@ -209,6 +210,9 @@ class PixelButton extends StatefulWidget {
   final bool filled;
   final DotSprite? icon;
   final double fontSize;
+
+  /// 左右の余白を詰める (狭い画面で 1 行に並べるとき)。高さ (押せる範囲) は変えない。
+  final bool dense;
 
   @override
   State<PixelButton> createState() => _PixelButtonState();
@@ -241,8 +245,14 @@ class _PixelButtonState extends State<PixelButton> {
         : Palette.gray;
     final fg = widget.filled ? Dot.ink : Palette.white;
     final content = Container(
-      constraints: const BoxConstraints(minHeight: 48, minWidth: 120),
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+      constraints: BoxConstraints(
+        minHeight: 48,
+        minWidth: widget.dense ? 96 : 120,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.dense ? 14 : 22,
+        vertical: 10,
+      ),
       decoration: widget.filled
           ? null
           : BoxDecoration(

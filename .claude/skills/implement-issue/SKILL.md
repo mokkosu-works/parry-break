@@ -7,7 +7,7 @@ description: Issue を読んで実装し、Android エミュレーター(手元�
 
 運用の全体は `docs/release-flow.md`。この手順で作った PR は、`pr.yml` のチェック・Claude のレビュー(`.claude/skills/pr-review/SKILL.md`)を通り、**人が Approve するとマージされる**。人は PR の本文と画面を見て Approve するかを決めるので、**何を確かめて、何を確かめられなかったか** を正直に、具体的に書く。
 
-**自分でしないこと**: `dev` / `main` への push、PR のマージ、Approve、ラベルの `hold` / `needs-fix` を外すこと(レビューの指摘を直したら、再レビューで外れるのを待つ)、`.github/` の変更(Issue で頼まれていない限り)。
+**自分でしないこと**: `dev` / `main` への push、PR のマージ、Approve、ラベルの `hold` / `needs-fix` を外すこと(レビューの指摘を直したら、再レビューで外れるのを待つ)、CI で動くファイル(`.github/workflows/`・`.github/actions/`・`.github/scripts/`)の変更(1 章のとおり、着手せずに人に回す)、`.github/` のほかの場所(`ISSUE_TEMPLATE/` など)の変更(Issue で頼まれていない限り)。
 
 `implement.yml` では、許されたコマンドしか動かない。push は `git push -u origin claude/issue-<番号>`、PR の本文の更新は `gh pr edit --body-file app/build/pr_body.md` の形どおりに打つ(形が違うと拒否される)。ファイルは Glob / Grep で探し、`timeout` や `find` は使わない。
 
@@ -23,6 +23,7 @@ gh pr list --head claude/issue-<番号> --state open   # 前回の続きか
   - 「決めていないこと」に「先に聞いてほしい」が付いた項目があり、コメントで答えが出ていない
   - 完了条件がない、または確かめられる形になっておらず、どう作るかで結果が大きく変わる
   - 頼まれた内容が、保存データの互換をなくす・広告の出し方を変える・ストアの設定を変えるなど、`pr-review` スキルで `[要修正]` になる種類の変更を避けられない
+  - 完了条件を満たすのに、CI で動くファイル(`.github/workflows/`・`.github/actions/`・`.github/scripts/`)を変える必要がある。Claude の GitHub アプリは `.github/workflows/` を push できず、実装しても push で止まって作業が残らない(`docs/release-flow.md` 第6章)。`.github/actions/`・`.github/scripts/` も CI の動きやマージの条件を変えるので人が直す。コメントには、それらは人が直すことと、どのファイルをどう変えればよいかの見立てを書く。アプリのコードなど、ほかの部分だけでも進められるなら、Issue を分けることを提案する。手元(Claude Code)ではユーザーの権限で push するので、この項目は当てはまらない
 - 「任せる」の項目は自分で決め、PR の本文の「決めたこと」に理由と一緒に書く。
 - 前回の PR が開いていれば、そのブランチ(チェックアウト済み)で続きをする。前回の PR の本文・コメント・レビューの指摘も読む。
 

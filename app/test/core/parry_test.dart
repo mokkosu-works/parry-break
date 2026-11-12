@@ -6,7 +6,8 @@ import 'package:parry_break/core/core.dart';
 import 'helpers.dart';
 
 /// 真下へ落ちてくるボールに対して、接触の [offset] 秒前 (負なら後) に押したときの判定。
-ParryGrade? gradeFor(double offset) {
+/// 接触はステップの境目から [phase] ステップ分ずらした位置に置く (0 ならちょうど境目)。
+ParryGrade? gradeFor(double offset, {double phase = 0}) {
   final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
   run(w, 1.1); // カウントダウンを終える
   final b = w.ball
@@ -16,9 +17,10 @@ ParryGrade? gradeFor(double offset) {
     ..pierce = 0;
   b.speed = w.targetSpeed;
   b.vy = b.speed;
-  // 0.5 秒後にパドル上面へ接触する位置に置く
-  b.y = Field.paddleY - Field.ballR - b.speed * 0.5;
-  final contact = w.t + 0.5;
+  // 0.5 秒 (+ phase ステップ) 後にパドル上面へ接触する位置に置く
+  final after = 0.5 + phase * World.dt;
+  b.y = Field.paddleY - Field.ballR - b.speed * after;
+  final contact = w.t + after;
   final press = contact - offset;
   var pressed = false;
   final events = run(
@@ -37,7 +39,8 @@ ParryGrade? gradeFor(double offset) {
 
 /// 判定タイミング補正 [inputLag] の World で、真下へ落ちてくる敵弾の接触時刻 tc に対し、
 /// 換算後の時刻 tc + inputLag + [after] に押したときの結果。被弾なら 'hurt'、何も起きなければ null。
-Object? bulletResultFor(double inputLag, double after) {
+/// 弾は [steps] ステップ後にパドル上面へ触れる (12.5 ならステップの中央、12.1 なら頭近く、12.9 なら終わり近く)。
+Object? bulletResultFor(double inputLag, double after, {double steps = 12.5}) {
   final w = testWorld(
     const SingleRoundMode(['NNNNNNNNNNNNNN']),
     inputLag: inputLag,
@@ -50,9 +53,9 @@ Object? bulletResultFor(double inputLag, double after) {
     ..y = Field.paddleY - 300
     ..vx = 0
     ..vy = -w.ball.speed;
-  const sp = 300.0, steps = 12.5;
+  const sp = 300.0;
   final x = w.paddle.x;
-  // ちょうど 12.5 ステップ後 (ステップの中央) にパドル上面へ触れる位置から撃つ
+  // ちょうど steps ステップ後にパドル上面へ触れる位置から撃つ
   w.fireBullet(x, Field.paddleY - 6 - sp * World.dt * steps, math.pi / 2, sp);
   final contact = w.t + World.dt * steps;
   final press = contact + inputLag + after;
@@ -341,5 +344,37 @@ void main() {
       isNotEmpty,
     );
     expect(events.whereType<CoreDamaged>(), isEmpty);
+  });
+
+  test('敵弾がステップの頭近く・終わり近くで当たっても、接触の 0.01 秒前に押せば JUST (#97)', () {
+    for (final steps in [12.1, 12.5, 12.9]) {
+      expect(
+        bulletResultFor(0, -0.01, steps: steps),
+        ParryGrade.just,
+        reason: 'steps $steps',
+      );
+      expect(
+        bulletResultFor(0, 0.01, steps: steps),
+        ParryGrade.just,
+        reason: 'steps $steps',
+      );
+      expect(
+        bulletResultFor(0, -0.02, steps: steps),
+        ParryGrade.perfect,
+        reason: 'steps $steps',
+      );
+    }
+  });
+
+  test('接触の 0.099 秒前に押すと、ステップの境目の位置によらず GOOD (#97)', () {
+    for (final phase in [0.0, 0.1, 0.25, 0.5, 0.75, 0.9]) {
+      expect(
+        gradeFor(0.099, phase: phase),
+        ParryGrade.good,
+        reason: 'phase $phase',
+      );
+      // 窓の外 (0.1 秒より前) に押したら成功しない
+      expect(gradeFor(0.102, phase: phase), isNull, reason: 'phase $phase');
+    }
   });
 }

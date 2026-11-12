@@ -94,15 +94,6 @@ extension _RoundSystem on World {
       p.x = clampD(p.x, paddleWidth / 2, Field.width - paddleWidth / 2);
     }
     p.vx = (p.x - px0) / dt;
-    // パリィ判定の窓の終了
-    if (pr.active && t - pr.press > tuning.parryWindow) {
-      pr.active = false;
-      if (!pr.success) {
-        pr.cooldownUntil = pr.press + tuning.parryCooldown;
-        streak = 0;
-        emit(const ParryMissed());
-      }
-    }
     if (countdown > 0) {
       countdown -= dt;
       if (countdown <= 0) emit(const CountdownFinished());
@@ -139,6 +130,16 @@ extension _RoundSystem on World {
     }
     _updateBullets(dt);
     if (phase != WorldPhase.playing) return;
+    // パリィ判定の窓の終了。このステップのボール・敵弾の接触を調べた後で閉じる
+    // (ステップの途中にある press + parryWindow までの接触は成功にする) (#97)
+    if (pr.active && t - pr.press > tuning.parryWindow) {
+      pr.active = false;
+      if (!pr.success) {
+        pr.cooldownUntil = pr.press + tuning.parryCooldown;
+        streak = 0;
+        emit(const ParryMissed());
+      }
+    }
     _updateLasers(dt);
     _updateBlasts(dt);
     // 支えを失った塊を崩落させる
