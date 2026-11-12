@@ -11,7 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - 前回の依頼から [minGap] 以上あける
 /// - 通算 [maxAsks] 回まで
 class ReviewPolicy {
-  ReviewPolicy(this._prefs, {DateTime Function()? now}) : _now = now ?? DateTime.now;
+  ReviewPolicy(this._prefs, {DateTime Function()? now})
+    : _now = now ?? DateTime.now;
 
   final SharedPreferences _prefs;
   final DateTime Function() _now;
@@ -54,7 +55,8 @@ class DisabledReview implements ReviewService {
 }
 
 class StoreReview implements ReviewService {
-  StoreReview(this._policy, {InAppReview? review}) : _review = review ?? InAppReview.instance;
+  StoreReview(this._policy, {InAppReview? review})
+    : _review = review ?? InAppReview.instance;
 
   final ReviewPolicy _policy;
   final InAppReview _review;
@@ -79,7 +81,9 @@ class StoreReview implements ReviewService {
 final reviewProvider = Provider<ReviewService>((ref) => DisabledReview());
 
 ReviewService createReviewService(SharedPreferences prefs) {
-  final mobile = defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android;
+  final mobile =
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android;
   if (kIsWeb || !mobile) return DisabledReview();
   return StoreReview(ReviewPolicy(prefs));
 }

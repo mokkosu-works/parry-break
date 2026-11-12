@@ -6,7 +6,9 @@ extension _RoundSystem on World {
     _finishCascade();
     _finishBlastChain();
     round = spec;
-    tuning = spec.tuning.isEmpty ? baseTuning : baseTuning.copyWith(spec.tuning);
+    tuning = spec.tuning.isEmpty
+        ? baseTuning
+        : baseTuning.copyWith(spec.tuning);
     rng = Mulberry32(spec.seed);
     aux = Mulberry32(spec.seed * 7 + 1);
     form
@@ -24,7 +26,11 @@ extension _RoundSystem on World {
         for (var r = 0; r < c.rows.length; r++) {
           for (var col = 0; col < Field.cols; col++) {
             if (c.rows[r][col] == '.') continue;
-            addBlock(c.blockIdAt(r, col), Field.gridX0 + col * Field.cellW, Field.gridY0 + r * Field.cellH);
+            addBlock(
+              c.blockIdAt(r, col),
+              Field.gridX0 + col * Field.cellW,
+              Field.gridY0 + r * Field.cellH,
+            );
           }
         }
       case BossContent c:
@@ -34,7 +40,12 @@ extension _RoundSystem on World {
       b.behavior.onRoundStart(this, b);
     }
     _initSupport();
-    ball = Ball(x: paddle.x, y: Field.paddleY - Field.ballR - 1, speed: targetSpeed, attached: true);
+    ball = Ball(
+      x: paddle.x,
+      y: Field.paddleY - Field.ballR - 1,
+      speed: targetSpeed,
+      attached: true,
+    );
     countdown = tuning.countdown;
     roundTime = 0;
     launched = false;
@@ -45,10 +56,23 @@ extension _RoundSystem on World {
     phase = WorldPhase.playing;
     lowest = 0;
     final b = boss;
-    emit(RoundStarted(number: spec.number, loop: spec.loop, bossIndex: b?.index, introKey: spec.introKey));
-    emit(b != null
-        ? Banner(BannerKind.boss, value: b.index + 1)
-        : Banner(BannerKind.round, value: spec.number, introKey: spec.introKey));
+    emit(
+      RoundStarted(
+        number: spec.number,
+        loop: spec.loop,
+        bossIndex: b?.index,
+        introKey: spec.introKey,
+      ),
+    );
+    emit(
+      b != null
+          ? Banner(BannerKind.boss, value: b.index + 1)
+          : Banner(
+              BannerKind.round,
+              value: spec.number,
+              introKey: spec.introKey,
+            ),
+    );
   }
 
   void _updatePlay(double dt) {
@@ -58,6 +82,9 @@ extension _RoundSystem on World {
     if (p.invuln > 0) p.invuln -= dt;
     if (p.stun > 0) {
       p.stun -= dt;
+      // スタン中の目標の動き (タッチは前の目標に移動量を足す) は捨てる。
+      // 明けたら、パドルの今の位置から、明けた後の入力の分だけ動く。
+      if (input.useTarget) input.targetX = p.x;
     } else {
       if (input.useTarget) {
         p.x = input.targetX;
@@ -67,22 +94,14 @@ extension _RoundSystem on World {
       p.x = clampD(p.x, paddleWidth / 2, Field.width - paddleWidth / 2);
     }
     p.vx = (p.x - px0) / dt;
-    // パリィ判定の窓の終了
-    if (pr.active && t - pr.press > tuning.parryWindow) {
-      pr.active = false;
-      if (!pr.success) {
-        pr.cooldownUntil = pr.press + tuning.parryCooldown;
-        streak = 0;
-        emit(const ParryMissed());
-      }
-    }
     if (countdown > 0) {
       countdown -= dt;
       if (countdown <= 0) emit(const CountdownFinished());
     }
     final active = countdown <= 0;
     if (active) {
-      roundTime += dt;
+      // 耐久の時間・全消しボーナス・残り時間の表示は、最初の発射から数える (#100)
+      if (launched) roundTime += dt;
       stats.playTime += dt;
       if (boss != null) {
         _updateBoss(dt);
@@ -111,6 +130,16 @@ extension _RoundSystem on World {
     }
     _updateBullets(dt);
     if (phase != WorldPhase.playing) return;
+    // パリィ判定の窓の終了。このステップのボール・敵弾の接触を調べた後で閉じる
+    // (ステップの途中にある press + parryWindow までの接触は成功にする) (#97)
+    if (pr.active && t - pr.press > tuning.parryWindow) {
+      pr.active = false;
+      if (!pr.success) {
+        pr.cooldownUntil = pr.press + tuning.parryCooldown;
+        streak = 0;
+        emit(const ParryMissed());
+      }
+    }
     _updateLasers(dt);
     _updateBlasts(dt);
     // 支えを失った塊を崩落させる
@@ -131,7 +160,8 @@ extension _RoundSystem on World {
     final annihilated = boss != null
         ? !blocks.any((b) => b.type == bossCoreId)
         : !blocks.any((b) => b.behavior.clearable);
-    final cleared = annihilated ||
+    final cleared =
+        annihilated ||
         switch (round.clear) {
           AnnihilateClear() => false,
           ScoreClear(:final target) => score >= target,
@@ -146,13 +176,17 @@ extension _RoundSystem on World {
       low = math.max(low, b.y + form.oy + b.h);
     }
     lowest = low;
-    if (low >= Field.warnY) _gameOver(boss?.plunge ?? false ? 'TIME OVER' : 'BLOCKS BREACHED');
+    if (low >= Field.warnY) {
+      _gameOver(boss?.plunge ?? false ? 'TIME OVER' : 'BLOCKS BREACHED');
+    }
   }
 
   void _roundClear() {
     final m = mult, bon = <Bonus>[];
     final b = boss;
-    if (b != null) bon.add(Bonus('BOSS DESTROYED', 50000 + b.time.floor() * 500));
+    if (b != null) {
+      bon.add(Bonus('BOSS DESTROYED', 50000 + b.time.floor() * 500));
+    }
     bon.add(Bonus('ROUND CLEAR  ×$m', 5000 * m));
     if (b == null) {
       final dist = math.max(0.0, Field.warnY - lowest).round();
@@ -176,7 +210,9 @@ extension _RoundSystem on World {
     if (phantoms.isNotEmpty) _popPhantoms();
     phase = WorldPhase.clearing;
     clearT = 0;
-    emit(RoundCleared(bonuses: bon, remaining: remaining, ending: round.ending));
+    emit(
+      RoundCleared(bonuses: bon, remaining: remaining, ending: round.ending),
+    );
   }
 
   void _updateClear(double dt) {
@@ -202,6 +238,8 @@ extension _RoundSystem on World {
     lasers = [];
     _finishCascade();
     _finishBlastChain();
-    emit(GameOver(reason: reason, score: score, round: round.number, stats: stats));
+    emit(
+      GameOver(reason: reason, score: score, round: round.number, stats: stats),
+    );
   }
 }

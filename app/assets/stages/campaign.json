@@ -406,8 +406,8 @@
        "type": "clear"
       },
       {
-       "type": "collapse",
-       "value": 20
+       "type": "ricochet",
+       "value": 8
       },
       {
        "type": "time",
@@ -510,7 +510,7 @@
      "rounds": [
       {
        "endless": 27,
-       "intro": "intro.score",
+       "intro": "intro.wall",
        "clear": {
         "type": "score",
         "value": 400000
@@ -539,7 +539,8 @@
      },
      "rounds": [
       {
-       "endless": 28,
+       "endless": 24,
+       "difficulty": 28,
        "intro": "intro.survive",
        "clear": {
         "type": "survive",
@@ -761,7 +762,8 @@
      },
      "rounds": [
       {
-       "endless": 35
+       "endless": 31,
+       "difficulty": 35
       }
      ],
      "stars": [
@@ -1834,7 +1836,7 @@
      },
      "rounds": [
       {
-       "endless": 49
+       "endless": 57
       },
       {
        "rows": [

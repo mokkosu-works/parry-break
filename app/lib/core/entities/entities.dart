@@ -7,8 +7,8 @@ import '../config/field.dart';
 /// `x + form.ox`, `y + form.oy` になる。
 class Block {
   Block(this.behavior, this.x, this.y, this.w, this.h, int hp)
-      : hp = hp,
-        maxHp = hp;
+    : hp = hp,
+      maxHp = hp;
 
   final BlockBehavior behavior;
   double x, y;
@@ -145,7 +145,13 @@ class Bullet {
 
   /// パドルの近く (グレイズ判定の範囲) を通ったか。
   bool near = false;
+
+  /// グレイズが成立した、または無敵中にパドルの近くを通ったため、もうグレイズにならない。
   bool grazed = false;
+
+  /// パドルに触れたが、まだ被弾が確定していない敵弾の接触時刻。
+  /// 接触の後の押下 (design.md 7.9) を待つ間はここで止まり、待ちきれば被弾になる。
+  double? contact;
 
   /// 直前のステップの位置 (描画でステップ間を補間するため)。
   late double prevX = x, prevY = y;
@@ -193,7 +199,12 @@ class BlastChainTally {
 }
 
 class RunStats {
-  int just = 0, graze = 0, bestCollapse = 0, bestBlast = 0, bestRicochet = 0, hurt = 0;
+  int just = 0,
+      graze = 0,
+      bestCollapse = 0,
+      bestBlast = 0,
+      bestRicochet = 0,
+      hurt = 0;
 
   /// パリィの成功数 / うち PERFECT 以上の数 / 撃ち返し弾で壊したブロック数。
   int parries = 0, perfects = 0, returnKills = 0;

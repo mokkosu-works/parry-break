@@ -75,36 +75,35 @@ class Settings {
     String? Function()? language,
     bool? debugMode,
     Difficulty? difficulty,
-  }) =>
-      Settings(
-        controls: controls ?? this.controls,
-        sensitivity: sensitivity ?? this.sensitivity,
-        railSensitivity: railSensitivity ?? this.railSensitivity,
-        timingOffsetMs: timingOffsetMs ?? this.timingOffsetMs,
-        bgmVolume: bgmVolume ?? this.bgmVolume,
-        sfxVolume: sfxVolume ?? this.sfxVolume,
-        haptics: haptics ?? this.haptics,
-        quality: quality ?? this.quality,
-        reduceEffects: reduceEffects ?? this.reduceEffects,
-        language: language != null ? language() : this.language,
-        debugMode: debugMode ?? this.debugMode,
-        difficulty: difficulty ?? this.difficulty,
-      );
+  }) => Settings(
+    controls: controls ?? this.controls,
+    sensitivity: sensitivity ?? this.sensitivity,
+    railSensitivity: railSensitivity ?? this.railSensitivity,
+    timingOffsetMs: timingOffsetMs ?? this.timingOffsetMs,
+    bgmVolume: bgmVolume ?? this.bgmVolume,
+    sfxVolume: sfxVolume ?? this.sfxVolume,
+    haptics: haptics ?? this.haptics,
+    quality: quality ?? this.quality,
+    reduceEffects: reduceEffects ?? this.reduceEffects,
+    language: language != null ? language() : this.language,
+    debugMode: debugMode ?? this.debugMode,
+    difficulty: difficulty ?? this.difficulty,
+  );
 
   Map<String, Object?> toJson() => {
-        'controls': controls.name,
-        'sensitivity': sensitivity,
-        'railSensitivity': railSensitivity,
-        'timingOffsetMs': timingOffsetMs,
-        'bgmVolume': bgmVolume,
-        'sfxVolume': sfxVolume,
-        'haptics': haptics,
-        'quality': quality.name,
-        'reduceEffects': reduceEffects,
-        'language': language,
-        'debugMode': debugMode,
-        'difficulty': difficulty.name,
-      };
+    'controls': controls.name,
+    'sensitivity': sensitivity,
+    'railSensitivity': railSensitivity,
+    'timingOffsetMs': timingOffsetMs,
+    'bgmVolume': bgmVolume,
+    'sfxVolume': sfxVolume,
+    'haptics': haptics,
+    'quality': quality.name,
+    'reduceEffects': reduceEffects,
+    'language': language,
+    'debugMode': debugMode,
+    'difficulty': difficulty.name,
+  };
 
   factory Settings.fromJson(Map<String, Object?> j) {
     const d = Settings();
@@ -112,25 +111,37 @@ class Settings {
         values.where((e) => e.name == v).firstOrNull ?? fallback;
     double num_(Object? v, double fallback, double lo, double hi) =>
         v is num ? v.toDouble().clamp(lo, hi) : fallback;
+    bool bool_(Object? v, bool fallback) => v is bool ? v : fallback;
     return Settings(
       controls: pick(ControlScheme.values, j['controls'], d.controls),
       sensitivity: num_(j['sensitivity'], d.sensitivity, 1, 4),
       railSensitivity: num_(j['railSensitivity'], d.railSensitivity, 0.5, 2),
-      timingOffsetMs: num_(j['timingOffsetMs'], d.timingOffsetMs.toDouble(), 0, 100).round(),
+      timingOffsetMs: num_(
+        j['timingOffsetMs'],
+        d.timingOffsetMs.toDouble(),
+        0,
+        100,
+      ).round(),
       bgmVolume: num_(j['bgmVolume'], d.bgmVolume, 0, 1),
       sfxVolume: num_(j['sfxVolume'], d.sfxVolume, 0, 1),
-      haptics: j['haptics'] as bool? ?? d.haptics,
+      haptics: bool_(j['haptics'], d.haptics),
       quality: pick(GraphicsQuality.values, j['quality'], d.quality),
-      reduceEffects: j['reduceEffects'] as bool? ?? d.reduceEffects,
-      language: switch (j['language']) { 'ja' => 'ja', 'en' => 'en', _ => null },
-      debugMode: j['debugMode'] as bool? ?? d.debugMode,
+      reduceEffects: bool_(j['reduceEffects'], d.reduceEffects),
+      language: switch (j['language']) {
+        'ja' => 'ja',
+        'en' => 'en',
+        _ => null,
+      },
+      debugMode: bool_(j['debugMode'], d.debugMode),
       difficulty: pick(Difficulty.values, j['difficulty'], d.difficulty),
     );
   }
 }
 
 /// アプリ起動時に main で差し替える。
-final sharedPrefsProvider = Provider<SharedPreferences>((ref) => throw UnimplementedError());
+final sharedPrefsProvider = Provider<SharedPreferences>(
+  (ref) => throw UnimplementedError(),
+);
 
 class SettingsNotifier extends Notifier<Settings> {
   static const _key = 'settings.v1';
@@ -152,4 +163,6 @@ class SettingsNotifier extends Notifier<Settings> {
   }
 }
 
-final settingsProvider = NotifierProvider<SettingsNotifier, Settings>(SettingsNotifier.new);
+final settingsProvider = NotifierProvider<SettingsNotifier, Settings>(
+  SettingsNotifier.new,
+);

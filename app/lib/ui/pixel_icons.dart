@@ -155,7 +155,10 @@ class PixelIcon extends StatelessWidget {
     final theme = IconTheme.of(context);
     final s = size ?? theme.size ?? 24;
     final c = color ?? theme.color ?? Dot.white;
-    return SizedBox.square(dimension: s, child: CustomPaint(painter: _IconPainter(glyph, c)));
+    return SizedBox.square(
+      dimension: s,
+      child: CustomPaint(painter: _IconPainter(glyph, c)),
+    );
   }
 }
 
@@ -168,9 +171,16 @@ class _IconPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // 1 ドットは整数の px にする (ぼやけないように)
     final d = (size.height / 7).floorToDouble().clamp(1.0, double.infinity);
-    glyph.drawCentered(canvas, size.width / 2, size.height / 2, color, scale: d / Dot.px);
+    glyph.drawCentered(
+      canvas,
+      size.width / 2,
+      size.height / 2,
+      color,
+      scale: d / Dot.px,
+    );
   }
 
   @override
-  bool shouldRepaint(_IconPainter old) => old.glyph != glyph || old.color != color;
+  bool shouldRepaint(_IconPainter old) =>
+      old.glyph != glyph || old.color != color;
 }

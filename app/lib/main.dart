@@ -7,9 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/providers.dart';
 import 'audio/audio_service.dart';
+import 'game/autoplay_bot.dart' show kPromoAutoplay;
 import 'l10n/app_localizations.dart';
 import 'services/ads.dart';
 import 'services/content.dart';
+import 'services/error_log.dart';
 import 'services/leaderboard.dart';
 import 'services/review.dart';
 import 'services/settings.dart';
@@ -18,12 +20,29 @@ import 'ui/widgets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+  ErrorLog.install();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  final prefs = await SharedPreferences.getInstance();
-  final content = await GameContent.load(rootBundle);
+  runApp(await buildRoot(rootBundle));
+}
+
+/// 起動時の読み込み (保存データ・ステージの JSON) をして、最初に出すウィジェットを作る。
+/// 読み込めなければ、起動画面のまま止まらないよう [StartupErrorApp] を返す。
+Future<Widget> buildRoot(AssetBundle bundle) async {
+  final SharedPreferences prefs;
+  final GameContent content;
+  try {
+    prefs = await SharedPreferences.getInstance();
+    content = await GameContent.load(bundle);
+  } on Object catch (e, st) {
+    ErrorLog.record(e, st, context: 'startup');
+    return StartupErrorApp(error: e);
+  }
   final audio = createAudioService();
-  runApp(ProviderScope(
+  return ProviderScope(
     overrides: [
       sharedPrefsProvider.overrideWithValue(prefs),
       contentProvider.overrideWithValue(content),
@@ -32,7 +51,54 @@ Future<void> main() async {
       reviewProvider.overrideWithValue(createReviewService(prefs)),
     ],
     child: ParryBreakApp(audioInit: audio.init()),
-  ));
+  );
+}
+
+/// 起動時の読み込みに失敗したときの画面。言語は端末の設定に従う (保存した設定は読めないことがあるため)。
+class StartupErrorApp extends StatelessWidget {
+  const StartupErrorApp({super.key, required this.error});
+
+  final Object error;
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    title: 'PARRY BREAK',
+    debugShowCheckedModeBanner: false,
+    theme: buildTheme(),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Builder(
+      builder: (context) {
+        final l = AppLocalizations.of(context);
+        return Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l.startupErrorTitle,
+                      style: pixelFont(22),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l.startupErrorBody,
+                      style: const TextStyle(fontSize: 16, height: 1.5),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  );
 }
 
 class ParryBreakApp extends ConsumerStatefulWidget {
@@ -48,7 +114,8 @@ class ParryBreakApp extends ConsumerStatefulWidget {
   ConsumerState<ParryBreakApp> createState() => _ParryBreakAppState();
 }
 
-class _ParryBreakAppState extends ConsumerState<ParryBreakApp> with WidgetsBindingObserver {
+class _ParryBreakAppState extends ConsumerState<ParryBreakApp>
+    with WidgetsBindingObserver {
   late final AudioService _audio = ref.read(audioProvider);
 
   @override
@@ -65,13 +132,17 @@ class _ParryBreakAppState extends ConsumerState<ParryBreakApp> with WidgetsBindi
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    unawaited(widget.audioInit?.then((_) {
-      final s = ref.read(settingsProvider);
-      ref.read(audioProvider).setVolumes(bgm: s.bgmVolume, sfx: s.sfxVolume);
-    }));
+    unawaited(
+      widget.audioInit?.then((_) {
+        final s = ref.read(settingsProvider);
+        ref.read(audioProvider).setVolumes(bgm: s.bgmVolume, sfx: s.sfxVolume);
+      }),
+    );
     unawaited(ref.read(leaderboardProvider).signIn());
     // 同意の画面を出すことがあるので、最初の画面が出てから始める
-    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(ref.read(adsProvider).init()));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(ref.read(adsProvider).init()),
+    );
   }
 
   @override
@@ -87,7 +158,13 @@ class _ParryBreakAppState extends ConsumerState<ParryBreakApp> with WidgetsBindi
       supportedLocales: AppLocalizations.supportedLocales,
       home: widget.home ?? const TitleScreen(),
       // デバッグモード中はどの画面でも分かるように帯を出す
-      builder: debug ? (context, child) => Banner(message: 'DEBUG', location: BannerLocation.bottomStart, child: child!) : null,
+      builder: debug && !kPromoAutoplay
+          ? (context, child) => Banner(
+              message: 'DEBUG',
+              location: BannerLocation.bottomStart,
+              child: child!,
+            )
+          : null,
     );
   }
 }

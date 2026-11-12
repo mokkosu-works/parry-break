@@ -27,7 +27,6 @@ class Tuning {
     this.odCoreDamageMul = 2,
     this.maxSpeed = 1400,
     this.odMaxSpeed = 1000,
-    this.odStartSpeedCap = 900,
     this.minAngleDeg = 15,
     this.grazeDist = 22,
     this.blastRadius = 84,
@@ -77,7 +76,9 @@ class Tuning {
   final int odCoreDamageMul;
 
   // ボール
-  final double maxSpeed, odMaxSpeed, odStartSpeedCap, minAngleDeg;
+  /// [maxSpeed]: FEVER TIME 以外の速さの上限。
+  /// [odMaxSpeed]: FEVER TIME の最高速度 (段階4 の速さがこれを超えるラウンドでは、段階4 の速さ)。
+  final double maxSpeed, odMaxSpeed, minAngleDeg;
 
   // 各種半径・距離
   final double grazeDist, blastRadius, breakerRadius, phantomBlastRadius;
@@ -95,21 +96,36 @@ class Tuning {
   /// ボールの基準速度 (px/秒)。
   double baseSpeed(int difficulty, double loopMul) {
     final b = difficulty;
-    final s = b <= 10 ? 420.0 : b <= 20 ? 480.0 : b < 30 ? 540.0 : 600.0 + (b - 30) * 4;
+    final s = b <= 10
+        ? 420.0
+        : b <= 20
+        ? 480.0
+        : b < 30
+        ? 540.0
+        : 600.0 + (b - 30) * 4;
     return s * loopMul;
   }
 
   /// ブロック群の降下速度 (px/秒)。
   double descentSpeed(int difficulty, double loopMul) =>
-      math.min(descentMax, descentBase + descentPerRound * (difficulty - 1)) * loopMul;
+      math.min(descentMax, descentBase + descentPerRound * (difficulty - 1)) *
+      loopMul;
 
   /// 砲台の発射間隔 (秒)。
   double turretInterval(int difficulty, double loopMul) =>
-      math.max(turretIntervalMin, turretIntervalBase - turretIntervalPerRound * difficulty) / loopMul;
+      math.max(
+        turretIntervalMin,
+        turretIntervalBase - turretIntervalPerRound * difficulty,
+      ) /
+      loopMul;
 
   /// 砲台の弾速 (px/秒)。
   double bulletSpeed(int difficulty, double loopMul) =>
-      math.min(bulletSpeedMax, bulletSpeedBase + bulletSpeedPerRound * (difficulty - 1)) * loopMul;
+      math.min(
+        bulletSpeedMax,
+        bulletSpeedBase + bulletSpeedPerRound * (difficulty - 1),
+      ) *
+      loopMul;
 
   /// JSON の値で一部を上書きした Tuning を返す (ステージデータの `tuning`)。
   Tuning copyWith(Map<String, Object?> o) {
@@ -132,10 +148,10 @@ class Tuning {
       odTime: d('odTime', odTime),
       odMaxTime: d('odMaxTime', odMaxTime),
       bossOdHurtPenalty: d('bossOdHurtPenalty', bossOdHurtPenalty),
-      odCoreDamageMul: (o['odCoreDamageMul'] as num?)?.toInt() ?? odCoreDamageMul,
+      odCoreDamageMul:
+          (o['odCoreDamageMul'] as num?)?.toInt() ?? odCoreDamageMul,
       maxSpeed: d('maxSpeed', maxSpeed),
       odMaxSpeed: d('odMaxSpeed', odMaxSpeed),
-      odStartSpeedCap: d('odStartSpeedCap', odStartSpeedCap),
       minAngleDeg: d('minAngleDeg', minAngleDeg),
       grazeDist: d('grazeDist', grazeDist),
       blastRadius: d('blastRadius', blastRadius),
@@ -149,7 +165,10 @@ class Tuning {
       descentPerRound: d('descentPerRound', descentPerRound),
       descentMax: d('descentMax', descentMax),
       turretIntervalBase: d('turretIntervalBase', turretIntervalBase),
-      turretIntervalPerRound: d('turretIntervalPerRound', turretIntervalPerRound),
+      turretIntervalPerRound: d(
+        'turretIntervalPerRound',
+        turretIntervalPerRound,
+      ),
       turretIntervalMin: d('turretIntervalMin', turretIntervalMin),
       bulletSpeedBase: d('bulletSpeedBase', bulletSpeedBase),
       bulletSpeedPerRound: d('bulletSpeedPerRound', bulletSpeedPerRound),

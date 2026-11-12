@@ -16,7 +16,10 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('667x375 で 1-1 と 1-10 の番号がタイルに収まる', (t) async {
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final content = await GameContent.load(rootBundle);
@@ -30,21 +33,25 @@ void main() {
       if (!d.exceptionAsString().contains('overflowed')) onError?.call(d);
     };
     addTearDown(() => FlutterError.onError = onError);
-    await t.pumpWidget(ProviderScope(
-      overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-        contentProvider.overrideWithValue(content),
-        leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
-      ],
-      child: const ParryBreakApp(home: StageSelectScreen()),
-    ));
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
+          contentProvider.overrideWithValue(content),
+          leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
+        ],
+        child: const ParryBreakApp(home: StageSelectScreen()),
+      ),
+    );
     await t.pump(const Duration(milliseconds: 1500));
     expect(find.byType(StageSelectScreen), findsOneWidget);
 
     for (final id in ['1-1', '1-10']) {
       final label = find.text(id);
       expect(label, findsOneWidget);
-      final tile = find.ancestor(of: label, matching: find.byType(GestureDetector)).first;
+      final tile = find
+          .ancestor(of: label, matching: find.byType(GestureDetector))
+          .first;
       final l = t.getRect(label), r = t.getRect(tile);
       expect(l.left, greaterThanOrEqualTo(r.left), reason: id);
       expect(l.right, lessThanOrEqualTo(r.right), reason: id);
@@ -55,22 +62,29 @@ void main() {
 
   // 画面の大きさを変えたままだと撮影が返ってこないので、エミュレーターの画面そのままで撮る (大きい画面で見た目が崩れていないかを見る)
   testWidgets('エミュレーターの画面そのままでタイルの番号が収まり、画面を撮る', (t) async {
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final content = await GameContent.load(rootBundle);
-    await t.pumpWidget(ProviderScope(
-      overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-        contentProvider.overrideWithValue(content),
-        leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
-      ],
-      child: const ParryBreakApp(home: StageSelectScreen()),
-    ));
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
+          contentProvider.overrideWithValue(content),
+          leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
+        ],
+        child: const ParryBreakApp(home: StageSelectScreen()),
+      ),
+    );
     await t.pump(const Duration(milliseconds: 1500));
     for (final id in ['1-1', '1-10']) {
       final label = find.text(id);
-      final tile = find.ancestor(of: label, matching: find.byType(GestureDetector)).first;
+      final tile = find
+          .ancestor(of: label, matching: find.byType(GestureDetector))
+          .first;
       final l = t.getRect(label), r = t.getRect(tile);
       expect(l.right, lessThanOrEqualTo(r.right), reason: id);
       expect(l.width, greaterThan(l.height), reason: id);

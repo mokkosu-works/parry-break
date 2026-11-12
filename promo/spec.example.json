@@ -1,0 +1,16 @@
+{
+  "name": "parry-v2",
+  "app_name": "PARRY BREAK",
+  "outro_text": "ストアで検索",
+  "tagline": "弾幕を撃ち返す、ドット絵ブロック崩し",
+  "font": "",
+  "body": {"file": "raw/play.mp4", "start": 10, "end": 28, "caption": "弾幕を、武器にする。"},
+  "hooks": {
+    "A": {"file": "raw/play.mp4", "start": 40, "caption": "受けるな、弾け。"},
+    "B": {"file": "raw/play.mp4", "start": 55, "caption": "あと1ミリだった…"},
+    "C": {"file": "raw/play.mp4", "start": 70, "caption": "この連鎖、止まらない"}
+  },
+  "title": "弾幕を撃ち返すブロック崩し【PARRY BREAK】",
+  "description": "当たる瞬間にタップして弾を撃ち返す、高難度ドット絵ブロック崩し。無料・コンティニューなし。ストアで「PARRY BREAK」を検索。",
+  "hashtags": ["#PARRYBREAK", "#ブロック崩し", "#弾幕", "#ドット絵", "#インディーゲーム"]
+}

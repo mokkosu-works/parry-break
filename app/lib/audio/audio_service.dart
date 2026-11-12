@@ -70,9 +70,79 @@ class SilentAudio implements AudioService {
   void setAppActive(bool active) {}
 }
 
-class SoLoudAudio implements AudioService {
+/// SoLoud の呼び出し。テストで呼ばれた操作を記録する偽物に差し替えるために分けてある。
+///
+/// 音源は [loadMem] が返したものを、そのまま [play] に渡す。
+abstract class AudioBackend {
+  Future<void> init();
+  Future<Object> loadMem(String path, Uint8List bytes);
+  SoundHandle play(
+    Object source, {
+    double volume = 1,
+    bool looping = false,
+    bool paused = false,
+  });
+  void stop(SoundHandle h);
+  void setPause(SoundHandle h, bool paused);
+  void setVolume(SoundHandle h, double volume);
+  void fadeVolume(SoundHandle h, double to, Duration time);
+  void seek(SoundHandle h, Duration time);
+  Duration getPosition(SoundHandle h);
+  void setGlobalVolume(double volume);
+}
+
+class SoLoudBackend implements AudioBackend {
   final SoLoud _sl = SoLoud.instance;
-  final Map<String, AudioSource> _src = {};
+
+  @override
+  Future<void> init() async {
+    await _sl.init(bufferSize: 512);
+    _sl.setMaxActiveVoiceCount(48);
+  }
+
+  @override
+  Future<Object> loadMem(String path, Uint8List bytes) =>
+      _sl.loadMem(path, bytes);
+  @override
+  SoundHandle play(
+    Object source, {
+    double volume = 1,
+    bool looping = false,
+    bool paused = false,
+  }) => _sl.play(
+    source as AudioSource,
+    volume: volume,
+    looping: looping,
+    paused: paused,
+  );
+  @override
+  void stop(SoundHandle h) => _sl.stop(h);
+  @override
+  void setPause(SoundHandle h, bool paused) => _sl.setPause(h, paused);
+  @override
+  void setVolume(SoundHandle h, double volume) => _sl.setVolume(h, volume);
+  @override
+  void fadeVolume(SoundHandle h, double to, Duration time) =>
+      _sl.fadeVolume(h, to, time);
+  @override
+  void seek(SoundHandle h, Duration time) => _sl.seek(h, time);
+  @override
+  Duration getPosition(SoundHandle h) => _sl.getPosition(h);
+  @override
+  void setGlobalVolume(double volume) => _sl.setGlobalVolume(volume);
+}
+
+class SoLoudAudio implements AudioService {
+  /// [backend] と [bank] はテストで差し替える。[bank] は名前 → WAV のバイト列を返す。
+  SoLoudAudio({
+    AudioBackend? backend,
+    Future<Map<String, Uint8List>> Function()? bank,
+  }) : _sl = backend ?? SoLoudBackend(),
+       _bank = bank ?? (() => compute(renderSoundBank, null));
+
+  final AudioBackend _sl;
+  final Future<Map<String, Uint8List>> Function() _bank;
+  final Map<String, Object> _src = {};
   final Map<String, double> _last = {};
   final Stopwatch _clock = Stopwatch()..start();
   final math.Random _rnd = math.Random();
@@ -92,9 +162,8 @@ class SoLoudAudio implements AudioService {
   @override
   Future<void> init() async {
     try {
-      await _sl.init(bufferSize: 512);
-      _sl.setMaxActiveVoiceCount(48);
-      final bank = await compute(renderSoundBank, null);
+      await _sl.init();
+      final bank = await _bank();
       for (final e in bank.entries) {
         _src[e.key] = await _sl.loadMem('${e.key}.wav', e.value);
       }
@@ -137,7 +206,11 @@ class SoLoudAudio implements AudioService {
       case BlockDestroyed():
         if (_throttle('brk', 0.022)) play('brk${_rnd.nextInt(3)}');
       case ParrySucceeded(:final grade):
-        play(switch (grade) { ParryGrade.just => 'just', ParryGrade.perfect => 'perfect', ParryGrade.good => 'good' });
+        play(switch (grade) {
+          ParryGrade.just => 'just',
+          ParryGrade.perfect => 'perfect',
+          ParryGrade.good => 'good',
+        });
       case ParryMissed():
         play('miss');
       case BulletFired():
@@ -171,7 +244,9 @@ class SoLoudAudio implements AudioService {
       case BallLaunched():
         play('launch');
       case BlockFell(:final noteIndex):
-        if (_throttle('note', 0.018)) play('note${math.min(noteIndex, noteCount - 1)}');
+        if (_throttle('note', 0.018)) {
+          play('note${math.min(noteIndex, noteCount - 1)}');
+        }
       case CollapseStarted():
         play('crumble', gap: 0.1);
       case KeystoneBroken():
@@ -231,7 +306,9 @@ class SoLoudAudio implements AudioService {
   @override
   void setMusicLevel(int level) {
     _targetLevel = level;
-    if (!_musicOn || _music == null || level == _level || _switch != null) return;
+    if (!_musicOn || _music == null || level == _level || _switch != null) {
+      return;
+    }
     // 次の小節の頭で切り替える (ベースの進行の位置は保つ)
     final bar = barSeconds(_level), loop = bar * 4;
     final pos = (_now - _musicStartedAt) % loop;
@@ -265,7 +342,9 @@ class SoLoudAudio implements AudioService {
     final h = _music;
     if (h != null) _sl.setPause(h, paused);
     _sl.setGlobalVolume(paused ? 0 : 1);
-    if (!paused && h != null) _musicStartedAt = _now - _sl.getPosition(h).inMicroseconds / 1e6;
+    if (!paused && h != null) {
+      _musicStartedAt = _now - _sl.getPosition(h).inMicroseconds / 1e6;
+    }
   }
 
   @override

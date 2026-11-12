@@ -1,21 +1,13 @@
 {
   "@@locale": "ja",
-  "appTitle": "PARRY BREAK",
-  "menuEndless": "エンドレス",
   "menuStages": "ステージ",
   "menuHowToPlay": "遊び方",
   "menuSettings": "設定",
-  "menuRanking": "ランキング",
+  "menuHistory": "プレイ記録",
+  "historyEmpty": "まだ記録がありません。結果画面まで遊ぶと、ここに残ります",
+  "historyCleared": "クリア",
+  "historyFailed": "未クリア",
   "back": "戻る",
-  "bestScore": "最高スコア",
-  "roundN": "ラウンド {n}",
-  "@roundN": {
-    "placeholders": {
-      "n": {
-        "type": "String"
-      }
-    }
-  },
   "helpMoveTitle": "移動",
   "helpMoveZones": "画面の左半分をドラッグして、パドルを左右に動かす",
   "helpMoveRail": "左のレールをドラッグして、パドルを左右に動かす",
@@ -34,19 +26,20 @@
   "helpOverBody": "ボールを画面の下に落とすと終わり\nブロックが赤い点線(デッドライン)まで下りてきても終わり",
   "helpPauseTitle": "一時停止",
   "helpPauseBody": "右上の Ⅱ をタップすると、一時停止する",
+  "helpKeysMove": "キーボード:←→ か A / D で移動",
+  "helpKeysParry": "キーボード:Space か Enter で発射・パリィ",
+  "helpKeysPause": "キーボード:Esc か P で一時停止",
   "helpPrev": "前へ",
   "helpNext": "次へ",
-  "paused": "一時停止中",
-  "resume": "再開",
-  "retry": "リトライ",
-  "toTitle": "タイトルへ",
-  "nextStage": "次のステージ",
-  "stageSelect": "ステージ選択",
-  "gameOver": "GAME OVER",
-  "stageClear": "STAGE CLEAR",
-  "stageFailed": "STAGE FAILED",
-  "newRecord": "NEW RECORD",
-  "locked": "未解放",
+  "bestScoreClearOnly": "クリアした回のみ記録",
+  "unlockBy": "{stage} をクリアすると開く",
+  "@unlockBy": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
   "starClear": "クリア",
   "starNoHit": "一度も被弾せずにクリア",
   "starTime": "{seconds}秒以内にクリア",
@@ -145,10 +138,12 @@
   "settingsTabOther": "その他",
   "settingsControls": "操作方法",
   "controlsZones": "画面の左右",
-  "controlsRailH": "レール（横）",
-  "controlsRailV": "レール（縦）",
+  "controlsRailH": "レール(横)",
+  "controlsRailV": "レール(縦)",
   "settingsSensitivity": "移動感度",
   "settingsRailSensitivity": "レール感度",
+  "settingsZonesOnly": "操作方法が「画面の左右」のときに使います",
+  "settingsRailOnly": "操作方法が「レール」のときに使います",
   "settingsTiming": "判定タイミング補正",
   "settingsTimingHelp": "画面表示やタッチの遅れを補正するため、入力をこの時間だけ早く受け付けたものとして扱います",
   "calibrate": "測定する",
@@ -157,9 +152,9 @@
   "settingsHaptics": "振動",
   "settingsQuality": "画質",
   "qualityHigh": "高",
-  "qualityLow": "低（省電力）",
+  "qualityLow": "低(省電力)",
   "settingsReduceEffects": "演出を控えめにする",
-  "settingsReduceEffectsHelp": "フラッシュ・点滅・揺れを抑えます",
+  "settingsReduceEffectsHelp": "フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます",
   "settingsLanguage": "言語",
   "settingsAdPrivacy": "広告のプライバシー設定",
   "settingsDebugMode": "デバッグモード",
@@ -168,7 +163,7 @@
   "debugModeOff": "デバッグモード OFF",
   "languageSystem": "端末の設定に合わせる",
   "calibrationTitle": "判定タイミングの測定",
-  "calibrationBody": "リングが線に重なる瞬間にタップしてください（{count}回）",
+  "calibrationBody": "縮んでくる輪が、中央の輪に重なる瞬間にタップしてください({count}回)",
   "@calibrationBody": {
     "placeholders": {
       "count": {
@@ -186,18 +181,27 @@
   },
   "calibrationApply": "この値を使う",
   "calibrationRetry": "測り直す",
-  "tapToStart": "タップで開始",
+  "calibrationStart": "スタート",
+  "calibrationFailed": "うまく測れませんでした(輪に合ったタップ: {hits}回。{min}回以上必要です)。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください",
+  "@calibrationFailed": {
+    "placeholders": {
+      "hits": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
   "rankingUnavailable": "ランキングは現在利用できません",
-  "rankingEndlessScore": "エンドレス: スコア",
-  "rankingEndlessRound": "エンドレス: 到達ラウンド",
-  "rankingStages": "ステージ: 合計スコア",
   "introKeystone": "NEW: 要石 — 壊すと、支えていたブロックが崩れ落ちる",
   "introTurret": "NEW: 砲台 — 弾をパリィで撃ち返せ",
   "introExplosive": "NEW: 爆薬 — 周りを巻き込んで誘爆する。破片も撃ち返せる",
   "introReflector": "NEW: 反射板 — 当たるとボールの向きが変わる",
   "introMagnet": "NEW: 磁石 — 近くのボールを引き寄せる",
   "introSplitter": "NEW: 分裂 — 壊すと小さなブロックが飛び散る",
-  "introMirror": "NEW: 鏡 — 撃ち返した弾をさらに跳ね返す",
+  "introMirror": "NEW: 鏡 — 撃ち返した弾をさらに跳ね返す。貫通弾でしか壊れない",
+  "introWall": "NEW: 壊せない壁 — 全消しには数えない。FEVER TIME 中だけ壊せる",
   "introSpread": "NEW: 拡散砲台 — 扇状の弾。まとめてパリィで撃ち返せ",
   "introGatling": "NEW: 連射砲台 — 追いかけてくる連射。リズムよくパリィ",
   "introRing": "NEW: 全方位砲台 — 輪の弾の隙間をくぐれ",
@@ -212,10 +216,18 @@
     }
   },
   "introParry": "ボールが当たる瞬間にタップしてパリィ",
+  "introParryButton": "ボールが当たる瞬間に PARRY を押してパリィ",
   "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
   "introFeverTime": "PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ",
   "introSurvive": "ブロックをデッドラインまで下ろさずに耐え抜け",
-  "introScore": "目標スコアに到達すればクリア",
+  "introScore": "スコア {value} に到達すればクリア",
+  "@introScore": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "bannerBoss": "赤い弾をパリィで撃ち返し、貫通弾でコアを狙え",
   "bannerFeverTime": "全弾貫通 ×16 — PERFECT で分身弾",
   "bannerPhase2": "鏡のシールド展開 — ロックオンレーザーに注意",
@@ -225,5 +237,55 @@
   "difficulty": "難易度",
   "difficultyEasy": "弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い",
   "difficultyNormal": "標準の難しさ",
-  "difficultyHard": "弾幕モード。弾が増え、壊したブロックが撃ち返してくる"
+  "difficultyHard": "弾幕モード。弾が増え、壊したブロックが撃ち返してくる",
+  "startupErrorTitle": "起動できませんでした",
+  "startupErrorBody": "ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。",
+  "chapterPrev": "前の章",
+  "chapterNext": "次の章",
+  "stepDown": "下げる",
+  "stepUp": "上げる",
+  "open": "開く",
+  "pauseGame": "一時停止する",
+  "stageTileCleared": "{id} {title}、クリア済み、星 {got} / {total}",
+  "@stageTileCleared": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "got": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "stageTileNotCleared": "{id} {title}、未クリア、星 {got} / {total}",
+  "@stageTileNotCleared": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "got": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "stageTileLocked": "{id}、未解放",
+  "@stageTileLocked": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }

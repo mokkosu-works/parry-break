@@ -14,11 +14,18 @@ class GameContent {
   static Future<GameContent> load(AssetBundle bundle) async {
     Future<Map<String, Object?>> json(String path) async =>
         jsonDecode(await bundle.loadString(path)) as Map<String, Object?>;
-    final endless = EndlessContent.fromJson(await json('assets/stages/endless.json'));
-    final campaign = Campaign.fromJson(await json('assets/stages/campaign.json'), endless);
+    final endless = EndlessContent.fromJson(
+      await json('assets/stages/endless.json'),
+    );
+    final campaign = Campaign.fromJson(
+      await json('assets/stages/campaign.json'),
+      endless,
+    );
     return GameContent(endless: endless, campaign: campaign);
   }
 }
 
 /// アプリ起動時に main で差し替える。
-final contentProvider = Provider<GameContent>((ref) => throw UnimplementedError());
+final contentProvider = Provider<GameContent>(
+  (ref) => throw UnimplementedError(),
+);

@@ -4,6 +4,10 @@ name: check
 on:
   workflow_call:
 
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -14,10 +18,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          # 手元と合わせる。上げるときは release.yml と pr.yml (fix) も同じ値にする
-          flutter-version: 3.47.6
+          # 版は app/pubspec.yaml の environment.flutter で決める
+          flutter-version-file: app/pubspec.yaml
           channel: stable
           cache: true
       - run: flutter pub get
+      # 整形のずれを止める。生成物の lib/l10n/app_localizations*.dart は除く。
+      # 落ちたら、手元で同じ find の結果に dart format をかけてコミットする
+      - name: 整形 (dart format)
+        run: >-
+          find lib test integration_test test_driver -name '*.dart'
+          -not -path 'lib/l10n/app_localizations*.dart' -print0
+          | xargs -0 dart format --output=none --set-exit-if-changed
       - run: flutter analyze
       - run: flutter test

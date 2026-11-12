@@ -98,18 +98,6 @@ abstract class AppLocalizations {
     Locale('ja'),
   ];
 
-  /// No description provided for @appTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'PARRY BREAK'**
-  String get appTitle;
-
-  /// No description provided for @menuEndless.
-  ///
-  /// In ja, this message translates to:
-  /// **'エンドレス'**
-  String get menuEndless;
-
   /// No description provided for @menuStages.
   ///
   /// In ja, this message translates to:
@@ -128,29 +116,35 @@ abstract class AppLocalizations {
   /// **'設定'**
   String get menuSettings;
 
-  /// No description provided for @menuRanking.
+  /// No description provided for @menuHistory.
   ///
   /// In ja, this message translates to:
-  /// **'ランキング'**
-  String get menuRanking;
+  /// **'プレイ記録'**
+  String get menuHistory;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ記録がありません。結果画面まで遊ぶと、ここに残ります'**
+  String get historyEmpty;
+
+  /// No description provided for @historyCleared.
+  ///
+  /// In ja, this message translates to:
+  /// **'クリア'**
+  String get historyCleared;
+
+  /// No description provided for @historyFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'未クリア'**
+  String get historyFailed;
 
   /// No description provided for @back.
   ///
   /// In ja, this message translates to:
   /// **'戻る'**
   String get back;
-
-  /// No description provided for @bestScore.
-  ///
-  /// In ja, this message translates to:
-  /// **'最高スコア'**
-  String get bestScore;
-
-  /// No description provided for @roundN.
-  ///
-  /// In ja, this message translates to:
-  /// **'ラウンド {n}'**
-  String roundN(String n);
 
   /// No description provided for @helpMoveTitle.
   ///
@@ -260,6 +254,24 @@ abstract class AppLocalizations {
   /// **'右上の Ⅱ をタップすると、一時停止する'**
   String get helpPauseBody;
 
+  /// No description provided for @helpKeysMove.
+  ///
+  /// In ja, this message translates to:
+  /// **'キーボード:←→ か A / D で移動'**
+  String get helpKeysMove;
+
+  /// No description provided for @helpKeysParry.
+  ///
+  /// In ja, this message translates to:
+  /// **'キーボード:Space か Enter で発射・パリィ'**
+  String get helpKeysParry;
+
+  /// No description provided for @helpKeysPause.
+  ///
+  /// In ja, this message translates to:
+  /// **'キーボード:Esc か P で一時停止'**
+  String get helpKeysPause;
+
   /// No description provided for @helpPrev.
   ///
   /// In ja, this message translates to:
@@ -272,71 +284,17 @@ abstract class AppLocalizations {
   /// **'次へ'**
   String get helpNext;
 
-  /// No description provided for @paused.
+  /// No description provided for @bestScoreClearOnly.
   ///
   /// In ja, this message translates to:
-  /// **'一時停止中'**
-  String get paused;
+  /// **'クリアした回のみ記録'**
+  String get bestScoreClearOnly;
 
-  /// No description provided for @resume.
+  /// No description provided for @unlockBy.
   ///
   /// In ja, this message translates to:
-  /// **'再開'**
-  String get resume;
-
-  /// No description provided for @retry.
-  ///
-  /// In ja, this message translates to:
-  /// **'リトライ'**
-  String get retry;
-
-  /// No description provided for @toTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'タイトルへ'**
-  String get toTitle;
-
-  /// No description provided for @nextStage.
-  ///
-  /// In ja, this message translates to:
-  /// **'次のステージ'**
-  String get nextStage;
-
-  /// No description provided for @stageSelect.
-  ///
-  /// In ja, this message translates to:
-  /// **'ステージ選択'**
-  String get stageSelect;
-
-  /// No description provided for @gameOver.
-  ///
-  /// In ja, this message translates to:
-  /// **'GAME OVER'**
-  String get gameOver;
-
-  /// No description provided for @stageClear.
-  ///
-  /// In ja, this message translates to:
-  /// **'STAGE CLEAR'**
-  String get stageClear;
-
-  /// No description provided for @stageFailed.
-  ///
-  /// In ja, this message translates to:
-  /// **'STAGE FAILED'**
-  String get stageFailed;
-
-  /// No description provided for @newRecord.
-  ///
-  /// In ja, this message translates to:
-  /// **'NEW RECORD'**
-  String get newRecord;
-
-  /// No description provided for @locked.
-  ///
-  /// In ja, this message translates to:
-  /// **'未解放'**
-  String get locked;
+  /// **'{stage} をクリアすると開く'**
+  String unlockBy(String stage);
 
   /// No description provided for @starClear.
   ///
@@ -467,13 +425,13 @@ abstract class AppLocalizations {
   /// No description provided for @controlsRailH.
   ///
   /// In ja, this message translates to:
-  /// **'レール（横）'**
+  /// **'レール(横)'**
   String get controlsRailH;
 
   /// No description provided for @controlsRailV.
   ///
   /// In ja, this message translates to:
-  /// **'レール（縦）'**
+  /// **'レール(縦)'**
   String get controlsRailV;
 
   /// No description provided for @settingsSensitivity.
@@ -487,6 +445,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'レール感度'**
   String get settingsRailSensitivity;
+
+  /// No description provided for @settingsZonesOnly.
+  ///
+  /// In ja, this message translates to:
+  /// **'操作方法が「画面の左右」のときに使います'**
+  String get settingsZonesOnly;
+
+  /// No description provided for @settingsRailOnly.
+  ///
+  /// In ja, this message translates to:
+  /// **'操作方法が「レール」のときに使います'**
+  String get settingsRailOnly;
 
   /// No description provided for @settingsTiming.
   ///
@@ -539,7 +509,7 @@ abstract class AppLocalizations {
   /// No description provided for @qualityLow.
   ///
   /// In ja, this message translates to:
-  /// **'低（省電力）'**
+  /// **'低(省電力)'**
   String get qualityLow;
 
   /// No description provided for @settingsReduceEffects.
@@ -551,7 +521,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsReduceEffectsHelp.
   ///
   /// In ja, this message translates to:
-  /// **'フラッシュ・点滅・揺れを抑えます'**
+  /// **'フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます'**
   String get settingsReduceEffectsHelp;
 
   /// No description provided for @settingsLanguage.
@@ -605,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @calibrationBody.
   ///
   /// In ja, this message translates to:
-  /// **'リングが線に重なる瞬間にタップしてください（{count}回）'**
+  /// **'縮んでくる輪が、中央の輪に重なる瞬間にタップしてください({count}回)'**
   String calibrationBody(String count);
 
   /// No description provided for @calibrationResult.
@@ -626,35 +596,23 @@ abstract class AppLocalizations {
   /// **'測り直す'**
   String get calibrationRetry;
 
-  /// No description provided for @tapToStart.
+  /// No description provided for @calibrationStart.
   ///
   /// In ja, this message translates to:
-  /// **'タップで開始'**
-  String get tapToStart;
+  /// **'スタート'**
+  String get calibrationStart;
+
+  /// No description provided for @calibrationFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'うまく測れませんでした(輪に合ったタップ: {hits}回。{min}回以上必要です)。縮んでくる輪が、中央の輪に重なる瞬間にタップしてください'**
+  String calibrationFailed(String hits, String min);
 
   /// No description provided for @rankingUnavailable.
   ///
   /// In ja, this message translates to:
   /// **'ランキングは現在利用できません'**
   String get rankingUnavailable;
-
-  /// No description provided for @rankingEndlessScore.
-  ///
-  /// In ja, this message translates to:
-  /// **'エンドレス: スコア'**
-  String get rankingEndlessScore;
-
-  /// No description provided for @rankingEndlessRound.
-  ///
-  /// In ja, this message translates to:
-  /// **'エンドレス: 到達ラウンド'**
-  String get rankingEndlessRound;
-
-  /// No description provided for @rankingStages.
-  ///
-  /// In ja, this message translates to:
-  /// **'ステージ: 合計スコア'**
-  String get rankingStages;
 
   /// No description provided for @introKeystone.
   ///
@@ -695,8 +653,14 @@ abstract class AppLocalizations {
   /// No description provided for @introMirror.
   ///
   /// In ja, this message translates to:
-  /// **'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す'**
+  /// **'NEW: 鏡 — 撃ち返した弾をさらに跳ね返す。貫通弾でしか壊れない'**
   String get introMirror;
+
+  /// No description provided for @introWall.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: 壊せない壁 — 全消しには数えない。FEVER TIME 中だけ壊せる'**
+  String get introWall;
 
   /// No description provided for @introSpread.
   ///
@@ -740,6 +704,12 @@ abstract class AppLocalizations {
   /// **'ボールが当たる瞬間にタップしてパリィ'**
   String get introParry;
 
+  /// No description provided for @introParryButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボールが当たる瞬間に PARRY を押してパリィ'**
+  String get introParryButton;
+
   /// No description provided for @introPierce.
   ///
   /// In ja, this message translates to:
@@ -761,8 +731,8 @@ abstract class AppLocalizations {
   /// No description provided for @introScore.
   ///
   /// In ja, this message translates to:
-  /// **'目標スコアに到達すればクリア'**
-  String get introScore;
+  /// **'スコア {value} に到達すればクリア'**
+  String introScore(String value);
 
   /// No description provided for @bannerBoss.
   ///
@@ -823,6 +793,72 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'弾幕モード。弾が増え、壊したブロックが撃ち返してくる'**
   String get difficultyHard;
+
+  /// No description provided for @startupErrorTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'起動できませんでした'**
+  String get startupErrorTitle;
+
+  /// No description provided for @startupErrorBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'ゲームのデータを読み込めませんでした。アプリを終了して、もう一度起動してください。直らないときは、アプリを最新版に更新してください。'**
+  String get startupErrorBody;
+
+  /// No description provided for @chapterPrev.
+  ///
+  /// In ja, this message translates to:
+  /// **'前の章'**
+  String get chapterPrev;
+
+  /// No description provided for @chapterNext.
+  ///
+  /// In ja, this message translates to:
+  /// **'次の章'**
+  String get chapterNext;
+
+  /// No description provided for @stepDown.
+  ///
+  /// In ja, this message translates to:
+  /// **'下げる'**
+  String get stepDown;
+
+  /// No description provided for @stepUp.
+  ///
+  /// In ja, this message translates to:
+  /// **'上げる'**
+  String get stepUp;
+
+  /// No description provided for @open.
+  ///
+  /// In ja, this message translates to:
+  /// **'開く'**
+  String get open;
+
+  /// No description provided for @pauseGame.
+  ///
+  /// In ja, this message translates to:
+  /// **'一時停止する'**
+  String get pauseGame;
+
+  /// No description provided for @stageTileCleared.
+  ///
+  /// In ja, this message translates to:
+  /// **'{id} {title}、クリア済み、星 {got} / {total}'**
+  String stageTileCleared(String id, String title, String got, String total);
+
+  /// No description provided for @stageTileNotCleared.
+  ///
+  /// In ja, this message translates to:
+  /// **'{id} {title}、未クリア、星 {got} / {total}'**
+  String stageTileNotCleared(String id, String title, String got, String total);
+
+  /// No description provided for @stageTileLocked.
+  ///
+  /// In ja, this message translates to:
+  /// **'{id}、未解放'**
+  String stageTileLocked(String id);
 }
 
 class _AppLocalizationsDelegate

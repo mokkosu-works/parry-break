@@ -16,11 +16,23 @@ class ExplosiveBlock extends BlockBehavior {
   int basePoints(Block b, World w) => 300;
 
   @override
-  void onDestroyed(World w, Block b, double cx, double cy) =>
-      w.queueBlast(cx, cy, 0.07, w.tuning.blastRadius, shrapnel: true, kind: BlastKind.bomb);
+  void onDestroyed(World w, Block b, double cx, double cy) => w.queueBlast(
+    cx,
+    cy,
+    0.07,
+    w.tuning.blastRadius,
+    shrapnel: true,
+    kind: BlastKind.bomb,
+  );
 
   /// 崩落した爆薬は落下と同時に爆発する。
   @override
-  void onFell(World w, Block b, double cx, double cy) =>
-      w.queueBlast(cx, cy, 0.12, w.tuning.blastRadius, shrapnel: true, kind: BlastKind.bomb);
+  void onFell(World w, Block b, double cx, double cy) => w.queueBlast(
+    cx,
+    cy,
+    0.12,
+    w.tuning.blastRadius,
+    shrapnel: true,
+    kind: BlastKind.bomb,
+  );
 }

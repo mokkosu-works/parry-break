@@ -5,7 +5,15 @@ const double deg = math.pi / 180;
 double clampD(double v, double a, double b) => v < a ? a : (v > b ? b : v);
 
 /// 円と矩形が重なっているか。
-bool circleRect(double cx, double cy, double r, double x, double y, double w, double h) {
+bool circleRect(
+  double cx,
+  double cy,
+  double r,
+  double x,
+  double y,
+  double w,
+  double h,
+) {
   final nx = clampD(cx, x, x + w), ny = clampD(cy, y, y + h);
   final dx = cx - nx, dy = cy - ny;
   return dx * dx + dy * dy <= r * r;

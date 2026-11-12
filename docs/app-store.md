@@ -76,14 +76,16 @@ SHOT_DIR=build/store_screenshots/ja/iphone flutter drive -d <デバイス ID> --
 
 ## 審査メモ(App Review への情報)
 
+App Store Connect の「App Review に関する情報」のメモに、人が下の英文を貼る(`promote` では送られない)。広告の出し方(`app/lib/services/ads.dart` の `InterstitialPolicy`)や操作方法(`app/lib/services/settings.dart` の `ControlScheme`)を変えたら、この文も実装に合わせて直し、貼り直す。
+
 ```
 No account or login is required. Game Center is used only for leaderboards; the game is fully playable without signing in.
 
-The game is landscape only. Drag on the left half of the screen to move the paddle, and tap the right half to launch the ball and parry. Chapter 1 of Stage mode is a tutorial.
+The game is landscape only. By default, drag on the left half of the screen to move the paddle, and tap the right half to launch the ball and parry. In Settings > CONTROLS, the controls can be switched to a rail (horizontal or vertical) on the left that moves the paddle, with a PARRY button on the right that launches the ball and parries. Chapter 1 of Stage mode is a tutorial.
 
-The app shows interstitial ads (Google AdMob) only when the player returns from the results screen to the title or stage select, never during play. On the first launch, shortly after the title screen is shown, the app shows the GDPR consent form (EEA/UK only) and then the App Tracking Transparency prompt. The ATT prompt appears before the ad SDK is initialized, so no tracking data is collected before the user responds. A screen recording of this flow on a physical device is attached. Ads themselves are not shown during the first 24 hours after the first launch, so you may not see an ad during review. Tracking permission can be changed in the iOS Settings app; in regions that require consent (EEA/UK), an "Ad privacy settings" item also appears in the app's Settings.
+The app shows interstitial ads (Google AdMob) only when the player returns from the results screen to the title or stage select, never during play. On the first launch, shortly after the title screen is shown, the app shows the GDPR consent form (EEA/UK only) and then the App Tracking Transparency prompt. The ATT prompt appears before the ad SDK is initialized, so no tracking data is collected before the user responds. A screen recording of this flow on a physical device is attached. Ads themselves are not shown until the player has seen the results screen three times. From the fourth results screen on, an ad can be shown when returning to the title or stage select (at least 3 minutes apart, and at most 8 times a day); choosing RETRY or NEXT STAGE never shows an ad. To see an ad: finish four rounds in Endless or Stage mode (a game over is fine), and on the fourth results screen tap TITLE. If a review request appears instead (after clearing a stage with all three stars), dismiss it and finish one more round. Tracking permission can be changed in the iOS Settings app; in regions that require consent (EEA/UK), an "Ad privacy settings" item also appears in the app's Settings.
 
-There is a hidden debug mode for development (tap "VER" at the bottom right of the title screen three times). It unlocks all stages, and scores in this mode are not saved or submitted to leaderboards. It can be turned off in Settings.
+There is a hidden debug mode for development (tap "VER" at the bottom right of the title screen three times). It unlocks all stages, and scores in this mode are not saved or submitted to leaderboards. Ads are not shown and results are not counted toward the ad grace period while it is on, so turn it off before checking ads. It can be turned off in Settings.
 ```
 
 ## 輸出コンプライアンス

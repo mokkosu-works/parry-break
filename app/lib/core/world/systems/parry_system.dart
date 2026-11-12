@@ -26,14 +26,29 @@ extension _ParrySystem on World {
     }
     if (p.stun > 0) return;
     if (pr.active || pt < pr.cooldownUntil) return;
-    // 接触の「後」に押した場合も、0.03 秒以内なら PERFECT (0.012 秒以内なら JUST)
+    // 接触の「後」に押した場合も、0.03 秒以内なら PERFECT (0.012 秒以内なら JUST)。
+    // ボールと、パドルに触れて被弾の確定を待っている敵弾 (すべて撃ち返す) が対象。
+    var late = false;
     final dl = pt - lastContact.t;
-    if (!lastContact.used && dl <= tuning.perfectWindow && dl >= -tuning.parryWindow) {
+    if (!lastContact.used &&
+        dl <= tuning.perfectWindow &&
+        dl >= -tuning.parryWindow) {
       lastContact = Contact(lastContact.t, used: true);
       pr.hits = 0;
+      late = true;
       _applyParry(_grade(dl.abs()), ParryTarget.ball, b.x, Field.paddleY);
-      return;
     }
+    for (final u in List.of(bullets)) {
+      final tc = u.contact;
+      if (tc == null || u.dead) continue;
+      final du = pt - tc;
+      if (du > tuning.perfectWindow || du < -tuning.parryWindow) continue;
+      if (!late) pr.hits = 0;
+      late = true;
+      u.contact = null;
+      _parryBullet(u, _grade(du.abs()));
+    }
+    if (late) return;
     pr
       ..active = true
       ..press = pt
@@ -44,13 +59,16 @@ extension _ParrySystem on World {
   ParryGrade _grade(double ad) => ad <= tuning.justWindow
       ? ParryGrade.just
       : ad <= tuning.perfectWindow + 1e-6
-          ? ParryGrade.perfect
-          : ParryGrade.good;
+      ? ParryGrade.perfect
+      : ParryGrade.good;
 
   /// パリィ判定の窓の中で接触したか。[tc] は接触時刻。
   ParryGrade? _judgeContact(double tc) {
     final d = tc - parry.press;
-    if (parry.active && paddle.stun <= 0 && d <= tuning.parryWindow + 1e-6 && d >= -tuning.perfectWindow) {
+    if (parry.active &&
+        paddle.stun <= 0 &&
+        d <= tuning.parryWindow + 1e-6 &&
+        d >= -tuning.perfectWindow) {
       return _grade(d.abs());
     }
     return null;
@@ -63,17 +81,15 @@ extension _ParrySystem on World {
     b.speed = targetSpeed;
     b.vx = math.sin(a) * b.speed;
     b.vy = -math.cos(a) * b.speed;
-    if (!launched) {
-      launched = true;
-      roundTime = 0;
-    }
+    launched = true;
     b.flight = 0;
     emit(const BallLaunched());
   }
 
   void _applyParry(ParryGrade grade, ParryTarget target, double x, double y) {
     final pr = parry;
-    final just = grade == ParryGrade.just, perfect = just || grade == ParryGrade.perfect;
+    final just = grade == ParryGrade.just,
+        perfect = just || grade == ParryGrade.perfect;
     final wasOd = od;
     pr
       ..success = true
@@ -87,20 +103,56 @@ extension _ParrySystem on World {
     if (just) stats.just++;
     if (target == ParryTarget.ball) {
       final b = ball;
-      addCombo(just ? 160 : perfect ? 120 : 60);
+      addCombo(
+        just
+            ? 160
+            : perfect
+            ? 120
+            : 60,
+      );
       b.pierce = math.max(b.pierce, perfect ? 3 : 1);
       if (just) b.breaker = true; // 次にブロックへ当たった瞬間に衝撃波
-      hitstop = math.max(hitstop, just ? 0.1 : perfect ? 0.08 : 0.05);
+      hitstop = math.max(
+        hitstop,
+        just
+            ? 0.1
+            : perfect
+            ? 0.08
+            : 0.05,
+      );
       if (wasOd && perfect) _spawnPhantoms(just ? 3 : 2);
     } else {
-      addCombo(just ? 70 : perfect ? 50 : 25);
+      addCombo(
+        just
+            ? 70
+            : perfect
+            ? 50
+            : 25,
+      );
       hitstop = math.max(hitstop, 0.03);
     }
-    if (wasOd && perfect) odTime = math.min(odTime + (just ? 2 : 1), tuning.odMaxTime);
+    if (wasOd && perfect) {
+      odTime = math.min(odTime + (just ? 2 : 1), tuning.odMaxTime);
+    }
     if (just) slowmo = math.max(slowmo, 0.15);
-    emit(ParrySucceeded(grade: grade, target: target, x: x, y: y, paddleX: paddle.x, streak: streak));
-    if (pr.hits >= 3) emit(Callout(CalloutChannel.multiParry, 'MULTI PARRY ×${pr.hits}'));
-    if (streak >= 2) emit(Popup(paddle.x, Field.paddleY - 64, 'CHAIN $streak', PopupKind.chain));
+    emit(
+      ParrySucceeded(
+        grade: grade,
+        target: target,
+        x: x,
+        y: y,
+        paddleX: paddle.x,
+        streak: streak,
+      ),
+    );
+    if (pr.hits >= 3) {
+      emit(Callout(CalloutChannel.multiParry, 'MULTI PARRY ×${pr.hits}'));
+    }
+    if (streak >= 2) {
+      emit(
+        Popup(paddle.x, Field.paddleY - 64, 'CHAIN $streak', PopupKind.chain),
+      );
+    }
   }
 
   void _startFeverTime() {
@@ -126,7 +178,8 @@ extension _ParrySystem on World {
   /// 敵弾・レーザーに当たった: コンボ 0、パドルがスタン。
   /// ボス戦は弾が多くコンボが貯まらないため、コンボを 1 段階下げるだけにする。
   /// FEVER TIME 中なら終わらせず、残り時間を減らす (尽きたら段階 4 に戻る)。
-  void _hurt() {
+  /// [since] は当たってから被弾が確定するまでに待った時間 (秒)。スタン・無敵はその分だけ短くする。
+  void _hurt({double since = 0}) {
     if (boss != null) {
       if (od) {
         odTime -= tuning.bossOdHurtPenalty;
@@ -142,8 +195,8 @@ extension _ParrySystem on World {
       combo = 0;
     }
     paddle
-      ..stun = tuning.stunTime
-      ..invuln = tuning.hurtInvuln;
+      ..stun = tuning.stunTime - since
+      ..invuln = tuning.hurtInvuln - since;
     // パドル付近の敵弾を消す (続けざまの被弾を防ぐ)
     final r2 = tuning.hurtClearRadius * tuning.hurtClearRadius;
     for (final u in bullets) {
@@ -160,16 +213,21 @@ extension _ParrySystem on World {
     final b = ball;
     var spawned = 0;
     for (var k = 0; k < n && phantoms.length < tuning.phantomMax; k++) {
-      final a = (k - (n - 1) / 2) * 26 * deg + (k == (n - 1) / 2 ? 12 * deg : 0) + aux.range(-0.06, 0.06);
-      phantoms.add(Ball(
-        x: b.x,
-        y: Field.paddleY - Field.ballR - 2,
-        vx: math.sin(a) * b.speed,
-        vy: -math.cos(a) * b.speed,
-        speed: b.speed,
-        phantom: true,
-        life: tuning.phantomLife,
-      ));
+      final a =
+          (k - (n - 1) / 2) * 26 * deg +
+          (k == (n - 1) / 2 ? 12 * deg : 0) +
+          aux.range(-0.06, 0.06);
+      phantoms.add(
+        Ball(
+          x: b.x,
+          y: Field.paddleY - Field.ballR - 2,
+          vx: math.sin(a) * b.speed,
+          vy: -math.cos(a) * b.speed,
+          speed: b.speed,
+          phantom: true,
+          life: tuning.phantomLife,
+        ),
+      );
       spawned++;
     }
     if (spawned > 0) emit(PhantomsSpawned(spawned));
@@ -177,7 +235,14 @@ extension _ParrySystem on World {
 
   void _popPhantoms() {
     for (final f in phantoms) {
-      queueBlast(f.x, f.y, aux.range(0.03, 0.2), tuning.phantomBlastRadius, shrapnel: false, kind: BlastKind.phantom);
+      queueBlast(
+        f.x,
+        f.y,
+        aux.range(0.03, 0.2),
+        tuning.phantomBlastRadius,
+        shrapnel: false,
+        kind: BlastKind.phantom,
+      );
     }
     phantoms = [];
   }

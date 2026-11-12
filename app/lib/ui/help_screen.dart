@@ -15,25 +15,60 @@ typedef HelpPage = ({HelpTopic topic, String title, String body, Color color});
 
 List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
   final zones = controls == ControlScheme.zones;
+  // キーボードの操作は、キーボードがつながっていなくても常に最後の段落に書く (Issue #111)
+  String withKeys(String body, String keys) => '$body\n$keys';
   return [
     (
       topic: HelpTopic.move,
       title: l.helpMoveTitle,
-      body: zones ? l.helpMoveZones : l.helpMoveRail,
+      body: withKeys(zones ? l.helpMoveZones : l.helpMoveRail, l.helpKeysMove),
       color: Palette.accent, // パドル
     ),
     (
       topic: HelpTopic.parry,
       title: l.helpParryTitle,
-      body: zones ? l.helpParryZones : l.helpParryRail,
+      body: withKeys(
+        zones ? l.helpParryZones : l.helpParryRail,
+        l.helpKeysParry,
+      ),
       color: Palette.yellow, // パリィを受け付けている間のパドル
     ),
-    (topic: HelpTopic.timing, title: l.helpTimingTitle, body: l.helpTimingBody, color: Dot.mint),
-    (topic: HelpTopic.chain, title: l.helpChainTitle, body: l.helpChainBody, color: Dot.orange), // 爆発ブロック
-    (topic: HelpTopic.combo, title: l.helpComboTitle, body: l.helpComboBody, color: Dot.rose), // FEVER TIME のメーター
-    (topic: HelpTopic.graze, title: l.helpGrazeTitle, body: l.helpGrazeBody, color: Dot.mustard),
-    (topic: HelpTopic.over, title: l.helpOverTitle, body: l.helpOverBody, color: Palette.red), // 危険ライン
-    (topic: HelpTopic.pause, title: l.helpPauseTitle, body: l.helpPauseBody, color: Dot.white),
+    (
+      topic: HelpTopic.timing,
+      title: l.helpTimingTitle,
+      body: l.helpTimingBody,
+      color: Dot.mint,
+    ),
+    (
+      topic: HelpTopic.chain,
+      title: l.helpChainTitle,
+      body: l.helpChainBody,
+      color: Dot.orange,
+    ), // 爆発ブロック
+    (
+      topic: HelpTopic.combo,
+      title: l.helpComboTitle,
+      body: l.helpComboBody,
+      color: Dot.rose,
+    ), // FEVER TIME のメーター
+    (
+      topic: HelpTopic.graze,
+      title: l.helpGrazeTitle,
+      body: l.helpGrazeBody,
+      color: Dot.mustard,
+    ),
+    (
+      topic: HelpTopic.over,
+      title: l.helpOverTitle,
+      body: l.helpOverBody,
+      color: Palette.red,
+    ), // 危険ライン
+    (
+      topic: HelpTopic.pause,
+      title: l.helpPauseTitle,
+      body: withKeys(l.helpPauseBody, l.helpKeysPause),
+      color: Dot.white,
+    ),
   ];
 }
 
@@ -61,7 +96,11 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
       Navigator.of(context).maybePop();
       return;
     }
-    _pages.animateToPage(i, duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
+    _pages.animateToPage(
+      i,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -74,8 +113,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     return Scaffold(
       body: CallbackShortcuts(
         bindings: {
-          const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _go(_index - 1, pages.length),
-          const SingleActivator(LogicalKeyboardKey.arrowRight): () => _go(_index + 1, pages.length),
+          const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
+              _go(_index - 1, pages.length),
+          const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
+              _go(_index + 1, pages.length),
         },
         child: Focus(
           autofocus: true,
@@ -93,21 +134,41 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                           children: [
                             IconButton(
                               onPressed: () => Navigator.of(context).maybePop(),
-                              icon: PixelIcon(PixelIcons.back, color: Palette.sub),
-                              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                              icon: PixelIcon(
+                                PixelIcons.back,
+                                color: Palette.sub,
+                              ),
+                              tooltip: MaterialLocalizations.of(context)
+                                  .backButtonTooltip,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
-                                child: PixelTitle(l.menuHowToPlay, size: 26, color: Palette.yellow, shadow: Dot.brick),
+                                child: PixelTitle(
+                                  l.menuHowToPlay,
+                                  size: 26,
+                                  color: Palette.yellow,
+                                  shadow: Dot.brick,
+                                ),
                               ),
                             ),
-                            Text('${_index + 1}'.padLeft(2, '0'), style: pixelFont(22, color: page.color, weight: 900)),
+                            Text(
+                              '${_index + 1}'.padLeft(2, '0'),
+                              style: pixelFont(
+                                22,
+                                color: page.color,
+                                weight: 900,
+                              ),
+                            ),
                             Text(
                               ' / ${pages.length.toString().padLeft(2, '0')}',
-                              style: pixelFont(14, color: withAlpha(Palette.pale, 0.5), weight: 700),
+                              style: pixelFont(
+                                14,
+                                color: withAlpha(Palette.pale, 0.5),
+                                weight: 700,
+                              ),
                             ),
                           ],
                         ),
@@ -117,32 +178,52 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                             controller: _pages,
                             itemCount: pages.length,
                             onPageChanged: (i) => setState(() => _index = i),
-                            itemBuilder: (context, i) =>
-                                _Page(page: pages[i], controls: s.controls, animate: !s.reduceEffects && i == _index),
+                            itemBuilder: (context, i) => _Page(
+                              page: pages[i],
+                              controls: s.controls,
+                              animate: !s.reduceEffects && i == _index,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 10),
                         Row(
                           children: [
                             IconButton(
-                              onPressed: _index == 0 ? null : () => _go(_index - 1, pages.length),
+                              onPressed: _index == 0
+                                  ? null
+                                  : () => _go(_index - 1, pages.length),
                               icon: PixelIcon(PixelIcons.chevronLeft),
                               color: Palette.sub,
                               disabledColor: withAlpha(Palette.pale, 0.2),
                               tooltip: l.helpPrev,
                             ),
                             const Spacer(),
-                            for (var i = 0; i < pages.length; i++)
-                              GestureDetector(
-                                onTap: () => _go(i, pages.length),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                                  width: i == _index ? 26 : 10,
-                                  height: 6,
-                                  color: i == _index ? page.color : withAlpha(Palette.pale, i < _index ? 0.5 : 0.18),
-                                ),
+                            // ページの点は、いまどこかを見せるだけの飾り (押せる範囲が小さいので押せなくし、読み上げからも外す。
+                            // ページは左右のボタンかスワイプでめくり、番号は右上の 01 / 08 で読める)
+                            ExcludeSemantics(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (var i = 0; i < pages.length; i++)
+                                    AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      width: i == _index ? 26 : 10,
+                                      height: 6,
+                                      color: i == _index
+                                          ? page.color
+                                          : withAlpha(
+                                              Palette.pale,
+                                              i < _index ? 0.5 : 0.18,
+                                            ),
+                                    ),
+                                ],
                               ),
+                            ),
                             const Spacer(),
                             PixelButton(
                               label: last ? l.back : l.helpNext,
@@ -166,14 +247,22 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
 }
 
 class _Page extends StatelessWidget {
-  const _Page({required this.page, required this.controls, required this.animate});
+  const _Page({
+    required this.page,
+    required this.controls,
+    required this.animate,
+  });
   final HelpPage page;
   final ControlScheme controls;
   final bool animate;
 
   @override
   Widget build(BuildContext context) {
-    final diagram = HelpDiagram(topic: page.topic, controls: controls, animate: animate);
+    final diagram = HelpDiagram(
+      topic: page.topic,
+      controls: controls,
+      animate: animate,
+    );
     return LayoutBuilder(
       builder: (context, c) {
         // 背の低い画面 (スマホの横向き) では文字を小さくして、説明が 1 画面に収まるようにする
@@ -182,21 +271,40 @@ class _Page extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(page.title,
-                style: pixelFont(compact ? 22 : 30, color: page.color, weight: 900, letterSpacing: 2)
-                    .copyWith(shadows: hardShadow(compact ? 22 : 30, color: Dot.dark(page.color)))),
+            Text(
+              page.title,
+              style:
+                  pixelFont(
+                    compact ? 22 : 30,
+                    color: page.color,
+                    weight: 900,
+                    letterSpacing: 2,
+                  ).copyWith(
+                    shadows: hardShadow(
+                      compact ? 22 : 30,
+                      color: Dot.dark(page.color),
+                    ),
+                  ),
+            ),
             Container(
-                margin: EdgeInsets.symmetric(vertical: compact ? 10 : 14), width: 48, height: 4, color: page.color),
+              margin: EdgeInsets.symmetric(vertical: compact ? 10 : 14),
+              width: 48,
+              height: 4,
+              color: page.color,
+            ),
             // 改行ごとに 1 つの段落にする
             for (final line in page.body.split('\n'))
               Padding(
                 padding: EdgeInsets.only(bottom: compact ? 8 : 12),
-                child: Text(line,
-                    style: TextStyle(
-                        fontSize: compact ? 14 : 18,
-                        height: 1.55,
-                        color: withAlpha(Palette.white, 0.92),
-                        fontFamilyFallback: kFontFallback)),
+                child: Text(
+                  line,
+                  style: TextStyle(
+                    fontSize: compact ? 14 : 18,
+                    height: 1.55,
+                    color: withAlpha(Palette.white, 0.92),
+                    fontFamilyFallback: kFontFallback,
+                  ),
+                ),
               ),
           ],
         );
@@ -204,9 +312,15 @@ class _Page extends StatelessWidget {
         if (c.maxWidth / c.maxHeight > 1.3) {
           return Row(
             children: [
-              Expanded(flex: compact ? 1 : 3, child: Center(child: diagram)),
+              Expanded(
+                flex: compact ? 1 : 3,
+                child: Center(child: diagram),
+              ),
               SizedBox(width: compact ? 24 : 32),
-              Expanded(flex: compact ? 1 : 2, child: SingleChildScrollView(child: words)),
+              Expanded(
+                flex: compact ? 1 : 2,
+                child: SingleChildScrollView(child: words),
+              ),
             ],
           );
         }

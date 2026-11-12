@@ -66,6 +66,18 @@ void main() {
     expect(p.due, isTrue);
   });
 
+  test('今日の上限に達したかを返す。日付が変わると戻る', () {
+    final p = played();
+    for (var i = 0; i < InterstitialPolicy.dailyCap; i++) {
+      expect(p.cappedToday, isFalse, reason: '$i 回目');
+      p.recordShown();
+      now = now.add(InterstitialPolicy.minGap);
+    }
+    expect(p.cappedToday, isTrue);
+    now = DateTime(2026, 10, 5, 0, 1);
+    expect(p.cappedToday, isFalse);
+  });
+
   test('猶予なしの設定 (デバッグビルド) では最初の結果画面から出せる', () {
     final p = InterstitialPolicy(prefs, now: () => now, freeResults: 0);
     expect(p.due, isFalse);
@@ -145,6 +157,77 @@ void main() {
       expect(sdk.shown, 1);
     });
 
+    /// 今日の上限まで出した状態にする。
+    void reachDailyCap() {
+      final p = policy();
+      for (var i = 0; i < InterstitialPolicy.dailyCap; i++) {
+        p.recordShown();
+      }
+    }
+
+    test('今日の上限まで出したら、次を読み込まない', () async {
+      ads = create();
+      await start();
+      for (var i = 0; i < InterstitialPolicy.dailyCap; i++) {
+        await ads.showInterstitialIfDue();
+        await pumpEventQueue();
+        now = now.add(InterstitialPolicy.minGap);
+      }
+      expect(sdk.shown, InterstitialPolicy.dailyCap);
+      // 起動時の 1 回と、7 回目までを出した後の 7 回。8 回目を出した後は読み込まない
+      expect(sdk.loads, InterstitialPolicy.dailyCap);
+    });
+
+    test('上限に達した日は、起動・結果画面・前面復帰・戻るときのどれでも読み込まない', () async {
+      reachDailyCap();
+      ads = create();
+      await start();
+      expect(sdk.initialized, isTrue);
+      ads.onResult();
+      await pumpEventQueue();
+      await ads.onResume();
+      await pumpEventQueue();
+      await ads.showInterstitialIfDue();
+      await pumpEventQueue();
+      expect(sdk.loads, 0);
+      expect(sdk.shown, 0);
+    });
+
+    test('再試行を待つ間に上限に達したら、再試行でも読み込まない', () async {
+      sdk.failLoads = 1;
+      ads = create();
+      await start();
+      expect(sdk.loads, 1);
+      expect(timers, hasLength(1));
+      reachDailyCap();
+      timers.last.$2();
+      await pumpEventQueue();
+      expect(sdk.loads, 1);
+    });
+
+    test('日付が変わったあとの結果画面で、また読み込んで出せる', () async {
+      reachDailyCap();
+      ads = create();
+      await start();
+      expect(sdk.loads, 0);
+      now = DateTime(2026, 10, 5, 0, 1);
+      ads.onResult();
+      await pumpEventQueue();
+      expect(sdk.loads, 1);
+      await ads.showInterstitialIfDue();
+      expect(sdk.shown, 1);
+    });
+
+    test('日付が変わったあとの前面復帰で読み込む', () async {
+      reachDailyCap();
+      ads = create();
+      await start();
+      now = DateTime(2026, 10, 5, 0, 1);
+      await ads.onResume();
+      await pumpEventQueue();
+      expect(sdk.loads, 1);
+    });
+
     test('期限が近い広告は捨てて読み込み直す', () async {
       ads = create();
       await start();
@@ -177,6 +260,62 @@ void main() {
       await pumpEventQueue();
       await ads.showInterstitialIfDue();
       expect(sdk.shown, 1);
+    });
+
+    test('出せなかったとき (表示の通知が来ない) は表示回数を数えず、次を読み込む', () async {
+      ads = create();
+      await start();
+      sdk.ads.single.showFails = true;
+      await ads.showInterstitialIfDue();
+      expect(sdk.shown, 0);
+      expect(prefs.getInt('ads.lastShown'), isNull);
+      expect(prefs.getInt('ads.dayCount'), isNull);
+      expect(sdk.loads, 2);
+      // 数えていないので、3 分待たずに次の広告を出せる
+      await pumpEventQueue();
+      await ads.showInterstitialIfDue();
+      expect(sdk.shown, 1);
+    });
+
+    test('表示の通知も閉じた通知も来なければ、一定時間で待つのをやめて次を読み込む', () async {
+      ads = create();
+      await start();
+      sdk.ads.single
+        ..showFails = true
+        ..closed = Completer<void>(); // 通知が来ないまま終わらない
+      var done = false;
+      unawaited(ads.showInterstitialIfDue().then((_) => done = true));
+      await pumpEventQueue();
+      expect(done, isFalse);
+      final timeout = timers
+          .where((t) => t.$1 == AdMobAds.showTimeout)
+          .toList();
+      expect(timeout, hasLength(1));
+      timeout.single.$2();
+      await pumpEventQueue();
+      expect(done, isTrue);
+      expect(prefs.getInt('ads.lastShown'), isNull);
+      expect(sdk.loads, 2);
+    });
+
+    test('表示の通知が来たら、時間がたってもプレイヤーが閉じるまで待つ', () async {
+      ads = create();
+      await start();
+      final closed = Completer<void>();
+      sdk.ads.single.closed = closed;
+      var done = false;
+      unawaited(ads.showInterstitialIfDue().then((_) => done = true));
+      await pumpEventQueue();
+      expect(sdk.shown, 1);
+      for (final t
+          in timers.where((t) => t.$1 == AdMobAds.showTimeout).toList()) {
+        t.$2();
+      }
+      await pumpEventQueue();
+      expect(done, isFalse);
+      closed.complete();
+      await pumpEventQueue();
+      expect(done, isTrue);
     });
 
     test('起動時に広告を出せなかったら、前面に戻ったときに同意から確かめ直す', () async {
@@ -267,10 +406,19 @@ class FakeInterstitial implements LoadedInterstitial {
   final FakeSdk _sdk;
   bool disposed = false;
 
+  /// true なら画面に出ない (表示の通知が来ない)。
+  bool showFails = false;
+
+  /// 指定すると、これが終わるまで閉じた通知が来ない。
+  Completer<void>? closed;
+
   @override
   Future<void> show({required VoidCallback onShown}) async {
-    _sdk.shown++;
-    onShown();
+    if (!showFails) {
+      _sdk.shown++;
+      onShown();
+    }
+    await closed?.future;
     disposed = true;
   }
 

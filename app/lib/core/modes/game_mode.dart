@@ -33,5 +33,6 @@ class StageMode extends GameMode {
   String get recordKey => 'stage:${stage.id}';
 
   @override
-  RoundSpec? roundAt(int number) => number <= stage.rounds.length ? stage.rounds[number - 1] : null;
+  RoundSpec? roundAt(int number) =>
+      number <= stage.rounds.length ? stage.rounds[number - 1] : null;
 }

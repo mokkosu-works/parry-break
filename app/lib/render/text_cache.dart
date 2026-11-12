@@ -16,8 +16,15 @@ class TextCache {
   /// 日本語のドット文字 (説明文など)。
   static const jp = 'DotGothic16';
 
-  TextPainter get(String text, double size, Color color, {double weight = 700, String? family}) {
-    final key = '$text|${size.toStringAsFixed(1)}|${color.toARGB32()}|$weight|$family';
+  TextPainter get(
+    String text,
+    double size,
+    Color color, {
+    double weight = 700,
+    String? family,
+  }) {
+    final key =
+        '$text|${size.toStringAsFixed(1)}|${color.toARGB32()}|$weight|$family';
     final hit = _cache.remove(key);
     if (hit != null) {
       _cache[key] = hit; // 最近使ったものを末尾へ
@@ -31,7 +38,8 @@ class TextCache {
           fontFamilyFallback: const [jp],
           fontSize: size,
           color: color,
-          fontWeight: FontWeight.values[((weight / 100).round() - 1).clamp(0, 8)],
+          fontWeight:
+              FontWeight.values[((weight / 100).round() - 1).clamp(0, 8)],
           fontVariations: [FontVariation('wght', weight.clamp(400, 900))],
           height: 1,
         ),
@@ -47,8 +55,17 @@ class TextCache {
   }
 
   /// [y] を文字の縦の中心として描く。
-  void draw(Canvas canvas, String text, double x, double y, double size, Color color,
-      {TextAlignH align = TextAlignH.center, double weight = 700, String? family}) {
+  void draw(
+    Canvas canvas,
+    String text,
+    double x,
+    double y,
+    double size,
+    Color color, {
+    TextAlignH align = TextAlignH.center,
+    double weight = 700,
+    String? family,
+  }) {
     final tp = get(text, size, color, weight: weight, family: family);
     final dx = switch (align) {
       TextAlignH.left => x,

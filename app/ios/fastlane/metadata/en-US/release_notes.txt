@@ -1,2 +1,7 @@
-・You can now adjust "Rail sensitivity" in Settings when playing with the rail controls
-・After a 3-star clear, the game may occasionally ask you for a rating
+・New "HISTORY" screen on the title lets you look back at your past scores
+・Locked stages now show which stage you need to clear to unlock them
+・Multi-round and score-goal stages show the round count and target score in the HUD and intro banner
+・Pause, result, stage select, settings and more can now be controlled with a keyboard
+・"Reduce effects" now also tones down flashing and shaking on the field
+・Improved screen reader support, and enlarged small buttons and text in landscape on phones
+・Fixed many issues with parry timing, boss and block behavior, and saved records

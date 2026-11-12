@@ -1,9 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../render/palette.dart';
 import '../render/pixel.dart';
+import '../services/settings.dart';
 import 'pixel_icons.dart';
 
 /// 英数字のドット文字。
@@ -16,15 +19,19 @@ const List<String> kFontFallback = [kJpFont];
 
 /// 見出し・数字・ボタンの文字 (英数字は Silkscreen、日本語は DotGothic16)。
 /// Silkscreen は字幅が広いので、文字間は詰め気味にする。
-TextStyle pixelFont(double size, {Color color = Palette.white, double weight = 700, double letterSpacing = 1}) =>
-    TextStyle(
-      fontFamily: kPixelFont,
-      fontSize: size,
-      color: color,
-      fontWeight: weight >= 600 ? FontWeight.w700 : FontWeight.w400,
-      letterSpacing: letterSpacing * 0.5,
-      fontFamilyFallback: kFontFallback,
-    );
+TextStyle pixelFont(
+  double size, {
+  Color color = Palette.white,
+  double weight = 700,
+  double letterSpacing = 1,
+}) => TextStyle(
+  fontFamily: kPixelFont,
+  fontSize: size,
+  color: color,
+  fontWeight: weight >= 600 ? FontWeight.w700 : FontWeight.w400,
+  letterSpacing: letterSpacing * 0.5,
+  fontFamilyFallback: kFontFallback,
+);
 
 /// 1 ドットずらした硬い影 (発光の代わり)。
 List<Shadow> hardShadow(double size, {Color color = Dot.ink}) {
@@ -36,11 +43,18 @@ ThemeData buildTheme() {
   final base = ThemeData(
     brightness: Brightness.dark,
     fontFamily: kJpFont,
-    colorScheme: const ColorScheme.dark(primary: Palette.main, secondary: Palette.sub, surface: Dot.night),
+    colorScheme: const ColorScheme.dark(
+      primary: Palette.main,
+      secondary: Palette.sub,
+      surface: Dot.night,
+    ),
     scaffoldBackgroundColor: Dot.ink,
     useMaterial3: true,
   );
-  const square = RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: Dot.edge, width: 2));
+  const square = RoundedRectangleBorder(
+    borderRadius: BorderRadius.zero,
+    side: BorderSide(color: Dot.edge, width: 2),
+  );
   return base.copyWith(
     sliderTheme: base.sliderTheme.copyWith(
       activeTrackColor: Palette.main,
@@ -52,13 +66,26 @@ ThemeData buildTheme() {
       trackShape: const RectangularSliderTrackShape(),
     ),
     switchTheme: SwitchThemeData(
-      thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Dot.white : Dot.dim),
-      trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? Palette.main : Dot.night),
+      thumbColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected) ? Dot.white : Dot.dim,
+      ),
+      trackColor: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.selected) ? Palette.main : Dot.night,
+      ),
       trackOutlineColor: const WidgetStatePropertyAll(Dot.edge),
     ),
-    dialogTheme: const DialogThemeData(backgroundColor: Dot.night, shape: square),
-    bottomSheetTheme: const BottomSheetThemeData(backgroundColor: Dot.night, shape: square),
-    snackBarTheme: const SnackBarThemeData(backgroundColor: Dot.night, shape: square),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: Dot.night,
+      shape: square,
+    ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Dot.night,
+      shape: square,
+    ),
+    snackBarTheme: const SnackBarThemeData(
+      backgroundColor: Dot.night,
+      shape: square,
+    ),
   );
 }
 
@@ -69,26 +96,45 @@ class _SquareThumb extends SliderComponentShape {
   Size getPreferredSize(bool isEnabled, bool isDiscrete) => const Size(16, 16);
 
   @override
-  void paint(PaintingContext context, Offset center,
-      {required Animation<double> activationAnimation,
-      required Animation<double> enableAnimation,
-      required bool isDiscrete,
-      required TextPainter labelPainter,
-      required RenderBox parentBox,
-      required SliderThemeData sliderTheme,
-      required TextDirection textDirection,
-      required double value,
-      required double textScaleFactor,
-      required Size sizeWithOverflow}) {
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
     final c = context.canvas;
-    c.drawRect(Rect.fromCenter(center: center + const Offset(2, 2), width: 16, height: 16), Paint()..color = Dot.ink);
-    c.drawRect(Rect.fromCenter(center: center, width: 16, height: 16), Paint()..color = sliderTheme.thumbColor ?? Dot.white);
+    c.drawRect(
+      Rect.fromCenter(
+        center: center + const Offset(2, 2),
+        width: 16,
+        height: 16,
+      ),
+      Paint()..color = Dot.ink,
+    );
+    c.drawRect(
+      Rect.fromCenter(center: center, width: 16, height: 16),
+      Paint()..color = sliderTheme.thumbColor ?? Dot.white,
+    );
   }
 }
 
 /// 陰影の付いたブロックの見た目 (上と左が明るく、下と右が暗い)。ボタンや枠に使う。
 class BevelBox extends StatelessWidget {
-  const BevelBox({super.key, required this.color, required this.child, this.edge = 3, this.padding = EdgeInsets.zero});
+  const BevelBox({
+    super.key,
+    required this.color,
+    required this.child,
+    this.edge = 3,
+    this.padding = EdgeInsets.zero,
+  });
   final Color color;
   final Widget child;
   final double edge;
@@ -96,9 +142,9 @@ class BevelBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CustomPaint(
-        painter: _BevelPainter(color, edge),
-        child: Padding(padding: padding, child: child),
-      );
+    painter: _BevelPainter(color, edge),
+    child: Padding(padding: padding, child: child),
+  );
 }
 
 class _BevelPainter extends CustomPainter {
@@ -123,6 +169,22 @@ class _BevelPainter extends CustomPainter {
   bool shouldRepaint(_BevelPainter old) => old.color != color || old.d != d;
 }
 
+/// 矢印キーで選んでいるものを動かす向き (← ↑ で前へ -1、→ ↓ で次へ +1)。矢印キーでなければ null。
+int? arrowStep(LogicalKeyboardKey key) => switch (key) {
+  LogicalKeyboardKey.arrowLeft || LogicalKeyboardKey.arrowUp => -1,
+  LogicalKeyboardKey.arrowRight || LogicalKeyboardKey.arrowDown => 1,
+  _ => null,
+};
+
+/// 決めるキー (Enter / Space)。
+bool isConfirmKey(LogicalKeyboardKey key) =>
+    key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space;
+
+/// キーボードで操作しているか (最後の入力がキーか)。選んでいるものの枠は、このときだけ出す
+/// (タッチで遊ぶ人に、押していないボタンが選ばれているように見せない)。
+bool get keyboardInUse =>
+    FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+
 /// ドット絵のボタン。[filled] は色で塗った主なボタン (陰影の付いたブロック)、そうでなければ枠だけ。
 /// 色を省くと、主なボタンはメインカラー (黄)、枠だけのボタンはサブカラー (青)。
 /// 押すと硬い影の分だけ沈む。
@@ -135,14 +197,22 @@ class PixelButton extends StatefulWidget {
     this.filled = false,
     this.icon,
     this.fontSize = 18,
+    this.selected = false,
+    this.dense = false,
   });
 
   final String label;
+
+  /// キーボードで選んでいる。キーボードで操作しているときだけ、白い枠で囲む。
+  final bool selected;
   final VoidCallback? onPressed;
   final Color? color;
   final bool filled;
   final DotSprite? icon;
   final double fontSize;
+
+  /// 左右の余白を詰める (狭い画面で 1 行に並べるとき)。高さ (押せる範囲) は変えない。
+  final bool dense;
 
   @override
   State<PixelButton> createState() => _PixelButtonState();
@@ -152,25 +222,66 @@ class _PixelButtonState extends State<PixelButton> {
   bool _down = false;
 
   @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addHighlightModeListener(_onHighlightMode);
+  }
+
+  @override
+  void dispose() {
+    FocusManager.instance.removeHighlightModeListener(_onHighlightMode);
+    super.dispose();
+  }
+
+  void _onHighlightMode(FocusHighlightMode _) {
+    if (widget.selected && mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final enabled = widget.onPressed != null;
-    final c = enabled ? widget.color ?? (widget.filled ? Palette.main : Palette.sub) : Palette.gray;
+    final c = enabled
+        ? widget.color ?? (widget.filled ? Palette.main : Palette.sub)
+        : Palette.gray;
     final fg = widget.filled ? Dot.ink : Palette.white;
     final content = Container(
-      constraints: const BoxConstraints(minHeight: 48, minWidth: 120),
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-      decoration: widget.filled ? null : BoxDecoration(color: Dot.night, border: Border.all(color: c, width: 3)),
+      constraints: BoxConstraints(
+        minHeight: 48,
+        minWidth: widget.dense ? 96 : 120,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.dense ? 14 : 22,
+        vertical: 10,
+      ),
+      decoration: widget.filled
+          ? null
+          : BoxDecoration(
+              color: Dot.night,
+              border: Border.all(color: c, width: 3),
+            ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (widget.icon != null) ...[PixelIcon(widget.icon!, color: widget.filled ? fg : c, size: widget.fontSize + 4), const SizedBox(width: 8)],
+          if (widget.icon != null) ...[
+            PixelIcon(
+              widget.icon!,
+              color: widget.filled ? fg : c,
+              size: widget.fontSize + 4,
+            ),
+            const SizedBox(width: 8),
+          ],
           Flexible(
-            child: Text(widget.label, textAlign: TextAlign.center, style: pixelFont(widget.fontSize, color: fg)),
+            child: Text(
+              widget.label,
+              textAlign: TextAlign.center,
+              style: pixelFont(widget.fontSize, color: fg),
+            ),
           ),
         ],
       ),
     );
+    final ring = widget.selected && keyboardInUse;
     return Semantics(
       button: true,
       enabled: enabled,
@@ -184,9 +295,40 @@ class _PixelButtonState extends State<PixelButton> {
           opacity: enabled ? 1 : 0.5,
           child: Container(
             // 硬い影 (押すと沈んで影が消える)
-            margin: EdgeInsets.only(left: _down ? 4 : 0, top: _down ? 4 : 0, right: _down ? 0 : 4, bottom: _down ? 0 : 4),
-            decoration: BoxDecoration(boxShadow: _down ? null : const [BoxShadow(color: Colors.black, offset: Offset(4, 4))]),
-            child: widget.filled ? BevelBox(color: c, child: content) : content,
+            margin: EdgeInsets.only(
+              left: _down ? 4 : 0,
+              top: _down ? 4 : 0,
+              right: _down ? 0 : 4,
+              bottom: _down ? 0 : 4,
+            ),
+            decoration: BoxDecoration(
+              boxShadow: _down
+                  ? null
+                  : const [
+                      BoxShadow(color: Colors.black, offset: Offset(4, 4)),
+                    ],
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                widget.filled ? BevelBox(color: c, child: content) : content,
+                // 選んでいる枠 (大きさを変えないよう、ボタンの外側に重ねて描く)
+                if (ring)
+                  Positioned(
+                    left: -7,
+                    top: -7,
+                    right: -7,
+                    bottom: -7,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Dot.white, width: 3),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -196,38 +338,46 @@ class _PixelButtonState extends State<PixelButton> {
 
 /// RPG の窓のような二重枠 (外は白、内は灰色)。メニューを囲む。
 class PixelWindow extends StatelessWidget {
-  const PixelWindow({super.key, required this.child, this.padding = const EdgeInsets.symmetric(vertical: 10)});
+  const PixelWindow({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.symmetric(vertical: 10),
+  });
   final Widget child;
   final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: withAlpha(Dot.ink, 0.92),
-          border: Border.all(color: Dot.white, width: 3),
-          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(6, 6))],
-        ),
-        child: Container(
-          margin: const EdgeInsets.all(4),
-          padding: padding,
-          decoration: BoxDecoration(border: Border.all(color: Dot.dim, width: 2)),
-          child: child,
-        ),
-      );
+    decoration: BoxDecoration(
+      color: withAlpha(Dot.ink, 0.92),
+      border: Border.all(color: Dot.white, width: 3),
+      boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(6, 6))],
+    ),
+    child: Container(
+      margin: const EdgeInsets.all(4),
+      padding: padding,
+      decoration: BoxDecoration(border: Border.all(color: Dot.dim, width: 2)),
+      child: child,
+    ),
+  );
 }
 
-/// 選んでいる項目に付ける ▶ (点滅する。動きを減らす設定では点けたまま)。
-class BlinkCursor extends StatefulWidget {
+/// 選んでいる項目に付ける ▶ (点滅する。端末の動きを減らす設定・「演出を控えめにする」では点けたまま)。
+class BlinkCursor extends ConsumerStatefulWidget {
   const BlinkCursor({super.key, this.color = Palette.yellow, this.size = 18});
   final Color color;
   final double size;
 
   @override
-  State<BlinkCursor> createState() => _BlinkCursorState();
+  ConsumerState<BlinkCursor> createState() => _BlinkCursorState();
 }
 
-class _BlinkCursorState extends State<BlinkCursor> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+class _BlinkCursorState extends ConsumerState<BlinkCursor>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+  );
 
   @override
   void initState() {
@@ -243,13 +393,18 @@ class _BlinkCursorState extends State<BlinkCursor> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final still = MediaQuery.disableAnimationsOf(context);
+    final still =
+        MediaQuery.disableAnimationsOf(context) ||
+        ref.watch(settingsProvider.select((s) => s.reduceEffects));
     return AnimatedBuilder(
       animation: _c,
       builder: (_, _) => Opacity(
         opacity: still || _c.value < 0.6 ? 1 : 0,
         // フォントに ▶ がないので、ドットで描く
-        child: CustomPaint(size: Size.square(widget.size), painter: _CursorPainter(widget.color)),
+        child: CustomPaint(
+          size: Size.square(widget.size),
+          painter: _CursorPainter(widget.color),
+        ),
       ),
     );
   }
@@ -259,12 +414,26 @@ class _CursorPainter extends CustomPainter {
   _CursorPainter(this.color);
   final Color color;
 
-  static final _sprite = DotSprite(['#...', '##..', '###.', '####', '###.', '##..', '#...']);
+  static final _sprite = DotSprite([
+    '#...',
+    '##..',
+    '###.',
+    '####',
+    '###.',
+    '##..',
+    '#...',
+  ]);
 
   @override
   void paint(Canvas canvas, Size size) {
     final scale = (size.height / 7).floorToDouble() / Dot.px;
-    _sprite.drawCentered(canvas, size.width / 2, size.height / 2, color, scale: scale);
+    _sprite.drawCentered(
+      canvas,
+      size.width / 2,
+      size.height / 2,
+      color,
+      scale: scale,
+    );
   }
 
   @override
@@ -281,8 +450,12 @@ class DotBackground extends StatefulWidget {
   State<DotBackground> createState() => _DotBackgroundState();
 }
 
-class _DotBackgroundState extends State<DotBackground> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 60));
+class _DotBackgroundState extends State<DotBackground>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 60),
+  );
 
   @override
   void initState() {
@@ -318,13 +491,23 @@ class _BackgroundPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, p..color = Dot.ink);
     // 星 (2 段の速さで流れる)
     const d = 4.0;
-    for (final (gap, speed, color) in [(96.0, 8.0, Dot.edge), (160.0, 18.0, Dot.dim)]) {
+    for (final (gap, speed, color) in [
+      (96.0, 8.0, Dot.edge),
+      (160.0, 18.0, Dot.dim),
+    ]) {
       p.color = withAlpha(color, 0.5);
       final off = (t * speed) % gap;
       var row = 0;
       for (var y = off - gap; y < size.height; y += gap, row++) {
-        for (var x = (row.isEven ? 0.3 : 0.8) * gap; x < size.width; x += gap * 1.7) {
-          canvas.drawRect(Rect.fromLTWH(x.roundToDouble(), y.roundToDouble(), d, d), p);
+        for (
+          var x = (row.isEven ? 0.3 : 0.8) * gap;
+          x < size.width;
+          x += gap * 1.7
+        ) {
+          canvas.drawRect(
+            Rect.fromLTWH(x.roundToDouble(), y.roundToDouble(), d, d),
+            p,
+          );
         }
       }
     }
@@ -339,9 +522,14 @@ class _BackgroundPainter extends CustomPainter {
         final on = k > 0.66
             ? (i + j).isEven
             : k > 0.33
-                ? i.isEven && j.isEven
-                : i % 4 == 0 && j % 4 == 0;
-        if (on) canvas.drawRect(Rect.fromLTWH(i * cell, top + j * cell, cell, cell), p);
+            ? i.isEven && j.isEven
+            : i % 4 == 0 && j % 4 == 0;
+        if (on) {
+          canvas.drawRect(
+            Rect.fromLTWH(i * cell, top + j * cell, cell, cell),
+            p,
+          );
+        }
       }
     }
   }
@@ -352,7 +540,12 @@ class _BackgroundPainter extends CustomPainter {
 
 /// 画面上部に戻るボタンと見出しを持つ、スクロールできる画面の枠。
 class ScreenFrame extends StatelessWidget {
-  const ScreenFrame({super.key, required this.title, required this.child, this.actions = const []});
+  const ScreenFrame({
+    super.key,
+    required this.title,
+    required this.child,
+    this.actions = const [],
+  });
   final String title;
   final Widget child;
   final List<Widget> actions;
@@ -368,20 +561,28 @@ class ScreenFrame extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: PixelIcon(PixelIcons.back, color: Palette.sub),
-                    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(title,
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      icon: PixelIcon(PixelIcons.back, color: Palette.sub),
+                      tooltip: MaterialLocalizations.of(context)
+                          .backButtonTooltip,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
                         overflow: TextOverflow.ellipsis,
-                        style: pixelFont(24, color: Palette.yellow).copyWith(shadows: hardShadow(24, color: Dot.brick))),
-                  ),
-                  ...actions,
-                ]),
+                        style: pixelFont(
+                          24,
+                          color: Palette.yellow,
+                        ).copyWith(shadows: hardShadow(24, color: Dot.brick)),
+                      ),
+                    ),
+                    ...actions,
+                  ],
+                ),
                 const SizedBox(height: 8),
                 Expanded(child: child),
               ],
@@ -394,14 +595,20 @@ class ScreenFrame extends StatelessWidget {
 }
 
 Route<T> fadeRoute<T>(Widget page) => PageRouteBuilder<T>(
-      pageBuilder: (_, _, _) => page,
-      transitionDuration: const Duration(milliseconds: 220),
-      transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
-    );
+  pageBuilder: (_, _, _) => page,
+  transitionDuration: const Duration(milliseconds: 220),
+  transitionsBuilder: (_, a, _, child) =>
+      FadeTransition(opacity: a, child: child),
+);
 
 /// ドット文字の星 (取ったものは ★、まだのものは ☆)。
 class PixelStar extends StatelessWidget {
-  const PixelStar({super.key, required this.got, this.size = 18, this.shadow = false});
+  const PixelStar({
+    super.key,
+    required this.got,
+    this.size = 18,
+    this.shadow = false,
+  });
   final bool got;
   final double size;
 
@@ -410,13 +617,13 @@ class PixelStar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        got ? '★' : '☆',
-        style: TextStyle(
-          fontFamily: kJpFont,
-          fontSize: size,
-          height: 1,
-          color: got ? Palette.yellow : Palette.gray,
-          shadows: shadow && got ? hardShadow(size, color: Dot.brick) : null,
-        ),
-      );
+    got ? '★' : '☆',
+    style: TextStyle(
+      fontFamily: kJpFont,
+      fontSize: size,
+      height: 1,
+      color: got ? Palette.yellow : Palette.gray,
+      shadows: shadow && got ? hardShadow(size, color: Dot.brick) : null,
+    ),
+  );
 }

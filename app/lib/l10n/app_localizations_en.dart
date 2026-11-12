@@ -10,12 +10,6 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'PARRY BREAK';
-
-  @override
-  String get menuEndless => 'ENDLESS';
-
-  @override
   String get menuStages => 'STAGES';
 
   @override
@@ -25,18 +19,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuSettings => 'SETTINGS';
 
   @override
-  String get menuRanking => 'RANKING';
+  String get menuHistory => 'HISTORY';
+
+  @override
+  String get historyEmpty =>
+      'No plays yet. Your results appear here after each game';
+
+  @override
+  String get historyCleared => 'CLEAR';
+
+  @override
+  String get historyFailed => 'FAILED';
 
   @override
   String get back => 'BACK';
-
-  @override
-  String get bestScore => 'BEST SCORE';
-
-  @override
-  String roundN(String n) {
-    return 'ROUND $n';
-  }
 
   @override
   String get helpMoveTitle => 'MOVE';
@@ -101,43 +97,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpPauseBody => 'Tap Ⅱ at the top right to pause';
 
   @override
+  String get helpKeysMove => 'Keyboard: ←→ or A / D to move';
+
+  @override
+  String get helpKeysParry => 'Keyboard: Space or Enter to launch / parry';
+
+  @override
+  String get helpKeysPause => 'Keyboard: Esc or P to pause';
+
+  @override
   String get helpPrev => 'PREV';
 
   @override
   String get helpNext => 'NEXT';
 
   @override
-  String get paused => 'PAUSED';
+  String get bestScoreClearOnly => 'CLEAR ONLY';
 
   @override
-  String get resume => 'RESUME';
-
-  @override
-  String get retry => 'RETRY';
-
-  @override
-  String get toTitle => 'TITLE';
-
-  @override
-  String get nextStage => 'NEXT STAGE';
-
-  @override
-  String get stageSelect => 'STAGE SELECT';
-
-  @override
-  String get gameOver => 'GAME OVER';
-
-  @override
-  String get stageClear => 'STAGE CLEAR';
-
-  @override
-  String get stageFailed => 'STAGE FAILED';
-
-  @override
-  String get newRecord => 'NEW RECORD';
-
-  @override
-  String get locked => 'LOCKED';
+  String unlockBy(String stage) {
+    return 'Clear $stage to unlock';
+  }
 
   @override
   String get starClear => 'Clear';
@@ -237,6 +217,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRailSensitivity => 'Rail sensitivity';
 
   @override
+  String get settingsZonesOnly => 'Used when Controls is \"Screen halves\"';
+
+  @override
+  String get settingsRailOnly => 'Used when Controls is \"Rail\"';
+
+  @override
   String get settingsTiming => 'Timing offset';
 
   @override
@@ -265,11 +251,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qualityLow => 'Low (battery saver)';
 
   @override
-  String get settingsReduceEffects => 'Reduce flashing';
+  String get settingsReduceEffects => 'Reduce effects';
 
   @override
   String get settingsReduceEffectsHelp =>
-      'Tones down flashes, blinking and shake';
+      'Tones down flashes, blinking, screen shake and menu animations';
 
   @override
   String get settingsLanguage => 'Language';
@@ -298,7 +284,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String calibrationBody(String count) {
-    return 'Tap the moment the ring meets the line ($count times)';
+    return 'Tap the moment the shrinking ring meets the center ring ($count times)';
   }
 
   @override
@@ -313,19 +299,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calibrationRetry => 'Try again';
 
   @override
-  String get tapToStart => 'TAP TO START';
+  String get calibrationStart => 'Start';
+
+  @override
+  String calibrationFailed(String hits, String min) {
+    return 'Couldn\'t measure ($hits taps on the beat; at least $min needed). Tap the moment the shrinking ring meets the center ring';
+  }
 
   @override
   String get rankingUnavailable => 'Leaderboards are not available';
-
-  @override
-  String get rankingEndlessScore => 'Endless: Score';
-
-  @override
-  String get rankingEndlessRound => 'Endless: Round';
-
-  @override
-  String get rankingStages => 'Stages: Total score';
 
   @override
   String get introKeystone => 'NEW: KEYSTONE — BREAK IT TO COLLAPSE BLOCKS';
@@ -347,7 +329,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introSplitter => 'NEW: SPLITTER — SCATTERS SMALL BLOCKS';
 
   @override
-  String get introMirror => 'NEW: MIRROR — REFLECTS RETURNED BULLETS';
+  String get introMirror =>
+      'NEW: MIRROR — REFLECTS RETURNED BULLETS. ONLY PIERCE BREAKS IT';
+
+  @override
+  String get introWall =>
+      'NEW: WALL — UNBREAKABLE, NOT NEEDED TO CLEAR. FEVER TIME BREAKS IT';
 
   @override
   String get introSpread => 'NEW: SPREAD TURRET — PARRY THE WHOLE FAN AT ONCE';
@@ -374,6 +361,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introParry => 'TAP AS THE BALL HITS TO PARRY';
 
   @override
+  String get introParryButton => 'PRESS PARRY AS THE BALL HITS';
+
+  @override
   String get introPierce => 'A PERFECT PARRY MAKES A PIERCING SHOT';
 
   @override
@@ -384,7 +374,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
 
   @override
-  String get introScore => 'REACH THE TARGET SCORE';
+  String introScore(String value) {
+    return 'REACH SCORE $value';
+  }
 
   @override
   String get bannerBoss =>
@@ -418,4 +410,49 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get difficultyHard =>
       'Bullet hell. More bullets, and broken blocks shoot back';
+
+  @override
+  String get startupErrorTitle => 'Couldn\'t start';
+
+  @override
+  String get startupErrorBody =>
+      'The game data could not be loaded. Please close the app and open it again. If this keeps happening, update the app to the latest version.';
+
+  @override
+  String get chapterPrev => 'Previous chapter';
+
+  @override
+  String get chapterNext => 'Next chapter';
+
+  @override
+  String get stepDown => 'Decrease';
+
+  @override
+  String get stepUp => 'Increase';
+
+  @override
+  String get open => 'Open';
+
+  @override
+  String get pauseGame => 'Pause';
+
+  @override
+  String stageTileCleared(String id, String title, String got, String total) {
+    return '$id $title, cleared, $got of $total stars';
+  }
+
+  @override
+  String stageTileNotCleared(
+    String id,
+    String title,
+    String got,
+    String total,
+  ) {
+    return '$id $title, not cleared, $got of $total stars';
+  }
+
+  @override
+  String stageTileLocked(String id) {
+    return '$id, locked';
+  }
 }

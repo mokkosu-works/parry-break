@@ -13,7 +13,9 @@ extension _CollapseSystem on World {
   /// 支点からの幅優先探索。[init] のときは支点に繋がる塊を「支えられたブロック」にする。
   /// それ以外のときは、支えられていたのに支点から辿れなくなったブロックを返す。
   List<Block> _computeSupport({required bool init}) {
-    final s = blocks.where((b) => b.behavior.structural && (init || b.supported)).toList();
+    final s = blocks
+        .where((b) => b.behavior.structural && (init || b.supported))
+        .toList();
     final n = s.length;
     final adj = List.generate(n, (_) => <int>[]);
     for (var i = 0; i < n; i++) {
@@ -69,19 +71,40 @@ extension _CollapseSystem on World {
       final c = blockCenter(b);
       final d = hypot(c.x - origin.x, c.y - origin.y);
       // 壊れた位置に近い順にひびが入り、落ちる
-      falling.add(PendingFall(b, 0.06 + d / 1100, origin.x, b.behavior.basePoints(b, this)));
+      falling.add(
+        PendingFall(
+          b,
+          0.06 + d / 1100,
+          origin.x,
+          b.behavior.basePoints(b, this),
+        ),
+      );
     }
     final c = cascade;
     c.n += list.length;
     c.t = 0.9;
-    if (c.n >= 5) emit(Callout(CalloutChannel.collapse, _collapseText(c.n), hold: true, level: _collapseLevel(c.n)));
+    if (c.n >= 5) {
+      emit(
+        Callout(
+          CalloutChannel.collapse,
+          _collapseText(c.n),
+          hold: true,
+          level: _collapseLevel(c.n),
+        ),
+      );
+    }
     // 崩落の瓦礫が降ってくる (パリィで撃ち返せる)
     if (list.length >= 4 && phase == WorldPhase.playing) {
       final k = math.min(6, (list.length / 5).ceil());
       for (var j = 0; j < k; j++) {
         final b = list[(aux.next() * list.length).floor()];
-        _spawnHostile(b.x + form.ox + b.w / 2, b.y + form.oy + b.h, aux.range(-50, 50),
-            aux.range(170, 240) * round.loopMul, BulletKind.shard);
+        _spawnHostile(
+          b.x + form.ox + b.w / 2,
+          b.y + form.oy + b.h,
+          aux.range(-50, 50),
+          aux.range(170, 240) * difficulty.bulletSpeed * round.loopMul,
+          BulletKind.shard,
+        );
       }
     }
     if (list.length >= 14) slowmo = math.max(slowmo, 0.35);
@@ -89,9 +112,17 @@ extension _CollapseSystem on World {
   }
 
   static String _collapseText(int n) =>
-      '${n >= 40 ? 'CATASTROPHE' : n >= 20 ? 'MEGA COLLAPSE' : 'COLLAPSE'} ×$n';
+      '${n >= 40
+          ? 'CATASTROPHE'
+          : n >= 20
+          ? 'MEGA COLLAPSE'
+          : 'COLLAPSE'} ×$n';
 
-  static int _collapseLevel(int n) => n >= 40 ? 2 : n >= 20 ? 1 : 0;
+  static int _collapseLevel(int n) => n >= 40
+      ? 2
+      : n >= 20
+      ? 1
+      : 0;
 
   /// ひびが入ったブロックを、遅延が過ぎたものから落とす。落ち始めた時点で 1 個ずつ得点になる。
   void _updateFalling(double dt) {
@@ -139,8 +170,15 @@ extension _CollapseSystem on World {
     }
     stats.bestCollapse = math.max(stats.bestCollapse, c.n);
     if (c.n >= 5) {
-      emit(Callout(CalloutChannel.collapse, _collapseText(c.n),
-          sub: bonus > 0 ? '+${formatScore(bonus)}' : '', release: true, level: _collapseLevel(c.n)));
+      emit(
+        Callout(
+          CalloutChannel.collapse,
+          _collapseText(c.n),
+          sub: bonus > 0 ? '+${formatScore(bonus)}' : '',
+          release: true,
+          level: _collapseLevel(c.n),
+        ),
+      );
     }
     c
       ..n = 0
@@ -158,11 +196,24 @@ extension _CollapseSystem on World {
     }
     stats.bestBlast = math.max(stats.bestBlast, bc.n);
     if (bc.n >= 3) {
-      emit(Callout(CalloutChannel.chainBlast, 'CHAIN BLAST ×${bc.n}',
-          sub: bonus > 0 ? '+${formatScore(bonus)}' : '', release: true));
+      emit(
+        Callout(
+          CalloutChannel.chainBlast,
+          'CHAIN BLAST ×${bc.n}',
+          sub: bonus > 0 ? '+${formatScore(bonus)}' : '',
+          release: true,
+        ),
+      );
     } else if (bonus > 0) {
-      emit(Popup(Field.width / 2, 260, 'CHAIN BLAST ×${bc.n}  +${formatScore(bonus)}', PopupKind.chainBlast,
-          amount: bonus));
+      emit(
+        Popup(
+          Field.width / 2,
+          260,
+          'CHAIN BLAST ×${bc.n}  +${formatScore(bonus)}',
+          PopupKind.chainBlast,
+          amount: bonus,
+        ),
+      );
     }
     bc.n = 0;
   }

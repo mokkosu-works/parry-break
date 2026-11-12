@@ -8,10 +8,10 @@ enum Difficulty {
   hard;
 
   T pick<T>(T easy, T normal, T hard) => switch (this) {
-        Difficulty.easy => easy,
-        Difficulty.normal => normal,
-        Difficulty.hard => hard,
-      };
+    Difficulty.easy => easy,
+    Difficulty.normal => normal,
+    Difficulty.hard => hard,
+  };
 
   /// 攻撃ブロック (砲台など) の発射頻度の倍率 (大きいほど頻繁に撃つ)。
   double get fireRate => pick(0.7, 1.0, 1.5);
@@ -33,10 +33,10 @@ enum Difficulty {
 
   /// バランス値の上書き ([Tuning.copyWith])。EASY はパリィの判定を広げる。
   Map<String, Object?> get tuning => pick(
-        const {'parryWindow': 0.13, 'perfectWindow': 0.04, 'justWindow': 0.016},
-        const {},
-        const {},
-      );
+    const {'parryWindow': 0.13, 'perfectWindow': 0.04, 'justWindow': 0.016},
+    const {},
+    const {},
+  );
 
   /// 記録の保存キーに付ける接尾辞 (NORMAL は付けない。以前の記録と互換にするため)。
   String get recordSuffix => this == Difficulty.normal ? '' : '@$name';

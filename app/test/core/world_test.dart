@@ -12,8 +12,11 @@ const w2 = [
   '..NNN....NNN..',
 ];
 
-Block at(World w, int row, int col) => w.blocks.firstWhere((b) =>
-    b.x == Field.gridX0 + col * Field.cellW && b.y == Field.gridY0 + row * Field.cellH);
+Block at(World w, int row, int col) => w.blocks.firstWhere(
+  (b) =>
+      b.x == Field.gridX0 + col * Field.cellW &&
+      b.y == Field.gridY0 + row * Field.cellH,
+);
 
 void main() {
   group('崩落', () {
@@ -41,8 +44,43 @@ void main() {
       w.destroyBlock(at(w, 0, 3), DestroyCause.ball);
       final before = w.score;
       final events = run(w, 2);
-      final fell = events.whereType<Popup>().where((p) => p.kind == PopupKind.score).fold(0, (s, p) => s + p.amount);
+      final fell = events
+          .whereType<Popup>()
+          .where((p) => p.kind == PopupKind.score)
+          .fold(0, (s, p) => s + p.amount);
       expect(w.score - before, fell + 14 * 14 * 10 * w.mult);
+    });
+  });
+
+  group('ラウンドの時間 (#100)', () {
+    test('発射するまで roundTime は進まず、発射の前後で戻らない', () {
+      final w = testWorld(const SingleRoundMode(['......N.......']));
+      run(w, 5); // カウントダウンが終わってもしばらく発射しない
+      expect(w.launched, isFalse);
+      expect(w.roundTime, 0);
+      w.pressAction(w.t);
+      var prev = w.roundTime;
+      run(
+        w,
+        2,
+        before: () {
+          expect(w.roundTime, greaterThanOrEqualTo(prev));
+          prev = w.roundTime;
+        },
+      );
+      expect(w.launched, isTrue);
+      expect(w.roundTime, closeTo(2, 0.05));
+    });
+
+    test('全消しボーナスは発射から数えた時間で判定する (発射前の待ち時間は含めない)', () {
+      final w = testWorld(const SingleRoundMode(['......N.......']));
+      run(w, 15);
+      w.pressAction(w.t);
+      run(w, 1);
+      w.destroyBlock(w.blocks.single, DestroyCause.ball);
+      final events = run(w, 1);
+      final bonuses = events.whereType<RoundCleared>().single.bonuses;
+      expect(bonuses.any((b) => b.label.startsWith('ANNIHILATION')), isTrue);
     });
   });
 
@@ -109,7 +147,12 @@ void main() {
       w.odTime = 0.01;
       final events = run(w, 0.5);
       expect(events.whereType<FeverTimeEnded>().single.byHit, isFalse);
-      expect(events.whereType<BlastExploded>().where((e) => e.kind == BlastKind.phantom), hasLength(1));
+      expect(
+        events.whereType<BlastExploded>().where(
+          (e) => e.kind == BlastKind.phantom,
+        ),
+        hasLength(1),
+      );
       expect(w.combo, inInclusiveRange(240, 250)); // 段階3 (250) に戻り、その後は減衰
     });
   });
@@ -146,5 +189,50 @@ void main() {
     expect(events.whereType<BossPhaseChanged>().map((e) => e.phase), [2, 3]);
     expect(events.whereType<RoundCleared>(), hasLength(1));
     expect(w.bonuses.first.label, 'BOSS DESTROYED');
+  });
+
+  group('RETRY (#132)', () {
+    test('タッチで端へ寄せたまま start() を呼び直すと、最初のステップ後のパドルは中央にある', () {
+      final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
+      run(w, 1.1);
+      w.input
+        ..useTarget = true
+        ..targetX = Field.width - w.paddleWidth / 2;
+      run(w, 0.1);
+      expect(w.paddle.x, Field.width - w.paddleWidth / 2);
+      w.start();
+      w.step(World.dt);
+      expect(w.paddle.x, Field.width / 2);
+      expect(w.ball.x, Field.width / 2); // ボールもパドルと一緒に中央から
+    });
+
+    test('キーの方向入力が残っていても、start() の後の最初のステップでパドルは動かない', () {
+      final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
+      w.input
+        ..useTarget = false
+        ..axis = -1;
+      run(w, 0.5);
+      expect(w.paddle.x, lessThan(Field.width / 2));
+      w.start();
+      w.step(World.dt);
+      expect(w.paddle.x, Field.width / 2);
+    });
+
+    test('start() で、前のプレイのクリア・ゲームオーバーの演出用の値も最初の状態に戻る', () {
+      final fresh = World(mode: const SingleRoundMode(['NNNNNNNNNNNNNN']))
+        ..start();
+      final w = World(mode: const SingleRoundMode(['NNNNNNNNNNNNNN']))..start();
+      w
+        ..bonuses = const [Bonus('ROUND CLEAR  ×1', 5000)]
+        ..clearT = 3
+        ..overT = 2
+        ..lastBreak = const Vec2(10, 10);
+      w.start();
+      expect(w.bonuses, isEmpty);
+      expect(w.clearT, 0);
+      expect(w.overT, 0);
+      expect(w.lastBreak.x, fresh.lastBreak.x);
+      expect(w.lastBreak.y, fresh.lastBreak.y);
+    });
   });
 }

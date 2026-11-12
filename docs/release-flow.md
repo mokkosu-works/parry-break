@@ -3,16 +3,16 @@
 iOS / Android のストアへ、小さな更新を続けて出すための運用を定める。人が判断する場面を **4つ**(`dev` 向けの PR の Approve、リリース PR のマージ、実機での確認、本番への昇格)に絞り、実装・テスト・レビューは CI と Claude に任せる。
 
 ```
-Issue を書く ─▶ @claude とコメント ─▶ 🤖 実装・テスト・エミュレーターで確認 ─▶ 🤖 PR ─▶ ⚙️🤖 チェック・e2e・レビュー ─▶ 🧑 Approve ─▶ dev
+Issue を書く ─▶ @claude とコメント ─▶ 🤖 実装・テスト・エミュレーターで確認 ─▶ 🤖 PR ─▶ ⚙️🤖 チェック・レビュー ─▶ 🧑 Approve ─▶ dev
 ```
 
 ## 1. ブランチ
 
 ```
 claude/issue-* ─┐
-feature/*      ─┼─PR (CI・エミュレーター・Claude のレビューが通り、人が Approve したらマージ)─▶ dev
+feature/*      ─┼─PR (CI・Claude のレビューが通り、人が Approve したらマージ)─▶ dev
 fix/*          ─┘
-dev ──▶ release/vX.Y.Z ─PR (人がマージ)─▶ main ──▶ ストアへテスト配信
+dev ──▶ release/vX.Y.Z ─PR (エミュレーターでも確かめ、人がマージ)─▶ main ──▶ ストアへテスト配信
                                            │
                                            └─(自動)─▶ dev に戻す
 hotfix/* ─PR (人がマージ)─▶ main
@@ -42,7 +42,7 @@ hotfix/* ─PR (人がマージ)─▶ main
 
 `dev` 向けの PR は、次がすべてそろうと squash でマージされる(条件は `.github/scripts/merge-if-approved.sh`)。Approve とチェックのどちらが先に終わってもよい。
 
-- `pr.yml` の `check`(analyze・単体テスト)・`e2e`(Android エミュレーターでのスモークテスト)・`review`(Claude のレビュー)が成功している
+- `pr.yml` の `check`(analyze・単体テスト)・`review`(Claude のレビュー)が成功している。`e2e`(Android エミュレーターでのスモークテスト)は `dev` 向けの PR では動かさない。Issue から作った PR は `implement.yml` で Claude がエミュレーターで確かめている。人が手元で作った `feature/*` / `fix/*` の PR は、作者が手元の端末で確かめる。エミュレーターで確かめたいときは、Actions → `pr` → Run workflow でそのブランチを選んで動かす
 - **人(OWNER / MEMBER / COLLABORATOR)が、いまの先頭のコミットを Approve している**。Approve のあとに push されたら(Claude が指摘を直したときなど)、Approve し直す
 - 下書き(draft)ではなく、`hold` / `needs-fix` のラベルが付いていない
 
@@ -70,11 +70,11 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 
 | ワークフロー | きっかけ | 内容 |
 | --- | --- | --- |
-| `check.yml` | 下の2つから呼ぶ | `flutter analyze`、`flutter test` |
+| `check.yml` | `pr.yml` と `release.yml` から呼ぶ | 整形のずれの確認(`dart format`。生成物の `lib/l10n/app_localizations*.dart` は除く)、`flutter analyze`、`flutter test` |
 | `implement.yml` | Issue のコメントの `@claude` | Android エミュレーターを起動し、Claude が Issue を実装・テストし、エミュレーターで確かめて `dev` 向けの PR を作る(`.claude/skills/implement-issue/SKILL.md`)。撮った画面は実行の Artifacts に残る |
-| `pr.yml` | PR の作成・更新 | チェック、エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)、Claude のレビュー。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
-| `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` のジョブがすべて通っていれば squash でマージする |
-| `claude.yml` | PR のコメントの `@claude` | Claude が依頼に応える(レビューの指摘の修正など) |
+| `pr.yml` | PR の作成・更新(手動実行も可) | チェック、Claude のレビュー。エミュレーターでのスモークテスト(`e2e`、`integration_test/smoke_test.dart`)は `main` 向けの PR と手動実行だけで動かす。`dev` 向けで `needs-fix` が付けば、Claude が指摘を確かめて妥当なものを直す(`fix`)。`dev` 向けで、すべて通って人が Approve 済みなら squash でマージする |
+| `merge.yml` | `dev` 向けの PR の Approve | `pr.yml` の `check`・`review` が通っていれば squash でマージする |
+| `claude.yml` | PR のコメントの `@claude` | Claude が依頼に応える(レビューの指摘の修正など)。Flutter を入れてあり、Claude が `flutter analyze` / `flutter test` を回してから PR のブランチに push できる。同じ PR への依頼は 1 つずつ動き、上限は 60 分 |
 | `release.yml` | `main` への push(手動実行も可) | バージョン名のタグがまだなければ、チェックのあと両 OS をビルドしてテスト配信し、タグと GitHub Release を作る |
 | `sync-dev.yml` | `main` への push | `main` を `dev` にマージする |
 | `promote.yml` | 手動実行 | テスト配信中のビルドを本番に出す(iOS は審査に提出、Android は全員に公開) |
@@ -89,17 +89,17 @@ Claude が `/release` のときに前回のタグからのコミットを読ん�
 | --- | --- | --- | --- |
 | 1 | 開発中(随時) | 🧑 | Issue をテンプレートで書き、`@claude` とコメントする |
 | 1' | 〃 | 🤖 | `implement.yml`: Claude が実装・テストし、Android エミュレーターで確かめて `dev` に PR を出す(人が手元で `feature/*` を作って PR を出してもよい) |
-| 2 | 〃 | ⚙️🤖 | `pr.yml`: チェック、エミュレーターでのスモークテスト、Claude のレビュー |
+| 2 | 〃 | ⚙️🤖 | `pr.yml`: チェック、Claude のレビュー(エミュレーターでのスモークテストは `dev` 向けでは動かさない) |
 | 2' | 〃 | 🧑 | レビューの所見と PR の本文を見て Approve する(**人の判断**: 変更ごと)。`dev` にマージされる |
 | 3 | 出したい変更がたまったら(目安: 2週間に1回、または不具合の修正後すぐ) | 🧑 | Claude Code で `/release` を実行する(定期実行にもできる、第6章) |
 | 4 | 〃 | 🤖 | 前回のタグからの変更を集め、バージョン名を決める。`dev` から `release/vX.Y.Z` を切り、`app/pubspec.yaml` の `version` を上げる |
 | 5 | 〃 | 🤖 | ストアの「このバージョンの新機能」を日本語・英語で書く(第5章のファイル) |
-| 6 | 〃 | 🤖 | 掲載文(App Store は `app/ios/fastlane/metadata/`、Google Play は [play-store.md](play-store.md))・スクリーンショット・ドキュメントの更新が要るか調べ、要るものは直す。ストア側で人がやる作業があれば、PR のチェックリストに挙げる |
-| 7 | 〃 | 🤖 | `main` に向けたリリース PR を作る。Claude のレビューも付く |
+| 6 | 〃 | 🤖 | 掲載文(App Store は `app/ios/fastlane/metadata/`、Google Play は [play-store.md](play-store.md))・スクリーンショット・ドキュメントの更新が要るか調べ、要るものは直す。広告の出し方や操作方法が変わったら、[app-store.md](app-store.md) の審査メモも実装に合わせて直す(App Store Connect への貼り直しは人の作業)。ストア側で人がやる作業があれば、PR のチェックリストに挙げる |
+| 7 | 〃 | 🤖 | `main` に向けたリリース PR を作る。チェック・エミュレーターでのスモークテスト(`e2e`)・Claude のレビューが付く |
 | 8 | リリース PR | 🧑 | 新機能の文面とバージョン名を確認して、**Create a merge commit** でマージする(**人の判断 1**) |
 | 9 | マージ直後 | ⚙️ | `release.yml`: Android を Play の内部テストに、iOS を TestFlight に上げ、`vX.Y.Z` のタグと GitHub Release を作る。`sync-dev.yml`: `main` を `dev` に戻す |
 | 10 | 配信後(30分ほど) | 🧑 | 実機で第8章の確認をする(**人の判断 2**)。だめなら `fix/*` で直し、手順 3 からパッチでやり直す |
-| 11 | 確認後 | 🧑 | Actions → `promote` を実行する(**人の判断 3**) |
+| 11 | 確認後 | 🧑 | Actions → `promote` を実行する(**人の判断 3**)。出すタグ・ビルド番号は実行の Summary に出る。GitHub Release の本文からビルド番号が読めなければ、ストアに何も送らずに止まるので、`build_number` を入力して実行し直す |
 | 12 | 〃 | ⚙️ | iOS: 新機能の文面を入れて審査に提出する(承認されたら自動で段階的リリース)。Android: 本番トラックに昇格し、全員に公開する |
 | 13 | 審査で却下されたら | 🤖🧑 | App Store Connect の却下理由を Claude に貼る。Claude が原因を調べ、修正の PR か返信の下書きを作る |
 
@@ -134,12 +134,14 @@ App Store の名前・説明文・キーワード・URL などの掲載文は `a
 | Issue の実装 | `implement.yml`(Issue に `@claude` とコメント)+ `.claude/skills/implement-issue/SKILL.md` | 実装・単体テスト・Android エミュレーターでの確認(スモークテストと、完了条件を確かめる `integration_test/<確かめる内容>_test.dart`、撮った画面を Claude が見る)をして、`dev` 向けの PR を作る。「先に聞いてほしい」項目が残っていれば、実装せずに Issue で質問する。手元でも `/implement-issue <番号>` で同じことができる |
 | PR のレビュー | `pr.yml`(`anthropics/claude-code-action`)+ `.claude/skills/pr-review/SKILL.md` | 不具合・テストの漏れ・設計書との食い違い・完了条件を満たしているかを見る。直すべき問題があれば `needs-fix` を付けて、マージを止める。観点と重さの基準はスキルに書く。手元でも `/pr-review <番号>` で同じレビューができる |
 | 指摘の自動修正 | `pr.yml` の `fix` + `.claude/skills/pr-fix/SKILL.md` | `needs-fix` が付いたら、`[要修正]` の指摘を 1 つずつ確かめる(コードを追う・落ちるテストを書く)。妥当なものだけ直してコミットし、ワークフローが `flutter analyze` / `flutter test` を通してから Claude の GitHub アプリのトークンで push する(再レビューが動く)。妥当でない・人の判断が要る指摘は、スレッドに理由を返して人に回す。続けて 2 回まで。`main` 向けの PR では動かない。手元でも `/pr-fix <番号>` で同じことができる |
-| PR での依頼 | `claude.yml`(PR に `@claude` を付けてコメント) | 指摘の修正 |
+| PR での依頼 | `claude.yml`(PR に `@claude` を付けてコメント) | 指摘の修正、テストの実行など。Claude は `flutter analyze` / `flutter test` を回して確かめてから PR のブランチに push する(`@claude flutter test を回して` で結果だけを返させることもできる)。許すコマンドは `pr.yml` の `fix` に合わせ、ラベルの付け外し・マージはしない。エミュレーターはないので、画面での確認はできない。動いている間に同じ PR で `@claude` と書くと、終わるまで待つ(待てるのは 1 つで、さらに書くと前の待ちが取り消される) |
 | リリース準備 | `.claude/skills/release/SKILL.md`(`/release`) | 第3章の手順 4〜7。Claude Code(ターミナル・Web・アプリ)で実行する |
 | リリース準備の定期実行 | Claude Code のルーティン(claude.ai/code の Routines) | 例: 隔週の月曜に `/release` を実行する。前回のタグから出す価値のある変更がなければ何もしない |
 | 審査の却下・CI の失敗 | Claude Code で依頼 | 却下理由やログを渡すと、原因を調べて修正の PR を作る |
 
 リリース準備を GitHub Actions ではなく Claude Code で動かすのは、Actions の `GITHUB_TOKEN` で作った PR では CI が動かないため。Claude Code ならユーザーとして PR を作るので、CI と Claude のレビューがそのまま動く。`implement.yml` は Actions の中で動くが、PR を `GITHUB_TOKEN` ではなく Claude の GitHub アプリのトークンで作る(作者は `claude[bot]`)ので、CI が動く。作者が自分でないので、Approve もできる。
+
+Claude の GitHub アプリには、ワークフローのファイル(`.github/workflows/`)を書き換える権限がない([claude-code-action の FAQ](https://github.com/anthropics/claude-code-action/blob/main/docs/faq.md) の「Why won't Claude update workflow files when I ask it to?」。このリポジトリで実際に push を試してはいない)。`implement.yml`・`pr.yml` の `fix`・`claude.yml` の push はどれもこのアプリのトークンなので、ワークフローを変えるコミットは push できない。そのため、CI で動くファイル(`.github/workflows/`・`.github/actions/`・`.github/scripts/`)を変える Issue に `@claude` と書くと、Claude は実装せずに「人が直す」と Issue にコメントして終わり、`fix` もそれらへの指摘を人に回す(`.claude/skills/implement-issue/SKILL.md` 1 章、`.claude/skills/pr-fix/SKILL.md`)。人が直すか、手元の Claude Code(ユーザーの権限で push する)で `/implement-issue <番号>` を使う。
 
 ## 7. ホットフィックス
 
@@ -180,6 +182,7 @@ TestFlight / Play の内部テストから入れて、次を確かめる(10分�
 | `PLAY_SERVICE_ACCOUNT_JSON` | Google Play Developer API のサービスアカウント | 9.3 |
 
 7. 同じ画面の Variables に、準備ができた OS から `IOS_RELEASE` / `ANDROID_RELEASE` を `true` で登録する。登録するまで `release.yml` はその OS をビルドしない。
+8. Settings → Actions → General → Workflow permissions は「Read repository contents and packages permissions」(読み取りのみ)にしてよい。どのワークフローも先頭で `GITHUB_TOKEN` を `contents: read` にし、書き込みが要るジョブ(`pr.yml` の `review` / `fix` / `merge`、`merge.yml`、`release.yml` の `publish`、`sync-dev.yml`、`implement.yml`、`claude.yml`)だけがジョブの `permissions` で広げているので、この設定に左右されない。ワークフローを足すときも、先頭に `permissions: contents: read` を書き、要るジョブだけで広げる。
 
 ### 9.2 iOS の署名(fastlane match)
 
@@ -203,15 +206,14 @@ CI のマシンには Xcode のアカウントがないので、配布用の証�
 
 非公開リポジトリでは、GitHub Actions の macOS のマシンは Linux の10倍の時間として数える(無料枠は月2000分)。iOS のビルドは1回15〜20分なので、無料枠でテスト配信できるのは月10回ほど。iOS のビルドは `main` に入れたとき(リリース)だけで、PR では動かさない。PR のチェックと Claude のレビューは Linux で動く。
 
-エミュレーターも Linux で動かす(iOS シミュレータは macOS が要るので使わない)。目安は、PR 1つの `e2e` が17分ほど、Issue 1つの `implement.yml` が30〜60分(Claude の作業の長さによる)。非公開リポジトリの Linux のマシンは 2 コア・8GB なので、`e2e` の大半は準備にかかる(実測、キャッシュなし: Gradle のビルド 8 分、SDK のイメージと NDK の用意 4 分、ディスクの片付け 1 分、エミュレーターの起動 1 分、スモークテスト 2 分)。Gradle と SDK のキャッシュは、成功した実行のあとにできる。PR のキャッシュはその PR の中でしか使えず、PR をまたいで使えるのは `dev` で作ったもの(`implement.yml` の実行)だけ。Issue から PR まで1件あたり Linux で1時間前後なので、他の CI と合わせて月20〜30件ほどが無料枠に収まる。足りなくなったら、`e2e` を `claude/issue-*` 以外の PR では動かさない、などで減らす。
+エミュレーターも Linux で動かす(iOS シミュレータは macOS が要るので使わない)。目安は、`main` 向けの PR 1つの `e2e` が17分ほど(`dev` 向けの PR では動かさない)、Issue 1つの `implement.yml` が30〜60分(Claude の作業の長さによる)。非公開リポジトリの Linux のマシンは 2 コア・8GB なので、`e2e` の大半は準備にかかる(実測、キャッシュなし: Gradle のビルド 8 分、SDK のイメージと NDK の用意 4 分、ディスクの片付け 1 分、エミュレーターの起動 1 分、スモークテスト 2 分)。Gradle と SDK のキャッシュは、成功した実行のあとにできる。PR のキャッシュはその PR の中でしか使えず、PR をまたいで使えるのは `dev` で作ったもの(`implement.yml` の実行)だけ。Issue から PR まで1件あたり Linux で1時間前後なので、他の CI と合わせて月20〜30件ほどが無料枠に収まる。
 
 ## 10. 後回しにしたこと
 
 | 項目 | 内容 |
 | --- | --- |
-| `dart format` のチェック | いまのコードは大半が `dart format` の結果と違う(79ファイル中68)。一度まとめて整形する PR を入れてから、`check.yml` に `dart format --output=none --set-exit-if-changed lib test integration_test` を足す |
 | Google Play の掲載文の自動送信 | 説明文などを `app/android/fastlane/metadata/android/<言語>/` に移し、`promote` で送る。いまは更新が少ないので手で入力する(App Store は送っている) |
 | スクリーンショットの自動化 | `integration_test/store_screenshots_test.dart` を CI のシミュレータで動かし、fastlane の `screenshots/` に置いて送る。macOS の時間がかかるので、画面が変わったときだけ手動で実行するワークフローにする |
 | Android の段階的公開 | いまは最初から全員に出す。利用者が増えたら、`promote` で一部(例: 20%)に出し、クラッシュ率を見て割合を上げる形に戻す。クラッシュの収集(Crashlytics など)を入れてから |
-| ブランチの保護 | GitHub Pro にするか公開リポジトリにすれば、`main` / `dev` を「PR 必須・Approve 必須・`check` / `e2e` / `review` 必須」にできる。そのときは `merge-if-approved.sh` を GitHub の auto-merge に置き換えられる |
+| ブランチの保護 | GitHub Pro にするか公開リポジトリにすれば、`main` / `dev` を「PR 必須・Approve 必須・`check` / `review` 必須(`main` は `e2e` も)」にできる。そのときは `merge-if-approved.sh` を GitHub の auto-merge に置き換えられる |
 | iOS シミュレータでの確認 | Issue の実装の確認は Android エミュレーターだけ。iOS だけの処理(ATT・Game Center)は実機確認(第8章)で見る。macOS のマシンの時間に余裕ができたら、`implement.yml` に iOS シミュレータを足す |

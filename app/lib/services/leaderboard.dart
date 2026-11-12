@@ -63,9 +63,29 @@ class DisabledLeaderboard implements LeaderboardService {
   Future<bool> show([Board? board]) async => false;
 }
 
+/// games_services の呼び出し。テストで偽の送信先に差し替えるために分けてある。
+class LeaderboardPlatform {
+  const LeaderboardPlatform();
+  Future<void> signIn() => GamesServices.signIn();
+  Future<bool> get isSignedIn => GamesServices.isSignedIn;
+  Future<void> submitScore(Score score) =>
+      GamesServices.submitScore(score: score);
+  Future<void> showLeaderboards({
+    required String iOSLeaderboardID,
+    required String androidLeaderboardID,
+  }) => GamesServices.showLeaderboards(
+    iOSLeaderboardID: iOSLeaderboardID,
+    androidLeaderboardID: androidLeaderboardID,
+  );
+}
+
 class GamesServicesLeaderboard implements LeaderboardService {
-  GamesServicesLeaderboard(this._prefs);
+  GamesServicesLeaderboard(
+    this._prefs, [
+    this._platform = const LeaderboardPlatform(),
+  ]);
   final SharedPreferences _prefs;
+  final LeaderboardPlatform _platform;
   static const _pendingKey = 'leaderboard.pending';
   bool _signedIn = false;
 
@@ -82,7 +102,8 @@ class GamesServicesLeaderboard implements LeaderboardService {
     }
   }
 
-  set _pending(Map<String, int> v) => _prefs.setString(_pendingKey, jsonEncode(v));
+  set _pending(Map<String, int> v) =>
+      _prefs.setString(_pendingKey, jsonEncode(v));
 
   Score _score(Board b, int value) => Score(
     iOSLeaderboardID: LeaderboardConfig.ios[b],
@@ -90,31 +111,47 @@ class GamesServicesLeaderboard implements LeaderboardService {
     value: value,
   );
 
+  /// 実行中の signIn。起動時と RANKING の signIn が重なっても、送信と書き戻しを 1 回にする。
+  Future<void>? _signingIn;
+
   @override
-  Future<void> signIn() async {
+  Future<void> signIn() =>
+      _signingIn ??= _signIn().whenComplete(() => _signingIn = null);
+
+  Future<void> _signIn() async {
     try {
-      await GamesServices.signIn();
-      _signedIn = await GamesServices.isSignedIn;
+      await _platform.signIn();
+      _signedIn = await _platform.isSignedIn;
     } on Object catch (e) {
       debugPrint('leaderboard sign-in failed: $e');
       _signedIn = false;
     }
     if (!_signedIn) return;
-    final pending = _pending;
-    final left = <String, int>{};
     final boards = Board.values.asNameMap();
-    for (final e in pending.entries) {
-      // 今のバージョンにないボード (過去のバージョンで保留したもの) は、送り先がないので捨てる
+    // 消してよいもの: 送れた分 (送った値) と、今のバージョンにないボード
+    // (過去のバージョンで保留したもの。送り先がないので捨てる)
+    final done = <String, int?>{};
+    for (final e in _pending.entries) {
       final b = boards[e.key];
-      if (b == null) continue;
-      if (!await _send(b, e.value)) left[e.key] = e.value;
+      if (b == null) {
+        done[e.key] = null;
+      } else if (await _send(b, e.value)) {
+        done[e.key] = e.value;
+      }
     }
-    _pending = left;
+    // 送っている間に submit が保留を書き足していることがあるので、読み直してから消す。
+    // 送った値より高いスコアが書き足されていれば、それはまだ送れていないので残す。
+    final p = _pending;
+    for (final e in done.entries) {
+      final sent = e.value;
+      if (sent == null || (p[e.key] ?? sent) <= sent) p.remove(e.key);
+    }
+    _pending = p;
   }
 
   Future<bool> _send(Board b, int value) async {
     try {
-      await GamesServices.submitScore(score: _score(b, value));
+      await _platform.submitScore(_score(b, value));
       return true;
     } on Object catch (e) {
       debugPrint('leaderboard submit failed: $e');
@@ -136,9 +173,11 @@ class GamesServicesLeaderboard implements LeaderboardService {
     if (!_signedIn) await signIn();
     if (!_signedIn) return false;
     try {
-      await GamesServices.showLeaderboards(
+      await _platform.showLeaderboards(
         iOSLeaderboardID: board == null ? '' : LeaderboardConfig.ios[board]!,
-        androidLeaderboardID: board == null ? '' : LeaderboardConfig.android[board]!,
+        androidLeaderboardID: board == null
+            ? ''
+            : LeaderboardConfig.android[board]!,
       );
       return true;
     } on Object {

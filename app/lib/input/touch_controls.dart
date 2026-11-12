@@ -16,10 +16,25 @@ class FieldLayout {
   /// [rail] はレール方式 (左右の余白に、押せるレールと PARRY ボタンを置く)。
   /// 領域方式では左右に操作を置かないので、盤面をいっぱいに広げる (ポーズボタンは HUD の中に置く)。
   factory FieldLayout.compute(Size size, EdgeInsets pad, {required bool rail}) {
-    final avail = Rect.fromLTRB(pad.left, pad.top, size.width - pad.right, size.height - pad.bottom);
+    final avail = Rect.fromLTRB(
+      pad.left,
+      pad.top,
+      size.width - pad.right,
+      size.height - pad.bottom,
+    );
     final side = rail ? (avail.width * 0.13).clamp(80.0, 150.0) : 0.0;
-    final scale = math.max(0.1, math.min((avail.width - side * 2) / Field.width, avail.height / Field.height));
-    final field = Rect.fromCenter(center: avail.center, width: Field.width * scale, height: Field.height * scale);
+    final scale = math.max(
+      0.1,
+      math.min(
+        (avail.width - side * 2) / Field.width,
+        avail.height / Field.height,
+      ),
+    );
+    final field = Rect.fromCenter(
+      center: avail.center,
+      width: Field.width * scale,
+      height: Field.height * scale,
+    );
     return FieldLayout._(size, field, scale);
   }
 
@@ -30,7 +45,12 @@ class FieldLayout {
   final double scale;
 
   /// 盤面の座標の [r] を、画面の座標にする。
-  Rect toScreen(Rect r) => Rect.fromLTWH(field.left + r.left * scale, field.top + r.top * scale, r.width * scale, r.height * scale);
+  Rect toScreen(Rect r) => Rect.fromLTWH(
+    field.left + r.left * scale,
+    field.top + r.top * scale,
+    r.width * scale,
+    r.height * scale,
+  );
 
   Rect get left => Rect.fromLTRB(0, 0, field.left, screen.height);
   Rect get right => Rect.fromLTRB(field.right, 0, screen.width, screen.height);
@@ -39,7 +59,12 @@ class FieldLayout {
 /// 画面全体のタッチ入力 (領域方式): 左半分のドラッグで移動、右半分のタップで発射・パリィ。
 /// レール方式のときは、盤面のドラッグでも移動できるようにする (左の余白は [RailControl] が受ける)。
 class TouchInput extends StatefulWidget {
-  const TouchInput({super.key, required this.controller, required this.layout, required this.settings});
+  const TouchInput({
+    super.key,
+    required this.controller,
+    required this.layout,
+    required this.settings,
+  });
   final GameController controller;
   final FieldLayout layout;
   final Settings settings;
@@ -74,11 +99,17 @@ class _TouchInputState extends State<TouchInput> {
     _lastX = e.position.dx;
     final zones = widget.settings.controls == ControlScheme.zones;
     // 領域方式: 指の移動量 × 感度。レール方式で盤面をなぞったときは指に追従させる
-    final k = zones ? widget.settings.sensitivity / widget.layout.scale : 1 / widget.layout.scale;
+    final k = zones
+        ? widget.settings.sensitivity / widget.layout.scale
+        : 1 / widget.layout.scale;
     final pw = _w.paddleWidth;
     _w.input
       ..useTarget = true
-      ..targetX = clampD(_w.input.targetX + dx * k, pw / 2, Field.width - pw / 2);
+      ..targetX = clampD(
+        _w.input.targetX + dx * k,
+        pw / 2,
+        Field.width - pw / 2,
+      );
   }
 
   void _up(PointerEvent e) {
@@ -87,17 +118,22 @@ class _TouchInputState extends State<TouchInput> {
 
   @override
   Widget build(BuildContext context) => Listener(
-        behavior: HitTestBehavior.opaque,
-        onPointerDown: _down,
-        onPointerMove: _move,
-        onPointerUp: _up,
-        onPointerCancel: _up,
-      );
+    behavior: HitTestBehavior.opaque,
+    onPointerDown: _down,
+    onPointerMove: _move,
+    onPointerUp: _up,
+    onPointerCancel: _up,
+  );
 }
 
 /// レール方式の移動操作 (左の余白)。レールの端から端でパドルが盤面の端から端まで動く。
 class RailControl extends StatefulWidget {
-  const RailControl({super.key, required this.controller, required this.vertical, this.sensitivity = 1.0});
+  const RailControl({
+    super.key,
+    required this.controller,
+    required this.vertical,
+    this.sensitivity = 1.0,
+  });
   final GameController controller;
   final bool vertical;
 
@@ -133,34 +169,58 @@ class _RailControlState extends State<RailControl> {
         _last = e.position;
         final pw = _w.paddleWidth;
         final delta = widget.vertical ? d.dy : d.dx;
-        _w.input.targetX = clampD(_w.input.targetX + delta * widget.sensitivity * (Field.width - pw) / _travel, pw / 2, Field.width - pw / 2);
+        _w.input.targetX = clampD(
+          _w.input.targetX +
+              delta * widget.sensitivity * (Field.width - pw) / _travel,
+          pw / 2,
+          Field.width - pw / 2,
+        );
       },
       onPointerUp: (e) => e.pointer == _drag ? _drag = null : null,
       onPointerCancel: (e) => e.pointer == _drag ? _drag = null : null,
-      child: LayoutBuilder(builder: (context, c) {
-        final railLen = widget.vertical ? math.min(240.0, c.maxHeight * 0.45) : c.maxWidth - 24;
-        _travel = math.max(1, railLen - 20);
-        return Align(
-          alignment: widget.vertical ? Alignment.bottomCenter : const Alignment(0, 0.6),
-          child: Padding(
-            padding: EdgeInsets.only(bottom: widget.vertical ? c.maxHeight * 0.12 : 0),
-            child: ValueListenableBuilder(
-              valueListenable: widget.controller.frame,
-              builder: (_, _, _) {
-                final pw = _w.paddleWidth;
-                final k = ((_w.paddle.x - pw / 2) / (Field.width - pw)).clamp(0.0, 1.0);
-                return _Rail(length: railLen, vertical: widget.vertical, position: k);
-              },
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final railLen = widget.vertical
+              ? math.min(240.0, c.maxHeight * 0.45)
+              : c.maxWidth - 24;
+          _travel = math.max(1, railLen - 20);
+          return Align(
+            alignment: widget.vertical
+                ? Alignment.bottomCenter
+                : const Alignment(0, 0.6),
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: widget.vertical ? c.maxHeight * 0.12 : 0,
+              ),
+              child: ValueListenableBuilder(
+                valueListenable: widget.controller.frame,
+                builder: (_, _, _) {
+                  final pw = _w.paddleWidth;
+                  final k = ((_w.paddle.x - pw / 2) / (Field.width - pw)).clamp(
+                    0.0,
+                    1.0,
+                  );
+                  return _Rail(
+                    length: railLen,
+                    vertical: widget.vertical,
+                    position: k,
+                  );
+                },
+              ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
     );
   }
 }
 
 class _Rail extends StatelessWidget {
-  const _Rail({required this.length, required this.vertical, required this.position});
+  const _Rail({
+    required this.length,
+    required this.vertical,
+    required this.position,
+  });
   final double length, position;
   final bool vertical;
 
@@ -171,20 +231,32 @@ class _Rail extends StatelessWidget {
     return SizedBox(
       width: w,
       height: h,
-      child: Stack(clipBehavior: Clip.none, children: [
-        Container(
-          decoration: BoxDecoration(color: Dot.night, border: Border.all(color: withAlpha(Palette.accent, 0.7), width: 3)),
-        ),
-        Positioned(
-          left: vertical ? -3 : pos - 10,
-          top: vertical ? pos - 10 : -3,
-          child: SizedBox(
-            width: vertical ? 28 : 20,
-            height: vertical ? 20 : 28,
-            child: const BevelBox(color: Palette.accent, child: SizedBox.expand()),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Dot.night,
+              border: Border.all(
+                color: withAlpha(Palette.accent, 0.7),
+                width: 3,
+              ),
+            ),
           ),
-        ),
-      ]),
+          Positioned(
+            left: vertical ? -3 : pos - 10,
+            top: vertical ? pos - 10 : -3,
+            child: SizedBox(
+              width: vertical ? 28 : 20,
+              height: vertical ? 20 : 28,
+              child: const BevelBox(
+                color: Palette.accent,
+                child: SizedBox.expand(),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -210,7 +282,10 @@ class ParryButton extends StatelessWidget {
             child: Center(
               child: Padding(
                 padding: EdgeInsets.only(top: active ? size / 18 : 0),
-                child: Text('PARRY', style: pixelFont(size * 0.16, color: Dot.ink)),
+                child: Text(
+                  'PARRY',
+                  style: pixelFont(size * 0.16, color: Dot.ink),
+                ),
               ),
             ),
           ),
@@ -240,10 +315,17 @@ class _ParryButtonPainter extends CustomPainter {
     pixelDisc(canvas, cx, cy + sink, r, Dot.dark(color), d: d);
     pixelDisc(canvas, cx, cy + sink - d / 2, r - 0.6, color, d: d);
     // 左上のつや (文字に重ならない位置)
-    canvas.drawRect(Rect.fromLTWH(cx - d * 5, cy + sink - d * 6, d * 2, d), Paint()..color = Dot.light(color));
-    canvas.drawRect(Rect.fromLTWH(cx - d * 6, cy + sink - d * 5, d, d * 2), Paint()..color = Dot.light(color));
+    canvas.drawRect(
+      Rect.fromLTWH(cx - d * 5, cy + sink - d * 6, d * 2, d),
+      Paint()..color = Dot.light(color),
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(cx - d * 6, cy + sink - d * 5, d, d * 2),
+      Paint()..color = Dot.light(color),
+    );
   }
 
   @override
-  bool shouldRepaint(_ParryButtonPainter old) => old.color != color || old.pressed != pressed;
+  bool shouldRepaint(_ParryButtonPainter old) =>
+      old.color != color || old.pressed != pressed;
 }

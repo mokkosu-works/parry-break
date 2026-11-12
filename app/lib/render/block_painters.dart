@@ -8,22 +8,36 @@ import 'text_cache.dart';
 
 /// ブロックを描くときに使えるもの。
 class BlockPaintContext {
-  BlockPaintContext(this.canvas, this.text, this.time, this.colorOf);
+  BlockPaintContext(
+    this.canvas,
+    this.text,
+    this.time,
+    this.colorOf, {
+    this.calm = false,
+  });
   final Canvas canvas;
   final TextCache text;
 
   /// 実時間 (秒)。明滅などのアニメーションに使う。
   double time;
   final Color Function(Block) colorOf;
+
+  /// 「演出を控えめにする」。速い点滅をやめ、点けたままにする。
+  final bool calm;
 }
 
 /// [rect] (画面上の位置) にブロック [b] を描く。
-typedef BlockPainterFn = void Function(BlockPaintContext ctx, Block b, Rect rect);
+typedef BlockPainterFn = void Function(
+  BlockPaintContext ctx,
+  Block b,
+  Rect rect,
+);
 
 /// ブロックの種類 ID → 描き方。新しいブロックを追加したら、ここにも描き方を登録する。
 /// 登録がない種類は [paintStandardBlock] で描く。
 class BlockPainterRegistry {
-  BlockPainterRegistry([Map<String, BlockPainterFn>? painters]) : _painters = {..._defaults, ...?painters};
+  BlockPainterRegistry([Map<String, BlockPainterFn>? painters])
+    : _painters = {..._defaults, ...?painters};
   final Map<String, BlockPainterFn> _painters;
 
   void register(String id, BlockPainterFn fn) => _painters[id] = fn;
@@ -64,7 +78,10 @@ final _crackL = DotSprite(['#.', '.#', '#.']);
 final _crackR = DotSprite(['.#', '#.', '.#']);
 
 /// 内側のドット (縁を除く) を (列, 段) で回す。
-void _eachInnerDot(Rect i, void Function(int col, int row, double x, double y) fn) {
+void _eachInnerDot(
+  Rect i,
+  void Function(int col, int row, double x, double y) fn,
+) {
   final cols = (i.width / _d).floor() - 2, rows = (i.height / _d).floor() - 2;
   for (var row = 0; row < rows; row++) {
     for (var col = 0; col < cols; col++) {
@@ -76,11 +93,13 @@ void _eachInnerDot(Rect i, void Function(int col, int row, double x, double y) f
 /// 通常・砲台 (攻撃ブロック)・反射・磁力・分裂の描き方 (陰影の付いた四角 + 種類ごとのドットの印 + 残り HP)。
 void paintStandardBlock(BlockPaintContext ctx, Block b, Rect r) {
   final c = ctx.canvas, col = ctx.colorOf(b), i = _inner(r);
-  final warn = b.telegraph && (ctx.time * 16).floor().isEven;
+  final warn = b.telegraph && (ctx.calm || (ctx.time * 16).floor().isEven);
   bevelRect(c, i, warn ? Dot.white : col);
   final cx = r.center.dx, cy = r.center.dy;
-  void muzzle() =>
-      c.drawRect(Rect.fromLTWH(cx - _d / 2, cy - _d / 2, _d, _d), pixelPaint(b.telegraph ? Dot.bulletRed : Dot.white));
+  void muzzle() => c.drawRect(
+    Rect.fromLTWH(cx - _d / 2, cy - _d / 2, _d, _d),
+    pixelPaint(b.telegraph ? Dot.bulletRed : Dot.white),
+  );
   switch (b.type) {
     case 'T':
       _turret.drawCentered(c, cx, cy, Dot.dark(col));
@@ -113,7 +132,10 @@ void paintStandardBlock(BlockPaintContext ctx, Block b, Rect r) {
   if (b.maxHp > 1 && b.hp > 0) {
     final p = pixelPaint(Dot.white);
     for (var k = 0; k < b.hp; k++) {
-      c.drawRect(Rect.fromLTWH(i.right - _d * 2 - k * _d * 2, i.bottom - _d * 2, _d, _d), p);
+      c.drawRect(
+        Rect.fromLTWH(i.right - _d * 2 - k * _d * 2, i.bottom - _d * 2, _d, _d),
+        p,
+      );
     }
   }
 }
@@ -142,12 +164,16 @@ void _wall(BlockPaintContext ctx, Block b, Rect r) {
 void _keystone(BlockPaintContext ctx, Block b, Rect r) {
   final c = ctx.canvas, i = _inner(r);
   // 外側の枠が 2 段階で明滅する (要石だと分かるように)
-  if ((ctx.time * 3).floor().isEven) pixelFrame(c, i.inflate(2), withAlpha(Dot.white, 0.5), d: 2);
+  if ((ctx.time * 3).floor().isEven) {
+    pixelFrame(c, i.inflate(2), withAlpha(Dot.white, 0.5), d: 2);
+  }
   bevelRect(c, i, Dot.white);
   _diamond.drawCentered(c, r.center.dx, r.center.dy, Dot.mustard);
   if (b.hp < b.maxHp) {
     _crackL.draw(c, i.left + _d * 2, i.top + _d, Dot.violet);
-    if (b.hp < b.maxHp - 1) _crackR.draw(c, i.right - _d * 4, i.top + _d, Dot.violet);
+    if (b.hp < b.maxHp - 1) {
+      _crackR.draw(c, i.right - _d * 4, i.top + _d, Dot.violet);
+    }
   }
 }
 
@@ -159,7 +185,10 @@ void _explosive(BlockPaintContext ctx, Block b, Rect r) {
     if ((cl + row) % 4 < 2) c.drawRect(Rect.fromLTWH(x, y, _d, _d), p);
   });
   final on = math.sin(ctx.time * 10 + b.x) > 0;
-  c.drawRect(Rect.fromCenter(center: r.center, width: _d * 2, height: _d * 2), pixelPaint(on ? Dot.white : Dot.brick));
+  c.drawRect(
+    Rect.fromCenter(center: r.center, width: _d * 2, height: _d * 2),
+    pixelPaint(on ? Dot.white : Dot.brick),
+  );
 }
 
 void _core(BlockPaintContext ctx, Block b, Rect r) {
@@ -177,5 +206,13 @@ void _core(BlockPaintContext ctx, Block b, Rect r) {
   final all = ringDots(cx, cy, 26, n, from: -math.pi / 2, to: math.pi * 1.5);
   drawDots(c, all, Dot.edge, size: 3);
   if (lit > 0) drawDots(c, all.sublist(0, lit * 2), Dot.brick, size: 3);
-  ctx.text.draw(c, '${math.max(0, b.hp)}', cx, cy + 1, 8, Dot.ink, family: TextCache.pixel);
+  ctx.text.draw(
+    c,
+    '${math.max(0, b.hp)}',
+    cx,
+    cy + 1,
+    8,
+    Dot.ink,
+    family: TextCache.pixel,
+  );
 }

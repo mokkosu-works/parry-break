@@ -14,9 +14,11 @@ runs:
     - name: ディスクを空ける
       shell: bash
       env:
-        # Flutter (flutter.ndkVersion) が使う NDK。Flutter を上げたら合わせる
-        KEEP_NDK: 28.2.13676358
+        # Flutter (flutter.ndkVersion) が使う NDK の版。Flutter を上げたら合わせる (ここだけを変える)。
+        # あとのステップ (キャッシュの path と key・sdkmanager) は env.NDK_VERSION で読む
+        NDK_VERSION: 28.2.13676358
       run: |
+        echo "NDK_VERSION=$NDK_VERSION" >> "$GITHUB_ENV"
         # マシンの環境変数は env コンテキストから読めないので、キャッシュの path に使うために書き出す
         echo "SDK_DIR=$ANDROID_HOME" >> "$GITHUB_ENV"
         # 軽い google_atd (CI 向け) は、Android の画面の読み出し (PixelCopy) が使えず、テストで画面を撮れなかったので使わない
@@ -34,7 +36,7 @@ runs:
           /usr/local/share/powershell /usr/local/share/chromium /opt/microsoft /opt/google
         # 使わない版の NDK (Android SDK そのものは消さない)
         for d in "$ANDROID_HOME"/ndk/*; do
-          [ "$(basename "$d")" = "$KEEP_NDK" ] || rm -rf "$d"
+          [ "$(basename "$d")" = "$NDK_VERSION" ] || rm -rf "$d"
         done
         sudo docker image prune --all --force >/dev/null 2>&1 || true
         df -h /
@@ -59,8 +61,8 @@ runs:
 
     - uses: subosito/flutter-action@v2
       with:
-        # check.yml・release.yml と同じ値にする
-        flutter-version: 3.47.6
+        # 版は app/pubspec.yaml の environment.flutter で決める
+        flutter-version-file: app/pubspec.yaml
         channel: stable
         cache: true
 
@@ -70,8 +72,8 @@ runs:
       with:
         path: |
           ${{ env.SDK_DIR }}/system-images/android-34/google_apis
-          ${{ env.SDK_DIR }}/ndk/28.2.13676358
-        key: android-sdk-34-google_apis-x86_64-ndk-28.2.13676358
+          ${{ env.SDK_DIR }}/ndk/${{ env.NDK_VERSION }}
+        key: android-sdk-34-google_apis-x86_64-ndk-${{ env.NDK_VERSION }}
 
     - name: SDK を用意する
       shell: bash
@@ -80,7 +82,7 @@ runs:
         yes | "$bin/sdkmanager" --licenses >/dev/null || true
         # ダウンロードが壊れて失敗することがある (Error on ZipFile unknown archive) ので、3 回まで試す
         for i in 1 2 3; do
-          "$bin/sdkmanager" --install "$IMAGE" emulator platform-tools "ndk;28.2.13676358" >/dev/null && break
+          "$bin/sdkmanager" --install "$IMAGE" emulator platform-tools "ndk;$NDK_VERSION" >/dev/null && break
           [ "$i" = 3 ] && exit 1
           echo "::warning::SDK の用意に失敗したので、もう一度試す ($i 回目)"
         done
