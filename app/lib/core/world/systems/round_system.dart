@@ -58,6 +58,9 @@ extension _RoundSystem on World {
     if (p.invuln > 0) p.invuln -= dt;
     if (p.stun > 0) {
       p.stun -= dt;
+      // スタン中の目標の動き (タッチは前の目標に移動量を足す) は捨てる。
+      // 明けたら、パドルの今の位置から、明けた後の入力の分だけ動く。
+      if (input.useTarget) input.targetX = p.x;
     } else {
       if (input.useTarget) {
         p.x = input.targetX;
@@ -67,22 +70,14 @@ extension _RoundSystem on World {
       p.x = clampD(p.x, paddleWidth / 2, Field.width - paddleWidth / 2);
     }
     p.vx = (p.x - px0) / dt;
-    // パリィ判定の窓の終了
-    if (pr.active && t - pr.press > tuning.parryWindow) {
-      pr.active = false;
-      if (!pr.success) {
-        pr.cooldownUntil = pr.press + tuning.parryCooldown;
-        streak = 0;
-        emit(const ParryMissed());
-      }
-    }
     if (countdown > 0) {
       countdown -= dt;
       if (countdown <= 0) emit(const CountdownFinished());
     }
     final active = countdown <= 0;
     if (active) {
-      roundTime += dt;
+      // 耐久の時間・全消しボーナス・残り時間の表示は、最初の発射から数える (#100)
+      if (launched) roundTime += dt;
       stats.playTime += dt;
       if (boss != null) {
         _updateBoss(dt);
@@ -111,6 +106,16 @@ extension _RoundSystem on World {
     }
     _updateBullets(dt);
     if (phase != WorldPhase.playing) return;
+    // パリィ判定の窓の終了。このステップのボール・敵弾の接触を調べた後で閉じる
+    // (ステップの途中にある press + parryWindow までの接触は成功にする) (#97)
+    if (pr.active && t - pr.press > tuning.parryWindow) {
+      pr.active = false;
+      if (!pr.success) {
+        pr.cooldownUntil = pr.press + tuning.parryCooldown;
+        streak = 0;
+        emit(const ParryMissed());
+      }
+    }
     _updateLasers(dt);
     _updateBlasts(dt);
     // 支えを失った塊を崩落させる

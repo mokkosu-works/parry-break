@@ -15,6 +15,7 @@ import '../render/palette.dart';
 import '../render/text_cache.dart';
 import '../services/ads.dart';
 import '../services/content.dart';
+import '../services/history.dart';
 import '../services/leaderboard.dart';
 import '../services/records.dart';
 import '../services/review.dart';
@@ -100,7 +101,14 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     super.dispose();
   }
 
-  void _onControllerChange() => setState(() {});
+  bool _wasPaused = false;
+
+  void _onControllerChange() {
+    // ポーズするたびに、キーボードで選ぶボタンを RESUME に戻す
+    if (_ctl.paused && !_wasPaused) _pauseIndex = 0;
+    _wasPaused = _ctl.paused;
+    setState(() {});
+  }
 
   /// アプリが隠れたら自動でポーズする。
   @override
@@ -109,9 +117,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   }
 
   void _applySettings(Settings s) {
-    _ctl
-      ..setInputLag(s.timingOffsetMs / 1000)
-      ..fx.reduceEffects = s.reduceEffects;
+    _ctl.setInputLag(s.timingOffsetMs / 1000);
     _ctl.audio.setVolumes(bgm: s.bgmVolume, sfx: s.sfxVolume);
   }
 
@@ -132,6 +138,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     ref.read(adsProvider).onResult();
     if (stage == null) {
       final newBest = records.submitEndless(score: w.score, round: w.round.number, stats: w.stats);
+      ref.read(historyProvider.notifier).addEndless(score: w.score, round: w.round.number);
       lb.submit(Board.endlessScore, w.score);
       lb.submit(Board.endlessRound, w.round.number);
       _outcome = _Outcome(newBest: newBest);
@@ -140,6 +147,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       final result = StageResult(cleared: cleared, score: w.score, stats: w.stats);
       final stars = stage.evaluate(result);
       final newBest = records.submitStage(stage.id, result, stars, difficulty: widget.difficulty);
+      ref.read(historyProvider.notifier)
+          .addStage(stage.id, score: w.score, cleared: cleared, difficulty: widget.difficulty);
       if (cleared) lb.submit(Board.stagesTotal, ref.read(recordsProvider).stagesTotal);
       _outcome = _Outcome(newBest: newBest, stars: stars, cleared: cleared);
     }
@@ -157,15 +166,30 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     input.axis = axis;
   }
 
+  /// ポーズ中にキーボードで選んでいるボタン (RESUME / RETRY / SETTINGS / TITLE の順)。
+  int _pauseIndex = 0;
+
+  List<VoidCallback> get _pauseActions => [_ctl.requestResume, _retry, _openSettings, _toTitle];
+
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
+    // 結果画面のキーは ResultOverlay が受ける
+    if (_ctl.finished) return KeyEventResult.ignored;
     final key = e.logicalKey;
-    if (key == LogicalKeyboardKey.space || key == LogicalKeyboardKey.enter) {
-      if (_ctl.paused) {
-        _ctl.requestResume();
-      } else {
-        _ctl.press(e.timeStamp);
+    final menu = _ctl.paused && _ctl.resumeCountdown == null;
+    if (menu) {
+      if (arrowStep(key) case final step?) {
+        final n = _pauseActions.length;
+        setState(() => _pauseIndex = (_pauseIndex + step + n) % n);
+        return KeyEventResult.handled;
       }
+      if (isConfirmKey(key)) {
+        _pauseActions[_pauseIndex]();
+        return KeyEventResult.handled;
+      }
+    }
+    if (isConfirmKey(key)) {
+      if (!_ctl.paused) _ctl.press(e.timeStamp);
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.keyP) {
@@ -182,6 +206,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     _outcome = null;
     _runId++;
     _ctl.start();
+    // 結果画面がキーボードのフォーカスを持っていたので、盤面に戻す
+    _focus.requestFocus();
   }
 
   void _toTitle() => Navigator.of(context).popUntil((r) => r.isFirst);
@@ -196,9 +222,15 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     // デバッグモードのプレイでは出さない (開発者が本番の広告を表示・クリックしないように)
     if (!ref.read(debugModeProvider)) {
       _ctl.audio.setPaused(true);
-      // ステージを星 3 つでクリアして戻るときは、評価の依頼を出す (出したときは、続けて広告は出さない)
-      if (!await _askReview()) await ref.read(adsProvider).showInterstitialIfDue();
-      _ctl.audio.setPaused(false);
+      try {
+        // ステージを星 3 つでクリアして戻るときは、評価の依頼を出す (出したときは、続けて広告は出さない)
+        if (!await _askReview()) await ref.read(adsProvider).showInterstitialIfDue();
+      } on Object catch (e) {
+        // 広告や評価の依頼でつまずいても、結果画面に閉じ込めない
+        debugPrint('leave result failed: $e');
+      } finally {
+        _ctl.audio.setPaused(false);
+      }
     }
     if (mounted) go();
   }
@@ -223,6 +255,18 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
     return ref.read(debugModeProvider) || ref.read(recordsProvider).isUnlocked(c, next) ? next : null;
   }
 
+  /// 戻るボタン (Android)。プレイ中はポーズ、ポーズ中は再開のカウントダウン (カウントダウン中は何もしない)、
+  /// 結果画面は TITLE (エンドレス) / STAGES (ステージ) と同じく、広告・評価の依頼の判定を通って戻る。
+  void _onBack() {
+    if (_ctl.finished) {
+      _leaveResult(widget.stage == null ? _toTitle : () => Navigator.of(context).pop());
+    } else if (!_ctl.paused) {
+      _ctl.pause();
+    } else if (_ctl.resumeCountdown == null) {
+      _ctl.requestResume();
+    }
+  }
+
   Future<void> _openSettings() async {
     await Navigator.of(context).push(fadeRoute<void>(const SettingsScreen()));
     if (mounted) _applySettings(ref.read(settingsProvider));
@@ -234,6 +278,15 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final settings = ref.watch(settingsProvider);
+    // 盤面のフラッシュ・揺れ・点滅は、アプリの「演出を控えめにする」か、端末の動きを減らす設定
+    // (iOS の「視差効果を減らす」、Android の「アニメーションを削除」) のどちらかで控えめにする。
+    // どちらも変われば build し直されるので、遊んでいる途中の変更も反映される
+    _ctl.fx.reduceEffects = settings.reduceEffects || MediaQuery.disableAnimationsOf(context);
+    // ポーズ中に設定で言語・画質を変えたら、盤面の描画役を作り直す
+    if (_painter case final p?
+        when p.l10n.localeName != l.localeName || p.highQuality != (settings.quality == GraphicsQuality.high)) {
+      _painter = null;
+    }
     _painter ??= FieldPainter(
       world: _ctl.world,
       fx: _ctl.fx,
@@ -245,56 +298,64 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
       highQuality: settings.quality == GraphicsQuality.high,
       repaint: _ctl.frame,
     );
-    return Scaffold(
-      backgroundColor: Dot.ink,
-      body: Focus(
-        focusNode: _focus,
-        autofocus: true,
-        onKeyEvent: _onKey,
-        child: LayoutBuilder(builder: (context, c) {
-          final rail = settings.controls != ControlScheme.zones;
-          final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context), rail: rail);
-          return Stack(children: [
-            Positioned.fill(child: TouchInput(controller: _ctl, layout: layout, settings: settings)),
-            Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field())),
-            // レール方式だけ、左右の余白に操作を置く (領域方式は画面の左右半分をタッチするので置かない)
-            if (rail) ...[
-              // 左の余白: 移動
-              Positioned.fromRect(
-                rect: layout.left,
-                child: SafeArea(
-                  right: false,
-                  child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical, sensitivity: settings.railSensitivity),
-                ),
-              ),
-              // 右の余白: パリィ
-              Positioned(
-                left: layout.right.left,
-                width: layout.right.width,
-                bottom: 0,
-                height: c.maxHeight * 0.55,
-                child: SafeArea(
-                  left: false,
-                  child: Center(
-                    child: ParryButton(controller: _ctl, size: (layout.right.width * 0.6).clamp(56, 84)),
+    _painter!.parryButton = settings.controls != ControlScheme.zones;
+    return PopScope(
+      // 戻るボタン (Android) で画面を閉じず、ポーズや結果画面のボタンと同じ処理にする (_onBack)
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _onBack();
+      },
+      child: Scaffold(
+        backgroundColor: Dot.ink,
+        body: Focus(
+          focusNode: _focus,
+          autofocus: true,
+          onKeyEvent: _onKey,
+          child: LayoutBuilder(builder: (context, c) {
+            final rail = settings.controls != ControlScheme.zones;
+            final layout = FieldLayout.compute(c.biggest, MediaQuery.paddingOf(context), rail: rail);
+            return Stack(children: [
+              Positioned.fill(child: TouchInput(controller: _ctl, layout: layout, settings: settings)),
+              Positioned.fromRect(rect: layout.field, child: IgnorePointer(child: _field())),
+              // レール方式だけ、左右の余白に操作を置く (領域方式は画面の左右半分をタッチするので置かない)
+              if (rail) ...[
+                // 左の余白: 移動
+                Positioned.fromRect(
+                  rect: layout.left,
+                  child: SafeArea(
+                    right: false,
+                    child: RailControl(controller: _ctl, vertical: settings.controls == ControlScheme.railVertical, sensitivity: settings.railSensitivity),
                   ),
                 ),
+                // 右の余白: パリィ
+                Positioned(
+                  left: layout.right.left,
+                  width: layout.right.width,
+                  bottom: 0,
+                  height: c.maxHeight * 0.55,
+                  child: SafeArea(
+                    left: false,
+                    child: Center(
+                      child: ParryButton(controller: _ctl, size: (layout.right.width * 0.6).clamp(56, 84)),
+                    ),
+                  ),
+                ),
+              ],
+              // ポーズ: HUD の右端 (見た目は小さく、押せる範囲は 44pt 以上にする)
+              Positioned.fromRect(
+                rect: _hitRect(layout.toScreen(FieldPainter.pauseButton)),
+                child: _PauseButton(
+                  size: FieldPainter.pauseButton.width * layout.scale,
+                  dot: Dot.px * layout.scale,
+                  onTap: _ctl.finished ? null : _ctl.pause,
+                  label: l.pauseGame,
+                ),
               ),
-            ],
-            // ポーズ: HUD の右端 (見た目は小さく、押せる範囲は 44pt 以上にする)
-            Positioned.fromRect(
-              rect: _hitRect(layout.toScreen(FieldPainter.pauseButton)),
-              child: _PauseButton(
-                size: FieldPainter.pauseButton.width * layout.scale,
-                dot: Dot.px * layout.scale,
-                onTap: _ctl.finished ? null : _ctl.pause,
-                label: l.paused,
-              ),
-            ),
-            if (_ctl.paused && !_ctl.finished) Positioned.fill(child: _pauseOverlay(l)),
-            if (_ctl.finished) Positioned.fill(child: _resultOverlay()),
-          ]);
-        }),
+              if (_ctl.paused && !_ctl.finished) Positioned.fill(child: _pauseOverlay(l)),
+              if (_ctl.finished) Positioned.fill(child: _resultOverlay()),
+            ]);
+          }),
+        ),
       ),
     );
   }
@@ -319,10 +380,21 @@ class _GameScreenState extends ConsumerState<GameScreen> with SingleTickerProvid
                   const PixelTitle('PAUSED', size: 56, color: Palette.yellow, shadow: Dot.brick),
                   const SizedBox(height: 30),
                   Wrap(spacing: 14, runSpacing: 12, alignment: WrapAlignment.center, children: [
-                    PixelButton(label: 'RESUME', filled: true, icon: PixelIcons.play, onPressed: _ctl.requestResume),
-                    PixelButton(label: 'RETRY', icon: PixelIcons.replay, onPressed: _retry),
-                    PixelButton(label: 'SETTINGS', icon: PixelIcons.tune, onPressed: _openSettings),
-                    PixelButton(label: 'TITLE', color: Palette.gray, icon: PixelIcons.home, onPressed: _toTitle),
+                    PixelButton(
+                        label: 'RESUME',
+                        filled: true,
+                        icon: PixelIcons.play,
+                        selected: _pauseIndex == 0,
+                        onPressed: _ctl.requestResume),
+                    PixelButton(label: 'RETRY', icon: PixelIcons.replay, selected: _pauseIndex == 1, onPressed: _retry),
+                    PixelButton(
+                        label: 'SETTINGS', icon: PixelIcons.tune, selected: _pauseIndex == 2, onPressed: _openSettings),
+                    PixelButton(
+                        label: 'TITLE',
+                        color: Palette.gray,
+                        icon: PixelIcons.home,
+                        selected: _pauseIndex == 3,
+                        onPressed: _toTitle),
                   ]),
                 ]),
               ),

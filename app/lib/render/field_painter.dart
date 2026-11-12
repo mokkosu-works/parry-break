@@ -12,6 +12,33 @@ import 'palette.dart';
 import 'pixel.dart';
 import 'text_cache.dart';
 
+/// 説明の翻訳キー (`intro.*`) の文言。知らないキーなら null。[loop] は `intro.loop` の周回数。
+/// [scoreTarget] は `intro.score` の目標スコア (スコア目標の面でなければ null で、`intro.score` も null になる)。
+/// [parryButton] はレール方式 (PARRY ボタンで弾く) のとき true で、`intro.parry` をボタン向けの文言にする。
+String? introText(AppLocalizations l10n, String? key, {int loop = 1, int? scoreTarget, bool parryButton = false}) =>
+    switch (key) {
+      'intro.keystone' => l10n.introKeystone,
+      'intro.turret' => l10n.introTurret,
+      'intro.explosive' => l10n.introExplosive,
+      'intro.reflector' => l10n.introReflector,
+      'intro.magnet' => l10n.introMagnet,
+      'intro.splitter' => l10n.introSplitter,
+      'intro.mirror' => l10n.introMirror,
+      'intro.wall' => l10n.introWall,
+      'intro.spread' => l10n.introSpread,
+      'intro.gatling' => l10n.introGatling,
+      'intro.ring' => l10n.introRing,
+      'intro.spiral' => l10n.introSpiral,
+      'intro.sniper' => l10n.introSniper,
+      'intro.loop' => l10n.introLoop('$loop'),
+      'intro.parry' => parryButton ? l10n.introParryButton : l10n.introParry,
+      'intro.pierce' => l10n.introPierce,
+      'intro.feverTime' => l10n.introFeverTime,
+      'intro.survive' => l10n.introSurvive,
+      'intro.score' => scoreTarget == null ? null : l10n.introScore(formatScore(scoreTarget)),
+      _ => null,
+    };
+
 /// 盤面 (1200×720) を描く。HUD・コールアウト・バナー・ラウンドクリアの表示も含む。
 ///
 /// 見た目は 16 色のドット絵 (1 ドット = [Dot.px])。発光やぼかしは使わず、
@@ -29,6 +56,7 @@ class FieldPainter extends CustomPainter {
     required this.highQuality,
     required super.repaint,
     this.attract = false,
+    this.parryButton = false,
   });
 
   final World world;
@@ -49,15 +77,44 @@ class FieldPainter extends CustomPainter {
   /// タイトル画面のデモ表示。HUD・文字の演出を描かない。
   final bool attract;
 
+  /// 発射とパリィを PARRY ボタンでする操作方式 (レール方式) か。
+  /// 案内を「TAP」ではなく PARRY ボタンを指す文にする。設定の変更に合わせて書き換える。
+  bool parryButton;
+
   static const _w = Field.width, _h = Field.height, _d = Dot.px;
 
   /// HUD の右端に置くポーズボタンの場所 (盤面の座標)。ボタンそのものは game_screen.dart が重ねる。
   static const pauseButton = Rect.fromLTWH(_w - 56, 6, 44, 44);
+  /// HUD のラベル (SCORE・ROUND・FEVER TIME の残り秒数など) が画面上でこれより小さくならないようにする (pt)。
+  static const hudLabelMinPt = 11.0;
+
+  /// HUD のラベルの大きさ (盤面の座標)。[scale] は盤面の 1 単位あたりの画面のピクセル数。
+  /// 倍率が十分な端末では今までどおり 16。倍率が小さい端末 (スマホの横画面) では、画面上で
+  /// [hudLabelMinPt] 以上になるように大きくする。下の数値 (24) と重ならないよう 24 までにする。
+  static double hudLabelSize(double scale) => (hudLabelMinPt / scale).ceilToDouble().clamp(16.0, 24.0);
+
   static final _floor = DitherFloor(const Rect.fromLTWH(0, 440, _w, _h - 440));
   final _rnd = math.Random();
 
   late Canvas _c;
   late double _t, _a, _ox, _oy;
+
+  /// HUD のラベルの大きさ ([hudLabelSize]) と、縦の中心。
+  /// 大きくしたときは、下の端がコンボのメーターの目盛り (y = 24) より上に収まるように上へずらす。
+  late double _label, _labelY;
+
+  /// 盤面の 1 単位あたりの画面のピクセル数。
+  late double _scale;
+
+  /// 帯の説明文が画面上でこれより小さくならないようにする (pt)。
+  static const bannerSubMinPt = 11.0;
+
+  /// 帯の説明文の大きさ (盤面の座標)。倍率が十分な端末では今までどおり 15。
+  /// 倍率が小さい端末 (スマホの横画面) では、画面上で [bannerSubMinPt] 以上になるように大きくする。
+  static double bannerSubSize(double scale) => math.max(15.0, (bannerSubMinPt / scale).ceilToDouble());
+
+  /// 帯の説明文を折り返すときの 1 行の幅の上限 (盤面の座標)。
+  static const bannerSubWidth = _w - 80;
 
   double _lerp(double a, double b) => a + (b - a) * _a;
 
@@ -69,6 +126,9 @@ class FieldPainter extends CustomPainter {
     final w = world;
     _ox = _lerp(w.form.prevOx, w.form.ox);
     _oy = _lerp(w.form.prevOy, w.form.oy);
+    _scale = size.width / _w;
+    _label = hudLabelSize(_scale);
+    _labelY = math.min(14.0, 24 - _label / 2);
     canvas.save();
     canvas.scale(size.width / _w);
     canvas.clipRect(const Rect.fromLTWH(0, 0, _w, _h));
@@ -84,7 +144,7 @@ class FieldPainter extends CustomPainter {
     for (final b in w.blocks) {
       if (b.behavior.influencesBalls) _magnetField(b);
     }
-    final ctx = BlockPaintContext(canvas, text, _t, fx.blockColor);
+    final ctx = BlockPaintContext(canvas, text, _t, fx.blockColor, calm: fx.reduceEffects);
     for (final b in w.blocks) {
       _block(ctx, b, Rect.fromLTWH(b.x + _ox, b.y + _oy, b.w, b.h));
     }
@@ -132,6 +192,17 @@ class FieldPainter extends CustomPainter {
     _txt(s, x, y, size, color, align: align);
   }
 
+  /// `(_t * rate).floor().isEven` の点滅 (1 秒に rate / 2 回)。
+  /// 「演出を控えめにする」では 1 秒に 3 回を超えて点滅させない。[calm] を渡せばその状態で止め、
+  /// 渡さなければ 1 秒に 2 回のゆっくりした点滅にする。
+  bool _blink(double rate, {bool? calm}) {
+    if (fx.reduceEffects && rate > 6) {
+      if (calm != null) return calm;
+      rate = 4;
+    }
+    return (_t * rate).floor().isEven;
+  }
+
   /// 点線 (ドットの破線)。
   void _dashedLine(double x0, double y, double x1, double dash, double gap, double offset, Color col, {double h = _d}) {
     final p = pixelPaint(col);
@@ -175,7 +246,7 @@ class FieldPainter extends CustomPainter {
     _c.drawRect(const Rect.fromLTWH(0, 0, _w, Field.topY), pixelPaint(world.od ? Dot.odHud : Dot.night));
     _c.drawRect(const Rect.fromLTWH(0, Field.topY - _d, _w, _d), pixelPaint(Dot.edge));
     final danger = world.isDanger;
-    final col = danger ? ((_t * 7).floor().isEven ? Dot.bulletRed : Dot.brick) : Dot.dark(Dot.brick);
+    final col = danger ? (_blink(7, calm: true) ? Dot.bulletRed : Dot.brick) : Dot.dark(Dot.brick);
     _dashedLine(0, Field.warnY, _w, 16, 8, -_t * 32, col);
     if (attract) return;
     _txt('DEAD LINE', _w - 16, Field.warnY - 18, 16, danger ? Dot.bulletRed : Dot.brick, align: TextAlignH.right);
@@ -198,7 +269,7 @@ class FieldPainter extends CustomPainter {
     final locked = b.fireT <= SniperTurretBlock.lockTime;
     final len = (Field.paddleY - y) / math.max(0.2, math.sin(b.aim));
     final step = locked ? _d * 2 : _d * 4;
-    final col = locked ? ((_t * 16).floor().isEven ? Dot.white : Dot.bulletRed) : withAlpha(Dot.bulletRed, 0.6);
+    final col = locked ? (_blink(16, calm: true) ? Dot.white : Dot.bulletRed) : withAlpha(Dot.bulletRed, 0.6);
     final n = (len / step).floor();
     final pts = Float32List(n * 2);
     for (var k = 0; k < n; k++) {
@@ -223,15 +294,17 @@ class FieldPainter extends CustomPainter {
   /// ひびが入って落下を待つブロック (その場で震える)。
   void _cracking() {
     final on = (_t * 25).floor().isEven;
+    // 「演出を控えめにする」では白と入れ替えず、明るい色のままにする
+    Color col(Color c) => fx.reduceEffects ? Dot.light(c) : on ? Dot.white : c;
     for (final f in world.falling) {
       final b = f.block;
       final x = b.x + _ox + ((_rnd.nextInt(3) - 1) * 2), y = b.y + _oy + ((_rnd.nextInt(3) - 1) * 2);
-      _debrisRect(Rect.fromLTWH(x, y, b.w, b.h), on ? Dot.white : fx.blockColor(b));
+      _debrisRect(Rect.fromLTWH(x, y, b.w, b.h), col(fx.blockColor(b)));
     }
     for (final d in fx.debris) {
       if (d.dropped) continue;
       final x = d.x + ((_rnd.nextInt(3) - 1) * 2), y = d.y + ((_rnd.nextInt(3) - 1) * 2);
-      _debrisRect(Rect.fromLTWH(x, y, d.w, d.h), on ? Dot.white : d.color);
+      _debrisRect(Rect.fromLTWH(x, y, d.w, d.h), col(d.color));
     }
   }
 
@@ -278,7 +351,7 @@ class FieldPainter extends CustomPainter {
         continue;
       }
       // 2 コマで明滅する縁 (弾幕が派手に見え、背景から浮く)
-      final blink = ((_t * 12).floor() + u.hashCode).isEven;
+      final blink = !fx.reduceEffects && ((_t * 12).floor() + u.hashCode).isEven;
       if (u.hostile && u.red) {
         _bulletBig.drawCentered(_c, x, y, blink ? Dot.white : c, scale: 1.25);
         _bulletBig.drawCentered(_c, x, y, c);
@@ -338,7 +411,7 @@ class FieldPainter extends CustomPainter {
       if (w.countdown > 0) {
         _bigTxt('READY', x, y - 32, 24, Dot.mustard, shadow: Dot.brick);
       } else if ((_t * 2).floor().isEven) {
-        _bigTxt('TAP', x, y - 32, 24, Dot.white, shadow: Dot.edge);
+        _bigTxt(parryButton ? 'PARRY' : 'TAP', x, y - 32, 24, Dot.white, shadow: Dot.edge);
       }
     }
   }
@@ -353,8 +426,8 @@ class FieldPainter extends CustomPainter {
     final cooling = w.t < pr.cooldownUntil;
     var col = Dot.sky;
     if (stunned) {
-      col = (_t * 20).floor().isEven ? Dot.brick : Dot.edge;
-    } else if (p.invuln > 0 && (_t * 15).floor().isEven) {
+      col = _blink(20, calm: true) ? Dot.brick : Dot.edge;
+    } else if (p.invuln > 0 && _blink(15)) {
       col = Dot.edge; // 被弾後の無敵: 点滅
     } else if (cooling) {
       col = Dot.steel;
@@ -391,7 +464,7 @@ class FieldPainter extends CustomPainter {
   void _lasers() {
     for (final l in world.lasers) {
       if (l.t < l.warn) {
-        final blink = (_t * 12).floor().isEven;
+        final blink = _blink(12, calm: true);
         _c.drawRect(Rect.fromLTWH(l.x - l.w / 2, Field.topY, l.w, _h - Field.topY), pixelPaint(const Color(0x14FF3B5C)));
         final p = pixelPaint(blink ? Dot.bulletRed : Dot.dark(Dot.brick));
         for (final lx in [l.x - l.w / 2, l.x + l.w / 2]) {
@@ -435,7 +508,7 @@ class FieldPainter extends CustomPainter {
 
   void _popups() {
     for (final p in fx.popups) {
-      if (p.t > 0.6 && (p.t * 20).floor().isEven) continue; // 消える前に点滅
+      if (!fx.reduceEffects && p.t > 0.6 && (p.t * 20).floor().isEven) continue; // 消える前に点滅
       _txt(p.text, p.x, p.y, p.size, p.color);
     }
   }
@@ -448,12 +521,12 @@ class FieldPainter extends CustomPainter {
     } else if (w.stage >= 2) {
       _edgeBands(w.stage == 3 ? Dot.mustard : Dot.orange, 0.3, (_t * 4).floor().isEven ? 3 : 2);
     }
-    if (w.isDanger) _edgeBands(Dot.bulletRed, 0.45, (_t * 7).floor().isEven ? 4 : 2);
+    if (w.isDanger) _edgeBands(Dot.bulletRed, 0.45, _blink(7, calm: true) ? 4 : 2);
   }
 
   /// FEVER TIME 中、盤面のふちを回る電飾 (ゲーム筐体の電飾のように、色が順に送られる)。
   /// 残り 2 秒を切ると全体が点滅して、終わりが近いことを知らせる。
-  /// 「刺激を弱める」設定では、色をゆっくり送り、点滅はしない。
+  /// 「演出を控えめにする」設定では、色をゆっくり送り、点滅はしない。
   void _marquee() {
     final w = world, calm = fx.reduceEffects;
     if (!calm && w.odTime < 2 && (_t * 8).floor().isEven) return;
@@ -495,28 +568,31 @@ class FieldPainter extends CustomPainter {
 
   void _hud() {
     final w = world;
-    _txt('SCORE', 20, 14, 16, Dot.dim, align: TextAlignH.left);
+    _txt('SCORE', 20, _labelY, _label, Dot.dim, align: TextAlignH.left);
     _txt(formatScore(fx.dispScore), 20, 38, 24, Dot.white, align: TextAlignH.left);
     final boss = w.boss;
-    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND', 400, 14, 16, Dot.dim);
-    _txt('${w.round.number}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}', 400, 38, 24, Dot.white);
+    _txt(boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND', 400, _labelY, _label, Dot.dim);
+    _txt('${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}', 400, 38, 24, Dot.white);
     final clear = w.round.clear;
     if (boss != null) {
       final tm = boss.time.ceil();
-      _txt('TIME', 530, 14, 16, Dot.dim);
+      _txt('TIME', 530, _labelY, _label, Dot.dim);
       _txt('$tm', 530, 38, 24, tm <= 10 ? Dot.bulletRed : Dot.white);
     } else if (clear is SurviveClear) {
       final left = math.max(0, (clear.seconds - w.roundTime).ceil());
-      _txt('SURVIVE', 530, 14, 16, Dot.dim);
+      _txt('SURVIVE', 530, _labelY, _label, Dot.dim);
       _txt('$left', 530, 38, 24, left <= 5 ? Dot.mustard : Dot.white);
+    } else if (clear is ScoreClear) {
+      _txt('GOAL', 530, _labelY, _label, Dot.dim);
+      _txt(formatScore(clear.target), 530, 38, 24, Dot.white);
     } else {
-      _txt('CHAIN', 530, 14, 16, Dot.dim);
+      _txt('CHAIN', 530, _labelY, _label, Dot.dim);
       _txt('${w.streak}', 530, 38, 24, Dot.white);
     }
     // コンボ: ドットのマスを並べたメーター
     const bx = 680.0, by = 28.0, bw = 340.0, bh = 16.0;
     final st = w.od ? 4 : w.stage;
-    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'COMBO LV${st + 1}', bx, 14, 16,
+    _txt(w.od ? 'FEVER TIME ${math.max(0, w.odTime).toStringAsFixed(1)}s' : 'COMBO LV${st + 1}', bx, _labelY, _label,
         w.od ? Dot.rose : Dot.dim,
         align: TextAlignH.left);
     final tun = w.tuning;
@@ -530,7 +606,8 @@ class FieldPainter extends CustomPainter {
         _c.drawRect(r, pixelPaint(Dot.dither));
         continue;
       }
-      final c = w.od ? ((i + (_t * 12).floor()) % 3 == 0 ? Dot.white : Dot.rose) : Palette.comboBar[st];
+      final step = (_t * (fx.reduceEffects ? 3 : 12)).floor(); // 控えめでは電飾と同じくゆっくり送る
+      final c = w.od ? ((i + step) % 3 == 0 ? Dot.white : Dot.rose) : Palette.comboBar[st];
       bevelRect(_c, r, c);
     }
     if (!w.od) {
@@ -566,7 +643,7 @@ class FieldPainter extends CustomPainter {
     for (var i = 0; i < fx.callouts.length; i++) {
       final c = fx.callouts[i];
       final fading = c.t > FxCallout.life - 0.3;
-      if (fading && (c.t * 20).floor().isEven) continue;
+      if (fading && !fx.reduceEffects && (c.t * 20).floor().isEven) continue;
       final pop = c.t < 0.08 ? 8.0 : 0.0;
       final y = 210.0 + i * 64;
       _bigTxt(c.text, _w / 2, y, c.size + pop, c.color);
@@ -578,49 +655,70 @@ class FieldPainter extends CustomPainter {
   void _banner() {
     final b = fx.banner;
     if (b == null || world.phase == WorldPhase.over) return;
-    // 帯は上下から開いて閉じる (高さを 4 段階で変える)
-    final open = b.t < 0.15 ? b.t / 0.15 : b.t > 1.4 ? math.max(0.0, (1.8 - b.t) / 0.4) : 1.0;
-    final h = (90 * open / 24).ceil() * 24.0;
     final (title, sub, color) = switch (b.kind) {
-      BannerKind.round => ('ROUND ${b.value}', _introText(b.introKey) ?? _goalText(), Dot.white),
+      BannerKind.round => ('ROUND ${_roundNo(b.value)}', _introText(b.introKey) ?? _goalText(), Dot.white),
       BannerKind.boss => ('WARNING', 'BOSS ${b.value}  —  ${l10n.bannerBoss}', Dot.bulletRed),
       BannerKind.feverTime => ('FEVER TIME', l10n.bannerFeverTime, Dot.rose),
       BannerKind.bossPhase => ('PHASE ${b.value}', b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3, Dot.white),
       BannerKind.timeOver => ('TIME OVER', l10n.bannerTimeOver, Dot.bulletRed),
     };
+    b.describe(sub);
+    final size = bannerSubSize(_scale), lineH = (size * 1.25).ceilToDouble();
+    final lines = sub == null || sub.isEmpty ? const <String>[] : wrapText(sub, size, bannerSubWidth);
+    // 説明が 2 行以上になったら、その分だけ帯を下へ広げる
+    final extra = math.max(0, lines.length - 1) * lineH;
+    // 帯は上下から開いて閉じる (高さを 4 段階で変える)
+    final open = b.open;
+    final h = ((90 + extra) * open / 24).ceil() * 24.0;
     if (h <= 0) return;
-    final band = Rect.fromLTWH(0, 375 - h / 2, _w, h);
+    final band = Rect.fromLTWH(0, 375 + extra / 2 - h / 2, _w, h);
     _c.drawRect(band, pixelPaint(withAlpha(Dot.ink, 0.85)));
     _c.drawRect(Rect.fromLTWH(0, band.top, _w, _d), pixelPaint(color));
     _c.drawRect(Rect.fromLTWH(0, band.bottom - _d, _w, _d), pixelPaint(color));
     if (open < 0.7) return;
     _bigTxt(title, _w / 2, 360, 40, color, shadow: color == Dot.white ? Dot.edge : Dot.dark(color));
-    if (sub != null && sub.isNotEmpty) {
-      _txt(sub, _w / 2, 400, 15, Dot.white, family: TextCache.jp);
+    for (var i = 0; i < lines.length; i++) {
+      _txt(lines[i], _w / 2, 400 + i * lineH, size, Dot.white, family: TextCache.jp);
     }
   }
 
-  String? _introText(String? key) => switch (key) {
-        'intro.keystone' => l10n.introKeystone,
-        'intro.turret' => l10n.introTurret,
-        'intro.explosive' => l10n.introExplosive,
-        'intro.reflector' => l10n.introReflector,
-        'intro.magnet' => l10n.introMagnet,
-        'intro.splitter' => l10n.introSplitter,
-        'intro.mirror' => l10n.introMirror,
-        'intro.spread' => l10n.introSpread,
-        'intro.gatling' => l10n.introGatling,
-        'intro.ring' => l10n.introRing,
-        'intro.spiral' => l10n.introSpiral,
-        'intro.sniper' => l10n.introSniper,
-        'intro.loop' => l10n.introLoop('${world.round.loop + 1}'),
-        'intro.parry' => l10n.introParry,
-        'intro.pierce' => l10n.introPierce,
-        'intro.feverTime' => l10n.introFeverTime,
-        'intro.survive' => l10n.introSurvive,
-        'intro.score' => l10n.introScore,
-        _ => null,
+  /// [s] を、大きさ [size] の説明文の字で 1 行が [maxWidth] に収まるように折り返す。
+  /// 英語は空白で、日本語は字の間で折り返す。
+  List<String> wrapText(String s, double size, double maxWidth) {
+    double width(String t) => text.get(t, size, Dot.white, family: TextCache.jp).width;
+    if (width(s) <= maxWidth) return [s];
+    final lines = <String>[];
+    var line = '';
+    for (final ch in s.runes.map(String.fromCharCode)) {
+      final next = line + ch;
+      if (line.isEmpty || width(next) <= maxWidth) {
+        line = next;
+        continue;
+      }
+      // 英単語の途中なら、直前の空白で切る
+      final sp = line.lastIndexOf(' ');
+      if (ch != ' ' && sp > 0 && !line.endsWith(' ') && line.codeUnitAt(line.length - 1) < 0x2000) {
+        lines.add(line.substring(0, sp).trimRight());
+        line = line.substring(sp + 1) + ch;
+      } else {
+        lines.add(line.trimRight());
+        line = ch == ' ' ? '' : ch;
+      }
+    }
+    if (line.trim().isNotEmpty) lines.add(line.trim());
+    return lines;
+  }
+
+  /// ラウンドの番号。ステージモードで 2 ラウンド以上ある面は「いま/全体」で出す。
+  String _roundNo(int n) => switch (world.mode) {
+        StageMode(:final stage) when stage.rounds.length > 1 => '$n/${stage.rounds.length}',
+        _ => '$n',
       };
+
+  String? _introText(String? key) => introText(l10n, key,
+      loop: world.round.loop + 1,
+      scoreTarget: switch (world.round.clear) { ScoreClear(:final target) => target, _ => null },
+      parryButton: parryButton);
 
   /// ステージモードでは、説明がなければクリア条件を出す。
   String? _goalText() {

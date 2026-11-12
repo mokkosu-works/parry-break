@@ -193,7 +193,8 @@ class ChapterDef {
 ///
 /// ラウンドの書き方:
 /// - `{"rows": [...], "legend": {...}}`: 配置を直接書く
-/// - `{"endless": 2}`: エンドレスの R2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)
+/// - `{"endless": 2}`: エンドレスの R2 と同じ配置 (ボスの番号でもボスにはならない。ボスは `boss` で書く)。
+///   `intro` を書かなければ、エンドレスの R2 の説明 (新しいブロックの説明など) を引き継ぐ
 /// - `{"boss": 0}`: エンドレスの 1 体目のボス
 /// 共通で `difficulty`(既定 1)、`clear`、`tuning`、`intro` を書ける。
 class Campaign {
@@ -201,6 +202,21 @@ class Campaign {
   final List<ChapterDef> chapters;
 
   Iterable<StageDef> get stages => chapters.expand((c) => c.stages);
+
+  /// [s] を開くためにクリアするステージ: 各章の最初のステージは前の章の最後、それ以外は同じ章の 1 つ前。
+  /// 最初から開いているステージ (1 章の最初、前の章が空の章の最初) と、この中にないステージは null。
+  StageDef? unlockedBy(StageDef s) {
+    for (var ci = 0; ci < chapters.length; ci++) {
+      final stages = chapters[ci].stages;
+      final si = stages.indexOf(s);
+      if (si < 0) continue;
+      if (si > 0) return stages[si - 1];
+      if (ci == 0) return null;
+      final prev = chapters[ci - 1].stages;
+      return prev.isEmpty ? null : prev.last;
+    }
+    return null;
+  }
 
   StageDef? stage(String id) {
     for (final s in stages) {
@@ -247,7 +263,10 @@ class Campaign {
       difficulty: (w['difficulty'] as num?)?.toInt() ?? defaultDifficulty,
       content: content,
       clear: ClearCondition.fromJson(w['clear'] as Map<String, Object?>?),
-      introKey: w['intro'] as String?,
+      introKey: w['intro'] as String? ?? switch (w) {
+        {'endless': final num n} => endless.intros[n.toInt()],
+        _ => null,
+      },
       tuning: Map<String, Object?>.from((w['tuning'] as Map?) ?? const {}),
     );
   }

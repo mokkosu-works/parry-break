@@ -80,6 +80,8 @@ body:
         - エンドレス
         - タイトル・メニュー・設定
         - ランキング・記録
+        - 結果画面
+        - 遊び方
         - その他
     validations:
       required: true
@@ -103,6 +105,7 @@ body:
         - iOS
         - Android
         - 両方
+        - Web (開発用)
         - その他 (シミュレータ・エミュレータなど)
     validations:
       required: true

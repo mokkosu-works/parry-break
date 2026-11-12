@@ -67,8 +67,11 @@ class InterstitialPolicy {
 
   int get _countToday => _prefs.getString(_dayKey) == _today ? _prefs.getInt(_dayCountKey) ?? 0 : 0;
 
+  /// 今日の上限 ([dailyCap] 回) まで出したか。日付が変わると false に戻る。
+  bool get cappedToday => _countToday >= dailyCap;
+
   bool get due {
-    if (!pastGrace || _countToday >= dailyCap) return false;
+    if (!pastGrace || cappedToday) return false;
     final last = _prefs.getInt(_lastShownKey);
     if (last == null) return true;
     final gap = _now().difference(DateTime.fromMillisecondsSinceEpoch(last));
@@ -160,6 +163,10 @@ class AdMobAds implements AdsService {
   /// 読み込みに失敗したときの再試行の間隔。使い切ったら、次に結果画面が出るか前面に戻るまで試さない。
   static const retryDelays = [Duration(seconds: 30), Duration(minutes: 1), Duration(minutes: 2), Duration(minutes: 4)];
 
+  /// 出してから表示の通知 (onShown) が来るまで待つ長さ。表示の通知も閉じた通知も来ないまま
+  /// これを過ぎたら、待つのをやめて結果画面から戻れるようにする。表示の通知が来たあとは、閉じるまで待つ。
+  static const showTimeout = Duration(seconds: 5);
+
   bool _initDone = false, _consentUpdated = false, _starting = false, _ready = false, _loading = false;
   LoadedInterstitial? _ad;
   DateTime? _loadedAt;
@@ -234,7 +241,8 @@ class AdMobAds implements AdsService {
   }
 
   void _preload({bool fromRetryTimer = false}) {
-    if (!_ready || _loading || !_policy.pastGrace) return;
+    // 今日の上限まで出した日は、出せない広告を読み込まない (表示率が下がり、通信量も無駄になる)。日付が変わったあとの呼び出しで読み込む
+    if (!_ready || _loading || !_policy.pastGrace || _policy.cappedToday) return;
     if (_ad != null) {
       if (!_expired) return;
       _discard();
@@ -273,7 +281,30 @@ class AdMobAds implements AdsService {
     }
     _ad = null;
     _loadedAt = null;
-    await ad.show(onShown: _policy.recordShown);
+    var shown = false;
+    final finished = Completer<void>();
+    void finish() {
+      if (!finished.isCompleted) finished.complete();
+    }
+
+    final timeout = _timer(showTimeout, () {
+      if (shown) return;
+      debugPrint('interstitial show timed out');
+      finish();
+    });
+    unawaited(
+      ad
+          .show(
+            onShown: () {
+              shown = true;
+              _policy.recordShown();
+            },
+          )
+          .catchError((Object e) => debugPrint('interstitial show failed: $e'))
+          .whenComplete(finish),
+    );
+    await finished.future;
+    timeout.cancel();
     _preload();
   }
 

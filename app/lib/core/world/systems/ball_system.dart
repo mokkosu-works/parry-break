@@ -46,7 +46,7 @@ extension _BallSystem on World {
     }
     // 段階移行時は補間して加速
     b.speed += (targetSpeed - b.speed) * math.min(1, (od ? 2 : 4) * dt);
-    if (od) b.speed = math.min(b.speed, tuning.odMaxSpeed);
+    if (od) b.speed = math.min(b.speed, odTopSpeed);
     for (final bl in blocks) {
       if (bl.behavior.influencesBalls) bl.behavior.influenceBall(this, bl, b, dt);
     }
@@ -113,6 +113,8 @@ extension _BallSystem on World {
     _reflectOffPaddle(b);
     if (b.flight >= 8) _ricochetBonus(b);
     b.flight = 0;
+    // 貫通は、そのパリィの後の 1 往復だけ。パドルに戻ったら消し、パリィならその値で付け直す (#119)
+    b.pierce = 0;
     final grade = _judgeContact(tc);
     if (grade != null) {
       _applyParry(grade, ParryTarget.ball, b.x, Field.paddleY);

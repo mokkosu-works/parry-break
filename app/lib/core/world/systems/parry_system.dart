@@ -26,14 +26,27 @@ extension _ParrySystem on World {
     }
     if (p.stun > 0) return;
     if (pr.active || pt < pr.cooldownUntil) return;
-    // 接触の「後」に押した場合も、0.03 秒以内なら PERFECT (0.012 秒以内なら JUST)
+    // 接触の「後」に押した場合も、0.03 秒以内なら PERFECT (0.012 秒以内なら JUST)。
+    // ボールと、パドルに触れて被弾の確定を待っている敵弾 (すべて撃ち返す) が対象。
+    var late = false;
     final dl = pt - lastContact.t;
     if (!lastContact.used && dl <= tuning.perfectWindow && dl >= -tuning.parryWindow) {
       lastContact = Contact(lastContact.t, used: true);
       pr.hits = 0;
+      late = true;
       _applyParry(_grade(dl.abs()), ParryTarget.ball, b.x, Field.paddleY);
-      return;
     }
+    for (final u in List.of(bullets)) {
+      final tc = u.contact;
+      if (tc == null || u.dead) continue;
+      final du = pt - tc;
+      if (du > tuning.perfectWindow || du < -tuning.parryWindow) continue;
+      if (!late) pr.hits = 0;
+      late = true;
+      u.contact = null;
+      _parryBullet(u, _grade(du.abs()));
+    }
+    if (late) return;
     pr
       ..active = true
       ..press = pt
@@ -63,10 +76,7 @@ extension _ParrySystem on World {
     b.speed = targetSpeed;
     b.vx = math.sin(a) * b.speed;
     b.vy = -math.cos(a) * b.speed;
-    if (!launched) {
-      launched = true;
-      roundTime = 0;
-    }
+    launched = true;
     b.flight = 0;
     emit(const BallLaunched());
   }
@@ -126,7 +136,8 @@ extension _ParrySystem on World {
   /// 敵弾・レーザーに当たった: コンボ 0、パドルがスタン。
   /// ボス戦は弾が多くコンボが貯まらないため、コンボを 1 段階下げるだけにする。
   /// FEVER TIME 中なら終わらせず、残り時間を減らす (尽きたら段階 4 に戻る)。
-  void _hurt() {
+  /// [since] は当たってから被弾が確定するまでに待った時間 (秒)。スタン・無敵はその分だけ短くする。
+  void _hurt({double since = 0}) {
     if (boss != null) {
       if (od) {
         odTime -= tuning.bossOdHurtPenalty;
@@ -142,8 +153,8 @@ extension _ParrySystem on World {
       combo = 0;
     }
     paddle
-      ..stun = tuning.stunTime
-      ..invuln = tuning.hurtInvuln;
+      ..stun = tuning.stunTime - since
+      ..invuln = tuning.hurtInvuln - since;
     // パドル付近の敵弾を消す (続けざまの被弾を防ぐ)
     final r2 = tuning.hurtClearRadius * tuning.hurtClearRadius;
     for (final u in bullets) {

@@ -15,17 +15,19 @@ typedef HelpPage = ({HelpTopic topic, String title, String body, Color color});
 
 List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
   final zones = controls == ControlScheme.zones;
+  // キーボードの操作は、キーボードがつながっていなくても常に最後の段落に書く (Issue #111)
+  String withKeys(String body, String keys) => '$body\n$keys';
   return [
     (
       topic: HelpTopic.move,
       title: l.helpMoveTitle,
-      body: zones ? l.helpMoveZones : l.helpMoveRail,
+      body: withKeys(zones ? l.helpMoveZones : l.helpMoveRail, l.helpKeysMove),
       color: Palette.accent, // パドル
     ),
     (
       topic: HelpTopic.parry,
       title: l.helpParryTitle,
-      body: zones ? l.helpParryZones : l.helpParryRail,
+      body: withKeys(zones ? l.helpParryZones : l.helpParryRail, l.helpKeysParry),
       color: Palette.yellow, // パリィを受け付けている間のパドル
     ),
     (topic: HelpTopic.timing, title: l.helpTimingTitle, body: l.helpTimingBody, color: Dot.mint),
@@ -33,7 +35,7 @@ List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
     (topic: HelpTopic.combo, title: l.helpComboTitle, body: l.helpComboBody, color: Dot.rose), // FEVER TIME のメーター
     (topic: HelpTopic.graze, title: l.helpGrazeTitle, body: l.helpGrazeBody, color: Dot.mustard),
     (topic: HelpTopic.over, title: l.helpOverTitle, body: l.helpOverBody, color: Palette.red), // 危険ライン
-    (topic: HelpTopic.pause, title: l.helpPauseTitle, body: l.helpPauseBody, color: Dot.white),
+    (topic: HelpTopic.pause, title: l.helpPauseTitle, body: withKeys(l.helpPauseBody, l.helpKeysPause), color: Dot.white),
   ];
 }
 
@@ -132,17 +134,20 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                               tooltip: l.helpPrev,
                             ),
                             const Spacer(),
-                            for (var i = 0; i < pages.length; i++)
-                              GestureDetector(
-                                onTap: () => _go(i, pages.length),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                                  width: i == _index ? 26 : 10,
-                                  height: 6,
-                                  color: i == _index ? page.color : withAlpha(Palette.pale, i < _index ? 0.5 : 0.18),
-                                ),
-                              ),
+                            // ページの点は、いまどこかを見せるだけの飾り (押せる範囲が小さいので押せなくし、読み上げからも外す。
+                            // ページは左右のボタンかスワイプでめくり、番号は右上の 01 / 08 で読める)
+                            ExcludeSemantics(
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                for (var i = 0; i < pages.length; i++)
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    width: i == _index ? 26 : 10,
+                                    height: 6,
+                                    color: i == _index ? page.color : withAlpha(Palette.pale, i < _index ? 0.5 : 0.18),
+                                  ),
+                              ]),
+                            ),
                             const Spacer(),
                             PixelButton(
                               label: last ? l.back : l.helpNext,

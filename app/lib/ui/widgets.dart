@@ -1,9 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../render/palette.dart';
 import '../render/pixel.dart';
+import '../services/settings.dart';
 import 'pixel_icons.dart';
 
 /// 英数字のドット文字。
@@ -123,6 +126,20 @@ class _BevelPainter extends CustomPainter {
   bool shouldRepaint(_BevelPainter old) => old.color != color || old.d != d;
 }
 
+/// 矢印キーで選んでいるものを動かす向き (← ↑ で前へ -1、→ ↓ で次へ +1)。矢印キーでなければ null。
+int? arrowStep(LogicalKeyboardKey key) => switch (key) {
+      LogicalKeyboardKey.arrowLeft || LogicalKeyboardKey.arrowUp => -1,
+      LogicalKeyboardKey.arrowRight || LogicalKeyboardKey.arrowDown => 1,
+      _ => null,
+    };
+
+/// 決めるキー (Enter / Space)。
+bool isConfirmKey(LogicalKeyboardKey key) => key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space;
+
+/// キーボードで操作しているか (最後の入力がキーか)。選んでいるものの枠は、このときだけ出す
+/// (タッチで遊ぶ人に、押していないボタンが選ばれているように見せない)。
+bool get keyboardInUse => FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+
 /// ドット絵のボタン。[filled] は色で塗った主なボタン (陰影の付いたブロック)、そうでなければ枠だけ。
 /// 色を省くと、主なボタンはメインカラー (黄)、枠だけのボタンはサブカラー (青)。
 /// 押すと硬い影の分だけ沈む。
@@ -135,14 +152,22 @@ class PixelButton extends StatefulWidget {
     this.filled = false,
     this.icon,
     this.fontSize = 18,
+    this.selected = false,
+    this.dense = false,
   });
 
   final String label;
+
+  /// キーボードで選んでいる。キーボードで操作しているときだけ、白い枠で囲む。
+  final bool selected;
   final VoidCallback? onPressed;
   final Color? color;
   final bool filled;
   final DotSprite? icon;
   final double fontSize;
+
+  /// 左右の余白を詰める (狭い画面で 1 行に並べるとき)。高さ (押せる範囲) は変えない。
+  final bool dense;
 
   @override
   State<PixelButton> createState() => _PixelButtonState();
@@ -152,13 +177,29 @@ class _PixelButtonState extends State<PixelButton> {
   bool _down = false;
 
   @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addHighlightModeListener(_onHighlightMode);
+  }
+
+  @override
+  void dispose() {
+    FocusManager.instance.removeHighlightModeListener(_onHighlightMode);
+    super.dispose();
+  }
+
+  void _onHighlightMode(FocusHighlightMode _) {
+    if (widget.selected && mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final enabled = widget.onPressed != null;
     final c = enabled ? widget.color ?? (widget.filled ? Palette.main : Palette.sub) : Palette.gray;
     final fg = widget.filled ? Dot.ink : Palette.white;
     final content = Container(
-      constraints: const BoxConstraints(minHeight: 48, minWidth: 120),
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+      constraints: BoxConstraints(minHeight: 48, minWidth: widget.dense ? 96 : 120),
+      padding: EdgeInsets.symmetric(horizontal: widget.dense ? 14 : 22, vertical: 10),
       decoration: widget.filled ? null : BoxDecoration(color: Dot.night, border: Border.all(color: c, width: 3)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -171,6 +212,7 @@ class _PixelButtonState extends State<PixelButton> {
         ],
       ),
     );
+    final ring = widget.selected && keyboardInUse;
     return Semantics(
       button: true,
       enabled: enabled,
@@ -186,7 +228,20 @@ class _PixelButtonState extends State<PixelButton> {
             // 硬い影 (押すと沈んで影が消える)
             margin: EdgeInsets.only(left: _down ? 4 : 0, top: _down ? 4 : 0, right: _down ? 0 : 4, bottom: _down ? 0 : 4),
             decoration: BoxDecoration(boxShadow: _down ? null : const [BoxShadow(color: Colors.black, offset: Offset(4, 4))]),
-            child: widget.filled ? BevelBox(color: c, child: content) : content,
+            child: Stack(clipBehavior: Clip.none, children: [
+              widget.filled ? BevelBox(color: c, child: content) : content,
+              // 選んでいる枠 (大きさを変えないよう、ボタンの外側に重ねて描く)
+              if (ring)
+                Positioned(
+                  left: -7,
+                  top: -7,
+                  right: -7,
+                  bottom: -7,
+                  child: IgnorePointer(
+                    child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: Dot.white, width: 3))),
+                  ),
+                ),
+            ]),
           ),
         ),
       ),
@@ -216,17 +271,17 @@ class PixelWindow extends StatelessWidget {
       );
 }
 
-/// 選んでいる項目に付ける ▶ (点滅する。動きを減らす設定では点けたまま)。
-class BlinkCursor extends StatefulWidget {
+/// 選んでいる項目に付ける ▶ (点滅する。端末の動きを減らす設定・「演出を控えめにする」では点けたまま)。
+class BlinkCursor extends ConsumerStatefulWidget {
   const BlinkCursor({super.key, this.color = Palette.yellow, this.size = 18});
   final Color color;
   final double size;
 
   @override
-  State<BlinkCursor> createState() => _BlinkCursorState();
+  ConsumerState<BlinkCursor> createState() => _BlinkCursorState();
 }
 
-class _BlinkCursorState extends State<BlinkCursor> with SingleTickerProviderStateMixin {
+class _BlinkCursorState extends ConsumerState<BlinkCursor> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
 
   @override
@@ -243,7 +298,8 @@ class _BlinkCursorState extends State<BlinkCursor> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final still = MediaQuery.disableAnimationsOf(context);
+    final still =
+        MediaQuery.disableAnimationsOf(context) || ref.watch(settingsProvider.select((s) => s.reduceEffects));
     return AnimatedBuilder(
       animation: _c,
       builder: (_, _) => Opacity(

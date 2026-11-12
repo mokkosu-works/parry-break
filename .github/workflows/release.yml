@@ -21,6 +21,10 @@ on:
         options: [ios, android, both]
         default: ios
 
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
+
 concurrency:
   group: release
   cancel-in-progress: false
@@ -90,7 +94,8 @@ jobs:
           java-version: 17
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.47.6
+          # 版は app/pubspec.yaml の environment.flutter で決める
+          flutter-version-file: app/pubspec.yaml
           channel: stable
           cache: true
       - uses: ruby/setup-ruby@v1
@@ -139,7 +144,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.47.6
+          # 版は app/pubspec.yaml の environment.flutter で決める
+          flutter-version-file: app/pubspec.yaml
           channel: stable
           cache: true
       - uses: ruby/setup-ruby@v1

@@ -7,7 +7,7 @@ extension _BulletSystem on World {
 
   void _updateBullets(double dt) {
     final p = paddle;
-    final tcB = t - dt * 0.5; // 敵弾の接触時刻はステップの中央とみなす
+    final t0 = t - dt;
     for (var i = bullets.length - 1; i >= 0; i--) {
       if (i >= bullets.length) continue;
       final u = bullets[i];
@@ -15,8 +15,22 @@ extension _BulletSystem on World {
         bullets.removeAt(i);
         continue;
       }
+      final tc = u.contact;
+      if (tc != null) {
+        // 接触の後の押下を待っている。押した時刻 (補正後) が救済の窓を過ぎるまで処理した入力が届いたら被弾を確定する。
+        // スタン・無敵は接触した時点から数える (待った分だけ短くする)。
+        if (t - inputLag - tc > tuning.perfectWindow + 1e-6) {
+          u.contact = null;
+          if (p.invuln <= 0) {
+            bullets.removeAt(i);
+            _hurt(since: t - dt * 0.5 - tc);
+          }
+        }
+        continue;
+      }
       u.life += dt;
       if (!u.hostile && u.red) _homeToCore(u, dt);
+      final ux0 = u.x, uy0 = u.y;
       u.x += u.vx * dt;
       u.y += u.vy * dt;
       if (u.x < -20 || u.x > Field.width + 20 || u.y < Field.topY - 4 || u.y > Field.height + 20) {
@@ -25,14 +39,22 @@ extension _BulletSystem on World {
       }
       if (u.hostile) {
         final pw = paddleWidth, px = p.x - pw / 2;
-        if (rectDist(u.x, u.y, px, Field.paddleY, pw, Field.paddleH) <= u.r + tuning.grazeDist) u.near = true;
+        if (rectDist(u.x, u.y, px, Field.paddleY, pw, Field.paddleH) <= u.r + tuning.grazeDist) {
+          // グレイズの成否は、近くを通ったときに無敵だったかで決める。無敵中に近くを通った
+          // (重なった弾を含む) 弾は、無敵が切れてから下へ抜けてもグレイズにしない。
+          if (p.invuln > 0) {
+            u.grazed = true;
+          } else {
+            u.near = true;
+          }
+        }
         if (u.vy > 0 && circleRect(u.x, u.y, u.r, px, Field.paddleY, pw, Field.paddleH)) {
+          final tcB = t0 + dt * _contactFraction(u, ux0, uy0, px, pw);
           final grade = _judgeContact(tcB);
           if (grade != null) {
             _parryBullet(u, grade);
           } else if (p.invuln <= 0) {
-            bullets.removeAt(i);
-            _hurt();
+            u.contact = tcB; // 接触の後の押下を待つ (被弾の確定は上で)
           }
         } else if (u.near && !u.grazed && u.y > Field.paddleY + Field.paddleH + u.r && p.invuln <= 0) {
           u.grazed = true;
@@ -51,6 +73,24 @@ extension _BulletSystem on World {
         break;
       }
     }
+  }
+
+  /// このステップの移動 ([x0], [y0] → 今の位置) のうち、弾がパドルの矩形に初めて触れた割合 (0〜1)。
+  /// 線分上で円と矩形が重なる範囲は 1 つの区間なので、二分法で求める (#97)。
+  double _contactFraction(Bullet u, double x0, double y0, double px, double pw) {
+    bool hits(double s) =>
+        circleRect(x0 + (u.x - x0) * s, y0 + (u.y - y0) * s, u.r, px, Field.paddleY, pw, Field.paddleH);
+    if (hits(0)) return 0;
+    var lo = 0.0, hi = 1.0;
+    for (var k = 0; k < 20; k++) {
+      final mid = (lo + hi) / 2;
+      if (hits(mid)) {
+        hi = mid;
+      } else {
+        lo = mid;
+      }
+    }
+    return hi;
   }
 
   /// 撃ち返した赤い弾は最寄りのコアへ誘導する。
@@ -83,7 +123,7 @@ extension _BulletSystem on World {
     emit(Popup(u.x, Field.paddleY - 8, 'GRAZE', PopupKind.graze, amount: v));
   }
 
-  /// 敵弾を撃ち返す。赤い弾はコアへ、それ以外は発射元 (なければ最寄りのブロック) へ向かう。
+  /// 敵弾を撃ち返す。赤い弾はコアへ、それ以外は発射元の砲台 (なければ最寄りのブロック) へ向かう。
   void _parryBullet(Bullet u, ParryGrade grade) {
     u
       ..hostile = false
@@ -95,8 +135,9 @@ extension _BulletSystem on World {
       final tg = u.target;
       if (tg != null) to = blockCenter(tg);
     }
+    // 発射元がコアの赤くない弾は、コアにはじかれるだけなので、発射元がない弾と同じく最寄りのブロックへ (#123)
     final src = u.source;
-    if (to == null && src != null && !src.removed) to = blockCenter(src);
+    if (to == null && src != null && !src.removed && src.type != bossCoreId) to = blockCenter(src);
     if (to == null) {
       final nb = _nearestBlock(u.x, u.y);
       if (nb != null) to = blockCenter(nb);

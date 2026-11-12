@@ -1,6 +1,6 @@
 # Issue のコメントで @claude と書くと、Claude がその Issue を実装し、Android エミュレーターで確かめてから dev 向けの PR を作る。
 # 手順と PR の書き方は .claude/skills/implement-issue/SKILL.md に書く。
-# PR は Claude の GitHub アプリ (claude[bot]) が作るので、pr.yml (チェック・e2e・レビュー) がそのまま動く。マージは人が Approve してから。
+# PR は Claude の GitHub アプリ (claude[bot]) が作るので、pr.yml (チェック・レビュー) がそのまま動く (e2e は main 向けの PR だけ)。マージは人が Approve してから。
 # 同じ Issue でもう一度 @claude と書くと (質問への回答など)、同じブランチ・同じ PR で続きをする。
 # Claude がブランチに変更を残したのに PR を作らずに終わったときは、ワークフローが下書きの PR を作る。
 name: implement
@@ -8,6 +8,10 @@ name: implement
 on:
   issue_comment:
     types: [created]
+
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
 
 concurrency:
   group: implement-issue-${{ github.event.issue.number }}
@@ -34,7 +38,10 @@ jobs:
       - name: 着手したことを Issue に書く
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "着手しました。実装して Android エミュレーターで確かめてから PR を作ります。([進み具合]($RUN_URL))"
+        run: |
+          # ジョブの開始時刻 (Claude に渡す時間を決めるのに使う)
+          echo "JOB_STARTED=$(date +%s)" >> "$GITHUB_ENV"
+          gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "着手しました。実装して Android エミュレーターで確かめてから PR を作ります。([進み具合]($RUN_URL))"
 
       - uses: actions/checkout@v4
         with:
@@ -51,7 +58,24 @@ jobs:
 
       - uses: ./.github/actions/android-emulator
 
+      # Claude の作業には、ジョブの上限 (timeout-minutes) から、ここまでにかかった時間とあとの片付けの分 (RESERVE) を引いた時間を渡す。
+      # ジョブの上限で止まると結果が cancelled になり、あとのステップ (下書きの PR・失敗のコメント) が動かないので、
+      # Claude のステップの上限で先に止めて failure にする。ジョブの上限を変えるときは JOB_MINUTES も変える
+      - name: Claude に渡す時間を決める
+        id: budget
+        env:
+          JOB_MINUTES: 120
+          RESERVE: 10
+        run: |
+          elapsed=$(( ($(date +%s) - ${JOB_STARTED:-$(date +%s)}) / 60 ))
+          minutes=$(( JOB_MINUTES - RESERVE - elapsed ))
+          [ "$minutes" -ge 10 ] || minutes=10
+          echo "ジョブの開始から $elapsed 分。Claude には $minutes 分を渡す"
+          echo "minutes=$minutes" >> "$GITHUB_OUTPUT"
+          echo "CLAUDE_STARTED=$(date +%s)" >> "$GITHUB_ENV"
+
       - id: claude
+        timeout-minutes: ${{ fromJSON(steps.budget.outputs.minutes) }}
         uses: anthropics/claude-code-action@v1
         env:
           # flutter drive の撮った画面の置き場所 (test_driver/integration_test.dart が読む)
@@ -72,9 +96,18 @@ jobs:
 
             implement-issue スキル(.claude/skills/implement-issue/SKILL.md)の手順で、この Issue を実装し、
             エミュレーターで確かめてから dev 向けの PR を作る(すでに PR があればそこに push する)。
+          # dev / main への push、ラベルの付け外し、マージに使えるコマンドは許さない。
+          # git はサブコマンドごとに許し、push は作業ブランチへの決まった形だけ (末尾に :* を付けず、完全一致にする)。
+          # gh pr edit は、いまのブランチの PR の本文を差し替える決まった形だけ (--add-label / --remove-label を付けられない)。
+          # 長いコマンドは BASH_DEFAULT_TIMEOUT_MS に任せ、timeout や find -exec で包む形は許さない (ファイルは Glob で探す)
           claude_args: >-
             --max-turns 300
-            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,TodoWrite,Bash(flutter:*),Bash(dart:*),Bash(adb:*),Bash(git:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr ready:*),Bash(gh pr comment:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(grep:*),Bash(find:*),Bash(wc:*),Bash(sed -n:*),Bash(timeout:*)"
+            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,TodoWrite,Bash(flutter:*),Bash(dart:*),Bash(adb:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git add:*),Bash(git commit:*),Bash(git switch:*),Bash(git restore:*),Bash(git checkout --:*),Bash(git rev-parse:*),Bash(git fetch:*),Bash(git stash:*),Bash(git rm:*),Bash(git mv:*),Bash(git push -u origin ${{ env.BRANCH }}),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr list:*),Bash(gh pr view:*),Bash(gh pr edit --body-file app/build/pr_body.md),Bash(gh pr ready:*),Bash(gh pr comment:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(grep:*),Bash(wc:*),Bash(sed -n:*)"
+
+      # Claude のステップにかかった時間を残す (失敗のコメントで、時間切れかを見分ける)
+      - name: Claude にかかった時間を残す
+        if: always() && env.CLAUDE_STARTED != ''
+        run: echo "CLAUDE_SECONDS=$(( $(date +%s) - CLAUDE_STARTED ))" >> "$GITHUB_ENV"
 
       # Claude が途中で止まった・PR を作り忘れたときも、やったことが PR として残るようにする。
       # Claude の GitHub アプリのトークンで作るので、Approve できるのは「準備完了」にしたあと pr.yml が通ってから
@@ -136,8 +169,20 @@ jobs:
             app/build/emulator.log
           if-no-files-found: ignore
 
+      # 手で Cancel したとき (cancelled) は書かない。時間切れは Claude のステップの上限で failure になるので、ここで書く
       - name: 失敗したことを Issue に書く
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "途中で失敗しました。[ログ]($RUN_URL) を確かめてください。もう一度 \`@claude\` と書くと、続きからやり直します。"
+          CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
+          CLAUDE_MINUTES: ${{ steps.budget.outputs.minutes }}
+        run: |
+          retry="もう一度 \`@claude\` と書くと、続きからやり直します。"
+          # 上限で止められたステップも failure になるので、かかった時間で見分ける
+          if [ "$CLAUDE_OUTCOME" = failure ] && [ -n "$CLAUDE_SECONDS" ] && [ -n "$CLAUDE_MINUTES" ] &&
+             [ "$CLAUDE_SECONDS" -ge $(( CLAUDE_MINUTES * 60 - 30 )) ]; then
+            body="時間切れ(Claude の作業の上限 $CLAUDE_MINUTES 分)で途中で止まりました。[ログ]($RUN_URL) を確かめてください。コミット済みの変更は下書きの PR に残っていることがあります。$retry"
+          else
+            body="途中で失敗しました。[ログ]($RUN_URL) を確かめてください。$retry"
+          fi
+          gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body "$body"

@@ -70,9 +70,61 @@ class SilentAudio implements AudioService {
   void setAppActive(bool active) {}
 }
 
-class SoLoudAudio implements AudioService {
+/// SoLoud の呼び出し。テストで呼ばれた操作を記録する偽物に差し替えるために分けてある。
+///
+/// 音源は [loadMem] が返したものを、そのまま [play] に渡す。
+abstract class AudioBackend {
+  Future<void> init();
+  Future<Object> loadMem(String path, Uint8List bytes);
+  SoundHandle play(Object source, {double volume = 1, bool looping = false, bool paused = false});
+  void stop(SoundHandle h);
+  void setPause(SoundHandle h, bool paused);
+  void setVolume(SoundHandle h, double volume);
+  void fadeVolume(SoundHandle h, double to, Duration time);
+  void seek(SoundHandle h, Duration time);
+  Duration getPosition(SoundHandle h);
+  void setGlobalVolume(double volume);
+}
+
+class SoLoudBackend implements AudioBackend {
   final SoLoud _sl = SoLoud.instance;
-  final Map<String, AudioSource> _src = {};
+
+  @override
+  Future<void> init() async {
+    await _sl.init(bufferSize: 512);
+    _sl.setMaxActiveVoiceCount(48);
+  }
+
+  @override
+  Future<Object> loadMem(String path, Uint8List bytes) => _sl.loadMem(path, bytes);
+  @override
+  SoundHandle play(Object source, {double volume = 1, bool looping = false, bool paused = false}) =>
+      _sl.play(source as AudioSource, volume: volume, looping: looping, paused: paused);
+  @override
+  void stop(SoundHandle h) => _sl.stop(h);
+  @override
+  void setPause(SoundHandle h, bool paused) => _sl.setPause(h, paused);
+  @override
+  void setVolume(SoundHandle h, double volume) => _sl.setVolume(h, volume);
+  @override
+  void fadeVolume(SoundHandle h, double to, Duration time) => _sl.fadeVolume(h, to, time);
+  @override
+  void seek(SoundHandle h, Duration time) => _sl.seek(h, time);
+  @override
+  Duration getPosition(SoundHandle h) => _sl.getPosition(h);
+  @override
+  void setGlobalVolume(double volume) => _sl.setGlobalVolume(volume);
+}
+
+class SoLoudAudio implements AudioService {
+  /// [backend] と [bank] はテストで差し替える。[bank] は名前 → WAV のバイト列を返す。
+  SoLoudAudio({AudioBackend? backend, Future<Map<String, Uint8List>> Function()? bank})
+    : _sl = backend ?? SoLoudBackend(),
+      _bank = bank ?? (() => compute(renderSoundBank, null));
+
+  final AudioBackend _sl;
+  final Future<Map<String, Uint8List>> Function() _bank;
+  final Map<String, Object> _src = {};
   final Map<String, double> _last = {};
   final Stopwatch _clock = Stopwatch()..start();
   final math.Random _rnd = math.Random();
@@ -92,9 +144,8 @@ class SoLoudAudio implements AudioService {
   @override
   Future<void> init() async {
     try {
-      await _sl.init(bufferSize: 512);
-      _sl.setMaxActiveVoiceCount(48);
-      final bank = await compute(renderSoundBank, null);
+      await _sl.init();
+      final bank = await _bank();
       for (final e in bank.entries) {
         _src[e.key] = await _sl.loadMem('${e.key}.wav', e.value);
       }

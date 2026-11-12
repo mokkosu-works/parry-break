@@ -28,7 +28,7 @@ class BossDef {
     required this.timeLimit,
     required this.patterns,
     this.hardPatterns = const [],
-    this.phaseThresholds = const [0.66, 0.33],
+    this.phaseThresholds = defaultPhaseThresholds,
     this.sway = 0.55,
     this.reinforce = 2,
   });
@@ -48,6 +48,9 @@ class BossDef {
   /// コアの残り HP の割合がこれ以下になるとフェーズが進む。
   final List<double> phaseThresholds;
 
+  /// 既定のフェーズ移行: 残りが合計の 2/3 以下でフェーズ2、1/3 以下でフェーズ3 (design.md 6章)。
+  static const defaultPhaseThresholds = [2 / 3, 1 / 3];
+
   /// 左右に揺れる速さ (角速度、ラジアン/秒)。速いほどコアを狙いにくい。
   final double sway;
 
@@ -62,7 +65,7 @@ class BossDef {
         patterns: _patterns(j['patterns'] as List<Object?>),
         hardPatterns: _patterns(j['hard'] as List<Object?>? ?? const []),
         phaseThresholds: [
-          for (final v in (j['phases'] as List?) ?? const [0.66, 0.33]) (v as num).toDouble(),
+          for (final v in (j['phases'] as List?) ?? defaultPhaseThresholds) (v as num).toDouble(),
         ],
         sway: (j['sway'] as num?)?.toDouble() ?? 0.55,
         reinforce: (j['reinforce'] as num?)?.toInt() ?? 2,
@@ -91,6 +94,12 @@ class Boss {
 
   /// 左右に揺れる振幅。
   double amp;
+
+  /// フェーズ移行で [amp] が変わったとき、要塞が飛ばないように元の位置からなめらかに移る時間 (秒)。
+  static const ampBlendTime = 1.0;
+
+  /// 移行の瞬間の位置と、新しい揺れの位置との差。[blend] (残り秒数) に比例して 0 に近づける。
+  double blendOx = 0, blend = 0;
   final int maxHp;
   final List<BossPattern> patterns;
   int phase = 1;
@@ -138,6 +147,13 @@ class BossPatternRegistry {
 }
 
 double _bulletSpeed(World w, Boss b) => (230 + b.index * 15) * w.round.loopMul * w.difficulty.bulletSpeed;
+
+/// 難易度と周回による攻撃頻度の倍率 (フェーズとボスの強さは含めない)。
+/// 間隔をフェーズとボスの番号の式で決めている攻撃 (渦巻き) に使う (design.md 6章「倍率のかかり方」)。
+double _bossRate(World w) => w.difficulty.bossFireRate * w.round.loopMul;
+
+/// レーザー (ロックオン・格子) の頻度の倍率。見て避ける攻撃なので、HARD でも増やさない (EASY だけ減らす)。
+double _laserRate(World w) => math.min(1.0, w.difficulty.bossFireRate) * w.round.loopMul;
 
 /// 扇状の弾幕 (赤い弾を含む)。コアが複数あるときは 1 つずつ順番に撃つ。
 class FanPattern extends BossPattern {
@@ -191,7 +207,7 @@ class LaserPattern extends BossPattern {
 
   @override
   void update(World w, Boss boss, List<Block> cores, double dt, double rate) {
-    _t -= dt;
+    _t -= dt * _laserRate(w);
     if (_t > 0) return;
     _t = (boss.phase == 3 ? 3.4 : 5) / (1 + boss.index * 0.06);
     w.fireLaser(w.paddle.x);
@@ -211,7 +227,7 @@ class SpiralPattern extends BossPattern {
     if (_cycle >= 2) return;
     _t -= dt;
     if (_t > 0) return;
-    _t = 0.18 / (1 + boss.index * 0.05) / w.difficulty.bossFireRate;
+    _t = 0.18 / (1 + boss.index * 0.05) / _bossRate(w);
     _angle += 0.45;
     final c = cores[_n++ % cores.length], o = w.blockCenter(c);
     w.fireBullet(o.x, o.y + 20, math.pi / 2 + math.sin(_angle) * 70 * deg, _bulletSpeed(w, boss),
@@ -260,7 +276,7 @@ class LaserGridPattern extends BossPattern {
 
   @override
   void update(World w, Boss boss, List<Block> cores, double dt, double rate) {
-    _t -= dt;
+    _t -= dt * _laserRate(w);
     if (_t > 0) return;
     _t = (boss.phase == 3 ? 5.5 : 7.5) / (1 + boss.index * 0.06);
     for (var x = w.aux.next() * _spacing; x < Field.width; x += _spacing) {

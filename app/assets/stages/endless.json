@@ -65,6 +65,9 @@
    ],
    "intro": "intro.reflector"
   },
+  "12": {
+   "intro": "intro.wall"
+  },
   "14": {
    "rows": [
     "NNNNNNNNNNNNNN",
@@ -75,6 +78,14 @@
    "intro": "intro.magnet"
   },
   "20": {
+   "rows": [
+    "..SSSSSSSSSS..",
+    "NNNNNNNNNNNNNN",
+    ".N.N.N..N.N.N."
+   ],
+   "intro": "intro.splitter"
+  },
+  "21": {
    "rows": [
     "..SSSSSSSSSS..",
     "NNNNNNNNNNNNNN",

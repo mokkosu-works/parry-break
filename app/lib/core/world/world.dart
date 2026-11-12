@@ -44,6 +44,13 @@ class PaddleInput {
 
   /// -1〜1 の方向入力 (キー・スティック)。[useTarget] が false のとき使う。
   double axis = 0;
+
+  /// 最初の状態 (パドルを中央から動かさない) に戻す。
+  void reset() {
+    useTarget = false;
+    targetX = Field.width / 2;
+    axis = 0;
+  }
 }
 
 /// 1 回のプレイのゲーム状態とシミュレーション (60Hz 固定ステップ、決定的)。
@@ -121,10 +128,10 @@ class World {
   /// 最も低いブロックの下端 (直前のステップの値)。
   double lowest = 0;
 
-  /// ヒットストップ (シミュレーションを止める残り時間)。
+  /// ヒットストップ (シミュレーションを止める残り時間。実時間)。
   double hitstop = 0;
 
-  /// スローモーション (×0.35) の残り時間 (実時間)。
+  /// スローモーション (×0.35) の残り時間 (実時間)。ヒットストップの間は減らず、明けてから減る。
   double slowmo = 0;
 
   CascadeTally cascade = CascadeTally();
@@ -163,6 +170,9 @@ class World {
     odTime = odElapsed = 0;
     streak = maxStreak = 0;
     paddle = Paddle();
+    // RETRY は同じ World で start() を呼び直すので、前のプレイの入力 (タッチの目標位置・
+    // キーの方向) が残らないようにする。残るとパドルが前のプレイの位置から始まる。
+    input.reset();
     parry = ParryState();
     phantoms = [];
     falling = [];
@@ -171,6 +181,9 @@ class World {
     blastChain = BlastChainTally();
     stats = RunStats();
     overReason = '';
+    lastBreak = const Vec2(Field.width / 2, Field.gridY0);
+    clearT = overT = 0;
+    bonuses = const [];
     _actions.clear();
     final first = mode.roundAt(fromRound);
     if (first == null) throw StateError('mode has no rounds');
@@ -232,14 +245,21 @@ class World {
 
   double get descentSpeed => tuning.descentSpeed(round.difficulty, round.loopMul) * difficulty.descent;
 
+  /// 段階 [st] (0〜3) のボールの速さ (FEVER TIME 以外)。
+  double stageSpeedOf(int st) =>
+      math.min(tuning.maxSpeed, tuning.baseSpeed(round.difficulty, round.loopMul) * tuning.stageSpeed[st]);
+
+  /// このラウンドの FEVER TIME の最高速度。段階4 の速さより遅くはしない。
+  double get odTopSpeed => math.max(tuning.odMaxSpeed, stageSpeedOf(3));
+
   /// ボールの目標速度。段階が上がると補間して加速する。
+  /// FEVER TIME 中は段階4 の速さから [Tuning.odTime] 秒かけて [odTopSpeed] まで上げる (入った瞬間に減速しない)。
   double get targetSpeed {
-    final s = tuning.baseSpeed(round.difficulty, round.loopMul);
     if (od) {
-      final s4 = math.min(tuning.odStartSpeedCap, s * tuning.stageSpeed[3]);
-      return s4 + (tuning.odMaxSpeed - s4) * math.min(1, odElapsed / tuning.odTime);
+      final s4 = stageSpeedOf(3);
+      return s4 + (odTopSpeed - s4) * math.min(1, odElapsed / tuning.odTime);
     }
-    return math.min(tuning.maxSpeed, s * tuning.stageSpeed[stage]);
+    return stageSpeedOf(stage);
   }
 
   /// ブロックがデッドラインに 3 秒以内に届きそうか (画面端を赤く光らせる)。

@@ -1,5 +1,5 @@
-# PR ごとに、チェック・エミュレーターでのテスト・Claude のレビューを行う。
-# dev 向けの PR は、すべて通って人が Approve していれば (順番はどちらが先でもよい)、squash でマージする。
+# PR ごとに、チェック・Claude のレビューを行う。エミュレーターでのテスト (e2e) は main 向けの PR だけで行う。
+# dev 向けの PR は、check と review が通って人が Approve していれば (順番はどちらが先でもよい)、squash でマージする。
 # 人の Approve を受けてマージするのは merge.yml。条件は .github/scripts/merge-if-approved.sh。
 # main 向けの PR (リリース PR・ホットフィックス) は人が手でマージする。手順は docs/release-flow.md。
 name: pr
@@ -7,9 +7,16 @@ name: pr
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+  # dev 向けの PR でも e2e を流したいときに、Actions → pr → Run workflow でブランチを選んで動かす。
+  # 動くのは check と e2e だけ (review・fix・merge は PR のイベントでしか動かない)
+  workflow_dispatch:
+
+# GITHUB_TOKEN は既定で読み取りだけにする。書き込みが要るジョブは、ジョブの permissions で広げる
+permissions:
+  contents: read
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: pr-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -18,8 +25,12 @@ jobs:
 
   # Android エミュレーターでアプリを動かし、起動から一通りの画面を通って落ちないことを確かめる
   e2e:
-    # 15 分ほどかかるので、下書きでは動かさない (ready_for_review で動く)
-    if: ${{ !github.event.pull_request.draft }}
+    # 17 分ほどかかるので、main 向けの PR (リリース PR・ホットフィックス) と手動実行だけで動かす。
+    # dev 向けの PR は、Issue から作ったものなら implement.yml で Claude がエミュレーターで確かめている。
+    # 下書きでは動かさない (ready_for_review で動く)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.base.ref == 'main' && !github.event.pull_request.draft)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -53,6 +64,7 @@ jobs:
       !github.event.pull_request.draft &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       pull-requests: write
@@ -148,8 +160,8 @@ jobs:
       - if: steps.gate.outputs.run == 'true'
         uses: subosito/flutter-action@v2
         with:
-          # check.yml と同じ値にする
-          flutter-version: 3.47.6
+          # 版は app/pubspec.yaml の environment.flutter で決める
+          flutter-version-file: app/pubspec.yaml
           channel: stable
           cache: true
 
@@ -200,8 +212,9 @@ jobs:
           fi
           git push "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git" "HEAD:$BRANCH"
 
+  # e2e は dev 向けの PR では動かない (スキップになる) ので needs に入れない
   merge:
-    needs: [check, e2e, review]
+    needs: [check, review]
     if: >-
       github.event.pull_request.base.ref == 'dev' &&
       !github.event.pull_request.draft &&
