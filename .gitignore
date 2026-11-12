@@ -5,9 +5,9 @@ xcuserdata/
 /.bundle/
 /vendor/bundle/
 
-# 宣伝動画の素材と出力 (大きい、または第三者の素材なので git に入れない。promo/fetch_assets.sh で取る)
-promo/apk/
-promo/raw/
-promo/out/
-promo/fonts/
-promo/assets/
+# 宣伝動画の素材と出力 (大きい、または第三者の素材なので git に入れない。promo/build/fetch_assets.sh で取る)
+promo/capture/apk/
+promo/capture/raw/
+promo/build/out/
+promo/build/fonts/
+promo/build/assets/

@@ -183,9 +183,13 @@ app/
 tools/
   subset_jp_font.sh  # 日本語のドット文字 (DotGothic16) を使っている文字だけに絞る
   make_icons.py      # アプリのアイコンと起動画面の画像をドット絵で描く
-promo/               # 実機の画面録画から SNS 向けの宣伝動画を作る道具(promo/README.md)
-posts/               # 宣伝動画の投稿文(動画の ID ごとの .txt と 一覧.md)
-records/             # 宣伝動画の記録(videos.csv。作成日・投稿日・媒体・再生数など)
+promo/               # 宣伝動画まわりすべて(promo/README.md)。ゲームの機能とは分けて進める
+  capture/           #   実機の画面録画 (capture.sh)
+  build/             #   動画の組み立て (build.py、specs/)
+  upload/            #   YouTube へのアップロード
+  analytics/         #   アナリティクスの CSV (exports/) と集計
+  posts/             #   動画の ID ごとの投稿文と 一覧.md
+  records/           #   videos.csv (作成日・投稿日・媒体・再生数など)
 ```
 
 ### 5.4 コアの主要な型

@@ -1,6 +1,6 @@
 #!/bin/sh
 # 宣伝動画に使う、リポジトリに入れない素材 (フォントと、ストアの公式バッジ) を取ってくる。
-#   promo/fetch_assets.sh
+#   promo/build/fetch_assets.sh
 # - フォント: DotGothic16 (SIL OFL)。ゲーム内の文字と同じ系統。
 # - バッジ: App Store と Google Play の公式の日本語版。絵は変えず、大きさだけ変える。
 #   使い方の決まりは、Apple と Google のバッジのガイドラインに従う。
@@ -24,4 +24,4 @@ if [ ! -f assets/badges/appstore.png ]; then
   ffmpeg -y -v error -i "$tmp" -frames:v 1 assets/badges/appstore.png
   rm -f "$tmp"
 fi
-echo "素材をそろえた: promo/fonts, promo/assets/badges"
+echo "素材をそろえた: promo/build/fonts, promo/build/assets/badges"

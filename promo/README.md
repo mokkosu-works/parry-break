@@ -1,5 +1,16 @@
 # 宣伝動画 (promo)
 
+ゲームの機能とは分けて、動画まわりはこの `promo/` の中だけで進める。
+
+```
+capture/    実機の画面録画 (capture.sh、raw/、apk/)
+build/      動画の組み立て (build.py、specs/、fonts/、assets/、out/)
+upload/     YouTube へのアップロード
+analytics/  アナリティクスの CSV (exports/) と集計
+posts/      動画の ID ごとの投稿文、一覧.md
+records/    videos.csv、youtube_uploads.csv
+```
+
 実機の画面録画から、SNS 向けの縦動画 (9:16、15〜30秒) を作る道具。冒頭 3 秒だけ違う A / B / C の 3 本を、同じ映像から作る。
 
 | 冒頭 | 内容 |
@@ -22,15 +33,15 @@
    adb install -r build/app/outputs/flutter-apk/app-release.apk
    ```
    実機でタイトルの `VER` を 3 回タップしてデバッグモードにすると、全ステージを選べる (撮影用ビルドでは、DEBUG の帯は出ない)。
-   `promo/capture.sh <ステージ 例 2-7> <ラベル 例 just> <テイク 例 01>` で、ステージを選んで録画する (scrcpy と adb が要る)。ボスのステージは撮らない。
-2. **作る**: `promo/spec.example.json` を写して、録画の切り出し位置と字幕を書き、実行する。
+   `promo/capture/capture.sh <ステージ 例 2-7> <ラベル 例 just> <テイク 例 01>` で、ステージを選んで録画する (scrcpy と adb が要る)。ボスのステージは撮らない。
+2. **作る**: `promo/build/specs/spec.example.json` を写して、録画の切り出し位置と字幕を書き、実行する。
    ```sh
-   promo/fetch_assets.sh                      # 初回だけ: フォントとストアの公式バッジを取る (git に入れない素材)
-   python3 promo/build.py promo/spec.x.json   # promo/out/{パターン名}_{A|B|C}.mp4 と、records と posts への追記
+   promo/build/fetch_assets.sh                # 初回だけ: フォントとストアの公式バッジを取る (git に入れない素材)
+   python3 promo/build/build.py promo/build/specs/spec.x.json   # promo/build/out/{パターン名}_{A|B|C}.mp4 と、promo/records と promo/posts への追記
    ```
    `--dry-run` で長さの確認だけ、`--no-record` で記録なしの試験出力、`--posts-only` で投稿文だけを作る。既存のファイルは上書きしない。
-3. **投稿する**: `posts/{ID}.txt` の YouTube 用・TikTok 用の文を使う。ID は YouTube のタグ欄にも入れる。`python3 promo/make_index.py` で、`posts/一覧.md` (ID・投稿日・長さ・字幕の一覧) を作り直せる。長さは `build.py` が `records/videos.csv` の「長さ(秒)」に書いたものを使うので、`promo/out/` のない環境で作り直しても同じ表になる。
-4. **記録する**: 再生数と視聴率 (視聴 vs スワイプ) は `records/videos.csv` に手で書く。
+3. **投稿する**: `promo/posts/{ID}.txt` の YouTube 用・TikTok 用の文を使う。ID は YouTube のタグ欄にも入れる。`python3 promo/posts/make_index.py` で、`promo/posts/一覧.md` (ID・投稿日・長さ・字幕の一覧) を作り直せる。長さは `build.py` が `promo/records/videos.csv` の「長さ(秒)」に書いたものを使うので、`promo/build/out/` のない環境で作り直しても同じ表になる。
+4. **記録する**: 再生数と視聴率 (視聴 vs スワイプ) は `promo/records/videos.csv` に手で書く (YouTube Studio の CSV は `promo/analytics/exports/` に置く。`promo/analytics/README.md`)。
 
 ## 録画の前に (`capture.sh`)
 
@@ -41,7 +52,7 @@
 - **デバッグモード**: タイトルの `VER` を 3 回タップしておく (全ステージを選べる)。オフだと、まだ開いていないステージを押しても始まらない。
 - **章**: ステージ選択は「まだクリアしていない最初のステージ」の章で開くので、`capture.sh` は ← キー (`KEYCODE_DPAD_LEFT`) で第1章へ戻してから、「次の章へ」で目的の章へ進める。普段遊んでいる端末でもそのまま撮れる。
 - **端末は 1 台だけ** つなぐ (`adb devices`)。
-- 録画に失敗すると (scrcpy が始まらない・終わり方がおかしい・ファイルが空)、scrcpy のログの末尾を出して 0 以外で終わる。ログは `promo/raw/<録画と同じ名前>.log` に残る。
+- 録画に失敗すると (scrcpy が始まらない・終わり方がおかしい・ファイルが空)、scrcpy のログの末尾を出して 0 以外で終わる。ログは `promo/capture/raw/<録画と同じ名前>.log` に残る。
 
 ## 決めごと
 
@@ -60,4 +71,4 @@
 
 ## 入れていないもの (`.gitignore`)
 
-`promo/raw/` (録画)、`promo/out/` (出力動画)、`promo/apk/` (撮影用アプリ)、`promo/fonts/` と `promo/assets/` (`fetch_assets.sh` で取る素材)。
+`promo/capture/raw/` (録画)、`promo/capture/apk/` (撮影用アプリ)、`promo/build/out/` (出力動画)、`promo/build/fonts/` と `promo/build/assets/` (`fetch_assets.sh` で取る素材)。
