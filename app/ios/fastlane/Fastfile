@@ -15,7 +15,8 @@ platform :ios do
     )
   end
 
-  # flutter build ios --no-codesign の後に呼ぶ。署名してアーカイブし、TestFlight に上げる
+  # flutter build ios --config-only の後に呼ぶ (版名・ビルド番号は、そこで書かれた Generated.xcconfig から入る)。
+  # 署名してアーカイブし、TestFlight に上げる。アプリのビルドはこのアーカイブの 1 回だけ
   #   fastlane beta upload:false で、アーカイブまで (署名の確認用)
   lane :beta do |options|
     setup_ci

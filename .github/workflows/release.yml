@@ -92,6 +92,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+          # Gradle の依存とラッパーをキャッシュする (エミュレーターの action と同じ)
+          cache: gradle
       - uses: subosito/flutter-action@v2
         with:
           # 版は app/pubspec.yaml の environment.flutter で決める
@@ -153,9 +155,11 @@ jobs:
           ruby-version: '3.3'
           bundler-cache: true
       - run: flutter pub get
-      # Flutter の成果物と依存を用意する。署名とアーカイブは fastlane が行う
+      # Xcode のプロジェクトの設定 (Generated.xcconfig の版名・ビルド番号、Swift Package の依存) だけを作り、ビルドはしない。
+      # アプリのビルド (Dart の AOT のコンパイルを含む) は、fastlane のアーカイブの中で 1 回だけ行う。
+      # 以前はここでも丸ごとビルドしていて、macOS の時間を二重に使っていた (#112)
       - run: >-
-          flutter build ios --release --no-codesign
+          flutter build ios --config-only --release --no-codesign
           --build-name=${{ needs.prepare.outputs.version }}
           --build-number=${{ needs.prepare.outputs.build_number }}
       - name: 署名してアーカイブし、TestFlight に上げる (dry_run では上げない)
