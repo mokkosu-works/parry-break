@@ -29,7 +29,7 @@
    python3 promo/build.py promo/spec.x.json   # promo/out/{パターン名}_{A|B|C}.mp4 と、records と posts への追記
    ```
    `--dry-run` で長さの確認だけ、`--no-record` で記録なしの試験出力、`--posts-only` で投稿文だけを作る。既存のファイルは上書きしない。
-3. **投稿する**: `posts/{ID}.txt` の YouTube 用・TikTok 用の文を使う。ID は YouTube のタグ欄にも入れる。`python3 promo/make_index.py` で、`posts/一覧.md` (ID・投稿日・長さ・字幕の一覧) を作り直せる。
+3. **投稿する**: `posts/{ID}.txt` の YouTube 用・TikTok 用の文を使う。ID は YouTube のタグ欄にも入れる。`python3 promo/make_index.py` で、`posts/一覧.md` (ID・投稿日・長さ・字幕の一覧) を作り直せる。長さは `build.py` が `records/videos.csv` の「長さ(秒)」に書いたものを使うので、`promo/out/` のない環境で作り直しても同じ表になる。
 4. **記録する**: 再生数と視聴率 (視聴 vs スワイプ) は `records/videos.csv` に手で書く。
 
 ## 録画の前に (`capture.sh`)
