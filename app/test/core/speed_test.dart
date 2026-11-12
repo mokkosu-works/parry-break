@@ -25,10 +25,22 @@ void main() {
   test('R1〜R60 と 2 周目: 段階4 の速さ ≤ FEVER TIME の開始時の速さ ≤ FEVER TIME の最高速度', () {
     for (var n = 1; n <= 120; n++) {
       final s = speedsAt(n);
-      expect(s.stages[3], lessThanOrEqualTo(s.odStart + 1e-9), reason: 'R$n 段階4 ${s.stages[3]} / 開始 ${s.odStart}');
-      expect(s.odStart, lessThanOrEqualTo(s.odTop + 1e-9), reason: 'R$n 開始 ${s.odStart} / 最高 ${s.odTop}');
+      expect(
+        s.stages[3],
+        lessThanOrEqualTo(s.odStart + 1e-9),
+        reason: 'R$n 段階4 ${s.stages[3]} / 開始 ${s.odStart}',
+      );
+      expect(
+        s.odStart,
+        lessThanOrEqualTo(s.odTop + 1e-9),
+        reason: 'R$n 開始 ${s.odStart} / 最高 ${s.odTop}',
+      );
       for (var i = 0; i < 4; i++) {
-        expect(s.stages[i], lessThanOrEqualTo(s.odTop + 1e-9), reason: 'R$n 段階${i + 1} ${s.stages[i]} / 最高 ${s.odTop}');
+        expect(
+          s.stages[i],
+          lessThanOrEqualTo(s.odTop + 1e-9),
+          reason: 'R$n 段階${i + 1} ${s.stages[i]} / 最高 ${s.odTop}',
+        );
       }
     }
   });

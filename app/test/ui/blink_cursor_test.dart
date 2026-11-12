@@ -13,7 +13,9 @@ Future<List<double>> _opacities(
   bool reduceEffects = false,
   bool disableAnimations = false,
 }) async {
-  SharedPreferences.setMockInitialValues({'settings.v1': jsonEncode(Settings(reduceEffects: reduceEffects).toJson())});
+  SharedPreferences.setMockInitialValues({
+    'settings.v1': jsonEncode(Settings(reduceEffects: reduceEffects).toJson()),
+  });
   final sp = await SharedPreferences.getInstance();
   await tester.pumpWidget(
     ProviderScope(
@@ -31,7 +33,14 @@ Future<List<double>> _opacities(
   for (var i = 0; i < 40; i++) {
     await tester.pump(const Duration(milliseconds: 50));
     out.add(
-      tester.widget<Opacity>(find.descendant(of: find.byType(BlinkCursor), matching: find.byType(Opacity))).opacity,
+      tester
+          .widget<Opacity>(
+            find.descendant(
+              of: find.byType(BlinkCursor),
+              matching: find.byType(Opacity),
+            ),
+          )
+          .opacity,
     );
   }
   return out;

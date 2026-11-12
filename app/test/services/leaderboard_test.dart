@@ -29,7 +29,10 @@ class _FakePlatform implements LeaderboardPlatform {
   }
 
   @override
-  Future<void> showLeaderboards({required String iOSLeaderboardID, required String androidLeaderboardID}) async {}
+  Future<void> showLeaderboards({
+    required String iOSLeaderboardID,
+    required String androidLeaderboardID,
+  }) async {}
 }
 
 /// サインインと送信の成否を設定で決める偽の送信先。送信はすぐに終わる。
@@ -66,7 +69,10 @@ class _ScriptedPlatform implements LeaderboardPlatform {
   }
 
   @override
-  Future<void> showLeaderboards({required String iOSLeaderboardID, required String androidLeaderboardID}) async {
+  Future<void> showLeaderboards({
+    required String iOSLeaderboardID,
+    required String androidLeaderboardID,
+  }) async {
     if (showFails) throw Exception('cannot show');
     shown.add(iOSLeaderboardID);
   }
@@ -77,12 +83,15 @@ void main() {
   late _FakePlatform platform;
 
   Future<void> setPending(Map<String, int> p) async {
-    SharedPreferences.setMockInitialValues({'leaderboard.pending': jsonEncode(p)});
+    SharedPreferences.setMockInitialValues({
+      'leaderboard.pending': jsonEncode(p),
+    });
     prefs = await SharedPreferences.getInstance();
   }
 
-  Map<String, int> pending() =>
-      Map<String, int>.from(jsonDecode(prefs.getString('leaderboard.pending') ?? '{}') as Map);
+  Map<String, int> pending() => Map<String, int>.from(
+    jsonDecode(prefs.getString('leaderboard.pending') ?? '{}') as Map,
+  );
 
   /// 待っている非同期の処理を進める。
   Future<void> flush() => Future<void>.delayed(Duration.zero);
@@ -205,7 +214,10 @@ void main() {
       await lb.submit(Board.endlessScore, 42);
 
       expect(sp.sent.single.value, 42);
-      expect(sp.sent.single.iOSLeaderboardID, LeaderboardConfig.ios[Board.endlessScore]);
+      expect(
+        sp.sent.single.iOSLeaderboardID,
+        LeaderboardConfig.ios[Board.endlessScore],
+      );
       expect(pending(), isEmpty);
     });
 
@@ -235,7 +247,12 @@ void main() {
       expect(pending(), isEmpty);
     });
 
-    for (final raw in ['{not json', '[1, 2]', '{"endlessScore": "high"}', '"x"']) {
+    for (final raw in [
+      '{not json',
+      '[1, 2]',
+      '{"endlessScore": "high"}',
+      '"x"',
+    ]) {
       test('保留の JSON が壊れていても落ちない ($raw)', () async {
         SharedPreferences.setMockInitialValues({'leaderboard.pending': raw});
         prefs = await SharedPreferences.getInstance();

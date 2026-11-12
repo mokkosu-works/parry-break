@@ -11,7 +11,10 @@ import 'helpers.dart';
 
 void main() {
   final campaign = Campaign.fromJson(
-      jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
+    jsonDecode(File('assets/stages/campaign.json').readAsStringSync())
+        as Map<String, Object?>,
+    endlessContent,
+  );
 
   test('すべてのステージを読み込め、ID が重複しない', () {
     final ids = campaign.stages.map((s) => s.id).toList();
@@ -28,9 +31,17 @@ void main() {
     expect(campaign.chapters, hasLength(6));
     for (final (i, ch) in campaign.chapters.indexed) {
       expect(ch.stages, hasLength(10), reason: ch.id);
-      expect([for (final s in ch.stages) s.id], [for (var k = 1; k <= 10; k++) '${i + 1}-$k'], reason: ch.id);
+      expect(
+        [for (final s in ch.stages) s.id],
+        [for (var k = 1; k <= 10; k++) '${i + 1}-$k'],
+        reason: ch.id,
+      );
       expect(ch.stages.last.rounds.single.boss?.index, i, reason: ch.id);
-      expect(ch.stages.where((s) => s.rounds.any((w) => w.boss != null)), hasLength(1), reason: ch.id);
+      expect(
+        ch.stages.where((s) => s.rounds.any((w) => w.boss != null)),
+        hasLength(1),
+        reason: ch.id,
+      );
     }
   });
 
@@ -40,9 +51,21 @@ void main() {
       for (final w in s.rounds) {
         final c = w.content;
         if (c is! LayoutContent) continue;
-        final ids = {for (var r = 0; r < c.rows.length; r++) for (var k = 0; k < 14; k++) if (c.rows[r][k] != '.') c.blockIdAt(r, k)};
-        for (final (id, intro) in [('F', 'spread'), ('G', 'gatling'), ('O', 'ring'), ('Z', 'spiral'), ('P', 'sniper')]) {
-          if (ids.contains(id) && seen.add(id)) expect(w.introKey, 'intro.$intro', reason: '${s.id} で $id が初登場');
+        final ids = {
+          for (var r = 0; r < c.rows.length; r++)
+            for (var k = 0; k < 14; k++)
+              if (c.rows[r][k] != '.') c.blockIdAt(r, k),
+        };
+        for (final (id, intro) in [
+          ('F', 'spread'),
+          ('G', 'gatling'),
+          ('O', 'ring'),
+          ('Z', 'spiral'),
+          ('P', 'sniper'),
+        ]) {
+          if (ids.contains(id) && seen.add(id)) {
+            expect(w.introKey, 'intro.$intro', reason: '${s.id} で $id が初登場');
+          }
         }
       }
     }
@@ -60,10 +83,16 @@ void main() {
         if (c is! LayoutContent) continue;
         final where = '${s.id}:${i + 1}';
         final key = [
-          for (var r = 0; r < c.rows.length; r++) [for (var k = 0; k < c.rows[r].length; k++) c.rows[r][k] == '.' ? '.' : c.blockIdAt(r, k)].join(),
+          for (var r = 0; r < c.rows.length; r++)
+            [
+              for (var k = 0; k < c.rows[r].length; k++)
+                c.rows[r][k] == '.' ? '.' : c.blockIdAt(r, k),
+            ].join(),
         ].join('/');
         final prev = seen[key];
-        if (prev != null && !allowed.contains(where)) fail('$where は $prev と同じ配置');
+        if (prev != null && !allowed.contains(where)) {
+          fail('$where は $prev と同じ配置');
+        }
         seen[key] ??= where;
       }
     }
@@ -72,21 +101,38 @@ void main() {
   // design.md 6章「章とステージの並べ方」の難しさの並べ方 (#164)。ボス (10 番目) は除く。
   // 面の難易度は、その面のラウンドのうち最も高いもの (連戦は通しで見る)。
   test('難易度は章の中でおおむね上がり、章ごとに上がっていく (新しい攻撃ブロックの初登場から始まる章は例外)', () {
-    const newAttackIntros = {'intro.spread', 'intro.gatling', 'intro.ring', 'intro.spiral', 'intro.sniper'};
+    const newAttackIntros = {
+      'intro.spread',
+      'intro.gatling',
+      'intro.ring',
+      'intro.spiral',
+      'intro.sniper',
+    };
     int level(StageDef s) => s.rounds.map((w) => w.difficulty).reduce(math.max);
     for (final (i, ch) in campaign.chapters.indexed) {
-      final stages = ch.stages.where((s) => s.rounds.every((w) => w.content is! BossContent)).toList();
+      final stages = ch.stages
+          .where((s) => s.rounds.every((w) => w.content is! BossContent))
+          .toList();
       // 章の中: 直前の面より 2 を超えて下げない
       for (var k = 1; k < stages.length; k++) {
-        expect(level(stages[k]), greaterThanOrEqualTo(level(stages[k - 1]) - 2),
-            reason: '${stages[k].id} が ${stages[k - 1].id} より下がりすぎている');
+        expect(
+          level(stages[k]),
+          greaterThanOrEqualTo(level(stages[k - 1]) - 2),
+          reason: '${stages[k].id} が ${stages[k - 1].id} より下がりすぎている',
+        );
       }
       if (i == 0) continue;
-      final prev = campaign.chapters[i - 1].stages.where((s) => s.rounds.every((w) => w.content is! BossContent)).toList();
+      final prev = campaign.chapters[i - 1].stages
+          .where((s) => s.rounds.every((w) => w.content is! BossContent))
+          .toList();
       final first = stages.first;
       final prevMax = prev.map(level).reduce(math.max);
       // 章の終わり (いちばん難しい面) は、前の章より上
-      expect(stages.map(level).reduce(math.max), greaterThan(prevMax), reason: ch.id);
+      expect(
+        stages.map(level).reduce(math.max),
+        greaterThan(prevMax),
+        reason: ch.id,
+      );
       // 章の最初の面は前の章の最大以上。新しい攻撃ブロックの初登場から始まる章だけは下げてよい
       if (!newAttackIntros.contains(first.rounds.first.introKey)) {
         expect(level(first), greaterThanOrEqualTo(prevMax), reason: first.id);
@@ -95,7 +141,9 @@ void main() {
   });
 
   test('6-9 のラウンドは第6章の難易度帯 (50 以上) にある (#165)', () {
-    expect([for (final w in campaign.stage('6-9')!.rounds) w.difficulty], everyElement(greaterThanOrEqualTo(50)));
+    expect([
+      for (final w in campaign.stage('6-9')!.rounds) w.difficulty,
+    ], everyElement(greaterThanOrEqualTo(50)));
   });
 
   // design.md 6章「章とステージの並べ方」の星とクリア条件の並べ方 (#166)。
@@ -113,15 +161,24 @@ void main() {
       final limit2 = s.stars[1] is NoHitStar || s.stars[1] is TimeStar;
       expect(limit2, star2Limit.contains(s.id), reason: '${s.id} の ★2');
       if (s.rounds.first.clear is ScoreClear) {
-        expect((s.stars[1] as StatStar).kind, StatKind.score, reason: '${s.id} はスコアの面');
+        expect(
+          (s.stars[1] as StatStar).kind,
+          StatKind.score,
+          reason: '${s.id} はスコアの面',
+        );
       }
     }
   });
 
   test('スコア・耐久のクリア条件の面は各章に 1 つずつ (第4章にはスコアの面を置かない)', () {
     for (final ch in campaign.chapters) {
-      int count(bool Function(ClearCondition) f) => ch.stages.where((s) => s.rounds.any((w) => f(w.clear))).length;
-      expect(count((c) => c is ScoreClear), ch.id == 'ch04' ? 0 : 1, reason: '${ch.id} のスコアの面');
+      int count(bool Function(ClearCondition) f) =>
+          ch.stages.where((s) => s.rounds.any((w) => f(w.clear))).length;
+      expect(
+        count((c) => c is ScoreClear),
+        ch.id == 'ch04' ? 0 : 1,
+        reason: '${ch.id} のスコアの面',
+      );
       expect(count((c) => c is SurviveClear), 1, reason: '${ch.id} の耐久の面');
     }
   });
@@ -129,15 +186,19 @@ void main() {
   test('崩落の星がある面には、崩落の支点 (要石・ボスのコア) がある', () {
     final registry = standardBlocks();
     for (final s in campaign.stages) {
-      if (!s.stars.any((c) => c is StatStar && c.kind == StatKind.collapse)) continue;
-      final hasAnchor = s.rounds.any((w) => switch (w.content) {
-            BossContent() => true, // ボスのコアが支点になる
-            final LayoutContent c => [
-                for (var r = 0; r < c.rows.length; r++)
-                  for (var k = 0; k < c.rows[r].length; k++)
-                    if (c.rows[r][k] != '.') c.blockIdAt(r, k),
-              ].any((id) => registry[id].anchor),
-          });
+      if (!s.stars.any((c) => c is StatStar && c.kind == StatKind.collapse)) {
+        continue;
+      }
+      final hasAnchor = s.rounds.any(
+        (w) => switch (w.content) {
+          BossContent() => true, // ボスのコアが支点になる
+          final LayoutContent c => [
+            for (var r = 0; r < c.rows.length; r++)
+              for (var k = 0; k < c.rows[r].length; k++)
+                if (c.rows[r][k] != '.') c.blockIdAt(r, k),
+          ].any((id) => registry[id].anchor),
+        },
+      );
       expect(hasAnchor, isTrue, reason: '${s.id} は崩落の星があるのに、支点がない');
     }
   });
@@ -163,13 +224,19 @@ void main() {
     expect(intro('2-2'), isNull);
     expect(intro('3-3'), isNull);
     // どの {"endless": n} の面も、ステージ側の intro か、エンドレスの R{n} の intro になる
-    final raw = jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>;
+    final raw = jsonDecode(
+      File('assets/stages/campaign.json').readAsStringSync(),
+    ) as Map<String, Object?>;
     for (final c in (raw['chapters'] as List).cast<Map<String, Object?>>()) {
       for (final s in (c['stages'] as List).cast<Map<String, Object?>>()) {
-        for (final (i, r) in (s['rounds'] as List).cast<Map<String, Object?>>().indexed) {
+        for (final (i, r)
+            in (s['rounds'] as List).cast<Map<String, Object?>>().indexed) {
           if (r['endless'] case final num n) {
-            expect(campaign.stage(s['id'] as String)!.rounds[i].introKey, r['intro'] ?? endlessContent.intros[n.toInt()],
-                reason: '${s['id']} の ${i + 1} ラウンド目');
+            expect(
+              campaign.stage(s['id'] as String)!.rounds[i].introKey,
+              r['intro'] ?? endlessContent.intros[n.toInt()],
+              reason: '${s['id']} の ${i + 1} ラウンド目',
+            );
           }
         }
       }
@@ -180,15 +247,27 @@ void main() {
   test('グレイズ・撃ち返しの星がある面には、敵弾を出すブロック (砲台・爆薬) かボスがある', () {
     final registry = standardBlocks();
     for (final s in campaign.stages) {
-      if (!s.stars.any((c) => c is StatStar && (c.kind == StatKind.graze || c.kind == StatKind.returnKills))) continue;
-      final hasGun = s.rounds.any((w) => switch (w.content) {
-            BossContent() => true, // ボスが弾を撃つ
-            final LayoutContent c => [
-                for (var r = 0; r < c.rows.length; r++)
-                  for (var k = 0; k < c.rows[r].length; k++)
-                    if (c.rows[r][k] != '.') c.blockIdAt(r, k),
-              ].any((id) => registry[id] is GunBlock || registry[id] is ExplosiveBlock),
-          });
+      if (!s.stars.any(
+        (c) =>
+            c is StatStar &&
+            (c.kind == StatKind.graze || c.kind == StatKind.returnKills),
+      )) {
+        continue;
+      }
+      final hasGun = s.rounds.any(
+        (w) => switch (w.content) {
+          BossContent() => true, // ボスが弾を撃つ
+          final LayoutContent c =>
+            [
+              for (var r = 0; r < c.rows.length; r++)
+                for (var k = 0; k < c.rows[r].length; k++)
+                  if (c.rows[r][k] != '.') c.blockIdAt(r, k),
+            ].any(
+              (id) =>
+                  registry[id] is GunBlock || registry[id] is ExplosiveBlock,
+            ),
+        },
+      );
       expect(hasGun, isTrue, reason: '${s.id} は敵弾を使う星があるのに、敵弾を出すブロックがない');
     }
   });
@@ -223,44 +302,77 @@ void main() {
   test('星の判定', () {
     final s = campaign.stage('1-4')!; // clear / returnKills 3 / noHit
     final stats = RunStats()..returnKills = 3;
-    expect(s.evaluate(StageResult(cleared: true, score: 0, stats: stats)), [true, true, true]);
+    expect(s.evaluate(StageResult(cleared: true, score: 0, stats: stats)), [
+      true,
+      true,
+      true,
+    ]);
     stats.hurt = 1;
-    expect(s.evaluate(StageResult(cleared: true, score: 0, stats: stats)), [true, true, false]);
-    expect(s.evaluate(StageResult(cleared: false, score: 0, stats: stats)), [false, false, false]);
+    expect(s.evaluate(StageResult(cleared: true, score: 0, stats: stats)), [
+      true,
+      true,
+      false,
+    ]);
+    expect(s.evaluate(StageResult(cleared: false, score: 0, stats: stats)), [
+      false,
+      false,
+      false,
+    ]);
   });
 
   group('JSON の読み込み', () {
     test('星の条件を種類ごとに読み分ける', () {
       expect(StarCondition.fromJson({'type': 'clear'}), isA<ClearStar>());
       expect(StarCondition.fromJson({'type': 'noHit'}), isA<NoHitStar>());
-      expect(StarCondition.fromJson({'type': 'time', 'value': 45}), isA<TimeStar>().having((t) => t.seconds, 'seconds', 45));
+      expect(
+        StarCondition.fromJson({'type': 'time', 'value': 45}),
+        isA<TimeStar>().having((t) => t.seconds, 'seconds', 45),
+      );
       expect(
         StarCondition.fromJson({'type': 'score', 'value': 1000}),
-        isA<StatStar>().having((t) => t.kind, 'kind', StatKind.score).having((t) => t.value, 'value', 1000),
+        isA<StatStar>()
+            .having((t) => t.kind, 'kind', StatKind.score)
+            .having((t) => t.value, 'value', 1000),
       );
-      expect(StarCondition.fromJson({'type': 'just', 'value': 3}), isA<StatStar>().having((t) => t.kind, 'kind', StatKind.just));
+      expect(
+        StarCondition.fromJson({'type': 'just', 'value': 3}),
+        isA<StatStar>().having((t) => t.kind, 'kind', StatKind.just),
+      );
     });
 
     test('星の条件の形が合わなければ例外', () {
-      expect(() => StarCondition.fromJson({'type': 'time'}), throwsFormatException);
+      expect(
+        () => StarCondition.fromJson({'type': 'time'}),
+        throwsFormatException,
+      );
       expect(() => StarCondition.fromJson({'value': 3}), throwsFormatException);
-      expect(() => StarCondition.fromJson({'type': 'unknown', 'value': 3}), throwsArgumentError);
+      expect(
+        () => StarCondition.fromJson({'type': 'unknown', 'value': 3}),
+        throwsArgumentError,
+      );
     });
 
     Campaign one(Map<String, Object?> round) => Campaign.fromJson({
-          'chapters': [
+      'chapters': [
+        {
+          'id': 'c',
+          'title': 'C',
+          'stages': [
             {
-              'id': 'c',
-              'title': 'C',
-              'stages': [
-                {'id': 's', 'title': 'S', 'rounds': [round]},
-              ],
+              'id': 's',
+              'title': 'S',
+              'rounds': [round],
             },
           ],
-        }, endlessContent);
+        },
+      ],
+    }, endlessContent);
 
     test('ラウンドの書き方ごとに中身と既定の難易度が決まる', () {
-      final rows = one({'rows': ['..NN..', '..XX..'], 'legend': {'X': 'T'}}).stage('s')!.rounds.single;
+      final rows = one({
+        'rows': ['..NN..', '..XX..'],
+        'legend': {'X': 'T'},
+      }).stage('s')!.rounds.single;
       expect(rows.difficulty, 1);
       expect((rows.content as LayoutContent).blockIdAt(1, 2), 'T');
 
@@ -272,7 +384,10 @@ void main() {
       expect(boss.difficulty, endlessContent.bossEvery);
       expect(boss.boss, same(endlessContent.bosses.first));
 
-      expect(one({'boss': 0, 'difficulty': 3}).stage('s')!.rounds.single.difficulty, 3);
+      expect(
+        one({'boss': 0, 'difficulty': 3}).stage('s')!.rounds.single.difficulty,
+        3,
+      );
     });
 
     test('星を書かないステージはクリアだけ、中身のないラウンドは例外', () {

@@ -18,12 +18,26 @@ enum BannerKind { round, boss, feverTime, bossPhase, timeOver }
 
 enum CalloutChannel { collapse, chainBlast, multiParry, ricochet, feverFinish }
 
-enum PopupKind { score, returnedScore, chain, ricochet, chainBlast, graze, noDamage, coreDamage }
+enum PopupKind {
+  score,
+  returnedScore,
+  chain,
+  ricochet,
+  chainBlast,
+  graze,
+  noDamage,
+  coreDamage,
+}
 
 // ---- ラウンド ----------------------------------------------------------
 
 final class RoundStarted extends GameEvent {
-  const RoundStarted({required this.number, required this.loop, this.bossIndex, this.introKey});
+  const RoundStarted({
+    required this.number,
+    required this.loop,
+    this.bossIndex,
+    this.introKey,
+  });
   final int number, loop;
   final int? bossIndex;
 
@@ -36,7 +50,11 @@ final class CountdownFinished extends GameEvent {
 }
 
 final class RoundCleared extends GameEvent {
-  const RoundCleared({required this.bonuses, required this.remaining, required this.ending});
+  const RoundCleared({
+    required this.bonuses,
+    required this.remaining,
+    required this.ending,
+  });
   final List<Bonus> bonuses;
 
   /// 消えずに残っていたブロック (崩れ落ちる演出用)。
@@ -45,7 +63,12 @@ final class RoundCleared extends GameEvent {
 }
 
 final class GameOver extends GameEvent {
-  const GameOver({required this.reason, required this.score, required this.round, required this.stats});
+  const GameOver({
+    required this.reason,
+    required this.score,
+    required this.round,
+    required this.stats,
+  });
   final String reason;
   final int score, round;
   final RunStats stats;
@@ -68,7 +91,14 @@ final class Banner extends GameEvent {
 final class Callout extends GameEvent {
   /// 同じ [channel] のコールアウトが表示中なら、新しく出さずに文字を差し替える。
   /// [hold] が true の間は消えずに残り、[release] で消え始める。
-  const Callout(this.channel, this.text, {this.sub = '', this.hold = false, this.release = false, this.level = 0});
+  const Callout(
+    this.channel,
+    this.text, {
+    this.sub = '',
+    this.hold = false,
+    this.release = false,
+    this.level = 0,
+  });
   final CalloutChannel channel;
   final String text, sub;
   final bool hold, release;

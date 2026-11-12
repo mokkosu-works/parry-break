@@ -12,7 +12,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   late AppLocalizations l;
 
-  Future<void> pumpScreen(WidgetTester tester, {String lang = 'en', Size size = const Size(1600, 740)}) async {
+  Future<void> pumpScreen(
+    WidgetTester tester, {
+    String lang = 'en',
+    Size size = const Size(1600, 740),
+  }) async {
     tester.view
       ..physicalSize = size
       ..devicePixelRatio = 1;
@@ -24,7 +28,9 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPrefsProvider.overrideWithValue(sp),
-          timeSourceProvider.overrideWithValue(() => binding.clock.now().microsecondsSinceEpoch / 1e6),
+          timeSourceProvider.overrideWithValue(
+            () => binding.clock.now().microsecondsSinceEpoch / 1e6,
+          ),
         ],
         child: MaterialApp(
           locale: Locale(lang),
@@ -47,28 +53,32 @@ void main() {
     expect(find.text(l.calibrationRetry), findsNothing);
   });
 
-  for (final (lang, size) in [('en', const Size(1600, 740)), ('ja', const Size(667, 375))]) {
-    testWidgets('タップが 4 回未満で終わると、失敗したことと、どうすればよいかが出る ($lang, ${size.width.toInt()}x${size.height.toInt()})', (
-      tester,
-    ) async {
-      await pumpScreen(tester, lang: lang, size: size);
-      await tester.tap(find.text(l.calibrationStart));
-      await tester.pump();
-      expect(find.text(l.calibrationStart), findsNothing);
-      // 何もタップせずに 10 拍が過ぎる
-      for (var i = 0; i < 120; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-      expect(find.text(l.calibrationFailed('0', '4')), findsOneWidget);
-      expect(find.text(l.calibrationRetry), findsOneWidget);
-      expect(find.text(l.calibrationApply), findsNothing);
+  for (final (lang, size) in [
+    ('en', const Size(1600, 740)),
+    ('ja', const Size(667, 375)),
+  ]) {
+    testWidgets(
+      'タップが 4 回未満で終わると、失敗したことと、どうすればよいかが出る ($lang, ${size.width.toInt()}x${size.height.toInt()})',
+      (tester) async {
+        await pumpScreen(tester, lang: lang, size: size);
+        await tester.tap(find.text(l.calibrationStart));
+        await tester.pump();
+        expect(find.text(l.calibrationStart), findsNothing);
+        // 何もタップせずに 10 拍が過ぎる
+        for (var i = 0; i < 120; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        expect(find.text(l.calibrationFailed('0', '4')), findsOneWidget);
+        expect(find.text(l.calibrationRetry), findsOneWidget);
+        expect(find.text(l.calibrationApply), findsNothing);
 
-      // 測り直すと説明が消え、測定が始まる
-      await tester.tap(find.text(l.calibrationRetry));
-      await tester.pump();
-      expect(find.text(l.calibrationFailed('0', '4')), findsNothing);
-      expect(find.text(l.calibrationRetry), findsNothing);
-    });
+        // 測り直すと説明が消え、測定が始まる
+        await tester.tap(find.text(l.calibrationRetry));
+        await tester.pump();
+        expect(find.text(l.calibrationFailed('0', '4')), findsNothing);
+        expect(find.text(l.calibrationRetry), findsNothing);
+      },
+    );
   }
 
   testWidgets('拍に合わせてタップすると、測定結果と「この値を使う」が出る', (tester) async {
@@ -87,7 +97,10 @@ void main() {
     }
     expect(find.text(l.calibrationResult('40')), findsOneWidget);
     expect(find.text(l.calibrationApply), findsOneWidget);
-    expect(find.textContaining(l.calibrationFailed('0', '4').substring(0, 10)), findsNothing);
+    expect(
+      find.textContaining(l.calibrationFailed('0', '4').substring(0, 10)),
+      findsNothing,
+    );
   });
 
   testWidgets('説明は画面の絵 (2 つの輪) に合い、「線」と書かない', (tester) async {
@@ -102,7 +115,9 @@ void main() {
   // Issue #109: キーボードでもスタートし、拍を取り、結果を反映できる
   testWidgets('Space / Enter でスタートして拍を取り、Enter で結果を反映する', (tester) async {
     await pumpScreen(tester);
-    final container = ProviderScope.containerOf(tester.element(find.byType(CalibrationScreen)));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CalibrationScreen)),
+    );
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pump();
     expect(find.text(l.calibrationStart), findsNothing);

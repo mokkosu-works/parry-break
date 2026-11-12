@@ -19,7 +19,12 @@ import '../core/helpers.dart';
 /// 例外が出ないことを確かめ、`--dart-define=screenshots=true --update-goldens` で画面写真を書き出す。
 const _shots = bool.fromEnvironment('screenshots');
 
-Future<void> _paint(WidgetTester tester, World w, FxState fx, String name) async {
+Future<void> _paint(
+  WidgetTester tester,
+  World w,
+  FxState fx,
+  String name,
+) async {
   tester.view
     ..physicalSize = const Size(1200, 720)
     ..devicePixelRatio = 1;
@@ -35,12 +40,21 @@ Future<void> _paint(WidgetTester tester, World w, FxState fx, String name) async
     highQuality: true,
     repaint: ValueNotifier(0),
   );
-  await tester.pumpWidget(Directionality(
-    textDirection: TextDirection.ltr,
-    child: RepaintBoundary(child: CustomPaint(painter: painter, size: const Size(1200, 720))),
-  ));
+  await tester.pumpWidget(
+    Directionality(
+      textDirection: TextDirection.ltr,
+      child: RepaintBoundary(
+        child: CustomPaint(painter: painter, size: const Size(1200, 720)),
+      ),
+    ),
+  );
   expect(tester.takeException(), isNull);
-  if (_shots) await expectLater(find.byType(RepaintBoundary).first, matchesGoldenFile('screenshots/$name.png'));
+  if (_shots) {
+    await expectLater(
+      find.byType(RepaintBoundary).first,
+      matchesGoldenFile('screenshots/$name.png'),
+    );
+  }
 }
 
 /// イベントを演出に流しながら進める。
@@ -63,7 +77,8 @@ class _CountingCanvas implements Canvas {
   void drawRect(Rect rect, Paint paint) => _add(paint.color);
 
   @override
-  void drawRawPoints(PointMode pointMode, Float32List points, Paint paint) => _add(paint.color);
+  void drawRawPoints(PointMode pointMode, Float32List points, Paint paint) =>
+      _add(paint.color);
 
   @override
   void drawParagraph(Paragraph paragraph, Offset offset) => _add(paragraph);
@@ -75,7 +90,9 @@ class _CountingCanvas implements Canvas {
 /// 点滅しうるものをまとめて出した盤面 (砲台の予告・狙撃の照準・崩れる前のブロック・敵弾・
 /// レーザーの予告・危険の表示・被弾で動けないパドル・ポップアップ・コールアウト)。
 (World, FxState) _blinkScene({required bool reduceEffects}) {
-  final w = testWorld(const SingleRoundMode(['NNNNTNNNNPNNNN', 'NNNNNNNNNNNNNN']));
+  final w = testWorld(
+    const SingleRoundMode(['NNNNTNNNNPNNNN', 'NNNNNNNNNNNNNN']),
+  );
   final fx = FxState(w, reduceEffects: reduceEffects);
   for (final b in w.blocks) {
     if (b.type == 'T') b.telegraph = true;
@@ -94,7 +111,16 @@ class _CountingCanvas implements Canvas {
   w.lowest = Field.warnY - 10;
   w.paddle.stun = 1;
   fx.popup(400, 300, '+100', Dot.white, 16);
-  fx.callouts.add(FxCallout(CalloutChannel.collapse, 'COLLAPSE', '', Dot.white, 32, hold: false));
+  fx.callouts.add(
+    FxCallout(
+      CalloutChannel.collapse,
+      'COLLAPSE',
+      '',
+      Dot.white,
+      32,
+      hold: false,
+    ),
+  );
   return (w, fx);
 }
 
@@ -129,7 +155,8 @@ double _fastestBlink(World w, FxState fx, {void Function(int frame)? before}) {
     painter.paint(c, const Size(1200, 720));
     history.add(c.counts);
   }
-  final keys = {for (final h in history) ...h.keys}..remove(const Color(0x40FFFFFF)); // 支えの脈動 (流れる光)
+  final keys = {for (final h in history) ...h.keys}
+    ..remove(const Color(0x40FFFFFF)); // 支えの脈動 (流れる光)
   var most = 0;
   for (final k in keys) {
     var n = 0;
@@ -143,7 +170,9 @@ double _fastestBlink(World w, FxState fx, {void Function(int frame)? before}) {
 
 void main() {
   setUpAll(() async {
-    await (FontLoader('DotGothic16')..addFont(rootBundle.load('assets/fonts/DotGothic16-subset.ttf'))).load();
+    await (FontLoader(
+      'DotGothic16',
+    )..addFont(rootBundle.load('assets/fonts/DotGothic16-subset.ttf'))).load();
     await (FontLoader('Silkscreen')
           ..addFont(rootBundle.load('assets/fonts/Silkscreen-Regular.ttf'))
           ..addFont(rootBundle.load('assets/fonts/Silkscreen-Bold.ttf')))
@@ -164,7 +193,17 @@ void main() {
       ..vx = 120;
     _run(w, fx, 3, before: autopilot(w));
     w.addCombo(1000);
-    w.phantoms.add(Ball(x: 300, y: 400, vx: 200, vy: -300, speed: 360, phantom: true, life: 5));
+    w.phantoms.add(
+      Ball(
+        x: 300,
+        y: 400,
+        vx: 200,
+        vy: -300,
+        speed: 360,
+        phantom: true,
+        life: 5,
+      ),
+    );
     w.fireLaser(w.paddle.x + 200);
     _run(w, fx, 0.3, before: autopilot(w));
     expect(w.od || w.phase != WorldPhase.playing, isTrue);
@@ -222,9 +261,16 @@ void main() {
     test('ON でも、予告中の砲台は点けたままで見分けられる', () {
       Color drawn(bool telegraph, double time) {
         final w = testWorld(const SingleRoundMode(['NNNNNNTNNNNNNN']));
-        final b = w.blocks.firstWhere((b) => b.type == 'T')..telegraph = telegraph;
+        final b = w.blocks.firstWhere((b) => b.type == 'T')
+          ..telegraph = telegraph;
         final c = _CountingCanvas();
-        final ctx = BlockPaintContext(c, TextCache(), time, (_) => Palette.blocks['T']!, calm: true);
+        final ctx = BlockPaintContext(
+          c,
+          TextCache(),
+          time,
+          (_) => Palette.blocks['T']!,
+          calm: true,
+        );
         paintStandardBlock(ctx, b, const Rect.fromLTWH(0, 0, 60, 24));
         return c.counts.keys.whereType<Color>().first;
       }

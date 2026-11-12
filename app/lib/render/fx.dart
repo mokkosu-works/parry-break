@@ -29,7 +29,14 @@ class FxRing {
 }
 
 class FxCallout {
-  FxCallout(this.channel, this.text, this.sub, this.color, this.size, {required this.hold});
+  FxCallout(
+    this.channel,
+    this.text,
+    this.sub,
+    this.color,
+    this.size, {
+    required this.hold,
+  });
   final CalloutChannel channel;
   String text, sub;
   Color color;
@@ -86,12 +93,24 @@ class FxBanner {
   }
 
   /// 帯の開き具合 (0〜1)。
-  double get open => t < openTime ? t / openTime : t > life - closeTime ? math.max(0.0, (life - t) / closeTime) : 1.0;
+  double get open => t < openTime
+      ? t / openTime
+      : t > life - closeTime
+      ? math.max(0.0, (life - t) / closeTime)
+      : 1.0;
 }
 
 /// 崩れ落ちるブロック (崩落・ラウンドクリア)。
 class FxDebris {
-  FxDebris(this.x, this.y, this.w, this.h, this.color, {this.delay = 0, this.originX});
+  FxDebris(
+    this.x,
+    this.y,
+    this.w,
+    this.h,
+    this.color, {
+    this.delay = 0,
+    this.originX,
+  });
   double x, y, vx = 0, vy = 0, rot = 0, vr = 0;
   final double w, h;
   final Color color;
@@ -128,15 +147,26 @@ class FxState {
 
   double _r(double a, double b) => a + _rnd.nextDouble() * (b - a);
 
-  Color blockColor(Block b) =>
-      b.type == 'N' ? Palette.normalTiers[NormalBlock.tierOf(b, world)] : Palette.blocks[b.type] ?? Palette.white;
+  Color blockColor(Block b) => b.type == 'N'
+      ? Palette.normalTiers[NormalBlock.tierOf(b, world)]
+      : Palette.blocks[b.type] ?? Palette.white;
 
   void burst(double x, double y, int n, Color color, double sp) {
     for (var i = 0; i < n; i++) {
       if (particles.length > 600) particles.removeAt(0);
-      final a = _rnd.nextDouble() * math.pi * 2, v = sp * (0.2 + _rnd.nextDouble() * 0.8);
-      particles.add(Particle(x, y, math.cos(a) * v, math.sin(a) * v, 0.3 + _rnd.nextDouble() * 0.4, color,
-          1.5 + _rnd.nextDouble() * 2.5));
+      final a = _rnd.nextDouble() * math.pi * 2,
+          v = sp * (0.2 + _rnd.nextDouble() * 0.8);
+      particles.add(
+        Particle(
+          x,
+          y,
+          math.cos(a) * v,
+          math.sin(a) * v,
+          0.3 + _rnd.nextDouble() * 0.4,
+          color,
+          1.5 + _rnd.nextDouble() * 2.5,
+        ),
+      );
     }
   }
 
@@ -160,9 +190,9 @@ class FxState {
   void _callout(Callout e) {
     final (color, size) = switch (e.channel) {
       CalloutChannel.collapse => (
-          const [Dot.white, Dot.mustard, Dot.rose][e.level],
-          const [32.0, 40.0, 48.0][e.level]
-        ),
+        const [Dot.white, Dot.mustard, Dot.rose][e.level],
+        const [32.0, 40.0, 48.0][e.level],
+      ),
       CalloutChannel.chainBlast => (Dot.orange, 32.0),
       CalloutChannel.multiParry => (Dot.peach, 32.0),
       CalloutChannel.ricochet => (Dot.peach, 32.0),
@@ -170,8 +200,12 @@ class FxState {
     };
     // 同じ種類のコールアウトが表示中なら、新しく出さずに書き換える
     final cur = callouts.where((c) => c.channel == e.channel).lastOrNull;
-    final updatable = e.channel != CalloutChannel.ricochet && e.channel != CalloutChannel.feverFinish;
-    if (cur != null && updatable && (cur.hold || e.release || e.channel == CalloutChannel.multiParry)) {
+    final updatable =
+        e.channel != CalloutChannel.ricochet &&
+        e.channel != CalloutChannel.feverFinish;
+    if (cur != null &&
+        updatable &&
+        (cur.hold || e.release || e.channel == CalloutChannel.multiParry)) {
       cur
         ..text = e.text
         ..color = color
@@ -187,7 +221,9 @@ class FxState {
       return;
     }
     if (e.release) return;
-    callouts.add(FxCallout(e.channel, e.text, e.sub, color, size, hold: e.hold));
+    callouts.add(
+      FxCallout(e.channel, e.text, e.sub, color, size, hold: e.hold),
+    );
     if (callouts.length > 3) callouts.removeAt(0);
   }
 
@@ -204,7 +240,10 @@ class FxState {
       case Popup(:final x, :final y, :final text, :final kind, :final amount):
         final (color, size) = switch (kind) {
           PopupKind.score => (Dot.white, amount >= 2000 ? 24.0 : 16.0),
-          PopupKind.returnedScore => (Dot.mustard, amount >= 2000 ? 24.0 : 16.0),
+          PopupKind.returnedScore => (
+            Dot.mustard,
+            amount >= 2000 ? 24.0 : 16.0,
+          ),
           PopupKind.chain => (Dot.white, 16.0),
           PopupKind.ricochet => (Dot.peach, 16.0),
           PopupKind.chainBlast => (Dot.orange, 24.0),
@@ -214,19 +253,78 @@ class FxState {
         };
         popup(x, y, text, color, size);
       case ParrySucceeded(:final grade, :final target, :final x, :final y):
-        final just = grade == ParryGrade.just, perfect = grade != ParryGrade.good;
-        final col = just ? Dot.rose : perfect ? Dot.mustard : Dot.peach;
-        judge = FxJudge(just ? 'JUST!!' : grade.name.toUpperCase(), col, big: just);
-        burst(x, y, just ? 40 : perfect ? 28 : 14, col, just ? 520 : perfect ? 420 : 280);
-        ring(x, Field.paddleY, just ? 110 : perfect ? 70 : 40, col, just ? 5 : 3);
-        _shake(target == ParryTarget.ball ? (just ? 12 : perfect ? 9 : 5) : 4);
+        final just = grade == ParryGrade.just,
+            perfect = grade != ParryGrade.good;
+        final col = just
+            ? Dot.rose
+            : perfect
+            ? Dot.mustard
+            : Dot.peach;
+        judge = FxJudge(
+          just ? 'JUST!!' : grade.name.toUpperCase(),
+          col,
+          big: just,
+        );
+        burst(
+          x,
+          y,
+          just
+              ? 40
+              : perfect
+              ? 28
+              : 14,
+          col,
+          just
+              ? 520
+              : perfect
+              ? 420
+              : 280,
+        );
+        ring(
+          x,
+          Field.paddleY,
+          just
+              ? 110
+              : perfect
+              ? 70
+              : 40,
+          col,
+          just ? 5 : 3,
+        );
+        _shake(
+          target == ParryTarget.ball
+              ? (just
+                    ? 12
+                    : perfect
+                    ? 9
+                    : 5)
+              : 4,
+        );
         if (just) _flash(0.15, Dot.blush);
       case ParryMissed():
         judge = FxJudge('MISS', Dot.dim);
-      case BlockDestroyed(:final block, :final cx, :final cy, :final cause, :final points):
+      case BlockDestroyed(
+        :final block,
+        :final cx,
+        :final cy,
+        :final cause,
+        :final points,
+      ):
         final returned = cause == DestroyCause.bullet;
-        popup(cx, cy, '+${formatScore(points)}', returned ? Dot.mustard : Dot.white, points >= 2000 ? 24 : 16);
-        burst(cx, cy, cause == DestroyCause.pierce || cause == DestroyCause.blast ? 14 : 9, blockColor(block), 240);
+        popup(
+          cx,
+          cy,
+          '+${formatScore(points)}',
+          returned ? Dot.mustard : Dot.white,
+          points >= 2000 ? 24 : 16,
+        );
+        burst(
+          cx,
+          cy,
+          cause == DestroyCause.pierce || cause == DestroyCause.blast ? 14 : 9,
+          blockColor(block),
+          240,
+        );
       case KeystoneBroken(:final x, :final y):
         ring(x, y, 100, Dot.white, 4);
         _shake(6);
@@ -245,20 +343,52 @@ class FxState {
       case CollapseStarted(:final count):
         _shake(math.min(16, 4 + count * 0.4));
       case BlockFell(:final block, :final x, :final y, :final originX):
-        final d = FxDebris(x, y, block.w, block.h, blockColor(block), originX: originX);
+        final d = FxDebris(
+          x,
+          y,
+          block.w,
+          block.h,
+          blockColor(block),
+          originX: originX,
+        );
         _drop(d);
         debris.add(d);
         burst(x + block.w / 2, y + block.h / 2, 5, d.color, 160);
       case RoundCleared(:final remaining):
         for (final b in remaining) {
-          debris.add(FxDebris(b.x + world.form.ox, b.y + world.form.oy, b.w, b.h, blockColor(b),
-              delay: _r(0.05, 0.5), originX: Field.width / 2));
+          debris.add(
+            FxDebris(
+              b.x + world.form.ox,
+              b.y + world.form.oy,
+              b.w,
+              b.h,
+              blockColor(b),
+              delay: _r(0.05, 0.5),
+              originX: Field.width / 2,
+            ),
+          );
         }
         trails.clear();
       case BlastExploded(:final x, :final y, :final r, :final kind):
         final big = kind == BlastKind.breaker;
-        ring(x, y, r, big ? Dot.blush : kind == BlastKind.phantom ? Dot.rose : Dot.orange, big ? 7 : 4);
-        burst(x, y, big ? 50 : 24, big ? Dot.blush : Dot.orange, big ? 520 : 360);
+        ring(
+          x,
+          y,
+          r,
+          big
+              ? Dot.blush
+              : kind == BlastKind.phantom
+              ? Dot.rose
+              : Dot.orange,
+          big ? 7 : 4,
+        );
+        burst(
+          x,
+          y,
+          big ? 50 : 24,
+          big ? Dot.blush : Dot.orange,
+          big ? 520 : 360,
+        );
         _shake(big ? 16 : 9);
       case BreakerTriggered():
         _flash(0.2, Dot.blush);

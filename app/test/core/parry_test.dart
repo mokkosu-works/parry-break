@@ -23,12 +23,16 @@ ParryGrade? gradeFor(double offset, {double phase = 0}) {
   final contact = w.t + after;
   final press = contact - offset;
   var pressed = false;
-  final events = run(w, 0.8, before: () {
-    if (!pressed && w.t + World.dt >= press - 0.2) {
-      w.pressAction(press);
-      pressed = true;
-    }
-  });
+  final events = run(
+    w,
+    0.8,
+    before: () {
+      if (!pressed && w.t + World.dt >= press - 0.2) {
+        w.pressAction(press);
+        pressed = true;
+      }
+    },
+  );
   final parries = events.whereType<ParrySucceeded>().toList();
   return parries.isEmpty ? null : parries.single.grade;
 }
@@ -37,7 +41,10 @@ ParryGrade? gradeFor(double offset, {double phase = 0}) {
 /// 換算後の時刻 tc + inputLag + [after] に押したときの結果。被弾なら 'hurt'、何も起きなければ null。
 /// 弾は [steps] ステップ後にパドル上面へ触れる (12.5 ならステップの中央、12.1 なら頭近く、12.9 なら終わり近く)。
 Object? bulletResultFor(double inputLag, double after, {double steps = 12.5}) {
-  final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']), inputLag: inputLag);
+  final w = testWorld(
+    const SingleRoundMode(['NNNNNNNNNNNNNN']),
+    inputLag: inputLag,
+  );
   run(w, 1.1); // カウントダウンを終える
   // ボールは上へ飛ばしておく (押してもボールの発射・パリィにならないように)
   w.ball
@@ -53,14 +60,21 @@ Object? bulletResultFor(double inputLag, double after, {double steps = 12.5}) {
   final contact = w.t + World.dt * steps;
   final press = contact + inputLag + after;
   var pressed = false;
-  final events = run(w, 0.5, before: () {
-    if (!pressed && w.t + World.dt >= press - 0.2) {
-      w.pressAction(press);
-      pressed = true;
-    }
-  });
+  final events = run(
+    w,
+    0.5,
+    before: () {
+      if (!pressed && w.t + World.dt >= press - 0.2) {
+        w.pressAction(press);
+        pressed = true;
+      }
+    },
+  );
   if (events.whereType<PlayerHurt>().isNotEmpty) return 'hurt';
-  final parries = events.whereType<ParrySucceeded>().where((e) => e.target == ParryTarget.bullet).toList();
+  final parries = events
+      .whereType<ParrySucceeded>()
+      .where((e) => e.target == ParryTarget.bullet)
+      .toList();
   return parries.isEmpty ? null : parries.single.grade;
 }
 
@@ -75,12 +89,16 @@ List<GameEvent> dropOnPaddle(World w, double seconds, {double? press}) {
   b.y = Field.paddleY - Field.ballR - b.speed * seconds;
   final at = press == null ? null : w.t + seconds - press;
   var pressed = false;
-  return run(w, seconds + 0.1, before: () {
-    if (at != null && !pressed && w.t + World.dt >= at - 0.2) {
-      w.pressAction(at);
-      pressed = true;
-    }
-  });
+  return run(
+    w,
+    seconds + 0.1,
+    before: () {
+      if (at != null && !pressed && w.t + World.dt >= at - 0.2) {
+        w.pressAction(at);
+        pressed = true;
+      }
+    },
+  );
 }
 
 void main() {
@@ -112,12 +130,16 @@ void main() {
     b.y = Field.paddleY - Field.ballR - b.speed * 0.3;
     final press = w.t + 0.3 - 0.004;
     var pressed = false;
-    run(w, 0.4, before: () {
-      if (!pressed && w.t + World.dt >= press - 0.2) {
-        w.pressAction(press);
-        pressed = true;
-      }
-    });
+    run(
+      w,
+      0.4,
+      before: () {
+        if (!pressed && w.t + World.dt >= press - 0.2) {
+          w.pressAction(press);
+          pressed = true;
+        }
+      },
+    );
     expect(w.ball.pierce, 3);
     expect(w.ball.breaker, isTrue);
     expect(w.combo, inInclusiveRange(150, 160)); // JUST で +160 (その後は減衰)
@@ -162,7 +184,10 @@ void main() {
   group('スタン明けのパドル (#128)', () {
     /// カウントダウンを終えてから [setUp] で入力を整え、スタンさせて、明けるまで進めた World を返す。
     /// スタン中は各ステップの前に [during] を呼ぶ。
-    World stunThenRecover(void Function(World w) during, {void Function(World w)? setUp}) {
+    World stunThenRecover(
+      void Function(World w) during, {
+      void Function(World w)? setUp,
+    }) {
       final w = testWorld(const SingleRoundMode(['NNNNNNNNNNNNNN']));
       run(w, 1.1);
       setUp?.call(w);
@@ -225,7 +250,12 @@ void main() {
       final w = ready();
       final c0 = w.combo, s0 = w.score, m = w.mult;
       // パドルの右端から 10px 外 (弾の縁からは 4px) を真下へ通る
-      w.fireBullet(w.paddle.x + w.paddleWidth / 2 + 6 + 10, Field.paddleY - 30, math.pi / 2, 300);
+      w.fireBullet(
+        w.paddle.x + w.paddleWidth / 2 + 6 + 10,
+        Field.paddleY - 30,
+        math.pi / 2,
+        300,
+      );
       final events = run(w, 0.5);
       expect(events.whereType<PlayerHurt>(), isEmpty);
       expect(events.whereType<Grazed>(), hasLength(1));
@@ -236,7 +266,12 @@ void main() {
 
     test('パドルから 22px より遠くを通った弾はグレイズにならない', () {
       final w = ready();
-      w.fireBullet(w.paddle.x + w.paddleWidth / 2 + 6 + 23, Field.paddleY - 30, math.pi / 2, 300);
+      w.fireBullet(
+        w.paddle.x + w.paddleWidth / 2 + 6 + 23,
+        Field.paddleY - 30,
+        math.pi / 2,
+        300,
+      );
       expect(run(w, 0.5).whereType<Grazed>(), isEmpty);
     });
 
@@ -255,7 +290,12 @@ void main() {
     test('無敵中にパドルの近くを通った弾は、無敵が切れてから下へ抜けてもグレイズにならない', () {
       final w = ready();
       w.paddle.invuln = 0.25;
-      w.fireBullet(w.paddle.x + w.paddleWidth / 2 + 6 + 10, Field.paddleY - 30, math.pi / 2, 300);
+      w.fireBullet(
+        w.paddle.x + w.paddleWidth / 2 + 6 + 10,
+        Field.paddleY - 30,
+        math.pi / 2,
+        300,
+      );
       expect(run(w, 0.5).whereType<Grazed>(), isEmpty);
     });
   });
@@ -281,7 +321,8 @@ void main() {
   });
 
   test('ボス戦: PERFECT の後に通常反射したボールはコアを削れない (#119)', () {
-    final w = World(mode: endlessMode, inputLag: 0)..start(fromRound: endlessContent.bossEvery);
+    final w = World(mode: endlessMode, inputLag: 0)
+      ..start(fromRound: endlessContent.bossEvery);
     w.sync.identity();
     run(w, 1.1);
     w.bullets.clear();
@@ -298,21 +339,40 @@ void main() {
       ..vx = 0;
     b.vy = -b.speed;
     final events = run(w, 0.1);
-    expect(events.whereType<BlockDeflected>().where((e) => identical(e.block, core)), isNotEmpty);
+    expect(
+      events.whereType<BlockDeflected>().where((e) => identical(e.block, core)),
+      isNotEmpty,
+    );
     expect(events.whereType<CoreDamaged>(), isEmpty);
   });
 
   test('敵弾がステップの頭近く・終わり近くで当たっても、接触の 0.01 秒前に押せば JUST (#97)', () {
     for (final steps in [12.1, 12.5, 12.9]) {
-      expect(bulletResultFor(0, -0.01, steps: steps), ParryGrade.just, reason: 'steps $steps');
-      expect(bulletResultFor(0, 0.01, steps: steps), ParryGrade.just, reason: 'steps $steps');
-      expect(bulletResultFor(0, -0.02, steps: steps), ParryGrade.perfect, reason: 'steps $steps');
+      expect(
+        bulletResultFor(0, -0.01, steps: steps),
+        ParryGrade.just,
+        reason: 'steps $steps',
+      );
+      expect(
+        bulletResultFor(0, 0.01, steps: steps),
+        ParryGrade.just,
+        reason: 'steps $steps',
+      );
+      expect(
+        bulletResultFor(0, -0.02, steps: steps),
+        ParryGrade.perfect,
+        reason: 'steps $steps',
+      );
     }
   });
 
   test('接触の 0.099 秒前に押すと、ステップの境目の位置によらず GOOD (#97)', () {
     for (final phase in [0.0, 0.1, 0.25, 0.5, 0.75, 0.9]) {
-      expect(gradeFor(0.099, phase: phase), ParryGrade.good, reason: 'phase $phase');
+      expect(
+        gradeFor(0.099, phase: phase),
+        ParryGrade.good,
+        reason: 'phase $phase',
+      );
       // 窓の外 (0.1 秒より前) に押したら成功しない
       expect(gradeFor(0.102, phase: phase), isNull, reason: 'phase $phase');
     }

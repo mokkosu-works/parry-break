@@ -39,7 +39,8 @@ class Harness {
   World get w => c.world;
 
   /// 実時間 [pressed] に押したタッチの時刻。
-  Duration stamp(double pressed) => Duration(microseconds: ((pressed + base) * 1e6).round());
+  Duration stamp(double pressed) =>
+      Duration(microseconds: ((pressed + base) * 1e6).round());
 
   /// [seconds] だけフレームを進める。各フレームの前に [before] を呼ぶ。
   void frames(double seconds, {void Function()? before}) {
@@ -81,20 +82,25 @@ void main() {
   ParryGrade? pressBetweenFrames({required bool useStamp}) {
     final h = Harness()..launch();
     // 押す時刻 = 今のフレームから 9 フレーム後 + 0.002 秒 になるように、接触の時刻を決める
-    final contact = h.dropBall(9 * Harness.frame + 0.002 + 0.005 + (h.w.sync.sim - h.w.t));
+    final contact = h.dropBall(
+      9 * Harness.frame + 0.002 + 0.005 + (h.w.sync.sim - h.w.t),
+    );
     final pressed = contact - 0.005;
     expect(pressed - h.now, closeTo(9 * Harness.frame + 0.002, 1e-9));
     var sent = false;
     h.audio.events.clear();
-    h.frames(0.5, before: () {
-      if (!sent && pressed >= h.now && pressed < h.now + Harness.frame) {
-        final last = h.now;
-        h.now = last + Harness.frame - 0.001; // 届いた時刻 (次のフレームの前)
-        useStamp ? h.c.press(h.stamp(pressed)) : h.c.pressNow();
-        h.now = last;
-        sent = true;
-      }
-    });
+    h.frames(
+      0.5,
+      before: () {
+        if (!sent && pressed >= h.now && pressed < h.now + Harness.frame) {
+          final last = h.now;
+          h.now = last + Harness.frame - 0.001; // 届いた時刻 (次のフレームの前)
+          useStamp ? h.c.press(h.stamp(pressed)) : h.c.pressNow();
+          h.now = last;
+          sent = true;
+        }
+      },
+    );
     expect(sent, isTrue);
     final parries = h.audio.events.whereType<ParrySucceeded>().toList();
     return parries.isEmpty ? null : parries.single.grade;

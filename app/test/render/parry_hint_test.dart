@@ -18,22 +18,50 @@ class _RecordingText extends TextCache {
   final drawn = <String>[];
 
   @override
-  void draw(Canvas canvas, String text, double x, double y, double size, Color color,
-      {TextAlignH align = TextAlignH.center, double weight = 700, String? family}) {
+  void draw(
+    Canvas canvas,
+    String text,
+    double x,
+    double y,
+    double size,
+    Color color, {
+    TextAlignH align = TextAlignH.center,
+    double weight = 700,
+    String? family,
+  }) {
     drawn.add(text);
-    super.draw(canvas, text, x, y, size, color, align: align, weight: weight, family: family);
+    super.draw(
+      canvas,
+      text,
+      x,
+      y,
+      size,
+      color,
+      align: align,
+      weight: weight,
+      family: family,
+    );
   }
 }
 
 /// 1-1 を始めた直後 (帯が開き、ボールがパドルに乗っている) の盤面を描き、描いた文字を返す。
-Future<List<String>> _paintStart(WidgetTester tester, {required bool parryButton, required String locale}) async {
+Future<List<String>> _paintStart(
+  WidgetTester tester, {
+  required bool parryButton,
+  required String locale,
+}) async {
   tester.view
     ..physicalSize = const Size(1200, 720)
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final campaign = Campaign.fromJson(
-      jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
-  final w = World(mode: StageMode(campaign.stages.firstWhere((s) => s.id == '1-1')))..start();
+    jsonDecode(File('assets/stages/campaign.json').readAsStringSync())
+        as Map<String, Object?>,
+    endlessContent,
+  );
+  final w = World(
+    mode: StageMode(campaign.stages.firstWhere((s) => s.id == '1-1')),
+  )..start();
   final fx = FxState(w);
   // 帯が開ききり、READY のカウントダウンが終わるまで進める
   for (var i = 0; i < 60 * 3; i++) {
@@ -58,18 +86,24 @@ Future<List<String>> _paintStart(WidgetTester tester, {required bool parryButton
     repaint: ValueNotifier(0),
     parryButton: parryButton,
   );
-  await tester.pumpWidget(Directionality(
-    textDirection: TextDirection.ltr,
-    child: CustomPaint(painter: painter, size: const Size(1200, 720)),
-  ));
+  await tester.pumpWidget(
+    Directionality(
+      textDirection: TextDirection.ltr,
+      child: CustomPaint(painter: painter, size: const Size(1200, 720)),
+    ),
+  );
   expect(tester.takeException(), isNull);
   return text.drawn;
 }
 
 void main() {
   setUpAll(() async {
-    await (FontLoader('DotGothic16')..addFont(rootBundle.load('assets/fonts/DotGothic16-subset.ttf'))).load();
-    await (FontLoader('Silkscreen')..addFont(rootBundle.load('assets/fonts/Silkscreen-Regular.ttf'))).load();
+    await (FontLoader(
+      'DotGothic16',
+    )..addFont(rootBundle.load('assets/fonts/DotGothic16-subset.ttf'))).load();
+    await (FontLoader(
+      'Silkscreen',
+    )..addFont(rootBundle.load('assets/fonts/Silkscreen-Regular.ttf'))).load();
   });
 
   testWidgets('領域方式: 発射前に TAP、帯に「タップしてパリィ」', (tester) async {

@@ -20,5 +20,6 @@ class KeystoneBlock extends BlockBehavior {
   bool get anchor => true;
 
   @override
-  void onDestroyed(World w, Block b, double cx, double cy) => w.emit(KeystoneBroken(cx, cy));
+  void onDestroyed(World w, Block b, double cx, double cy) =>
+      w.emit(KeystoneBroken(cx, cy));
 }

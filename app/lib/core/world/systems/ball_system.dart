@@ -48,7 +48,9 @@ extension _BallSystem on World {
     b.speed += (targetSpeed - b.speed) * math.min(1, (od ? 2 : 4) * dt);
     if (od) b.speed = math.min(b.speed, odTopSpeed);
     for (final bl in blocks) {
-      if (bl.behavior.influencesBalls) bl.behavior.influenceBall(this, bl, b, dt);
+      if (bl.behavior.influencesBalls) {
+        bl.behavior.influenceBall(this, bl, b, dt);
+      }
     }
     final s = hypot(b.vx, b.vy);
     final sn = s == 0 ? 1.0 : s;
@@ -86,7 +88,9 @@ extension _BallSystem on World {
           (b.x - p.x).abs() <= paddleWidth / 2 + r * 0.6) {
         if (main) {
           // 接触時刻をサブステップ内で補間して求める
-          final fr = b.y != py ? clampD((Field.paddleY - (py + r)) / (b.y - py), 0, 1) : 1.0;
+          final fr = b.y != py
+              ? clampD((Field.paddleY - (py + r)) / (b.y - py), 0, 1)
+              : 1.0;
           _paddleBounce(b, t0 + sdt * (i + fr));
         } else {
           _reflectOffPaddle(b); // 分身弾はパドルで自動的に跳ね返る
@@ -132,9 +136,23 @@ extension _BallSystem on World {
     addCombo(n * 2.0);
     stats.bestRicochet = math.max(stats.bestRicochet, n);
     if (n >= 15) {
-      emit(Callout(CalloutChannel.ricochet, 'RICOCHET ×$n', sub: '+${formatScore(v)}'));
+      emit(
+        Callout(
+          CalloutChannel.ricochet,
+          'RICOCHET ×$n',
+          sub: '+${formatScore(v)}',
+        ),
+      );
     } else {
-      emit(Popup(b.x, Field.paddleY - 84, 'RICOCHET ×$n  +${formatScore(v)}', PopupKind.ricochet, amount: v));
+      emit(
+        Popup(
+          b.x,
+          Field.paddleY - 84,
+          'RICOCHET ×$n  +${formatScore(v)}',
+          PopupKind.ricochet,
+          amount: v,
+        ),
+      );
     }
     emit(RicochetBonus(n, v));
   }
@@ -170,7 +188,10 @@ extension _BallSystem on World {
       double nX, nY;
       if (dx == 0 && dy == 0) {
         // 中心がブロックの中に入っている: 最も近い面から押し出す
-        final pl = b.x - ax, pr = ax + bl.w - b.x, pt = b.y - ay, pb = ay + bl.h - b.y;
+        final pl = b.x - ax,
+            pr = ax + bl.w - b.x,
+            pt = b.y - ay,
+            pb = ay + bl.h - b.y;
         final m = [pl, pr, pt, pb].reduce(math.min);
         if (m == pl) {
           (nX, nY) = (-1, 0);
@@ -200,12 +221,20 @@ extension _BallSystem on World {
 
   HitResult _hitBlock(Block bl, Ball b, bool main) {
     final pierce = od || b.phantom || b.pierce > 0;
-    final cause = b.phantom ? DestroyCause.phantom : pierce ? DestroyCause.pierce : DestroyCause.ball;
+    final cause = b.phantom
+        ? DestroyCause.phantom
+        : pierce
+        ? DestroyCause.pierce
+        : DestroyCause.ball;
     if (main && b.breaker) {
       b.breaker = false;
       _triggerBreaker(b.x, b.y);
     }
-    return bl.behavior.onBall(this, bl, BallHit(b, pierce: pierce, main: main, cause: cause));
+    return bl.behavior.onBall(
+      this,
+      bl,
+      BallHit(b, pierce: pierce, main: main, cause: cause),
+    );
   }
 }
 

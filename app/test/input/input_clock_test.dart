@@ -11,7 +11,9 @@ class Fake {
   /// 実時間 [pressed] に押したイベントが、[latency] 秒遅れて届いた。
   double deliver(double pressed, double latency) {
     now = pressed + latency;
-    return clock.eventTime(Duration(microseconds: ((pressed + base) * 1e6).round()));
+    return clock.eventTime(
+      Duration(microseconds: ((pressed + base) * 1e6).round()),
+    );
   }
 }
 

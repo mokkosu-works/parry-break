@@ -46,7 +46,11 @@ class HapticsService {
         _play(switch (grade) {
           ParryGrade.good => const [(0, _Pulse.light)],
           ParryGrade.perfect => const [(0, _Pulse.medium)],
-          ParryGrade.just => const [(0, _Pulse.heavy), (60, _Pulse.heavy), (120, _Pulse.heavy)],
+          ParryGrade.just => const [
+            (0, _Pulse.heavy),
+            (60, _Pulse.heavy),
+            (120, _Pulse.heavy),
+          ],
         });
       case PlayerHurt():
         _play(const [(0, _Pulse.long)]);
@@ -55,11 +59,23 @@ class HapticsService {
       case BreakerTriggered():
         _play(const [(0, _Pulse.heavy), (50, _Pulse.medium)]);
       case CoreDestroyed():
-        _play(const [(0, _Pulse.heavy), (100, _Pulse.heavy), (200, _Pulse.heavy)]);
+        _play(const [
+          (0, _Pulse.heavy),
+          (100, _Pulse.heavy),
+          (200, _Pulse.heavy),
+        ]);
       case FeverTimeStarted():
-        _play(const [(0, _Pulse.heavy), (70, _Pulse.medium), (140, _Pulse.light)]);
+        _play(const [
+          (0, _Pulse.heavy),
+          (70, _Pulse.medium),
+          (140, _Pulse.light),
+        ]);
       case GameOver():
-        _play(const [(0, _Pulse.long), (150, _Pulse.long), (300, _Pulse.heavy)]);
+        _play(const [
+          (0, _Pulse.long),
+          (150, _Pulse.long),
+          (300, _Pulse.heavy),
+        ]);
       default:
         break;
     }

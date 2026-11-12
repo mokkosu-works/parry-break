@@ -15,26 +15,28 @@ void main() {
     addTearDown(t.view.reset);
     retry = 0;
     title = 0;
-    await t.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: ResultOverlay(
-        data: ResultData(
-          score: 12345,
-          round: 3,
-          maxChain: 4,
-          stats: RunStats(),
-          reason: 'MISS',
-          newBest: false,
-          bestScore: 20000,
-          bestRound: 5,
+    await t.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: ResultOverlay(
+          data: ResultData(
+            score: 12345,
+            round: 3,
+            maxChain: 4,
+            stats: RunStats(),
+            reason: 'MISS',
+            newBest: false,
+            bestScore: 20000,
+            bestRound: 5,
+          ),
+          onRetry: () => retry++,
+          onTitle: () => title++,
+          reduceMotion: reduceMotion,
         ),
-        onRetry: () => retry++,
-        onTitle: () => title++,
-        reduceMotion: reduceMotion,
       ),
-    ));
+    );
   }
 
   testWidgets('演出中にボタンの位置をタップすると、演出が飛ぶだけでボタンは呼ばれない', (t) async {

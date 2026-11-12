@@ -24,7 +24,12 @@ import 'attract_demo.dart';
 import 'title_logo.dart';
 
 class _MenuEntry {
-  const _MenuEntry(this.label, this.action, {this.meta = '', this.primary = false});
+  const _MenuEntry(
+    this.label,
+    this.action, {
+    this.meta = '',
+    this.primary = false,
+  });
   final String label, meta;
   final VoidCallback action;
   final bool primary;
@@ -38,9 +43,12 @@ class TitleScreen extends ConsumerStatefulWidget {
   ConsumerState<TitleScreen> createState() => _TitleScreenState();
 }
 
-class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProviderStateMixin {
-  late final AnimationController _intro =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1300));
+class _TitleScreenState extends ConsumerState<TitleScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _intro = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1300),
+  );
   final FocusNode _focus = FocusNode();
   int _selected = 0;
   int? _firing;
@@ -73,7 +81,9 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
     super.dispose();
   }
 
-  bool get _still => MediaQuery.disableAnimationsOf(context) || ref.read(settingsProvider).reduceEffects;
+  bool get _still =>
+      MediaQuery.disableAnimationsOf(context) ||
+      ref.read(settingsProvider).reduceEffects;
 
   List<_MenuEntry> _entries() {
     final records = ref.watch(recordsProvider);
@@ -82,16 +92,41 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
     final nav = Navigator.of(context);
     final firstTime = records.endless.bestScore == 0 && records.stages.isEmpty;
     final next = firstTime ? null : records.nextStage(content.campaign);
-    final stars = content.campaign.stages.fold(0, (s, st) => s + records.stage(st.id).starCount);
-    final totalStars = content.campaign.stages.fold(0, (s, st) => s + st.stars.length);
+    final stars = content.campaign.stages.fold(
+      0,
+      (s, st) => s + records.stage(st.id).starCount,
+    );
+    final totalStars = content.campaign.stages.fold(
+      0,
+      (s, st) => s + st.stars.length,
+    );
     void push(Widget w) => nav.push(fadeRoute<void>(w));
     return [
       if (firstTime)
-        _MenuEntry('START', () => push(GameScreen(stage: content.campaign.stages.first)),
-            meta: 'TUTORIAL  1-1', primary: true),
-      if (next != null) _MenuEntry('CONTINUE', () => push(GameScreen(stage: next)), meta: 'STAGE  ${next.id}', primary: true),
-      _MenuEntry('ENDLESS', () => push(const GameScreen()), meta: 'SCORE ATTACK', primary: !firstTime && next == null),
-      _MenuEntry('STAGES', () => push(const StageSelectScreen()), meta: '$stars / $totalStars STARS'),
+        _MenuEntry(
+          'START',
+          () => push(GameScreen(stage: content.campaign.stages.first)),
+          meta: 'TUTORIAL  1-1',
+          primary: true,
+        ),
+      if (next != null)
+        _MenuEntry(
+          'CONTINUE',
+          () => push(GameScreen(stage: next)),
+          meta: 'STAGE  ${next.id}',
+          primary: true,
+        ),
+      _MenuEntry(
+        'ENDLESS',
+        () => push(const GameScreen()),
+        meta: 'SCORE ATTACK',
+        primary: !firstTime && next == null,
+      ),
+      _MenuEntry(
+        'STAGES',
+        () => push(const StageSelectScreen()),
+        meta: '$stars / $totalStars STARS',
+      ),
       _MenuEntry('HISTORY', () => push(const HistoryScreen())),
       _MenuEntry('HOW TO PLAY', () => push(const HelpScreen())),
       _MenuEntry('SETTINGS', () => push(const SettingsScreen())),
@@ -99,8 +134,11 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
         _MenuEntry('RANKING', () async {
           final ok = await lb.show();
           if (!ok && mounted) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).rankingUnavailable)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context).rankingUnavailable),
+              ),
+            );
           }
         }),
     ];
@@ -122,17 +160,23 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
 
   void _tapVersion() {
     final now = DateTime.now();
-    _verTaps = now.difference(_lastVerTap) < const Duration(milliseconds: 600) ? _verTaps + 1 : 1;
+    _verTaps = now.difference(_lastVerTap) < const Duration(milliseconds: 600)
+        ? _verTaps + 1
+        : 1;
     _lastVerTap = now;
     if (_verTaps < 3) return;
     _verTaps = 0;
     final on = !ref.read(settingsProvider).debugMode;
-    ref.read(settingsProvider.notifier).update((s) => s.copyWith(debugMode: on));
+    ref
+        .read(settingsProvider.notifier)
+        .update((s) => s.copyWith(debugMode: on));
     ref.read(hapticsProvider).selection();
     final l = AppLocalizations.of(context);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(on ? l.debugModeOn : l.debugModeOff)));
+      ..showSnackBar(
+        SnackBar(content: Text(on ? l.debugModeOn : l.debugModeOff)),
+      );
   }
 
   void _select(int i) {
@@ -157,8 +201,11 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
   }
 
   /// [from]〜[to] (0〜1) の間に 0 → 1 になる、登場アニメーションの進み具合。
-  double _stage(double from, double to) =>
-      _still ? 1 : Curves.easeOutCubic.transform(((_intro.value - from) / (to - from)).clamp(0.0, 1.0));
+  double _stage(double from, double to) => _still
+      ? 1
+      : Curves.easeOutCubic.transform(
+          ((_intro.value - from) / (to - from)).clamp(0.0, 1.0),
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -172,99 +219,144 @@ class _TitleScreenState extends ConsumerState<TitleScreen> with SingleTickerProv
         focusNode: _focus,
         autofocus: true,
         onKeyEvent: (_, e) => _onKey(entries, e),
-        child: Stack(fit: StackFit.expand, children: [
-          // 後ろで流れるデモプレイ (ドットが歪まないよう、傾けずに暗くして置く)
-          Opacity(opacity: 0.4, child: AttractDemo(animate: !still)),
-          const _Shade(),
-          SafeArea(
-            child: LayoutBuilder(builder: (context, c) {
-              final logoSize = math.min(c.maxWidth * 0.085, c.maxHeight * 0.17);
-              // 背の低い画面では、メニューが収まるよう項目の高さを詰める (押せる範囲の 44 は割らない)。
-              // 上下の余白 28 と、窓の枠と内側の余白 38 を引いた高さに収める。それでも入らなければ送れる
-              final spare = entries.fold(0.0, (h, e) => h + _MenuItem.heightOf(e) - _MenuItem.minHeight);
-              final menuSqueeze =
-                  spare <= 0 ? 1.0 : ((c.maxHeight - 28 - 38 - entries.length * _MenuItem.minHeight) / spare).clamp(0.0, 1.0);
-              return AnimatedBuilder(
-                animation: _intro,
-                builder: (context, _) => Padding(
-                  padding: EdgeInsets.fromLTRB(c.maxWidth * 0.05, 16, c.maxWidth * 0.04, 12),
-                  child: Row(children: [
-                    // 左: ロゴとハイスコア
-                    Expanded(
-                      flex: 11,
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Spacer(flex: 3),
-                        Opacity(
-                          opacity: _stage(0, 0.45),
-                          child: Transform.translate(
-                            offset: Offset(-60 * (1 - _stage(0, 0.45)), 0),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: TitleLogo(size: logoSize, animate: !still),
-                            ),
-                          ),
-                        ),
-                        const Spacer(flex: 4),
-                        if (records.endless.bestScore > 0)
-                          Opacity(
-                            opacity: _stage(0.5, 0.9),
-                            child: _HiScore(record: records.endless),
-                          ),
-                      ]),
-                    ),
-                    // 右: メニュー
-                    Expanded(
-                      flex: 7,
-                      child: Center(
-                        child: Opacity(
-                          opacity: _stage(0.25, 0.6),
-                          child: SingleChildScrollView(
-                            clipBehavior: Clip.none, // 窓の影を切らない
-                            child: PixelWindow(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  for (var i = 0; i < entries.length; i++)
-                                    Opacity(
-                                      opacity: _stage(0.25 + i * 0.07, 0.6 + i * 0.07),
-                                      child: _MenuItem(
-                                        entry: entries[i],
-                                        squeeze: menuSqueeze,
-                                        selected: i == _selected,
-                                        firing: _firing == i,
-                                        onHover: () => _select(i),
-                                        onTap: () => _activate(entries, i),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 後ろで流れるデモプレイ (ドットが歪まないよう、傾けずに暗くして置く)
+            Opacity(opacity: 0.4, child: AttractDemo(animate: !still)),
+            const _Shade(),
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final logoSize = math.min(
+                    c.maxWidth * 0.085,
+                    c.maxHeight * 0.17,
+                  );
+                  // 背の低い画面では、メニューが収まるよう項目の高さを詰める (押せる範囲の 44 は割らない)。
+                  // 上下の余白 28 と、窓の枠と内側の余白 38 を引いた高さに収める。それでも入らなければ送れる
+                  final spare = entries.fold(
+                    0.0,
+                    (h, e) => h + _MenuItem.heightOf(e) - _MenuItem.minHeight,
+                  );
+                  final menuSqueeze = spare <= 0
+                      ? 1.0
+                      : ((c.maxHeight -
+                                    28 -
+                                    38 -
+                                    entries.length * _MenuItem.minHeight) /
+                                spare)
+                            .clamp(0.0, 1.0);
+                  return AnimatedBuilder(
+                    animation: _intro,
+                    builder: (context, _) => Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        c.maxWidth * 0.05,
+                        16,
+                        c.maxWidth * 0.04,
+                        12,
+                      ),
+                      child: Row(
+                        children: [
+                          // 左: ロゴとハイスコア
+                          Expanded(
+                            flex: 11,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Spacer(flex: 3),
+                                Opacity(
+                                  opacity: _stage(0, 0.45),
+                                  child: Transform.translate(
+                                    offset: Offset(
+                                      -60 * (1 - _stage(0, 0.45)),
+                                      0,
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: TitleLogo(
+                                        size: logoSize,
+                                        animate: !still,
                                       ),
                                     ),
-                                ],
+                                  ),
+                                ),
+                                const Spacer(flex: 4),
+                                if (records.endless.bestScore > 0)
+                                  Opacity(
+                                    opacity: _stage(0.5, 0.9),
+                                    child: _HiScore(record: records.endless),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          // 右: メニュー
+                          Expanded(
+                            flex: 7,
+                            child: Center(
+                              child: Opacity(
+                                opacity: _stage(0.25, 0.6),
+                                child: SingleChildScrollView(
+                                  clipBehavior: Clip.none, // 窓の影を切らない
+                                  child: PixelWindow(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        for (var i = 0; i < entries.length; i++)
+                                          Opacity(
+                                            opacity: _stage(
+                                              0.25 + i * 0.07,
+                                              0.6 + i * 0.07,
+                                            ),
+                                            child: _MenuItem(
+                                              entry: entries[i],
+                                              squeeze: menuSqueeze,
+                                              selected: i == _selected,
+                                              firing: _firing == i,
+                                              onHover: () => _select(i),
+                                              onTap: () =>
+                                                  _activate(entries, i),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                  ]),
-                ),
-              );
-            }),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: SafeArea(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _tapVersion,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Text('VER $_version', style: pixelFont(10, color: withAlpha(Palette.pale, 0.4), letterSpacing: 3)),
+                  );
+                },
+              ),
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: SafeArea(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _tapVersion,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Text(
+                      'VER $_version',
+                      style: pixelFont(
+                        10,
+                        color: withAlpha(Palette.pale, 0.4),
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }
@@ -276,11 +368,13 @@ class _Shade extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
-        child: Row(children: [
-          Expanded(flex: 11, child: ColoredBox(color: withAlpha(Dot.ink, 0.7))),
-          Expanded(flex: 7, child: ColoredBox(color: withAlpha(Dot.ink, 0.45))),
-        ]),
-      );
+    child: Row(
+      children: [
+        Expanded(flex: 11, child: ColoredBox(color: withAlpha(Dot.ink, 0.7))),
+        Expanded(flex: 7, child: ColoredBox(color: withAlpha(Dot.ink, 0.45))),
+      ],
+    ),
+  );
 }
 
 /// メニューの 1 項目。選ぶと ▶ が点滅し、決めた瞬間は項目が反転する。
@@ -309,7 +403,11 @@ class _MenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = entry.primary ? 24.0 : 18.0;
-    final color = firing ? Dot.ink : selected ? Palette.white : Palette.gray;
+    final color = firing
+        ? Dot.ink
+        : selected
+        ? Palette.white
+        : Palette.gray;
     return Semantics(
       button: true,
       label: entry.label,
@@ -322,32 +420,64 @@ class _MenuItem extends StatelessWidget {
           onTap: onTap,
           child: SizedBox(
             height: minHeight + (heightOf(entry) - minHeight) * squeeze,
-            child: Stack(alignment: Alignment.centerLeft, children: [
-              if (firing) const Positioned.fill(child: ColoredBox(color: Palette.yellow)),
-              if (selected && !firing) const Positioned(left: 10, child: BlinkCursor()),
-              Padding(
-                padding: const EdgeInsets.only(left: 34, right: 16),
-                child: Row(children: [
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        entry.label,
-                        style: pixelFont(size, color: color, weight: 800, letterSpacing: 2)
-                            .copyWith(shadows: selected && !firing ? hardShadow(size) : null),
-                      ),
-                    ),
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                if (firing)
+                  const Positioned.fill(
+                    child: ColoredBox(color: Palette.yellow),
                   ),
-                  if (entry.meta.isNotEmpty) ...[
-                    const SizedBox(width: 12),
-                    Text(entry.meta,
-                        style: pixelFont(10, color: firing ? Dot.ink : selected ? Palette.yellow : Palette.gray, letterSpacing: 2)
-                            .copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
-                  ],
-                ]),
-              ),
-            ]),
+                if (selected && !firing)
+                  const Positioned(left: 10, child: BlinkCursor()),
+                Padding(
+                  padding: const EdgeInsets.only(left: 34, right: 16),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            entry.label,
+                            style:
+                                pixelFont(
+                                  size,
+                                  color: color,
+                                  weight: 800,
+                                  letterSpacing: 2,
+                                ).copyWith(
+                                  shadows: selected && !firing
+                                      ? hardShadow(size)
+                                      : null,
+                                ),
+                          ),
+                        ),
+                      ),
+                      if (entry.meta.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        Text(
+                          entry.meta,
+                          style:
+                              pixelFont(
+                                10,
+                                color: firing
+                                    ? Dot.ink
+                                    : selected
+                                    ? Palette.yellow
+                                    : Palette.gray,
+                                letterSpacing: 2,
+                              ).copyWith(
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -363,20 +493,48 @@ class _HiScore extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const tab = [FontFeature.tabularFigures()];
-    return Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-      Container(width: 4, height: 44, color: Palette.main, margin: const EdgeInsets.only(right: 12)),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text('HI-SCORE', style: pixelFont(12, color: Palette.main, letterSpacing: 3)),
-        const SizedBox(height: 2),
-        Text(formatScore(record.bestScore),
-            style: pixelFont(28, weight: 900, letterSpacing: 2).copyWith(fontFeatures: tab)),
-      ]),
-      const SizedBox(width: 22),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Text('MAX ROUND ${record.bestRound.toString().padLeft(2, '0')}',
-            style: pixelFont(11, color: withAlpha(Palette.pale, 0.7), letterSpacing: 3).copyWith(fontFeatures: tab)),
-      ),
-    ]);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          width: 4,
+          height: 44,
+          color: Palette.main,
+          margin: const EdgeInsets.only(right: 12),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'HI-SCORE',
+              style: pixelFont(12, color: Palette.main, letterSpacing: 3),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              formatScore(record.bestScore),
+              style: pixelFont(
+                28,
+                weight: 900,
+                letterSpacing: 2,
+              ).copyWith(fontFeatures: tab),
+            ),
+          ],
+        ),
+        const SizedBox(width: 22),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            'MAX ROUND ${record.bestRound.toString().padLeft(2, '0')}',
+            style: pixelFont(
+              11,
+              color: withAlpha(Palette.pale, 0.7),
+              letterSpacing: 3,
+            ).copyWith(fontFeatures: tab),
+          ),
+        ),
+      ],
+    );
   }
 }

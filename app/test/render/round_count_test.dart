@@ -19,19 +19,43 @@ class _RecordingText extends TextCache {
   final drawn = <String>[];
 
   @override
-  void draw(Canvas canvas, String text, double x, double y, double size, Color color,
-      {TextAlignH align = TextAlignH.center, double weight = 700, String? family}) {
+  void draw(
+    Canvas canvas,
+    String text,
+    double x,
+    double y,
+    double size,
+    Color color, {
+    TextAlignH align = TextAlignH.center,
+    double weight = 700,
+    String? family,
+  }) {
     drawn.add(text);
-    super.draw(canvas, text, x, y, size, color, align: align, weight: weight, family: family);
+    super.draw(
+      canvas,
+      text,
+      x,
+      y,
+      size,
+      color,
+      align: align,
+      weight: weight,
+      family: family,
+    );
   }
 }
 
 final _campaign = Campaign.fromJson(
-    jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
+  jsonDecode(File('assets/stages/campaign.json').readAsStringSync())
+      as Map<String, Object?>,
+  endlessContent,
+);
 
 /// [id] の面 (null ならエンドレス) を [round] ラウンド目から始め、帯が開ききるまで進めてから 1 枚描き、描いた文字を返す。
 List<String> _draw(String? id, {int round = 1}) {
-  final w = World(mode: id == null ? endlessMode : StageMode(_campaign.stage(id)!))..start(fromRound: round);
+  final w = World(
+    mode: id == null ? endlessMode : StageMode(_campaign.stage(id)!),
+  )..start(fromRound: round);
   final fx = FxState(w);
   for (var i = 0; i < 36; i++) {
     w.step(World.dt);
@@ -64,8 +88,17 @@ void main() {
   });
 
   test('3-9 / 6-9 は /3、4-9 / 5-9 は /2 で出る', () {
-    for (final (id, total) in [('3-9', 3), ('6-9', 3), ('4-9', 2), ('5-9', 2)]) {
-      expect(_draw(id), containsAll(['1/$total', 'ROUND 1/$total']), reason: id);
+    for (final (id, total) in [
+      ('3-9', 3),
+      ('6-9', 3),
+      ('4-9', 2),
+      ('5-9', 2),
+    ]) {
+      expect(
+        _draw(id),
+        containsAll(['1/$total', 'ROUND 1/$total']),
+        reason: id,
+      );
     }
   });
 

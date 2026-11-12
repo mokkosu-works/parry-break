@@ -30,20 +30,26 @@ const _pendingEndless = {'S'};
 const _pendingStage = {'K', 'T', 'B', 'R', 'M', 'S', 'X'};
 
 Set<String> _ids(LayoutContent c) => {
-      for (var r = 0; r < c.rows.length; r++)
-        for (var k = 0; k < c.rows[r].length; k++)
-          if (c.rows[r][k] != '.') c.blockIdAt(r, k),
-    };
+  for (var r = 0; r < c.rows.length; r++)
+    for (var k = 0; k < c.rows[r].length; k++)
+      if (c.rows[r][k] != '.') c.blockIdAt(r, k),
+};
 
 /// 初登場のラウンドで、説明が付いていないブロック (`場所: 種類`)。
-List<String> _missing(Iterable<(String, RoundSpec)> rounds, Set<String> pending, {required Set<String> appear}) {
+List<String> _missing(
+  Iterable<(String, RoundSpec)> rounds,
+  Set<String> pending, {
+  required Set<String> appear,
+}) {
   final seen = <String>{}, missing = <String>[];
   for (final (where, spec) in rounds) {
     final c = spec.content;
     if (c is! LayoutContent) continue; // ボス戦では配置も説明も使われない
     for (final id in _ids(c)) {
       if (!seen.add(id) || !blockIntros.containsKey(id)) continue;
-      if (spec.introKey != blockIntros[id] && !pending.contains(id)) missing.add('$where: $id (${spec.introKey})');
+      if (spec.introKey != blockIntros[id] && !pending.contains(id)) {
+        missing.add('$where: $id (${spec.introKey})');
+      }
     }
   }
   expect(seen, containsAll(appear), reason: '出てくるはずの種類が出てこない');
@@ -52,14 +58,25 @@ List<String> _missing(Iterable<(String, RoundSpec)> rounds, Set<String> pending,
 
 void main() {
   final campaign = Campaign.fromJson(
-      jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
+    jsonDecode(File('assets/stages/campaign.json').readAsStringSync())
+        as Map<String, Object?>,
+    endlessContent,
+  );
 
   test('エンドレスで、ブロックの種類ごとに初登場のラウンドに説明が付いている', () {
     final rounds = [
-      for (var n = 1; n <= endlessContent.roundsPerLoop; n++) ('R$n', endlessMode.roundAt(n)),
+      for (var n = 1; n <= endlessContent.roundsPerLoop; n++)
+        ('R$n', endlessMode.roundAt(n)),
     ];
     // 攻撃ブロック (F・G・O・Z・P) はステージモードだけに出てくる
-    expect(_missing(rounds, _pendingEndless, appear: {'K', 'T', 'B', 'R', 'M', 'S', 'X', '#'}), isEmpty);
+    expect(
+      _missing(
+        rounds,
+        _pendingEndless,
+        appear: {'K', 'T', 'B', 'R', 'M', 'S', 'X', '#'},
+      ),
+      isEmpty,
+    );
   });
 
   test('ステージモードで、ブロックの種類ごとに初登場の面に説明が付いている', () {
@@ -67,7 +84,10 @@ void main() {
       for (final s in campaign.stages)
         for (final w in s.rounds) ('${s.id} の ${w.number} ラウンド目', w),
     ];
-    expect(_missing(rounds, _pendingStage, appear: blockIntros.keys.toSet()), isEmpty);
+    expect(
+      _missing(rounds, _pendingStage, appear: blockIntros.keys.toSet()),
+      isEmpty,
+    );
   });
 
   test('破壊不可ブロックは、エンドレスの R12 とステージの 2-8 で説明付きで初登場する', () {
@@ -78,7 +98,9 @@ void main() {
     expect(endlessContent.handcrafted[12], isNull);
     for (var n = 1; n < 12; n++) {
       final c = endlessMode.roundAt(n).content;
-      if (c is LayoutContent) expect(_ids(c), isNot(contains('#')), reason: 'R$n');
+      if (c is LayoutContent) {
+        expect(_ids(c), isNot(contains('#')), reason: 'R$n');
+      }
     }
 
     final s28 = campaign.stage('2-8')!.rounds.single;

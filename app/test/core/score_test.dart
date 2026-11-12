@@ -47,7 +47,11 @@ Bonus? bonus(List<Bonus> list, String prefix) {
 
 /// [y] (ブロックの中心の高さ) に通常ブロックを置いてボールで壊したときの得点。
 int normalPoints(World w, double centerY) {
-  final b = w.addBlock('N', Field.gridX0, centerY - w.form.oy - Field.cellH / 2);
+  final b = w.addBlock(
+    'N',
+    Field.gridX0,
+    centerY - w.form.oy - Field.cellH / 2,
+  );
   w.destroyBlock(b, DestroyCause.ball);
   return w.drainEvents().whereType<BlockDestroyed>().single.points;
 }
@@ -72,27 +76,31 @@ List<GameEvent> parryOnce(World w) {
 
 void main() {
   group('ラウンドクリアのボーナス', () {
-    test('ROUND CLEAR は 5,000 × 倍率、DISTANCE は残り距離 × 20、NO-MISS CHAIN は連続数 × 500', () {
-      final w = launched(['......N.......']);
-      w
-        ..combo = 300 // 段階3 (倍率 4)
-        ..streak = 3;
-      final blk = w.blocks.single;
-      final bottom = blk.y + w.form.oy + blk.h;
-      expect(w.lowest, closeTo(bottom, 1e-9));
-      final dist = (Field.warnY - bottom).round();
-      final before = w.score + blk.behavior.basePoints(blk, w) * w.mult;
-      final bonuses = clearNow(w);
-      expect(w.mult, 4);
-      expect(bonus(bonuses, 'ROUND CLEAR')!.points, 5000 * 4);
-      expect(bonus(bonuses, 'DISTANCE')!.label, 'DISTANCE ${dist}px');
-      expect(bonus(bonuses, 'DISTANCE')!.points, dist * 20);
-      expect(bonus(bonuses, 'NO-MISS CHAIN')!.points, 3 * 500);
-      expect(bonus(bonuses, 'BOSS DESTROYED'), isNull);
-      expect(bonus(bonuses, 'ALL ROUNDS CLEAR'), isNull);
-      // ボーナスはすべて得点に入る
-      expect(w.score - before, bonuses.fold<int>(0, (s, b) => s + b.points));
-    });
+    test(
+      'ROUND CLEAR は 5,000 × 倍率、DISTANCE は残り距離 × 20、NO-MISS CHAIN は連続数 × 500',
+      () {
+        final w = launched(['......N.......']);
+        w
+          ..combo =
+              300 // 段階3 (倍率 4)
+          ..streak = 3;
+        final blk = w.blocks.single;
+        final bottom = blk.y + w.form.oy + blk.h;
+        expect(w.lowest, closeTo(bottom, 1e-9));
+        final dist = (Field.warnY - bottom).round();
+        final before = w.score + blk.behavior.basePoints(blk, w) * w.mult;
+        final bonuses = clearNow(w);
+        expect(w.mult, 4);
+        expect(bonus(bonuses, 'ROUND CLEAR')!.points, 5000 * 4);
+        expect(bonus(bonuses, 'DISTANCE')!.label, 'DISTANCE ${dist}px');
+        expect(bonus(bonuses, 'DISTANCE')!.points, dist * 20);
+        expect(bonus(bonuses, 'NO-MISS CHAIN')!.points, 3 * 500);
+        expect(bonus(bonuses, 'BOSS DESTROYED'), isNull);
+        expect(bonus(bonuses, 'ALL ROUNDS CLEAR'), isNull);
+        // ボーナスはすべて得点に入る
+        expect(w.score - before, bonuses.fold<int>(0, (s, b) => s + b.points));
+      },
+    );
 
     test('パリィの連続がなければ NO-MISS CHAIN は付かない', () {
       final w = launched(['......N.......']);
@@ -103,7 +111,8 @@ void main() {
     test('10 秒以内の全消しで ANNIHILATION 20,000 × 倍率、10 秒を超えたら付かない', () {
       final inTime = launched(['......N.......']);
       inTime
-        ..combo = 100 // 段階2 (倍率 2)
+        ..combo =
+            100 // 段階2 (倍率 2)
         ..roundTime = 10 - World.dt - 0.001; // クリアのステップで 9.999 秒
       final a = bonus(clearNow(inTime), 'ANNIHILATION');
       expect(inTime.mult, 2);
@@ -167,7 +176,12 @@ void main() {
       final target = w.blocks.first;
       final base = target.behavior.basePoints(target, w);
       // ブロックの真下から、撃ち返した弾を真上へ飛ばす
-      w.fireBullet(target.x + w.form.ox + target.w / 2, target.y + w.form.oy + target.h + 40, -math.pi / 2, 600);
+      w.fireBullet(
+        target.x + w.form.ox + target.w / 2,
+        target.y + w.form.oy + target.h + 40,
+        -math.pi / 2,
+        600,
+      );
       w.bullets.last.hostile = false;
       final s0 = w.score;
       final events = run(w, 0.2);
@@ -344,7 +358,12 @@ void main() {
     final w = ready(['N............N']);
     w.combo = 100; // 倍率 2
     final s0 = w.score;
-    w.fireBullet(w.paddle.x + w.paddleWidth / 2 + 6 + 10, Field.paddleY - 30, math.pi / 2, 300);
+    w.fireBullet(
+      w.paddle.x + w.paddleWidth / 2 + 6 + 10,
+      Field.paddleY - 30,
+      math.pi / 2,
+      300,
+    );
     final events = run(w, 0.5);
     expect(events.whereType<Grazed>(), hasLength(1));
     expect(w.score - s0, 50 * 2);

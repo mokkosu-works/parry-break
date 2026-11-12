@@ -12,8 +12,11 @@ const w2 = [
   '..NNN....NNN..',
 ];
 
-Block at(World w, int row, int col) => w.blocks.firstWhere((b) =>
-    b.x == Field.gridX0 + col * Field.cellW && b.y == Field.gridY0 + row * Field.cellH);
+Block at(World w, int row, int col) => w.blocks.firstWhere(
+  (b) =>
+      b.x == Field.gridX0 + col * Field.cellW &&
+      b.y == Field.gridY0 + row * Field.cellH,
+);
 
 void main() {
   group('崩落', () {
@@ -41,7 +44,10 @@ void main() {
       w.destroyBlock(at(w, 0, 3), DestroyCause.ball);
       final before = w.score;
       final events = run(w, 2);
-      final fell = events.whereType<Popup>().where((p) => p.kind == PopupKind.score).fold(0, (s, p) => s + p.amount);
+      final fell = events
+          .whereType<Popup>()
+          .where((p) => p.kind == PopupKind.score)
+          .fold(0, (s, p) => s + p.amount);
       expect(w.score - before, fell + 14 * 14 * 10 * w.mult);
     });
   });
@@ -54,10 +60,14 @@ void main() {
       expect(w.roundTime, 0);
       w.pressAction(w.t);
       var prev = w.roundTime;
-      run(w, 2, before: () {
-        expect(w.roundTime, greaterThanOrEqualTo(prev));
-        prev = w.roundTime;
-      });
+      run(
+        w,
+        2,
+        before: () {
+          expect(w.roundTime, greaterThanOrEqualTo(prev));
+          prev = w.roundTime;
+        },
+      );
       expect(w.launched, isTrue);
       expect(w.roundTime, closeTo(2, 0.05));
     });
@@ -137,7 +147,12 @@ void main() {
       w.odTime = 0.01;
       final events = run(w, 0.5);
       expect(events.whereType<FeverTimeEnded>().single.byHit, isFalse);
-      expect(events.whereType<BlastExploded>().where((e) => e.kind == BlastKind.phantom), hasLength(1));
+      expect(
+        events.whereType<BlastExploded>().where(
+          (e) => e.kind == BlastKind.phantom,
+        ),
+        hasLength(1),
+      );
       expect(w.combo, inInclusiveRange(240, 250)); // 段階3 (250) に戻り、その後は減衰
     });
   });
@@ -204,7 +219,8 @@ void main() {
     });
 
     test('start() で、前のプレイのクリア・ゲームオーバーの演出用の値も最初の状態に戻る', () {
-      final fresh = World(mode: const SingleRoundMode(['NNNNNNNNNNNNNN']))..start();
+      final fresh = World(mode: const SingleRoundMode(['NNNNNNNNNNNNNN']))
+        ..start();
       final w = World(mode: const SingleRoundMode(['NNNNNNNNNNNNNN']))..start();
       w
         ..bonuses = const [Bonus('ROUND CLEAR  ×1', 5000)]

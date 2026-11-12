@@ -13,8 +13,11 @@ World ready(List<String> rows) {
   return w;
 }
 
-Block cell(World w, int row, int col) => w.blocks.firstWhere((b) =>
-    b.x == Field.gridX0 + col * Field.cellW && b.y == Field.gridY0 + row * Field.cellH);
+Block cell(World w, int row, int col) => w.blocks.firstWhere(
+  (b) =>
+      b.x == Field.gridX0 + col * Field.cellW &&
+      b.y == Field.gridY0 + row * Field.cellH,
+);
 
 /// [b] の下から、ボール [ball] を真上へ飛ばす ([dx] は中心からの横のずれ)。
 void aimUp(World w, Ball ball, Block b, {double dx = 0}) {
@@ -30,10 +33,11 @@ void aimUp(World w, Ball ball, Block b, {double dx = 0}) {
 List<GameEvent> untilHit(World w, Block b, {int limit = 30}) {
   final events = <GameEvent>[];
   bool hit(GameEvent e) => switch (e) {
-        BlockDestroyed(:final block) || BlockDamaged(:final block) || BlockDeflected(:final block) =>
-          identical(block, b),
-        _ => false,
-      };
+    BlockDestroyed(:final block) ||
+    BlockDamaged(:final block) ||
+    BlockDeflected(:final block) => identical(block, b),
+    _ => false,
+  };
   for (var i = 0; i < limit && !events.any(hit); i++) {
     w.step(World.dt);
     events.addAll(w.drainEvents());
@@ -137,7 +141,10 @@ void main() {
       final events = untilHit(w, x);
       expect(events.whereType<BreakerTriggered>(), hasLength(1));
       expect(x.removed, isTrue);
-      expect(events.whereType<BlockDestroyed>().single.cause, DestroyCause.blast);
+      expect(
+        events.whereType<BlockDestroyed>().single.cause,
+        DestroyCause.blast,
+      );
     });
 
     test('FEVER TIME 中のボールで壊れる', () {
@@ -160,7 +167,12 @@ void main() {
     test('撃ち返し弾をパドルへ跳ね返す (敵弾に戻る)', () {
       final w = ready(['......X......N']);
       final x = cell(w, 0, 6);
-      w.fireBullet(x.x + w.form.ox + x.w / 2 - 100, x.y + w.form.oy + x.h + 40, -math.pi / 2, 600);
+      w.fireBullet(
+        x.x + w.form.ox + x.w / 2 - 100,
+        x.y + w.form.oy + x.h + 40,
+        -math.pi / 2,
+        600,
+      );
       final u = w.bullets.single..hostile = false;
       u.x = x.x + w.form.ox + x.w / 2;
       final events = run(w, 0.1);
@@ -179,7 +191,10 @@ void main() {
       w.destroyBlock(cell(w, 0, 13), DestroyCause.ball);
       final events = run(w, World.dt);
       expect(events.whereType<RoundCleared>(), hasLength(1));
-      expect(events.whereType<RoundCleared>().single.remaining.map((b) => b.type), ['X']);
+      expect(
+        events.whereType<RoundCleared>().single.remaining.map((b) => b.type),
+        ['X'],
+      );
     });
   });
 
@@ -278,7 +293,9 @@ void main() {
       expect(e.kind, BlastKind.bomb);
       expect(e.x, closeTo(c.x, 1e-6));
       expect(e.y, closeTo(c.y, 1e-6));
-      final shrapnel = w.bullets.where((u) => u.kind == BulletKind.shrapnel).toList();
+      final shrapnel = w.bullets
+          .where((u) => u.kind == BulletKind.shrapnel)
+          .toList();
       expect(shrapnel, hasLength(3));
       expect(shrapnel.every((u) => u.hostile && u.vy > 0), isTrue);
     });
@@ -355,8 +372,14 @@ void main() {
       expect(e.r, 120);
       expect(target.removed, isTrue);
       expect(mirror.removed, isTrue); // 鏡面
-      expect(w.blocks.any((b) => b.x == Field.gridX0 + 8 * Field.cellW), isFalse);
-      expect(w.blocks.any((b) => b.x == Field.gridX0 + 9 * Field.cellW), isTrue);
+      expect(
+        w.blocks.any((b) => b.x == Field.gridX0 + 8 * Field.cellW),
+        isFalse,
+      );
+      expect(
+        w.blocks.any((b) => b.x == Field.gridX0 + 9 * Field.cellW),
+        isTrue,
+      );
     });
 
     test('ボスのコアに 2 ダメージ', () {
@@ -371,7 +394,11 @@ void main() {
         ..pierce = 0
         ..breaker = true;
       final events = <GameEvent>[];
-      for (var k = 0; k < 60 && !events.any((e) => e is BreakerTriggered); k++) {
+      for (
+        var k = 0;
+        k < 60 && !events.any((e) => e is BreakerTriggered);
+        k++
+      ) {
         ball.x = core.x + w.form.ox + core.w / 2; // 揺れに合わせて真下を保つ
         w.step(World.dt);
         events.addAll(w.drainEvents());
@@ -383,7 +410,11 @@ void main() {
 
   group('ロックオンレーザー', () {
     /// パドルから [dx] だけ横にレーザーを撃ち、[seconds] 秒進めたイベント。
-    (World, List<GameEvent>) laser(double dx, {double seconds = 1.3, void Function(World w)? before}) {
+    (World, List<GameEvent>) laser(
+      double dx, {
+      double seconds = 1.3,
+      void Function(World w)? before,
+    }) {
       final w = ready(['N............N']);
       // ボールは上へ飛ばしておく (押してもボールの発射にならないように)
       w.ball
@@ -403,7 +434,10 @@ void main() {
         for (final e in es) {
           if (e is LaserFired || e is PlayerHurt) {
             // 照射と被弾は予兆の 0.85 秒が過ぎたステップで起きる
-            expect(w.t - t0, inInclusiveRange(0.85 - 1e-9, 0.85 + World.dt + 1e-9));
+            expect(
+              w.t - t0,
+              inInclusiveRange(0.85 - 1e-9, 0.85 + World.dt + 1e-9),
+            );
           }
         }
         events.addAll(es);
@@ -425,12 +459,17 @@ void main() {
 
     test('パリィでは防げない', () {
       var pressed = false;
-      final (w, events) = laser(0, before: (w) {
-        if (!pressed && w.lasers.isNotEmpty && w.lasers.single.t >= 0.85 - 0.04) {
-          w.pressAction(w.t);
-          pressed = true;
-        }
-      });
+      final (w, events) = laser(
+        0,
+        before: (w) {
+          if (!pressed &&
+              w.lasers.isNotEmpty &&
+              w.lasers.single.t >= 0.85 - 0.04) {
+            w.pressAction(w.t);
+            pressed = true;
+          }
+        },
+      );
       expect(pressed, isTrue);
       expect(events.whereType<ParrySucceeded>(), isEmpty);
       expect(events.whereType<PlayerHurt>(), hasLength(1));
@@ -438,9 +477,12 @@ void main() {
     });
 
     test('無敵中は当たらない', () {
-      final (w, events) = laser(0, before: (w) {
-        if (w.paddle.invuln <= 0 && w.stats.hurt == 0) w.paddle.invuln = 2;
-      });
+      final (w, events) = laser(
+        0,
+        before: (w) {
+          if (w.paddle.invuln <= 0 && w.stats.hurt == 0) w.paddle.invuln = 2;
+        },
+      );
       expect(events.whereType<LaserFired>(), hasLength(1));
       expect(events.whereType<PlayerHurt>(), isEmpty);
       expect(w.stats.hurt, 0);

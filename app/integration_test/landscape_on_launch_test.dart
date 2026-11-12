@@ -24,14 +24,16 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final content = await GameContent.load(rootBundle);
-    await t.pumpWidget(ProviderScope(
-      overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-        contentProvider.overrideWithValue(content),
-        leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
-      ],
-      child: const ParryBreakApp(),
-    ));
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
+          contentProvider.overrideWithValue(content),
+          leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
+        ],
+        child: const ParryBreakApp(),
+      ),
+    );
     await t.pump(const Duration(seconds: 3));
 
     final size = t.view.physicalSize;

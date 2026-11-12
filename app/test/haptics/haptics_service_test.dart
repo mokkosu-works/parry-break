@@ -3,8 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:parry_break/core/core.dart';
 import 'package:parry_break/haptics/haptics_service.dart';
 
-ParrySucceeded _parry(ParryGrade g) =>
-    ParrySucceeded(grade: g, target: ParryTarget.ball, x: 0, y: 0, paddleX: 0, streak: 1);
+ParrySucceeded _parry(ParryGrade g) => ParrySucceeded(
+  grade: g,
+  target: ParryTarget.ball,
+  x: 0,
+  y: 0,
+  paddleX: 0,
+  streak: 1,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,16 +22,18 @@ void main() {
   setUp(() {
     calls = [];
     h = HapticsService();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (
-      call,
-    ) async {
-      if (call.method == 'HapticFeedback.vibrate') calls.add(call.arguments as String?);
-      return null;
-    });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+          if (call.method == 'HapticFeedback.vibrate') {
+            calls.add(call.arguments as String?);
+          }
+          return null;
+        });
   });
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null);
   });
 
   const heavy = 'HapticFeedbackType.heavyImpact';
@@ -37,7 +45,9 @@ void main() {
     h
       ..handle(_parry(ParryGrade.just))
       ..handle(const PlayerHurt(0))
-      ..handle(GameOver(reason: 'deadline', score: 0, round: 1, stats: RunStats()))
+      ..handle(
+        GameOver(reason: 'deadline', score: 0, round: 1, stats: RunStats()),
+      )
       ..selection();
     await tester.pump(const Duration(seconds: 1));
     expect(calls, isEmpty);

@@ -19,13 +19,19 @@ class GameController extends ChangeNotifier {
     Difficulty difficulty = Difficulty.normal,
     bool reduceEffects = false,
     double Function()? timeSource,
-  })  : world = World(mode: mode, difficulty: difficulty, inputLag: inputLag),
-        clock = InputClock(source: timeSource) {
+  }) : world = World(mode: mode, difficulty: difficulty, inputLag: inputLag),
+       clock = InputClock(source: timeSource) {
     fx = FxState(world, reduceEffects: reduceEffects);
     session = Session(world, onStep: _onStep);
     if (kPromoAutoplay) {
-      _bot = Bot(world, seed: DateTime.now().millisecondsSinceEpoch & 0xffff, sigma: kPromoSigma, speed: kPromoSpeed,
-          bias: kPromoBias, lagComp: kPromoLagComp);
+      _bot = Bot(
+        world,
+        seed: DateTime.now().millisecondsSinceEpoch & 0xffff,
+        sigma: kPromoSigma,
+        speed: kPromoSpeed,
+        bias: kPromoBias,
+        lagComp: kPromoLagComp,
+      );
     }
   }
 

@@ -27,7 +27,9 @@ void main() {
           final id = c.blockIdAt(r, k);
           if (first.containsKey(id)) continue;
           first[id] = n;
-          if (_intros[id] case final intro?) expect(spec.introKey, intro, reason: 'R$n で $id が初登場');
+          if (_intros[id] case final intro?) {
+            expect(spec.introKey, intro, reason: 'R$n で $id が初登場');
+          }
         }
       }
     }
@@ -38,7 +40,8 @@ void main() {
     final spec = endlessMode.roundAt(21);
     expect(spec.introKey, 'intro.splitter');
     expect(endlessContent.handcrafted[21], isNotNull);
-    final ids = (spec.content as LayoutContent).rows.join().split('').toSet()..remove('.');
+    final ids = (spec.content as LayoutContent).rows.join().split('').toSet()
+      ..remove('.');
     expect(ids, {'S', 'N'});
     // ステージ 2-4 が借りている R20 の配置は変えない
     expect(endlessContent.handcrafted[20], endlessContent.handcrafted[21]);

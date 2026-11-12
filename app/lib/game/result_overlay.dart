@@ -105,14 +105,47 @@ class _ResultOverlayState extends State<ResultOverlay>
   }
 
   /// 結果画面のボタン (NEXT STAGE / RETRY / STAGES / TITLE のうち出すもの)。
-  List<({String label, DotSprite icon, VoidCallback onPressed, bool filled, Color? color})> get _buttons => [
-        if (widget.onNext case final next?)
-          (label: 'NEXT STAGE', icon: PixelIcons.skipNext, onPressed: next, filled: true, color: null),
-        (label: 'RETRY', icon: PixelIcons.replay, onPressed: widget.onRetry, filled: widget.onNext == null, color: null),
-        if (widget.onStageSelect case final stages?)
-          (label: 'STAGES', icon: PixelIcons.grid, onPressed: stages, filled: false, color: null),
-        (label: 'TITLE', icon: PixelIcons.home, onPressed: widget.onTitle, filled: false, color: Palette.gray),
-      ];
+  List<
+    ({
+      String label,
+      DotSprite icon,
+      VoidCallback onPressed,
+      bool filled,
+      Color? color,
+    })
+  >
+  get _buttons => [
+    if (widget.onNext case final next?)
+      (
+        label: 'NEXT STAGE',
+        icon: PixelIcons.skipNext,
+        onPressed: next,
+        filled: true,
+        color: null,
+      ),
+    (
+      label: 'RETRY',
+      icon: PixelIcons.replay,
+      onPressed: widget.onRetry,
+      filled: widget.onNext == null,
+      color: null,
+    ),
+    if (widget.onStageSelect case final stages?)
+      (
+        label: 'STAGES',
+        icon: PixelIcons.grid,
+        onPressed: stages,
+        filled: false,
+        color: null,
+      ),
+    (
+      label: 'TITLE',
+      icon: PixelIcons.home,
+      onPressed: widget.onTitle,
+      filled: false,
+      color: Palette.gray,
+    ),
+  ];
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
@@ -125,7 +158,9 @@ class _ResultOverlayState extends State<ResultOverlay>
     }
     final buttons = _buttons;
     if (arrowStep(key) case final step?) {
-      setState(() => _selected = (_selected + step + buttons.length) % buttons.length);
+      setState(
+        () => _selected = (_selected + step + buttons.length) % buttons.length,
+      );
       return KeyEventResult.handled;
     }
     if (isConfirmKey(key)) {
@@ -166,58 +201,65 @@ class _ResultOverlayState extends State<ResultOverlay>
       focusNode: _focus,
       onKeyEvent: _onKey,
       child: GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () {
-        if (_c.value < 1) _c.value = 1;
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ColoredBox(color: withAlpha(Dot.ink, 0.88)),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: LayoutBuilder(builder: (context, c) {
-                // 大きい画面は 1000×470 の箱を組んで縮める。そのまま縮めるとボタンが 44pt、
-                // 文字が 11pt を下回る画面 (スマホの横画面) では、文字を小さめにした詰めた配置にし、
-                // 縮めずに (または少しだけ縮めて) 出す。
-                final compact = c.maxWidth < _wideSize.width * _minWideScale ||
-                    c.maxHeight < _wideSize.height * _minWideScale;
-                final Widget body;
-                final EdgeInsets padding;
-                if (compact) {
-                  padding = const EdgeInsets.fromLTRB(16, 12, 16, 14);
-                  final w = (c.maxWidth - _windowChrome - padding.horizontal).clamp(_compactMinWidth, _compactMaxWidth);
-                  body = SizedBox(
-                    width: w,
-                    child: AnimatedBuilder(
-                      animation: _c,
-                      builder: (context, _) => _compact(l, d, title, color, win),
-                    ),
-                  );
-                } else {
-                  padding = const EdgeInsets.fromLTRB(28, 22, 28, 26);
-                  body = SizedBox(
-                    width: 1000,
-                    height: 470,
-                    child: AnimatedBuilder(
-                      animation: _c,
-                      builder: (context, _) => _wide(l, d, title, color, win),
-                    ),
-                  );
-                }
-                return Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    // 後ろの盤面が透けて読みにくくならないよう、窓の中に置く
-                    child: PixelWindow(padding: padding, child: body),
-                  ),
-                );
-              }),
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          if (_c.value < 1) _c.value = 1;
+        },
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ColoredBox(color: withAlpha(Dot.ink, 0.88)),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    // 大きい画面は 1000×470 の箱を組んで縮める。そのまま縮めるとボタンが 44pt、
+                    // 文字が 11pt を下回る画面 (スマホの横画面) では、文字を小さめにした詰めた配置にし、
+                    // 縮めずに (または少しだけ縮めて) 出す。
+                    final compact =
+                        c.maxWidth < _wideSize.width * _minWideScale ||
+                        c.maxHeight < _wideSize.height * _minWideScale;
+                    final Widget body;
+                    final EdgeInsets padding;
+                    if (compact) {
+                      padding = const EdgeInsets.fromLTRB(16, 12, 16, 14);
+                      final w =
+                          (c.maxWidth - _windowChrome - padding.horizontal)
+                              .clamp(_compactMinWidth, _compactMaxWidth);
+                      body = SizedBox(
+                        width: w,
+                        child: AnimatedBuilder(
+                          animation: _c,
+                          builder: (context, _) =>
+                              _compact(l, d, title, color, win),
+                        ),
+                      );
+                    } else {
+                      padding = const EdgeInsets.fromLTRB(28, 22, 28, 26);
+                      body = SizedBox(
+                        width: 1000,
+                        height: 470,
+                        child: AnimatedBuilder(
+                          animation: _c,
+                          builder: (context, _) =>
+                              _wide(l, d, title, color, win),
+                        ),
+                      );
+                    }
+                    return Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        // 後ろの盤面が透けて読みにくくならないよう、窓の中に置く
+                        child: PixelWindow(padding: padding, child: body),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -235,7 +277,13 @@ class _ResultOverlayState extends State<ResultOverlay>
   static const _compactMinWidth = 560.0, _compactMaxWidth = 760.0;
 
   /// 見出し (後ろに帯) と、ステージ・難易度・ミスの理由の札。
-  Widget _header(ResultData d, String title, Color color, bool win, {required bool compact}) {
+  Widget _header(
+    ResultData d,
+    String title,
+    Color color,
+    bool win, {
+    required bool compact,
+  }) {
     final stage = d.stage;
     final tags = [
       if (stage != null) ...[
@@ -259,7 +307,8 @@ class _ResultOverlayState extends State<ResultOverlay>
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 PixelTitle(title, size: 30, color: color),
-                if (tags.isNotEmpty) Wrap(spacing: 8, runSpacing: 6, children: tags),
+                if (tags.isNotEmpty)
+                  Wrap(spacing: 8, runSpacing: 6, children: tags),
               ],
             ),
           ),
@@ -285,9 +334,15 @@ class _ResultOverlayState extends State<ResultOverlay>
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    for (final (i, t) in tags.indexed) ...[if (i > 0) const SizedBox(width: 10), t],
-                  ]),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final (i, t) in tags.indexed) ...[
+                        if (i > 0) const SizedBox(width: 10),
+                        t,
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -299,33 +354,43 @@ class _ResultOverlayState extends State<ResultOverlay>
   }
 
   /// ボタンの並び。出きるまでは押せない (演出を飛ばすつもりのタップが、見えていないボタンに当たらないように)。
-  Widget _buttonRow({double fontSize = 18, double spacing = 14, bool dense = false}) => IgnorePointer(
-        ignoring: _p(0.78, 0.95) < 1,
-        child: _in(
-          0.78,
-          0.95,
-          Wrap(
-            spacing: spacing,
-            runSpacing: 10,
-            children: [
-              for (final (i, b) in _buttons.indexed)
-                PixelButton(
-                  label: b.label,
-                  filled: b.filled,
-                  color: b.color,
-                  icon: b.icon,
-                  fontSize: fontSize,
-                  dense: dense,
-                  selected: i == _selected,
-                  onPressed: b.onPressed,
-                ),
-            ],
-          ),
-        ),
-      );
+  Widget _buttonRow({
+    double fontSize = 18,
+    double spacing = 14,
+    bool dense = false,
+  }) => IgnorePointer(
+    ignoring: _p(0.78, 0.95) < 1,
+    child: _in(
+      0.78,
+      0.95,
+      Wrap(
+        spacing: spacing,
+        runSpacing: 10,
+        children: [
+          for (final (i, b) in _buttons.indexed)
+            PixelButton(
+              label: b.label,
+              filled: b.filled,
+              color: b.color,
+              icon: b.icon,
+              fontSize: fontSize,
+              dense: dense,
+              selected: i == _selected,
+              onPressed: b.onPressed,
+            ),
+        ],
+      ),
+    ),
+  );
 
   /// 大きい画面の配置 (1000×470 の箱)。
-  Widget _wide(AppLocalizations l, ResultData d, String title, Color color, bool win) {
+  Widget _wide(
+    AppLocalizations l,
+    ResultData d,
+    String title,
+    Color color,
+    bool win,
+  ) {
     final stage = d.stage;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,7 +407,10 @@ class _ResultOverlayState extends State<ResultOverlay>
                 width: 2,
                 color: withAlpha(Dot.edge, _p(0.3, 0.5)),
               ),
-              Expanded(flex: 9, child: stage == null ? _stats(d) : _stars(l, d, stage)),
+              Expanded(
+                flex: 9,
+                child: stage == null ? _stats(d) : _stars(l, d, stage),
+              ),
             ],
           ),
         ),
@@ -352,7 +420,13 @@ class _ResultOverlayState extends State<ResultOverlay>
   }
 
   /// スマホの横画面などの狭い画面の配置。文字は 12 以上、ボタンは高さ 48 のまま、縮めずに出す。
-  Widget _compact(AppLocalizations l, ResultData d, String title, Color color, bool win) {
+  Widget _compact(
+    AppLocalizations l,
+    ResultData d,
+    String title,
+    Color color,
+    bool win,
+  ) {
     final stage = d.stage;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -371,9 +445,16 @@ class _ResultOverlayState extends State<ResultOverlay>
               child: Container(
                 padding: const EdgeInsets.only(left: 14),
                 decoration: BoxDecoration(
-                  border: Border(left: BorderSide(color: withAlpha(Dot.edge, _p(0.3, 0.5)), width: 2)),
+                  border: Border(
+                    left: BorderSide(
+                      color: withAlpha(Dot.edge, _p(0.3, 0.5)),
+                      width: 2,
+                    ),
+                  ),
                 ),
-                child: stage == null ? _stats(d, compact: true) : _stars(l, d, stage, compact: true),
+                child: stage == null
+                    ? _stats(d, compact: true)
+                    : _stars(l, d, stage, compact: true),
               ),
             ),
           ],
@@ -388,7 +469,9 @@ class _ResultOverlayState extends State<ResultOverlay>
   Widget _score(ResultData d, {bool compact = false}) {
     final big = compact ? 44.0 : 84.0;
     // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える
-    final note = d.stage != null && !d.cleared ? AppLocalizations.of(context).bestScoreClearOnly : null;
+    final note = d.stage != null && !d.cleared
+        ? AppLocalizations.of(context).bestScoreClearOnly
+        : null;
     final t = _p(0.12, 0.55, Curves.easeOutQuart);
     final shown = (d.score * t).round();
     final stampT = _p(0.56, 0.66, Curves.easeOutBack);
@@ -404,7 +487,11 @@ class _ResultOverlayState extends State<ResultOverlay>
             children: [
               Text(
                 'SCORE',
-                style: pixelFont(compact ? 13 : 16, color: Palette.pale, letterSpacing: compact ? 3 : 4),
+                style: pixelFont(
+                  compact ? 13 : 16,
+                  color: Palette.pale,
+                  letterSpacing: compact ? 3 : 4,
+                ),
               ),
               SizedBox(height: compact ? 2 : 4),
               FittedBox(
@@ -422,7 +509,11 @@ class _ResultOverlayState extends State<ResultOverlay>
               SizedBox(height: compact ? 10 : 14),
               Row(
                 children: [
-                  Container(width: 4, height: compact ? 22 : 30, color: Palette.main),
+                  Container(
+                    width: 4,
+                    height: compact ? 22 : 30,
+                    color: Palette.main,
+                  ),
                   SizedBox(width: compact ? 8 : 10),
                   Text(
                     'HI-SCORE',
@@ -439,7 +530,13 @@ class _ResultOverlayState extends State<ResultOverlay>
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
-                        child: Text(formatScore(d.bestScore), style: pixelFont(18, weight: 900).copyWith(fontFeatures: tab)),
+                        child: Text(
+                          formatScore(d.bestScore),
+                          style: pixelFont(
+                            18,
+                            weight: 900,
+                          ).copyWith(fontFeatures: tab),
+                        ),
                       ),
                     )
                   else
@@ -465,7 +562,10 @@ class _ResultOverlayState extends State<ResultOverlay>
               // 狭い画面では HI-SCORE の横に入らないので、下に折り返して出す
               if (note != null && compact) ...[
                 const SizedBox(height: 6),
-                Text(note, style: pixelFont(12, color: Palette.pale, weight: 400)),
+                Text(
+                  note,
+                  style: pixelFont(12, color: Palette.pale, weight: 400),
+                ),
               ],
               if (d.newBest) ...[
                 SizedBox(height: compact ? 14 : 22),
@@ -502,31 +602,36 @@ class _ResultOverlayState extends State<ResultOverlay>
     // 狭い画面では 3 列に並べる (2 列だと縦に入らない)
     return LayoutBuilder(
       builder: (context, c) => Wrap(
-      spacing: 0,
-      runSpacing: compact ? 12 : 22,
-      children: [
-        for (var i = 0; i < items.length; i++)
-          SizedBox(
-            width: compact ? (c.maxWidth / 3).floorToDouble() : 180,
-            child: _in(
-              0.4 + i * 0.04,
-              0.55 + i * 0.04,
-              StatReadout(
-                label: items[i].$1,
-                value: items[i].$2,
-                highlight: items[i].$3,
-                compact: compact,
+        spacing: 0,
+        runSpacing: compact ? 12 : 22,
+        children: [
+          for (var i = 0; i < items.length; i++)
+            SizedBox(
+              width: compact ? (c.maxWidth / 3).floorToDouble() : 180,
+              child: _in(
+                0.4 + i * 0.04,
+                0.55 + i * 0.04,
+                StatReadout(
+                  label: items[i].$1,
+                  value: items[i].$2,
+                  highlight: items[i].$3,
+                  compact: compact,
+                ),
+                from: const Offset(24, 0),
               ),
-              from: const Offset(24, 0),
             ),
-          ),
-      ],
-    ),
+        ],
+      ),
     );
   }
 
   /// ステージの星 (1 つずつ弾けるように付く)。
-  Widget _stars(AppLocalizations l, ResultData d, StageDef stage, {bool compact = false}) {
+  Widget _stars(
+    AppLocalizations l,
+    ResultData d,
+    StageDef stage, {
+    bool compact = false,
+  }) {
     final gap = compact ? 14.0 : 36.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -548,9 +653,21 @@ class _ResultOverlayState extends State<ResultOverlay>
             spacing: gap,
             runSpacing: 8,
             children: [
-              StatReadout(label: 'TIME', value: _time(d.stats.playTime), compact: compact),
-              StatReadout(label: 'JUST', value: '${d.stats.just}', compact: compact),
-              StatReadout(label: 'MAX CHAIN', value: '${d.maxChain}', compact: compact),
+              StatReadout(
+                label: 'TIME',
+                value: _time(d.stats.playTime),
+                compact: compact,
+              ),
+              StatReadout(
+                label: 'JUST',
+                value: '${d.stats.just}',
+                compact: compact,
+              ),
+              StatReadout(
+                label: 'MAX CHAIN',
+                value: '${d.maxChain}',
+                compact: compact,
+              ),
             ],
           ),
         ),
@@ -568,8 +685,15 @@ class _ResultOverlayState extends State<ResultOverlay>
           Transform.scale(
             scale: got && t < 0.6 ? 1.4 : 1,
             child: SizedBox(
-                width: compact ? 26 : 40,
-                child: Center(child: PixelStar(got: got, size: compact ? 22 : 36, shadow: true))),
+              width: compact ? 26 : 40,
+              child: Center(
+                child: PixelStar(
+                  got: got,
+                  size: compact ? 22 : 36,
+                  shadow: true,
+                ),
+              ),
+            ),
           ),
           SizedBox(width: compact ? 10 : 14),
           Expanded(
@@ -603,7 +727,10 @@ class _Stamp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.symmetric(horizontal: size * 16 / 22, vertical: size * 7 / 22),
+    padding: EdgeInsets.symmetric(
+      horizontal: size * 16 / 22,
+      vertical: size * 7 / 22,
+    ),
     decoration: BoxDecoration(
       color: Palette.yellow,
       border: Border.all(color: Dot.light(Palette.yellow), width: 3),
@@ -629,7 +756,10 @@ class _Backdrop extends CustomPainter {
       p.color = withAlpha(color, 0.2 - i * 0.06);
       canvas.drawRect(Rect.fromLTWH(w * i / 3, 0, w / 3, h), p);
     }
-    canvas.drawRect(Rect.fromLTWH(0, h, w, 4), p..color = withAlpha(color, 0.7));
+    canvas.drawRect(
+      Rect.fromLTWH(0, h, w, 4),
+      p..color = withAlpha(color, 0.7),
+    );
   }
 
   @override

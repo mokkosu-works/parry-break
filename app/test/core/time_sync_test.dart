@@ -111,7 +111,10 @@ void main() {
       expect(w.sync.scale, 0.35);
       expect(w.sync.toSim(0.05 + 0.1), closeTo(sim + 0.035, 1e-9));
       // スローモーションが明けた後は等速
-      expect(w.sync.toSim(0.05 + 0.15 + 0.1), closeTo(sim + 0.15 * 0.35 + 0.1, 1e-9));
+      expect(
+        w.sync.toSim(0.05 + 0.15 + 0.1),
+        closeTo(sim + 0.15 * 0.35 + 0.1, 1e-9),
+      );
       // 押した後に届くまでに進んだ分も 0.35 倍で戻す
       expect(w.sync.toSim(0.05 - 0.02), closeTo(sim - 0.02 * 0.35, 1e-9));
     });

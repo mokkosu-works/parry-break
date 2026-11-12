@@ -25,29 +25,31 @@ void main() {
       ..physicalSize = const Size(1600, 740)
       ..devicePixelRatio = 1;
     addTearDown(t.view.reset);
-    await t.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: Locale(locale),
-      home: ResultOverlay(
-        data: ResultData(
-          score: 1700,
-          round: 1,
-          maxChain: 2,
-          stats: RunStats(),
-          reason: 'BALL LOST',
-          newBest: false,
-          bestScore: bestScore,
-          bestRound: 1,
-          stage: stage,
-          cleared: cleared,
-          achieved: stage == null ? null : [cleared, false],
+    await t.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: Locale(locale),
+        home: ResultOverlay(
+          data: ResultData(
+            score: 1700,
+            round: 1,
+            maxChain: 2,
+            stats: RunStats(),
+            reason: 'BALL LOST',
+            newBest: false,
+            bestScore: bestScore,
+            bestRound: 1,
+            stage: stage,
+            cleared: cleared,
+            achieved: stage == null ? null : [cleared, false],
+          ),
+          onRetry: () {},
+          onTitle: () {},
+          reduceMotion: true,
         ),
-        onRetry: () {},
-        onTitle: () {},
-        reduceMotion: true,
       ),
-    ));
+    );
   }
 
   testWidgets('まだクリアしていないステージで失敗すると、HI-SCORE の行に添え書きが出る', (t) async {

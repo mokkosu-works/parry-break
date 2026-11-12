@@ -19,6 +19,10 @@ class NormalBlock extends BlockBehavior {
   /// 高さの段 (0: 上段 / 1: 中段 / 2: 下段)。
   static int tierOf(Block b, World w) {
     final d = Field.warnY - (b.y + w.form.oy + b.h / 2);
-    return d < 140 ? 2 : d < 280 ? 1 : 0;
+    return d < 140
+        ? 2
+        : d < 280
+        ? 1
+        : 0;
   }
 }

@@ -10,11 +10,14 @@ const bool kPromoAutoplay = bool.fromEnvironment('PROMO_AUTOPLAY');
 /// - PROMO_SIGMA: パリィを押す時刻のぶれ (秒)。判定は ±0.10 秒で通常、±0.03 秒で PERFECT、±0.012 秒で JUST。
 ///   0.06 だと PERFECT は時々、通常のパリィが多く、1 割ほどは外す
 /// - PROMO_SPEED: パドルの最高速 (px/秒)。遅いほど、遠い弾や球に間に合わず取りこぼす
-final double kPromoSigma = double.tryParse(const String.fromEnvironment('PROMO_SIGMA')) ?? 0.06;
-final double kPromoSpeed = double.tryParse(const String.fromEnvironment('PROMO_SPEED')) ?? 650;
+final double kPromoSigma =
+    double.tryParse(const String.fromEnvironment('PROMO_SIGMA')) ?? 0.06;
+final double kPromoSpeed =
+    double.tryParse(const String.fromEnvironment('PROMO_SPEED')) ?? 650;
 
 /// PROMO_BIAS: 接触の何秒前に押すか (JUST 狙い版は 0)。PROMO_LAG_COMP=true で入力補正を打ち消す (JUST 狙い版)
-final double kPromoBias = double.tryParse(const String.fromEnvironment('PROMO_BIAS')) ?? 0.02;
+final double kPromoBias =
+    double.tryParse(const String.fromEnvironment('PROMO_BIAS')) ?? 0.02;
 const bool kPromoLagComp = bool.fromEnvironment('PROMO_LAG_COMP');
 
 /// 難易度の確認用の自動プレイ。上手なプレイヤーを真似る:
@@ -28,8 +31,14 @@ const bool kPromoLagComp = bool.fromEnvironment('PROMO_LAG_COMP');
 class Bot {
   /// [bias] はパリィを接触の何秒前に押すか。既定の 0.02 は PERFECT (±0.03 秒) を狙う押し方で、JUST (±0.012 秒) は出ない。
   /// [lagComp] が true のときは、ゲーム側の入力補正 ([World.inputLag]) を打ち消すように押す。撮影用の JUST 狙い版が使う。
-  Bot(this.w, {int seed = 1, this.sigma = 0.035, this.speed = 1500, this.bias = 0.02, this.lagComp = false})
-    : _r = Mulberry32(seed * 7919 + 13);
+  Bot(
+    this.w, {
+    int seed = 1,
+    this.sigma = 0.035,
+    this.speed = 1500,
+    this.bias = 0.02,
+    this.lagComp = false,
+  }) : _r = Mulberry32(seed * 7919 + 13);
 
   final World w;
   final double sigma, speed, bias;
@@ -80,7 +89,9 @@ class Bot {
       final tu = (Field.paddleY - u.r - u.y) / u.vy;
       if (tu > 0.9 || u.y > Field.paddleY + Field.paddleH + u.r) continue;
       // すでにパドルの高さにある弾は、横から当たらないように避ける
-      threats.add(tu < 0 ? (0.0, u.x + u.vx * 0.05, u.r + 6) : (tu, u.x + u.vx * tu, u.r));
+      threats.add(
+        tu < 0 ? (0.0, u.x + u.vx * 0.05, u.r + 6) : (tu, u.x + u.vx * tu, u.r),
+      );
     }
     final lasers = [
       for (final l in w.lasers)
@@ -95,13 +106,17 @@ class Bot {
         final want = land + _offset;
         final miss = (x - want).abs();
         // 今 x へ動いても、落下までに受けられる位置へ戻れるか
-        if ((x - land).abs() - (pw / 2 - 6) > speed * math.max(0, tb - 0.03)) cost += 1e5;
+        if ((x - land).abs() - (pw / 2 - 6) > speed * math.max(0, tb - 0.03)) {
+          cost += 1e5;
+        }
         cost += miss * (tb < 0.5 ? 6 : 1.5);
       } else {
         cost += (x - b.x).abs() * 0.4;
       }
       for (final (tu, xu, r) in threats) {
-        if ((xu - x).abs() < pw / 2 + r + 12) cost += 400 / (math.max(0, tu) + 0.15);
+        if ((xu - x).abs() < pw / 2 + r + 12) {
+          cost += 400 / (math.max(0, tu) + 0.15);
+        }
       }
       for (final l in lasers) {
         if ((x - l.x).abs() < pw / 2 + l.w / 2 + 6) cost += 3000;
@@ -122,12 +137,19 @@ class Bot {
     final pr = w.parry;
     if (pr.active || w.t < pr.cooldownUntil || p.stun > 0) return;
     double? next;
-    if (tb != null && land != null && (land - nx).abs() <= pw / 2 + Field.ballR) next = tb;
+    if (tb != null &&
+        land != null &&
+        (land - nx).abs() <= pw / 2 + Field.ballR) {
+      next = tb;
+    }
     for (final (tu, xu, r) in threats) {
-      if ((xu - nx).abs() <= pw / 2 + r && (next == null || tu < next)) next = tu;
+      if ((xu - nx).abs() <= pw / 2 + r && (next == null || tu < next)) {
+        next = tu;
+      }
     }
     if (next == null || next > 0.2) return;
-    final at = w.t + next - bias + (lagComp ? w.inputLag : 0) + _gauss() * sigma;
+    final at =
+        w.t + next - bias + (lagComp ? w.inputLag : 0) + _gauss() * sigma;
     _pending = at;
     w.pressAction(at);
   }

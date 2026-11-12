@@ -28,7 +28,8 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
-  Future<void> wait(WidgetTester t, double seconds) => t.pump(Duration(milliseconds: (seconds * 1000).round()));
+  Future<void> wait(WidgetTester t, double seconds) =>
+      t.pump(Duration(milliseconds: (seconds * 1000).round()));
 
   var surfaceConverted = false;
   Future<void> shot(WidgetTester t, String name) async {
@@ -41,26 +42,35 @@ void main() {
     await binding.takeScreenshot(name);
   }
 
-  World world(WidgetTester t) =>
-      t.widgetList<CustomPaint>(find.byType(CustomPaint)).map((c) => c.painter).whereType<FieldPainter>().first.world;
+  World world(WidgetTester t) => t
+      .widgetList<CustomPaint>(find.byType(CustomPaint))
+      .map((c) => c.painter)
+      .whereType<FieldPainter>()
+      .first
+      .world;
 
   testWidgets('起動してタイトル・ステージ選択・エンドレスを通り、タイトルに戻る', (t) async {
     // main() と同じく横向きに固定する (Android の向きは AndroidManifest.xml でも決めているが、iOS のシミュレータでも動かすため)
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     // 初めて起動したときと同じ (記録も設定もない)
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final content = await GameContent.load(rootBundle);
-    await t.pumpWidget(ProviderScope(
-      overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-        contentProvider.overrideWithValue(content),
-        // Game Center / Play Games のサインインの画面を出さない
-        leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
-      ],
-      child: const ParryBreakApp(),
-    ));
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
+          contentProvider.overrideWithValue(content),
+          // Game Center / Play Games のサインインの画面を出さない
+          leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
+        ],
+        child: const ParryBreakApp(),
+      ),
+    );
 
     // タイトル
     await wait(t, 3);
@@ -94,11 +104,19 @@ void main() {
         ..targetX = w.ball.x;
       await t.pump(const Duration(milliseconds: 16));
     }
-    expect(w.phase, isNot(WorldPhase.over), reason: 'パドルがボールを追っていればゲームオーバーにならない');
+    expect(
+      w.phase,
+      isNot(WorldPhase.over),
+      reason: 'パドルがボールを追っていればゲームオーバーにならない',
+    );
     await shot(t, '03_endless');
 
     // 一時停止してタイトルに戻る
-    await t.tap(find.byWidgetPredicate((w) => w is PixelIcon && w.glyph == PixelIcons.pause));
+    await t.tap(
+      find.byWidgetPredicate(
+        (w) => w is PixelIcon && w.glyph == PixelIcons.pause,
+      ),
+    );
     await wait(t, 0.5);
     expect(find.text('PAUSED'), findsWidgets); // 色ずれの演出で重ねて描くので複数ある
     await shot(t, '04_paused');

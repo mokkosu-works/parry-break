@@ -5,8 +5,10 @@ import 'dart:math' as math;
 import 'package:parry_break/core/core.dart';
 
 /// assets のエンドレスの定義。
-final endlessContent =
-    EndlessContent.fromJson(jsonDecode(File('assets/stages/endless.json').readAsStringSync()) as Map<String, Object?>);
+final endlessContent = EndlessContent.fromJson(
+  jsonDecode(File('assets/stages/endless.json').readAsStringSync())
+      as Map<String, Object?>,
+);
 
 final endlessMode = EndlessMode(endlessContent);
 
@@ -21,7 +23,11 @@ class SingleRoundMode extends GameMode {
 
   @override
   RoundSpec? roundAt(int number) => number == 1
-      ? RoundSpec(number: 1, difficulty: difficulty, content: LayoutContent(rows))
+      ? RoundSpec(
+          number: 1,
+          difficulty: difficulty,
+          content: LayoutContent(rows),
+        )
       : null;
 }
 

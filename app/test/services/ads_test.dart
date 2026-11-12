@@ -287,7 +287,9 @@ void main() {
       unawaited(ads.showInterstitialIfDue().then((_) => done = true));
       await pumpEventQueue();
       expect(done, isFalse);
-      final timeout = timers.where((t) => t.$1 == AdMobAds.showTimeout).toList();
+      final timeout = timers
+          .where((t) => t.$1 == AdMobAds.showTimeout)
+          .toList();
       expect(timeout, hasLength(1));
       timeout.single.$2();
       await pumpEventQueue();
@@ -305,7 +307,8 @@ void main() {
       unawaited(ads.showInterstitialIfDue().then((_) => done = true));
       await pumpEventQueue();
       expect(sdk.shown, 1);
-      for (final t in timers.where((t) => t.$1 == AdMobAds.showTimeout).toList()) {
+      for (final t
+          in timers.where((t) => t.$1 == AdMobAds.showTimeout).toList()) {
         t.$2();
       }
       await pumpEventQueue();

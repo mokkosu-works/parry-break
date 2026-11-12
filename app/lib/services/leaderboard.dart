@@ -68,13 +68,22 @@ class LeaderboardPlatform {
   const LeaderboardPlatform();
   Future<void> signIn() => GamesServices.signIn();
   Future<bool> get isSignedIn => GamesServices.isSignedIn;
-  Future<void> submitScore(Score score) => GamesServices.submitScore(score: score);
-  Future<void> showLeaderboards({required String iOSLeaderboardID, required String androidLeaderboardID}) =>
-      GamesServices.showLeaderboards(iOSLeaderboardID: iOSLeaderboardID, androidLeaderboardID: androidLeaderboardID);
+  Future<void> submitScore(Score score) =>
+      GamesServices.submitScore(score: score);
+  Future<void> showLeaderboards({
+    required String iOSLeaderboardID,
+    required String androidLeaderboardID,
+  }) => GamesServices.showLeaderboards(
+    iOSLeaderboardID: iOSLeaderboardID,
+    androidLeaderboardID: androidLeaderboardID,
+  );
 }
 
 class GamesServicesLeaderboard implements LeaderboardService {
-  GamesServicesLeaderboard(this._prefs, [this._platform = const LeaderboardPlatform()]);
+  GamesServicesLeaderboard(
+    this._prefs, [
+    this._platform = const LeaderboardPlatform(),
+  ]);
   final SharedPreferences _prefs;
   final LeaderboardPlatform _platform;
   static const _pendingKey = 'leaderboard.pending';
@@ -93,7 +102,8 @@ class GamesServicesLeaderboard implements LeaderboardService {
     }
   }
 
-  set _pending(Map<String, int> v) => _prefs.setString(_pendingKey, jsonEncode(v));
+  set _pending(Map<String, int> v) =>
+      _prefs.setString(_pendingKey, jsonEncode(v));
 
   Score _score(Board b, int value) => Score(
     iOSLeaderboardID: LeaderboardConfig.ios[b],
@@ -105,7 +115,8 @@ class GamesServicesLeaderboard implements LeaderboardService {
   Future<void>? _signingIn;
 
   @override
-  Future<void> signIn() => _signingIn ??= _signIn().whenComplete(() => _signingIn = null);
+  Future<void> signIn() =>
+      _signingIn ??= _signIn().whenComplete(() => _signingIn = null);
 
   Future<void> _signIn() async {
     try {
@@ -164,7 +175,9 @@ class GamesServicesLeaderboard implements LeaderboardService {
     try {
       await _platform.showLeaderboards(
         iOSLeaderboardID: board == null ? '' : LeaderboardConfig.ios[board]!,
-        androidLeaderboardID: board == null ? '' : LeaderboardConfig.android[board]!,
+        androidLeaderboardID: board == null
+            ? ''
+            : LeaderboardConfig.android[board]!,
       );
       return true;
     } on Object {

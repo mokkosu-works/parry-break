@@ -42,7 +42,8 @@ void main() {
   const lang = String.fromEnvironment('lang', defaultValue: 'ja');
   const playRound = int.fromEnvironment('playRound', defaultValue: 28);
 
-  Future<void> wait(WidgetTester t, double seconds) => t.pump(Duration(milliseconds: (seconds * 1000).round()));
+  Future<void> wait(WidgetTester t, double seconds) =>
+      t.pump(Duration(milliseconds: (seconds * 1000).round()));
   // Android は描画面を画像に切り替えてからでないと撮れない (1 回だけ)
   var surfaceConverted = false;
   Future<void> shot(String name) async {
@@ -54,13 +55,19 @@ void main() {
     await binding.takeScreenshot(name);
   }
 
-  World world(WidgetTester t) =>
-      t.widgetList<CustomPaint>(find.byType(CustomPaint)).map((c) => c.painter).whereType<FieldPainter>().first.world;
+  World world(WidgetTester t) => t
+      .widgetList<CustomPaint>(find.byType(CustomPaint))
+      .map((c) => c.painter)
+      .whereType<FieldPainter>()
+      .first
+      .world;
 
   /// [seconds] だけ実際に遊ぶ。パドルでボールを追い、当たる直前に Space キーでパリィする
   /// (キー入力は実機のタッチと同じ経路でゲームの時計に換算される)。
   Future<void> play(WidgetTester t, World w, double seconds) async {
-    final end = DateTime.now().add(Duration(milliseconds: (seconds * 1000).round()));
+    final end = DateTime.now().add(
+      Duration(milliseconds: (seconds * 1000).round()),
+    );
     var armed = true;
     while (DateTime.now().isBefore(end)) {
       // 撮影中は被弾させない (被弾するとコンボが下がり、HIT! が写る)。無敵中はパドルが点滅するので、撮る直前に外す
@@ -70,7 +77,10 @@ void main() {
         ..useTarget = true
         ..targetX = b.x - 30 * math.sin(w.t * 1.3);
       if (b.vy < 0) armed = true;
-      if (armed && !b.attached && b.vy > 0 && (Field.paddleY - b.y) / b.vy < 0.012) {
+      if (armed &&
+          !b.attached &&
+          b.vy > 0 &&
+          (Field.paddleY - b.y) / b.vy < 0.012) {
         armed = false;
         await t.sendKeyEvent(LogicalKeyboardKey.space);
       }
@@ -79,9 +89,15 @@ void main() {
   }
 
   /// 次のパリィが決まった直後まで遊ぶ (PERFECT などの表示を写すため)。
-  Future<void> playUntilParry(WidgetTester t, World w, {double timeout = 6}) async {
+  Future<void> playUntilParry(
+    WidgetTester t,
+    World w, {
+    double timeout = 6,
+  }) async {
     final before = w.stats.perfects;
-    final end = DateTime.now().add(Duration(milliseconds: (timeout * 1000).round()));
+    final end = DateTime.now().add(
+      Duration(milliseconds: (timeout * 1000).round()),
+    );
     while (DateTime.now().isBefore(end) && w.stats.perfects == before) {
       await play(t, w, 0.05);
     }
@@ -103,27 +119,45 @@ void main() {
   testWidgets('store screenshots', (t) async {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     SharedPreferences.setMockInitialValues({
-      'settings.v1': jsonEncode(Settings(language: lang, timingOffsetMs: 0).toJson()),
-      'records': jsonEncode(Records(
-        endless: const EndlessRecord(bestScore: 1284600, bestRound: 27),
-        stages: {
-          for (var i = 1; i <= 10; i++)
-            '1-$i': StageRecord(cleared: true, bestScore: 20000 + i * 3100, stars: [true, i % 3 != 0, i % 4 != 0]),
-          '2-1': const StageRecord(cleared: true, bestScore: 41200, stars: [true, true, false]),
-          '2-2': const StageRecord(cleared: true, bestScore: 38800, stars: [true, false, false]),
-        },
-      ).toJson()),
+      'settings.v1': jsonEncode(
+        Settings(language: lang, timingOffsetMs: 0).toJson(),
+      ),
+      'records': jsonEncode(
+        Records(
+          endless: const EndlessRecord(bestScore: 1284600, bestRound: 27),
+          stages: {
+            for (var i = 1; i <= 10; i++)
+              '1-$i': StageRecord(
+                cleared: true,
+                bestScore: 20000 + i * 3100,
+                stars: [true, i % 3 != 0, i % 4 != 0],
+              ),
+            '2-1': const StageRecord(
+              cleared: true,
+              bestScore: 41200,
+              stars: [true, true, false],
+            ),
+            '2-2': const StageRecord(
+              cleared: true,
+              bestScore: 38800,
+              stars: [true, false, false],
+            ),
+          },
+        ).toJson(),
+      ),
     });
     final prefs = await SharedPreferences.getInstance();
     final content = await GameContent.load(rootBundle);
-    await t.pumpWidget(ProviderScope(
-      overrides: [
-        sharedPrefsProvider.overrideWithValue(prefs),
-        contentProvider.overrideWithValue(content),
-        leaderboardProvider.overrideWithValue(_ShowcaseLeaderboard()),
-      ],
-      child: const ParryBreakApp(),
-    ));
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
+          contentProvider.overrideWithValue(content),
+          leaderboardProvider.overrideWithValue(_ShowcaseLeaderboard()),
+        ],
+        child: const ParryBreakApp(),
+      ),
+    );
 
     // 1. タイトル
     await wait(t, 3);
@@ -166,7 +200,8 @@ void main() {
     await wait(t, 1.3);
     launch(w);
     await play(t, w, 0.8);
-    final keystones = w.blocks.where((b) => b.type == 'K').toList()..sort((a, b) => a.x.compareTo(b.x));
+    final keystones = w.blocks.where((b) => b.type == 'K').toList()
+      ..sort((a, b) => a.x.compareTo(b.x));
     for (final k in keystones.take(keystones.length - 1)) {
       w.destroyBlock(k, DestroyCause.pierce);
     }

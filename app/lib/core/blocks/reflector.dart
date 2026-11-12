@@ -23,7 +23,8 @@ abstract class ToughBlock extends BlockBehavior {
   }
 
   @override
-  void onBlast(World w, Block b, {required bool breaker}) => w.damage(b, 2, DestroyCause.blast);
+  void onBlast(World w, Block b, {required bool breaker}) =>
+      w.damage(b, 2, DestroyCause.blast);
 
   @override
   bool onReturnedBullet(World w, Block b, Bullet u) {
@@ -76,4 +77,3 @@ class MagnetBlock extends ToughBlock {
     }
   }
 }
-

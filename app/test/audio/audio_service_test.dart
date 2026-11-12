@@ -7,7 +7,12 @@ import 'package:parry_break/core/core.dart';
 
 /// 再生した音 1 つ分の状態。
 class _Voice {
-  _Voice(this.name, {required this.volume, required this.looping, required this.paused});
+  _Voice(
+    this.name, {
+    required this.volume,
+    required this.looping,
+    required this.paused,
+  });
   final String name;
   double volume;
   final bool looping;
@@ -24,16 +29,28 @@ class _FakeBackend implements AudioBackend {
   int _next = 1;
 
   /// [name] の音で、止められていないもの。
-  Iterable<_Voice> live(String name) => voices.values.where((v) => v.name == name && !v.stopped);
+  Iterable<_Voice> live(String name) =>
+      voices.values.where((v) => v.name == name && !v.stopped);
 
   @override
   Future<void> init() async {}
   @override
-  Future<Object> loadMem(String path, Uint8List bytes) async => path.replaceAll('.wav', '');
+  Future<Object> loadMem(String path, Uint8List bytes) async =>
+      path.replaceAll('.wav', '');
   @override
-  SoundHandle play(Object source, {double volume = 1, bool looping = false, bool paused = false}) {
+  SoundHandle play(
+    Object source, {
+    double volume = 1,
+    bool looping = false,
+    bool paused = false,
+  }) {
     final id = _next++;
-    voices[id] = _Voice(source as String, volume: volume, looping: looping, paused: paused);
+    voices[id] = _Voice(
+      source as String,
+      volume: volume,
+      looping: looping,
+      paused: paused,
+    );
     return SoundHandle(id);
   }
 
@@ -44,7 +61,8 @@ class _FakeBackend implements AudioBackend {
   @override
   void setVolume(SoundHandle h, double volume) => voices[h.id]!.volume = volume;
   @override
-  void fadeVolume(SoundHandle h, double to, Duration time) => voices[h.id]!.volume = to;
+  void fadeVolume(SoundHandle h, double to, Duration time) =>
+      voices[h.id]!.volume = to;
   @override
   void seek(SoundHandle h, Duration time) {}
   @override
@@ -58,15 +76,28 @@ void main() {
   late SoLoudAudio audio;
 
   /// タイトル用の BGM が鳴っているか (止められておらず、一時停止もしていないものが 1 つ)。
-  bool titlePlaying() => be.live('musicTitle').where((v) => !v.paused).length == 1;
+  bool titlePlaying() =>
+      be.live('musicTitle').where((v) => !v.paused).length == 1;
 
   /// プレイ中の BGM (music0〜4) で止められていないもの。
-  Iterable<_Voice> music() => be.voices.values.where((v) => v.name.startsWith('music') && v.name != 'musicTitle' && !v.stopped);
+  Iterable<_Voice> music() => be.voices.values.where(
+    (v) => v.name.startsWith('music') && v.name != 'musicTitle' && !v.stopped,
+  );
 
   setUp(() async {
     be = _FakeBackend();
     final bank = {
-      for (final n in ['musicTitle', 'music0', 'music1', 'music2', 'music3', 'music4', 'over', 'hurt', 'clear'])
+      for (final n in [
+        'musicTitle',
+        'music0',
+        'music1',
+        'music2',
+        'music3',
+        'music4',
+        'over',
+        'hurt',
+        'clear',
+      ])
         n: Uint8List(0),
     };
     audio = SoLoudAudio(backend: be, bank: () async => bank);
@@ -165,7 +196,9 @@ void main() {
   test('GameOver で BGM が止まる', () {
     audio.enterGame();
     audio.startMusic();
-    audio.handle(GameOver(reason: 'deadline', score: 0, round: 1, stats: RunStats()));
+    audio.handle(
+      GameOver(reason: 'deadline', score: 0, round: 1, stats: RunStats()),
+    );
     expect(music(), isEmpty);
     expect(be.voices.values.where((v) => v.name == 'over'), hasLength(1));
   });
@@ -184,7 +217,10 @@ void main() {
   });
 
   test('初期化に失敗したら、どの呼び出しも何もしない', () async {
-    final failing = SoLoudAudio(backend: be, bank: () async => throw Exception('no audio'));
+    final failing = SoLoudAudio(
+      backend: be,
+      bank: () async => throw Exception('no audio'),
+    );
     await failing.init();
     failing
       ..setMenuMusic(true)

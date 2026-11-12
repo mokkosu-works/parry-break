@@ -7,20 +7,29 @@ import 'package:parry_break/core/core.dart';
 import 'helpers.dart';
 
 /// カウントダウンを終えた World (ボールはパドルに付いたまま)。
-World ready(List<String> rows, {int difficulty = 1, Difficulty level = Difficulty.normal}) {
-  final w = World(mode: SingleRoundMode(rows, difficulty: difficulty), difficulty: level, inputLag: 0)..start();
+World ready(
+  List<String> rows, {
+  int difficulty = 1,
+  Difficulty level = Difficulty.normal,
+}) {
+  final w = World(
+    mode: SingleRoundMode(rows, difficulty: difficulty),
+    difficulty: level,
+    inputLag: 0,
+  )..start();
   w.sync.identity();
   run(w, 1.1);
   return w;
 }
 
 /// ボールを何にも当たらない所で上へ飛ばし続ける (パドルから離れている間だけ減衰・FEVER TIME の時間が進む)。
-void Function() keepFlying(World w) => () => w.ball
-  ..attached = false
-  ..x = 40
-  ..y = 400
-  ..vx = 0
-  ..vy = -w.ball.speed;
+void Function() keepFlying(World w) =>
+    () => w.ball
+      ..attached = false
+      ..x = 40
+      ..y = 400
+      ..vx = 0
+      ..vy = -w.ball.speed;
 
 /// 1 ステップで降下した量 (px/秒)。
 double descentPerSecond(World w) {
@@ -40,16 +49,23 @@ class TwoRounds extends GameMode {
 
   @override
   RoundSpec? roundAt(int number) => switch (number) {
-        1 => RoundSpec(number: 1, difficulty: 1, content: LayoutContent(first)),
-        2 => RoundSpec(number: 2, difficulty: 1, content: LayoutContent(second)),
-        _ => null,
-      };
+    1 => RoundSpec(number: 1, difficulty: 1, content: LayoutContent(first)),
+    2 => RoundSpec(number: 2, difficulty: 1, content: LayoutContent(second)),
+    _ => null,
+  };
 }
 
 void main() {
   group('降下', () {
     test('4.5 + 0.18 × (W − 1) px/秒、上限 13px/秒', () {
-      for (final (wNo, want) in [(1, 4.5), (2, 4.68), (11, 6.3), (48, 12.96), (49, 13.0), (60, 13.0)]) {
+      for (final (wNo, want) in [
+        (1, 4.5),
+        (2, 4.68),
+        (11, 6.3),
+        (48, 12.96),
+        (49, 13.0),
+        (60, 13.0),
+      ]) {
         final w = ready(['......N......N'], difficulty: wNo);
         expect(descentPerSecond(w), closeTo(want, 1e-6), reason: 'W$wNo');
       }
@@ -75,7 +91,11 @@ void main() {
       // 当たってから 0.5 秒未満は半速、0.5 秒を過ぎたら全速
       while (w.t + World.dt - hit < 0.5 - 1e-9) {
         fly();
-        expect(descentPerSecond(w), closeTo(6.3 / 2, 1e-6), reason: '${w.t - hit}');
+        expect(
+          descentPerSecond(w),
+          closeTo(6.3 / 2, 1e-6),
+          reason: '${w.t - hit}',
+        );
       }
       // ちょうど 0.5 秒のステップは浮動小数の誤差でどちらにもなりうるので見ない
       fly();
@@ -86,9 +106,17 @@ void main() {
     });
 
     test('EASY は × 0.8', () {
-      final easy = ready(['......N......N'], difficulty: 11, level: Difficulty.easy);
+      final easy = ready(
+        ['......N......N'],
+        difficulty: 11,
+        level: Difficulty.easy,
+      );
       expect(descentPerSecond(easy), closeTo(6.3 * 0.8, 1e-6));
-      final hard = ready(['......N......N'], difficulty: 11, level: Difficulty.hard);
+      final hard = ready(
+        ['......N......N'],
+        difficulty: 11,
+        level: Difficulty.hard,
+      );
       expect(descentPerSecond(hard), closeTo(6.3, 1e-6));
     });
 
@@ -226,14 +254,19 @@ void main() {
       final a = endless(1), b = endless(61);
       expect(b.round.loop, 1);
       expect(b.round.difficulty, 1);
-      String layout(World w) => [for (final x in w.blocks) '${x.type}@${x.x},${x.y}'].join(' ');
+      String layout(World w) =>
+          [for (final x in w.blocks) '${x.type}@${x.x},${x.y}'].join(' ');
       expect(layout(b), layout(a));
     });
 
     test('ボール・降下の速さが 1.15 倍', () {
       final a = endless(1), b = endless(61);
       for (var st = 0; st < 4; st++) {
-        expect(b.stageSpeedOf(st), closeTo(a.stageSpeedOf(st) * 1.15, 1e-9), reason: '段階${st + 1}');
+        expect(
+          b.stageSpeedOf(st),
+          closeTo(a.stageSpeedOf(st) * 1.15, 1e-9),
+          reason: '段階${st + 1}',
+        );
       }
       expect(b.ball.speed, closeTo(a.ball.speed * 1.15, 1e-9));
       run(a, 1.1);
@@ -255,7 +288,9 @@ void main() {
           w.step(World.dt);
           for (final e in w.drainEvents()) {
             if (e is BulletFired) {
-              final u = w.bullets.lastWhere((u) => u.hostile && u.source?.type == 'T');
+              final u = w.bullets.lastWhere(
+                (u) => u.hostile && u.source?.type == 'T',
+              );
               return (math.sqrt(u.vx * u.vx + u.vy * u.vy), u.source!.fireT);
             }
           }
@@ -303,13 +338,17 @@ void main() {
   });
 
   test('ラウンドが変わるとき、落下待ちのブロック (崩落のひび) は得点にならずに消える', () {
-    final w = testWorld(const TwoRounds([
-      '...K.........N',
-      '...N..........',
-      '.NNNNN........',
-    ], ['N............N']));
+    final w = testWorld(
+      const TwoRounds(
+        ['...K.........N', '...N..........', '.NNNNN........'],
+        ['N............N'],
+      ),
+    );
     run(w, 1.1);
-    w.destroyBlock(w.blocks.firstWhere((b) => b.type == 'K'), DestroyCause.ball);
+    w.destroyBlock(
+      w.blocks.firstWhere((b) => b.type == 'K'),
+      DestroyCause.ball,
+    );
     run(w, World.dt); // 崩落が始まる
     expect(w.falling, hasLength(6));
     // 落ち始める前にラウンドをクリアさせ、次のラウンドまで落ちないようにする

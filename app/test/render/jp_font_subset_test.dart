@@ -8,11 +8,17 @@ import 'package:flutter_test/flutter_test.dart';
 /// すべて入っていることを確かめる。落ちたら tools/subset_jp_font.sh で作り直す。
 void main() {
   test('app_ja.arb とステージの JSON の文字が、すべて DotGothic16 のサブセットにある', () {
-    final cmap = _readCmap(File('assets/fonts/DotGothic16-subset.ttf').readAsBytesSync());
+    final cmap = _readCmap(
+      File('assets/fonts/DotGothic16-subset.ttf').readAsBytesSync(),
+    );
 
     final files = <File>[
       File('lib/l10n/app_ja.arb'),
-      ...Directory('assets/stages').listSync().whereType<File>().where((f) => f.path.endsWith('.json')).toList()
+      ...Directory('assets/stages')
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.json'))
+          .toList()
         ..sort((a, b) => a.path.compareTo(b.path)),
     ];
     expect(files.length, greaterThan(1));
@@ -22,14 +28,17 @@ void main() {
       for (final s in _strings(jsonDecode(f.readAsStringSync()))) {
         for (final r in s.runes) {
           if (r < 0x80 || cmap.contains(r)) continue;
-          missing.putIfAbsent(f.path, () => <String>{}).add(String.fromCharCode(r));
+          missing
+              .putIfAbsent(f.path, () => <String>{})
+              .add(String.fromCharCode(r));
         }
       }
     }
     expect(
       missing,
       isEmpty,
-      reason: 'DotGothic16-subset.ttf にない文字がある。tools/subset_jp_font.sh で作り直す:\n'
+      reason:
+          'DotGothic16-subset.ttf にない文字がある。tools/subset_jp_font.sh で作り直す:\n'
           '${missing.entries.map((e) => '  ${e.key}: ${e.value.join()}').join('\n')}',
     );
   });
@@ -58,7 +67,9 @@ Set<int> _readCmap(Uint8List bytes) {
   int? cmapOff;
   for (var i = 0; i < numTables; i++) {
     final rec = 12 + i * 16;
-    if (ascii.decode(bytes.sublist(rec, rec + 4)) == 'cmap') cmapOff = d.getUint32(rec + 8);
+    if (ascii.decode(bytes.sublist(rec, rec + 4)) == 'cmap') {
+      cmapOff = d.getUint32(rec + 8);
+    }
   }
   if (cmapOff == null) throw StateError('cmap がない');
 

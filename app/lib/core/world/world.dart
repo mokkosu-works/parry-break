@@ -65,12 +65,13 @@ class World {
     Tuning tuning = const Tuning(),
     this.difficulty = Difficulty.normal,
     this.inputLag = 0.016,
-  })  : registry = blocks ?? standardBlocks(),
-        bossPatterns = bossPatterns ?? BossPatternRegistry.standard,
-        baseTuning = _withDifficulty(tuning, difficulty),
-        tuning = _withDifficulty(tuning, difficulty);
+  }) : registry = blocks ?? standardBlocks(),
+       bossPatterns = bossPatterns ?? BossPatternRegistry.standard,
+       baseTuning = _withDifficulty(tuning, difficulty),
+       tuning = _withDifficulty(tuning, difficulty);
 
-  static Tuning _withDifficulty(Tuning t, Difficulty d) => d.tuning.isEmpty ? t : t.copyWith(d.tuning);
+  static Tuning _withDifficulty(Tuning t, Difficulty d) =>
+      d.tuning.isEmpty ? t : t.copyWith(d.tuning);
 
   static const double dt = 1 / 60;
 
@@ -206,7 +207,9 @@ class World {
       case WorldPhase.completed:
         break;
     }
-    if (phase == WorldPhase.playing || phase == WorldPhase.clearing) _updateCombos(dt);
+    if (phase == WorldPhase.playing || phase == WorldPhase.clearing) {
+      _updateCombos(dt);
+    }
     _updateFalling(dt);
   }
 
@@ -235,7 +238,13 @@ class World {
   /// コンボ段階 (0〜3)。FEVER TIME は [od] で表す。
   int get stage {
     final m = tuning.stageMin;
-    return combo >= m[3] ? 3 : combo >= m[2] ? 2 : combo >= m[1] ? 1 : 0;
+    return combo >= m[3]
+        ? 3
+        : combo >= m[2]
+        ? 2
+        : combo >= m[1]
+        ? 1
+        : 0;
   }
 
   /// 得点倍率。
@@ -243,11 +252,14 @@ class World {
 
   double get paddleWidth => tuning.paddleWidth;
 
-  double get descentSpeed => tuning.descentSpeed(round.difficulty, round.loopMul) * difficulty.descent;
+  double get descentSpeed =>
+      tuning.descentSpeed(round.difficulty, round.loopMul) * difficulty.descent;
 
   /// 段階 [st] (0〜3) のボールの速さ (FEVER TIME 以外)。
-  double stageSpeedOf(int st) =>
-      math.min(tuning.maxSpeed, tuning.baseSpeed(round.difficulty, round.loopMul) * tuning.stageSpeed[st]);
+  double stageSpeedOf(int st) => math.min(
+    tuning.maxSpeed,
+    tuning.baseSpeed(round.difficulty, round.loopMul) * tuning.stageSpeed[st],
+  );
 
   /// このラウンドの FEVER TIME の最高速度。段階4 の速さより遅くはしない。
   double get odTopSpeed => math.max(tuning.odMaxSpeed, stageSpeedOf(3));
@@ -280,12 +292,20 @@ class World {
     return hp;
   }
 
-  Vec2 blockCenter(Block b) => Vec2(b.x + form.ox + b.w / 2, b.y + form.oy + b.h / 2);
+  Vec2 blockCenter(Block b) =>
+      Vec2(b.x + form.ox + b.w / 2, b.y + form.oy + b.h / 2);
 
   // ---- ブロック・ボスから使う操作 ---------------------------------------
 
   /// ブロックを置く。[w], [h], [hp] を省くと種類の既定値になる。
-  Block addBlock(String id, double x, double y, [double? w, double? h, int? hp]) {
+  Block addBlock(
+    String id,
+    double x,
+    double y, [
+    double? w,
+    double? h,
+    int? hp,
+  ]) {
     final be = registry[id];
     final b = Block(be, x, y, w ?? Field.cellW, h ?? Field.cellH, hp ?? be.hp);
     blocks.add(b);
@@ -317,11 +337,31 @@ class World {
 
   void damageCore(Block core, int n) => _damageCore(core, n);
 
-  void queueBlast(double x, double y, double delay, double r, {required bool shrapnel, required BlastKind kind}) =>
-      blasts.add(PendingBlast(x, y, delay, r, shrapnel, kind));
+  void queueBlast(
+    double x,
+    double y,
+    double delay,
+    double r, {
+    required bool shrapnel,
+    required BlastKind kind,
+  }) => blasts.add(PendingBlast(x, y, delay, r, shrapnel, kind));
 
-  void fireBullet(double x, double y, double angle, double speed, {Block? source, bool red = false}) =>
-      _spawnHostile(x, y, math.cos(angle) * speed, math.sin(angle) * speed, BulletKind.bullet, source: source, red: red);
+  void fireBullet(
+    double x,
+    double y,
+    double angle,
+    double speed, {
+    Block? source,
+    bool red = false,
+  }) => _spawnHostile(
+    x,
+    y,
+    math.cos(angle) * speed,
+    math.sin(angle) * speed,
+    BulletKind.bullet,
+    source: source,
+    red: red,
+  );
 
   void fireLaser(double x) {
     final l = Laser(clampD(x, 24, Field.width - 24));

@@ -10,8 +10,14 @@ void main() {
     });
 
     test('範囲外の値は 0.5〜2.0 に収まる', () {
-      expect(Settings.fromJson(const {'railSensitivity': 0.1}).railSensitivity, 0.5);
-      expect(Settings.fromJson(const {'railSensitivity': 9}).railSensitivity, 2.0);
+      expect(
+        Settings.fromJson(const {'railSensitivity': 0.1}).railSensitivity,
+        0.5,
+      );
+      expect(
+        Settings.fromJson(const {'railSensitivity': 9}).railSensitivity,
+        2.0,
+      );
     });
 
     test('JSON を往復しても同じ値になる', () {
@@ -39,7 +45,11 @@ void main() {
     });
 
     test('bool の項目が正しい型なら、その値を読む', () {
-      final s = Settings.fromJson(const {'haptics': false, 'reduceEffects': true, 'debugMode': true});
+      final s = Settings.fromJson(const {
+        'haptics': false,
+        'reduceEffects': true,
+        'debugMode': true,
+      });
       expect(s.haptics, isFalse);
       expect(s.reduceEffects, isTrue);
       expect(s.debugMode, isTrue);

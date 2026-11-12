@@ -21,21 +21,47 @@ class _RecordingText extends TextCache {
   final drawn = <({String text, double size, Rect rect})>[];
 
   @override
-  void draw(Canvas canvas, String text, double x, double y, double size, Color color,
-      {TextAlignH align = TextAlignH.center, double weight = 700, String? family}) {
+  void draw(
+    Canvas canvas,
+    String text,
+    double x,
+    double y,
+    double size,
+    Color color, {
+    TextAlignH align = TextAlignH.center,
+    double weight = 700,
+    String? family,
+  }) {
     final tp = get(text, size, color, weight: weight, family: family);
     final left = switch (align) {
       TextAlignH.left => x,
       TextAlignH.center => x - tp.width / 2,
       TextAlignH.right => x - tp.width,
     };
-    drawn.add((text: text, size: size, rect: Rect.fromLTWH(left, y - tp.height / 2, tp.width, tp.height)));
-    super.draw(canvas, text, x, y, size, color, align: align, weight: weight, family: family);
+    drawn.add((
+      text: text,
+      size: size,
+      rect: Rect.fromLTWH(left, y - tp.height / 2, tp.width, tp.height),
+    ));
+    super.draw(
+      canvas,
+      text,
+      x,
+      y,
+      size,
+      color,
+      align: align,
+      weight: weight,
+      family: family,
+    );
   }
 }
 
 final _campaign = Campaign.fromJson(
-    jsonDecode(File('assets/stages/campaign.json').readAsStringSync()) as Map<String, Object?>, endlessContent);
+  jsonDecode(File('assets/stages/campaign.json').readAsStringSync())
+      as Map<String, Object?>,
+  endlessContent,
+);
 
 void _run(World w, FxState fx, double seconds, {void Function()? before}) {
   for (var i = 0; i < (seconds * 60).round(); i++) {
@@ -56,8 +82,10 @@ final _states = <String, World Function()>{
     return w;
   },
   'ボス戦 (BOSS n / TIME)': () => World(mode: endlessMode)..start(fromRound: 20),
-  '生き残り型 (SURVIVE)': () => World(mode: StageMode(_campaign.stage('2-9')!))..start(),
-  'スコア目標 (GOAL)': () => World(mode: StageMode(_campaign.stage('6-6')!))..start(),
+  '生き残り型 (SURVIVE)': () =>
+      World(mode: StageMode(_campaign.stage('2-9')!))..start(),
+  'スコア目標 (GOAL)': () =>
+      World(mode: StageMode(_campaign.stage('6-6')!))..start(),
 };
 
 /// [w] を [size] の盤面に描き、HUD (盤面の上の帯) に描いた文字を返す。
@@ -84,12 +112,17 @@ List<({String text, double size, Rect rect})> _hud(World w, Size size) {
 
 const _labels = {'SCORE', 'ROUND', 'TIME', 'SURVIVE', 'GOAL', 'CHAIN'};
 bool _isLabel(String s) =>
-    _labels.contains(s) || s.startsWith('BOSS ') || s.startsWith('FEVER TIME ') || s.startsWith('COMBO LV');
+    _labels.contains(s) ||
+    s.startsWith('BOSS ') ||
+    s.startsWith('FEVER TIME ') ||
+    s.startsWith('COMBO LV');
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
-    await (FontLoader('DotGothic16')..addFont(rootBundle.load('assets/fonts/DotGothic16-subset.ttf'))).load();
+    await (FontLoader(
+      'DotGothic16',
+    )..addFont(rootBundle.load('assets/fonts/DotGothic16-subset.ttf'))).load();
     await (FontLoader('Silkscreen')
           ..addFont(rootBundle.load('assets/fonts/Silkscreen-Regular.ttf'))
           ..addFont(rootBundle.load('assets/fonts/Silkscreen-Bold.ttf')))
@@ -97,50 +130,72 @@ void main() {
   });
 
   // 844×390 (iPhone 14 相当)。ノッチのある端末のセーフエリアも見る
-  for (final (name, pad) in [('', EdgeInsets.zero), (' (ノッチ)', const EdgeInsets.fromLTRB(47, 0, 47, 21))]) {
+  for (final (name, pad) in [
+    ('', EdgeInsets.zero),
+    (' (ノッチ)', const EdgeInsets.fromLTRB(47, 0, 47, 21)),
+  ]) {
     for (final rail in [false, true]) {
       final layout = FieldLayout.compute(const Size(844, 390), pad, rail: rail);
       final scheme = rail ? 'レール方式' : '領域方式';
-      group('844×390$name の$scheme (倍率 ${layout.scale.toStringAsFixed(3)})', () {
-        _states.forEach((state, make) {
-          test('$state: ラベルが画面上で 11pt 以上で、項目どうしが重ならない', () {
-            final hud = _hud(make(), layout.field.size);
-            final labels = hud.where((d) => _isLabel(d.text)).toList();
-            expect(labels.length, greaterThanOrEqualTo(4), reason: '${hud.map((d) => d.text)}');
-            for (final l in labels) {
-              expect(l.size * layout.scale, greaterThanOrEqualTo(11), reason: l.text);
-            }
-            final want = switch (state) {
-              'FEVER TIME' => 'FEVER TIME ',
-              'ボス戦 (BOSS n / TIME)' => 'BOSS ',
-              '生き残り型 (SURVIVE)' => 'SURVIVE',
-              'スコア目標 (GOAL)' => 'GOAL',
-              _ => 'CHAIN',
-            };
-            expect(labels.map((l) => l.text), contains(startsWith(want)));
-            // 文字どうし、文字とコンボのメーター・ポーズボタンが重ならない
-            final boxes = [
-              ...hud.map((d) => (d.text, d.rect)),
-              ('combo meter', const Rect.fromLTWH(680, 24, 340, 24)),
-              ('pause', FieldPainter.pauseButton),
-            ];
-            for (var i = 0; i < boxes.length; i++) {
-              for (var j = i + 1; j < boxes.length; j++) {
-                final a = boxes[i], b = boxes[j];
-                if (a.$1 == b.$1) continue; // 影付きの文字の影
-                final o = a.$2.intersect(b.$2);
-                expect(o.width > 0.5 && o.height > 0.5, isFalse, reason: '"${a.$1}" ${a.$2} と "${b.$1}" ${b.$2}');
+      group(
+        '844×390$name の$scheme (倍率 ${layout.scale.toStringAsFixed(3)})',
+        () {
+          _states.forEach((state, make) {
+            test('$state: ラベルが画面上で 11pt 以上で、項目どうしが重ならない', () {
+              final hud = _hud(make(), layout.field.size);
+              final labels = hud.where((d) => _isLabel(d.text)).toList();
+              expect(
+                labels.length,
+                greaterThanOrEqualTo(4),
+                reason: '${hud.map((d) => d.text)}',
+              );
+              for (final l in labels) {
+                expect(
+                  l.size * layout.scale,
+                  greaterThanOrEqualTo(11),
+                  reason: l.text,
+                );
               }
-            }
+              final want = switch (state) {
+                'FEVER TIME' => 'FEVER TIME ',
+                'ボス戦 (BOSS n / TIME)' => 'BOSS ',
+                '生き残り型 (SURVIVE)' => 'SURVIVE',
+                'スコア目標 (GOAL)' => 'GOAL',
+                _ => 'CHAIN',
+              };
+              expect(labels.map((l) => l.text), contains(startsWith(want)));
+              // 文字どうし、文字とコンボのメーター・ポーズボタンが重ならない
+              final boxes = [
+                ...hud.map((d) => (d.text, d.rect)),
+                ('combo meter', const Rect.fromLTWH(680, 24, 340, 24)),
+                ('pause', FieldPainter.pauseButton),
+              ];
+              for (var i = 0; i < boxes.length; i++) {
+                for (var j = i + 1; j < boxes.length; j++) {
+                  final a = boxes[i], b = boxes[j];
+                  if (a.$1 == b.$1) continue; // 影付きの文字の影
+                  final o = a.$2.intersect(b.$2);
+                  expect(
+                    o.width > 0.5 && o.height > 0.5,
+                    isFalse,
+                    reason: '"${a.$1}" ${a.$2} と "${b.$1}" ${b.$2}',
+                  );
+                }
+              }
+            });
           });
-        });
-      });
+        },
+      );
     }
   }
 
   test('1280×800 などの大きい画面では、ラベルは今のまま 16', () {
     for (final rail in [false, true]) {
-      final layout = FieldLayout.compute(const Size(1280, 800), EdgeInsets.zero, rail: rail);
+      final layout = FieldLayout.compute(
+        const Size(1280, 800),
+        EdgeInsets.zero,
+        rail: rail,
+      );
       for (final make in _states.values) {
         final hud = _hud(make(), layout.field.size);
         for (final l in hud.where((d) => _isLabel(d.text))) {

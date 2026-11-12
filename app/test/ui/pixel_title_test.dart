@@ -7,15 +7,23 @@ import 'package:parry_break/ui/arcade.dart';
 void main() {
   testWidgets('PixelTitle は影を読み上げず、見出しとして 1 回だけ読まれる', (tester) async {
     final handle = tester.ensureSemantics();
-    await tester.pumpWidget(const Directionality(
-      textDirection: TextDirection.ltr,
-      child: Center(child: PixelTitle('PAUSED', size: 56, color: Palette.yellow)),
-    ));
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: PixelTitle('PAUSED', size: 56, color: Palette.yellow),
+        ),
+      ),
+    );
 
     expect(find.bySemanticsLabel('PAUSED'), findsOneWidget);
     expect(
       tester.getSemantics(find.bySemanticsLabel('PAUSED')),
-      matchesSemantics(label: 'PAUSED', isHeader: true, textDirection: TextDirection.ltr),
+      matchesSemantics(
+        label: 'PAUSED',
+        isHeader: true,
+        textDirection: TextDirection.ltr,
+      ),
     );
     handle.dispose();
   });
