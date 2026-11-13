@@ -82,6 +82,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。COMBO が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点';
 
   @override
+  String get helpItemTitle => 'ITEM';
+
+  @override
+  String get helpItemBody =>
+      'ブロックを壊すと、ときどきカプセルが落ちてくる。パドルで受けると取れる\nパリィで受けると、効果が強くなる(名前に + が付く)\nW:パドルが広がる M:分身弾が出る S:パリィのたびに弾を撃つ\nB:次に当たった所で衝撃波 G:下に防壁ができる C:ボールが遅くなる';
+
+  @override
   String get helpOverTitle => 'ゲームオーバー';
 
   @override
@@ -362,6 +369,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
+
+  @override
+  String get introItem => 'NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる';
 
   @override
   String introScore(String value) {

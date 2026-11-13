@@ -76,10 +76,11 @@ class FxBanner {
   bool _described = false;
 
   /// 帯の説明文 [sub] が決まったら呼ぶ (描く側が翻訳して渡す)。説明のある帯なら、読める長さまで延ばす。
-  void describe(String? sub) {
+  /// [extra] は、[introKey] のほかに説明の行を足したとき (アイテムの説明) に true にする。
+  void describe(String? sub, {bool extra = false}) {
     if (_described) return;
     _described = true;
-    if (introKey != null && sub != null) life = lifeFor(sub);
+    if ((introKey != null || extra) && sub != null) life = lifeFor(sub);
   }
 
   /// 説明文 [sub] を読むのに足りる長さ。全角の字は 1 字 0.12 秒、半角は 0.06 秒で数え、
@@ -402,6 +403,36 @@ class FxState {
       case FeverTimeStarted():
         _flash(0.5);
         _shake(14);
+      case ItemSpawned(:final item):
+        burst(item.x, item.y, 6, Palette.items[item.kind]!, 160);
+      case ItemTaken(:final kind, :final grade, :final paddleX):
+        // 取ったアイテムの名前をパドルの上に出す。パリィ取得は + を付ける
+        final col = Palette.items[kind]!;
+        final parried = grade != null;
+        popup(
+          paddleX,
+          Field.paddleY - 64,
+          parried ? '${kind.label}+' : kind.label,
+          parried ? Dot.light(col) : col,
+          24,
+        );
+        burst(
+          paddleX,
+          Field.paddleY,
+          parried ? 24 : 10,
+          col,
+          parried ? 380 : 240,
+        );
+        ring(paddleX, Field.paddleY, parried ? 80 : 44, col, parried ? 4 : 2);
+        // 「演出を控えめにする」のときは光らせない
+        if (parried && !reduceEffects) _flash(0.1, col);
+      case ShotFired(:final x):
+        burst(x, Field.paddleY - 6, 6, Palette.items[ItemKind.shot]!, 200);
+      case GuardBounced(:final x):
+        final col = Palette.items[ItemKind.guard]!;
+        ring(x, Field.guardY, 60, col, 4);
+        burst(x, Field.guardY, 24, col, 320);
+        _shake(6);
       case BossPhaseChanged():
         _shake(16);
         _flash(0.3, Dot.orange);

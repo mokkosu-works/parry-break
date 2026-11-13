@@ -54,6 +54,15 @@ class HapticsService {
         });
       case PlayerHurt():
         _play(const [(0, _Pulse.long)]);
+      // アイテム: 通常取得は軽く 1 回、パリィ取得は 2 回
+      case ItemTaken(:final parried):
+        _play(
+          parried
+              ? const [(0, _Pulse.medium), (70, _Pulse.light)]
+              : const [(0, _Pulse.light)],
+        );
+      case GuardBounced():
+        _play(const [(0, _Pulse.medium)]);
       case CollapseStarted(:final count) when count >= 14:
         _play(const [(0, _Pulse.medium), (80, _Pulse.medium)]);
       case BreakerTriggered():

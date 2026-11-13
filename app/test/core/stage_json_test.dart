@@ -147,6 +147,10 @@ List<String> stageProblems(
   final out = <String>[];
 
   // ---- endless.json
+  // アイテム (design.md 7.10) が出始めるラウンド。読み込みの前に見る (読み込みは型の誤りで例外になる)
+  if (endlessJson['itemsFromRound'] case final v? when v is! int) {
+    return ['endless.json itemsFromRound: 整数でない ($v)'];
+  }
   final EndlessContent endless;
   try {
     endless = EndlessContent.fromJson(endlessJson);
@@ -185,6 +189,24 @@ List<String> stageProblems(
 
   // ---- campaign.json
   // 番号の範囲は、読み込み (endless は黙って自動生成、boss は RangeError) の前に見る
+  // `"items"` (アイテムを出すか) は章・ステージ・ラウンドに書ける。true / false だけ
+  void itemsKey(String where, Map<String, Object?> j) {
+    if (j['items'] case final v? when v is! bool) {
+      out.add('$where: items は true / false にする ($v)');
+    }
+  }
+
+  for (final c
+      in (campaignJson['chapters'] as List).cast<Map<String, Object?>>()) {
+    itemsKey('章 ${c['id']}', c);
+    for (final s in (c['stages'] as List).cast<Map<String, Object?>>()) {
+      itemsKey('${s['id']}', s);
+      for (final (i, r)
+          in (s['rounds'] as List).cast<Map<String, Object?>>().indexed) {
+        itemsKey('${s['id']} の ${i + 1} ラウンド目', r);
+      }
+    }
+  }
   final rawStages = [
     for (final c
         in (campaignJson['chapters'] as List).cast<Map<String, Object?>>())
@@ -286,6 +308,20 @@ void main() {
       tuningKeys,
       containsAll(['descentBase', 'descentMax', 'parryWindow', 'countdown']),
     );
+    // アイテム (#252) の数値も上書きできる
+    expect(
+      tuningKeys,
+      containsAll([
+        'itemChance',
+        'itemGap',
+        'itemMaxOnField',
+        'itemMaxPerRound',
+        'itemFallSpeed',
+        'itemWeights',
+        'wideTime',
+        'coolSpeedMul',
+      ]),
+    );
     expect(tuningKeys, isNot(contains('descentbase')));
   });
 
@@ -372,6 +408,26 @@ void main() {
         expect(stageProblems(campaignJson, e), contains(contains(expected)));
       });
     }
+
+    test('"items": false と、アイテムの数値の tuning を認める (#252)', () {
+      final c = _copy(campaignJson);
+      stageOf(c, '3-1')['items'] = false;
+      roundOf(c, '4-9', 1)['items'] = false;
+      roundOf(c, '4-9', 0)['tuning'] = {'itemChance': 0.1, 'itemGap': 4};
+      expect(stageProblems(c, endlessJson), isEmpty);
+    });
+
+    campaignBreaks('"items" が true / false でない', (c) {
+      roundOf(c, '4-9', 1)['items'] = 'no';
+    }, '4-9 の 2 ラウンド目: items は true / false にする');
+
+    campaignBreaks('アイテムの tuning のキーの綴り違い', (c) {
+      roundOf(c, '4-9', 1)['tuning'] = {'itemchance': 0.1};
+    }, 'tuning のキー "itemchance" は Tuning にない');
+
+    endlessBreaks('itemsFromRound が整数でない', (e) {
+      e['itemsFromRound'] = '3';
+    }, 'itemsFromRound: 整数でない');
 
     // 4-9 の 2 ラウンド目は rows で書いてある (1 ラウンド目だけ並べるテストでは見つからない)
     campaignBreaks('2 ラウンド目の行が短い', (c) {

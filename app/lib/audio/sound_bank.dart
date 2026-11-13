@@ -169,6 +169,41 @@ final Map<String, (double, _Def)> _sfx = {
       s.tone(880, 0.4, 'sawtooth', 0.08, f2: 110);
     },
   ),
+  // ---- アイテム (design.md 7.10) ----
+  'itemDrop': (
+    0.16,
+    (s) {
+      s.tone(1568, 0.06, 'triangle', 0.05);
+      s.tone(1175, 0.08, 'triangle', 0.05, when: 0.06);
+    },
+  ),
+  'item': (
+    0.22,
+    (s) {
+      s.tone(659, 0.09, 'square', 0.06);
+      s.tone(988, 0.12, 'square', 0.06, when: 0.08);
+    },
+  ),
+  'itemParry': (
+    0.42,
+    (s) {
+      const fs = [659.0, 988.0, 1319.0, 1976.0];
+      for (var i = 0; i < fs.length; i++) {
+        s.tone(fs[i], 0.14, 'square', 0.06, when: i * 0.06);
+      }
+      s.tone(2637, 0.2, 'triangle', 0.04, when: 0.2);
+      s.noise(0.08, 0.12, 7000, filter: 'highpass');
+    },
+  ),
+  'shot': (0.1, (s) => s.tone(1760, 0.08, 'sawtooth', 0.05, f2: 660)),
+  'guard': (
+    0.35,
+    (s) {
+      s.tone(294, 0.3, 'triangle', 0.14, f2: 587);
+      s.tone(1175, 0.12, 'square', 0.04);
+      s.noise(0.08, 0.12, 3000);
+    },
+  ),
   'graze': (0.05, (s) => s.tone(3200, 0.03, 'square', 0.03)),
   'ricochet': (
     0.3,

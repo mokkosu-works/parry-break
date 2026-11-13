@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import '../core/entities/entities.dart' show ItemKind;
+
 /// 画面の色。値はすべて 16 色のパレット [Dot] から取る (名前は役割を表す)。
 abstract final class Palette {
   static const bg = Dot.ink;
@@ -44,6 +46,16 @@ abstract final class Palette {
     'C': Dot.mustard,
     'K': Dot.white,
     'B': Dot.orange,
+  };
+
+  /// アイテムのカプセルの色 (design.md 7.10)。種類は記号でも見分けられる。
+  static const items = <ItemKind, Color>{
+    ItemKind.wide: Dot.sky,
+    ItemKind.multi: Dot.rose,
+    ItemKind.shot: Dot.mustard,
+    ItemKind.blast: Dot.blush,
+    ItemKind.guard: Dot.mint,
+    ItemKind.cool: Dot.steel,
   };
 
   /// コンボ段階 (1〜4, FEVER TIME) の色。

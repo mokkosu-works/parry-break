@@ -93,4 +93,31 @@ void main() {
     h.selection();
     expect(calls, ['HapticFeedbackType.selectionClick']);
   });
+
+  // Issue #252: アイテムを取ったとき。通常取得とパリィ取得で分ける
+  testWidgets('アイテム: 通常取得は弱い 1 回、パリィ取得は中くらい + 弱い', (tester) async {
+    h.handle(
+      const ItemTaken(
+        kind: ItemKind.wide,
+        grade: null,
+        x: 0,
+        paddleX: 0,
+        points: 0,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(calls, [light]);
+    calls.clear();
+    h.handle(
+      const ItemTaken(
+        kind: ItemKind.wide,
+        grade: ParryGrade.perfect,
+        x: 0,
+        paddleX: 0,
+        points: 500,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(calls, [medium, light]);
+  });
 }

@@ -12,7 +12,8 @@ enum ParryGrade { just, perfect, good }
 
 enum ParryTarget { ball, bullet }
 
-enum DestroyCause { ball, pierce, phantom, blast, bullet }
+/// [shot] は SHOT (アイテム) の弾。
+enum DestroyCause { ball, pierce, phantom, blast, bullet, shot }
 
 enum BannerKind { round, boss, feverTime, bossPhase, timeOver }
 
@@ -275,4 +276,42 @@ final class FeverTimeEnded extends GameEvent {
 final class PhantomsSpawned extends GameEvent {
   const PhantomsSpawned(this.count);
   final int count;
+}
+
+// ---- アイテム ------------------------------------------------------------
+
+final class ItemSpawned extends GameEvent {
+  const ItemSpawned(this.item);
+  final Item item;
+}
+
+/// アイテムを取った。[grade] が null なら通常取得、そうでなければパリィ取得。
+final class ItemTaken extends GameEvent {
+  const ItemTaken({
+    required this.kind,
+    required this.grade,
+    required this.x,
+    required this.paddleX,
+    required this.points,
+  });
+  final ItemKind kind;
+  final ParryGrade? grade;
+  final double x, paddleX;
+
+  /// パリィ取得の得点 (通常取得は 0)。
+  final int points;
+
+  bool get parried => grade != null;
+}
+
+/// SHOT の弾を撃った。
+final class ShotFired extends GameEvent {
+  const ShotFired(this.x);
+  final double x;
+}
+
+/// GUARD の防壁がボールを跳ね返して消えた。
+final class GuardBounced extends GameEvent {
+  const GuardBounced(this.x);
+  final double x;
 }

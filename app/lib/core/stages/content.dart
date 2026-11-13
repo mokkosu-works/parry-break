@@ -14,9 +14,13 @@ class EndlessContent {
     required this.handcrafted,
     required this.intros,
     required this.bosses,
+    this.itemsFromRound = 3,
   });
 
   final int roundsPerLoop, bossEvery;
+
+  /// アイテム (design.md 7.10) が出始めるラウンド。0 以下なら出ない。
+  final int itemsFromRound;
   final double loopSpeedup;
   final String? loopIntro;
 
@@ -54,6 +58,7 @@ class EndlessContent {
       bosses: [
         for (var i = 0; i < bosses.length; i++) BossDef.fromJson(i, bosses[i]),
       ],
+      itemsFromRound: (j['itemsFromRound'] as num?)?.toInt() ?? 3,
     );
   }
 
@@ -83,6 +88,8 @@ class EndlessContent {
       content: contentFor(base),
       introKey: loop > 0 && base == 1 ? loopIntro : intros[base],
       ending: base == roundsPerLoop,
+      items: itemsFromRound > 0 && number >= itemsFromRound,
+      itemIntro: itemsFromRound > 0 && number == itemsFromRound,
     );
   }
 }
@@ -225,6 +232,9 @@ class ChapterDef {
 ///   `intro` を書かなければ、エンドレスの R2 の説明 (新しいブロックの説明など) を引き継ぐ
 /// - `{"boss": 0}`: エンドレスの 1 体目のボス
 /// 共通で `difficulty`(既定 1)、`clear`、`tuning`、`intro` を書ける。
+///
+/// アイテム (design.md 7.10) は、章・ステージ・ラウンドの `"items": false` で切れる
+/// (内側の指定が優先。書かなければ出る)。アイテムが出る最初のステージの 1 ラウンド目に、説明の帯が付く。
 class Campaign {
   const Campaign(this.chapters);
   final List<ChapterDef> chapters;
@@ -254,6 +264,21 @@ class Campaign {
   }
 
   factory Campaign.fromJson(Map<String, Object?> j, EndlessContent endless) {
+    var introduced = false;
+    RoundSpec round(
+      int number,
+      Map<String, Object?> w,
+      Map<String, Object?> stage,
+      Map<String, Object?> chapter,
+    ) {
+      final items =
+          (w['items'] ?? stage['items'] ?? chapter['items'] ?? true) as bool;
+      final intro = items && !introduced && number == 1;
+      // 最初のステージがアイテムなしのラウンドから始まっても、説明は次のステージの頭に回す
+      if (intro) introduced = true;
+      return _round(number, w, endless, items: items, itemIntro: intro);
+    }
+
     return Campaign([
       for (final c in (j['chapters'] as List).cast<Map<String, Object?>>())
         ChapterDef(
@@ -270,7 +295,7 @@ class Campaign {
                       in (s['rounds'] as List)
                           .cast<Map<String, Object?>>()
                           .indexed)
-                    _round(i + 1, w, endless),
+                    round(i + 1, w, s, c),
                 ],
                 stars: [
                   for (final st
@@ -290,8 +315,10 @@ class Campaign {
   static RoundSpec _round(
     int number,
     Map<String, Object?> w,
-    EndlessContent endless,
-  ) {
+    EndlessContent endless, {
+    required bool items,
+    required bool itemIntro,
+  }) {
     // 中身と、`difficulty` を省いたときの難易度
     final (RoundContent content, int defaultDifficulty) = switch (w) {
       {'rows': final List<Object?> rows} => (
@@ -320,6 +347,8 @@ class Campaign {
             _ => null,
           },
       tuning: Map<String, Object?>.from((w['tuning'] as Map?) ?? const {}),
+      items: items,
+      itemIntro: itemIntro,
     );
   }
 }

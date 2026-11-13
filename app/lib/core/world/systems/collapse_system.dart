@@ -143,6 +143,7 @@ extension _CollapseSystem on World {
       emit(Popup(cx, cy, '+${formatScore(v)}', PopupKind.score, amount: v));
       cascade.notes++;
       b.behavior.onFell(this, b, cx, cy);
+      _maybeDropItem(b, cx, cy);
     }
   }
 

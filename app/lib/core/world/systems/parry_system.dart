@@ -48,6 +48,17 @@ extension _ParrySystem on World {
       u.contact = null;
       _parryBullet(u, _grade(du.abs()));
     }
+    // パドルに触れて、通常取得の確定を待っているアイテムはパリィ取得になる
+    for (final it in List.of(items)) {
+      final tc = it.contact;
+      if (tc == null) continue;
+      final di = pt - tc;
+      if (di > tuning.perfectWindow || di < -tuning.parryWindow) continue;
+      if (!late) pr.hits = 0;
+      late = true;
+      items.remove(it);
+      _takeItem(it, _grade(di.abs()));
+    }
     if (late) return;
     pr
       ..active = true
@@ -135,6 +146,7 @@ extension _ParrySystem on World {
       odTime = math.min(odTime + (just ? 2 : 1), tuning.odMaxTime);
     }
     if (just) slowmo = math.max(slowmo, 0.15);
+    if (effects.shot > 0) _fireShots();
     emit(
       ParrySucceeded(
         grade: grade,
@@ -209,23 +221,24 @@ extension _ParrySystem on World {
   }
 
   /// FEVER TIME 中の PERFECT / JUST で分身弾を出す (同時に最大 [Tuning.phantomMax] 個)。
-  void _spawnPhantoms(int n) {
+  /// MULTI (アイテム) は [x] (パドルの位置) から、[life] 秒の分身弾を [random] (アイテムの乱数) で出す。
+  void _spawnPhantoms(int n, {double? x, double? life, Mulberry32? random}) {
     final b = ball;
     var spawned = 0;
     for (var k = 0; k < n && phantoms.length < tuning.phantomMax; k++) {
       final a =
           (k - (n - 1) / 2) * 26 * deg +
           (k == (n - 1) / 2 ? 12 * deg : 0) +
-          aux.range(-0.06, 0.06);
+          (random ?? aux).range(-0.06, 0.06);
       phantoms.add(
         Ball(
-          x: b.x,
+          x: x ?? b.x,
           y: Field.paddleY - Field.ballR - 2,
           vx: math.sin(a) * b.speed,
           vy: -math.cos(a) * b.speed,
           speed: b.speed,
           phantom: true,
-          life: tuning.phantomLife,
+          life: life ?? tuning.phantomLife,
         ),
       );
       spawned++;

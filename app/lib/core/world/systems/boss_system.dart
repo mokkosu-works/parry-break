@@ -125,7 +125,9 @@ extension _BossSystem on World {
       final y = c.y + c.h;
       for (var k = -1; k <= 1; k++) {
         final x = c.x + k * Field.cellW;
-        if (!_occupied(x, y) && !_ballOnCell(x, y)) addBlock('X', x, y);
+        if (!_occupied(x, y) && !_ballOnCell(x, y)) {
+          addBlock('X', x, y).noItem = true;
+        }
       }
     }
     // 両翼の砲台はフェーズ2 だけで足す (弾が増えすぎないように)
@@ -133,7 +135,9 @@ extension _BossSystem on World {
       for (final x in [b.left - Field.cellW, b.left + b.cols * Field.cellW]) {
         if (x < 0 || x + Field.cellW > Field.width) continue;
         if (!_occupied(x, Field.gridY0)) {
-          addBlock('T', x, Field.gridY0).fireT = 1.5 + aux.next();
+          addBlock('T', x, Field.gridY0)
+            ..fireT = 1.5 + aux.next()
+            ..noItem = true;
         }
       }
     }

@@ -14,6 +14,9 @@ abstract final class Field {
 
   static const double ballR = 8;
 
+  /// GUARD (アイテム) の防壁の高さ。パドルの下、画面の下端の少し上。
+  static const double guardY = 708;
+
   /// 14 列のグリッド。1 マス 60×24px、盤面の中央に置く。
   static const int cols = 14;
   static const double cellW = 60;
