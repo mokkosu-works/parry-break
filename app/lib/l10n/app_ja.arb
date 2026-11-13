@@ -22,6 +22,8 @@
   "helpComboBody": "パリィや敵弾の撃ち返しを決めると、上の COMBO メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると FEVER TIME。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、COMBO は下がる",
   "helpGrazeTitle": "GRAZE・RICOCHET",
   "helpGrazeBody": "GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。COMBO が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点",
+  "helpItemTitle": "ITEM",
+  "helpItemBody": "ブロックを壊すと、ときどきカプセルが落ちてくる。パドルで受けると取れる\nパリィで受けると、効果が強くなる(名前に + が付く)\nW:パドルが広がる M:分身弾が出る S:パリィのたびに弾を撃つ\nB:次に当たった所で衝撃波 G:下に防壁ができる C:ボールが遅くなる",
   "helpOverTitle": "ゲームオーバー",
   "helpOverBody": "ボールを画面の下に落とすと終わり\nブロックが赤い点線(デッドライン)まで下りてきても終わり",
   "helpPauseTitle": "一時停止",
@@ -220,6 +222,7 @@
   "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
   "introFeverTime": "PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ",
   "introSurvive": "ブロックをデッドラインまで下ろさずに耐え抜け",
+  "introItem": "NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる",
   "introScore": "スコア {value} に到達すればクリア",
   "@introScore": {
     "placeholders": {

@@ -342,7 +342,8 @@ class RepairPattern extends BossPattern {
     final b = w.addBlock('N', x, y)
       ..supported = true
       ..depth = from.depth + 1
-      ..flash = 0.25;
+      ..flash = 0.25
+      ..noItem = true; // 作り直した装甲からはアイテムは出ない
     w.emit(BlockRepaired(b, x + w.form.ox + b.w / 2, y + w.form.oy + b.h / 2));
   }
 

@@ -21,6 +21,7 @@ part 'systems/collapse_system.dart';
 part 'systems/bullet_system.dart';
 part 'systems/boss_system.dart';
 part 'systems/round_system.dart';
+part 'systems/item_system.dart';
 
 enum WorldPhase {
   /// ラウンド進行中。
@@ -118,6 +119,18 @@ class World {
 
   /// ゲーム結果に影響するその他の乱数 (瓦礫・分身弾など)。これもラウンドのシードで決まる。
   late Mulberry32 aux;
+
+  /// アイテムの抽選だけに使う乱数 (design.md 7.10)。[rng]・[aux] を引く回数を変えないよう、別の列にする。
+  late Mulberry32 itemRng;
+
+  /// 落ちてきているアイテム。
+  List<Item> items = [];
+
+  /// 効いているアイテムの効果。
+  ItemEffects effects = ItemEffects();
+
+  /// このラウンドに出たアイテムの数と、前のアイテム (なければラウンドの開始) から壊したブロックの数。
+  int itemsSpawned = 0, breaksSinceItem = 0;
 
   double countdown = 0, roundTime = 0;
   bool launched = false;
@@ -231,6 +244,9 @@ class World {
         ..prevX = u.x
         ..prevY = u.y;
     }
+    for (final it in items) {
+      it.prevY = it.y;
+    }
   }
 
   // ---- 派生値 -------------------------------------------------------------
@@ -250,7 +266,9 @@ class World {
   /// 得点倍率。
   int get mult => od ? tuning.stageMult[4] : tuning.stageMult[stage];
 
-  double get paddleWidth => tuning.paddleWidth;
+  /// パドルの幅。WIDE (アイテム) が効いている間は広い。
+  double get paddleWidth =>
+      tuning.paddleWidth * (effects.wide > 0 ? tuning.wideScale : 1);
 
   double get descentSpeed =>
       tuning.descentSpeed(round.difficulty, round.loopMul) * difficulty.descent;
@@ -266,12 +284,15 @@ class World {
 
   /// ボールの目標速度。段階が上がると補間して加速する。
   /// FEVER TIME 中は段階4 の速さから [Tuning.odTime] 秒かけて [odTopSpeed] まで上げる (入った瞬間に減速しない)。
+  /// COOL (アイテム) が効いている間は、FEVER TIME 中も含めて [Tuning.coolSpeedMul] 倍になる。
   double get targetSpeed {
+    final cool = effects.cool > 0 ? tuning.coolSpeedMul : 1.0;
     if (od) {
       final s4 = stageSpeedOf(3);
-      return s4 + (odTopSpeed - s4) * math.min(1, odElapsed / tuning.odTime);
+      return (s4 + (odTopSpeed - s4) * math.min(1, odElapsed / tuning.odTime)) *
+          cool;
     }
-    return stageSpeedOf(stage);
+    return stageSpeedOf(stage) * cool;
   }
 
   /// ブロックがデッドラインに 3 秒以内に届きそうか (画面端を赤く光らせる)。

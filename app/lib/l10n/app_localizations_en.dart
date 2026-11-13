@@ -84,6 +84,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'GRAZE: dodge an enemy shot by a hair, without letting it hit the paddle. It raises COMBO\nRICOCHET: break 8 or more blocks before the ball returns to the paddle. The more you break, the higher the score';
 
   @override
+  String get helpItemTitle => 'ITEM';
+
+  @override
+  String get helpItemBody =>
+      'Breaking blocks sometimes drops a capsule. Catch it with the paddle\nCatch it with a parry for a stronger effect (its name gets a +)\nW: wider paddle  M: extra balls  S: shots on every parry\nB: shockwave on the next hit  G: barrier below  C: slower ball';
+
+  @override
   String get helpOverTitle => 'GAME OVER';
 
   @override
@@ -372,6 +379,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
+
+  @override
+  String get introItem =>
+      'NEW: ITEMS — CATCH FALLING CAPSULES WITH THE PADDLE. PARRY THEM FOR A STRONGER EFFECT';
 
   @override
   String introScore(String value) {

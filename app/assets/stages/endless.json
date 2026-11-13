@@ -1,10 +1,11 @@
 {
  "version": 1,
- "_comment": "エンドレス(アーケード)の定義。handcrafted にないラウンドは generator が自動生成する。bosses[i] は R(10×(i+1)) のボス。ボスの sway は左右に揺れる速さ。hard はステージモードの HARD (弾幕) でだけ足す攻撃。",
+ "_comment": "エンドレス(アーケード)の定義。handcrafted にないラウンドは generator が自動生成する。bosses[i] は R(10×(i+1)) のボス。ボスの sway は左右に揺れる速さ。hard はステージモードの HARD (弾幕) でだけ足す攻撃。itemsFromRound はアイテム (design.md 7.10) が出始めるラウンド (0 なら出ない)。",
  "roundsPerLoop": 60,
  "bossEvery": 10,
  "loopSpeedup": 0.15,
  "loopIntro": "intro.loop",
+ "itemsFromRound": 3,
  "generator": {
   "unlock": {
    "N": 1,

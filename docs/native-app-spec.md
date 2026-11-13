@@ -145,7 +145,7 @@ app/
                   normal / turret / reflector(反射・磁力) / splitter / mirror / wall / keystone / explosive / core_block.dart
       world/      world.dart(状態・公開操作・step)
         systems/  round_system / ball_system / parry_system / block_system / collapse_system /
-                  bullet_system / boss_system.dart(World の part。システムごとに分割)
+                  bullet_system / boss_system / item_system.dart(World の part。システムごとに分割)
       stages/     round_spec.dart(RoundSpec + クリア条件), procedural_generator.dart,
                   boss_def.dart(BossDef + 攻撃パターン + BossPatternRegistry),
                   content.dart(JSON の読み込み: EndlessContent / Campaign / StageDef / 星の条件)
@@ -154,7 +154,7 @@ app/
     app/          providers.dart(音・振動・デバッグモードなど、画面をまたいで使う Provider)
     game/         game_controller.dart(実時間で進め、イベントを演出・音・振動へ配る), game_screen.dart,
                   result_overlay.dart(結果画面), autoplay_bot.dart(撮影用ビルドだけの自動プレイ。promo/ で使う)
-    render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿),
+    render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿), item_painter.dart(アイテムのカプセル),
                   fx.dart(パーティクル・ポップアップ・コールアウトなど), pixel.dart(ドット絵の部品), text_cache.dart, palette.dart(16 色のパレットと画面の 3 色)
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
@@ -207,6 +207,8 @@ abstract class BlockBehavior {
   void afterBounce(World w, Block b, Ball ball, double nx, double ny) {}  // 反射ブロックのずれ
   void onBlast(World w, Block b, {required bool breaker});
   bool onReturnedBullet(World w, Block b, Bullet u);            // 弾が消えるなら true
+  bool onShot(World w, Block b);                                 // アイテムの SHOT の弾。既定は 1 ダメージ
+  bool get dropsItem => true;                                    // アイテムの抽選の対象か (分裂の子は false)
   void onDestroyed(World w, Block b, double cx, double cy) {}   // 誘爆・分裂など
   void onRoundStart(World w, Block b) {}                         // 砲台の初期タイマー
   void onFell(World w, Block b, double cx, double cy) {}        // 崩落した爆薬の爆発
@@ -226,7 +228,8 @@ abstract class GameMode {
 // コアが発行する出来事 (core/events/game_event.dart)。描画・音・振動・統計が購読する
 sealed class GameEvent {}
 // RoundStarted, ParrySucceeded, BlockDestroyed, CollapseStarted, BlockFell, BlastExploded,
-// PlayerHurt, FeverTimeStarted, BossPhaseChanged, RoundCleared, GameOver, StageCompleted … (約40種)
+// PlayerHurt, FeverTimeStarted, BossPhaseChanged, RoundCleared, GameOver, StageCompleted,
+// ItemSpawned, ItemTaken, ShotFired, GuardBounced … (約45種)
 ```
 
 System は `World` が決まった順に呼ぶ(入力 → パドル → パリィの窓 → 降下 / ボス → コンボ → ボール → 砲台 → 弾 → レーザー → 爆発 → 崩落 → クリア判定)。この順序はブラウザ版の `updatePlay` に合わせる。
@@ -268,6 +271,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 ```
 
 - ラウンドは `rows`(配置を直接書く。`legend` で文字をブロック ID に読み替え可)/ `endless`(エンドレスの W 番号の中身)/ `boss`(ボス番号)のどれかで書く。共通で `difficulty`・`clear`・`tuning`・`intro` を書ける。
+- アイテム(design.md 7.10): 章・ステージ・ラウンドに `"items": false` を書くと、その範囲では出ない(内側の指定が優先。既定は出す。第1章は章ごと `false`)。エンドレスは `itemsFromRound`(既定 3。0 なら出ない)から出る。数値(`itemChance` など)は `tuning` で上書きできる。
 - クリア条件 `clear.type`: `annihilate`(既定。ボス戦はコア全破壊)/ `score` / `survive`。
 - 星 `stars[].type`: `clear` / `noHit` / `time`(秒以内)/ `score` / `just` / `perfect` / `collapse` / `chainBlast` / `returnKills` / `graze` / `ricochet`。
 - 自動生成(`genLayout`)は Dart に移植した。解禁ラウンドは JSON、形の候補・出現率・上限数はコード(`procedural_generator.dart`)にある。mulberry32 は 32bit 整数演算を再現しており、ブラウザ版と同じ配置になることをテストで保証している。
@@ -302,7 +306,8 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
   - パリィ判定の境界: 接触時刻との差が ±12 / 30 / 100ms ちょうどのときの判定。
   - 崩落: 要石の破壊、つながりの切断で、期待どおりのブロックが崩れる。
   - スコア: 崩落・連鎖爆発・跳弾のボーナス計算。
-  - 決定性: 同じシードと同じ入力ログから、同じスコアになる。
+  - 決定性: 同じシードと同じ入力ログから、同じスコアになる。アイテムの抽選は専用の乱数で行い、ほかの乱数を引く回数を変えない(`test/core/items_test.dart`)。
+  - バランス: `test/balance/balance_report.dart`(難易度ごとのクリア率)と `test/balance/item_report.dart`(アイテムなし / あり / 全部取るの比較)。どちらも手で流す(`flutter test test/balance/...`。CI では `_test.dart` でないので動かない)。
 - `flutter analyze` で警告がない。
 - iOS シミュレーターと Android エミュレーターで R1〜R10(ボス1)を通しで遊び、ブラウザ版と並べて挙動・数値・演出を比べる。
 - 実機で、FEVER TIME 中や大崩落の最中も 60fps 以上を保つことを確認する。

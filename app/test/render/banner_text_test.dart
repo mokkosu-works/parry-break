@@ -167,9 +167,11 @@ void main() {
   });
 
   test('説明のない帯は、今までどおり 1.8 秒で消える', () {
-    final w = World(mode: endlessMode)..start(fromRound: 3);
+    // R3 はアイテムの説明が付くので、説明のない R5 で見る
+    final w = World(mode: endlessMode)..start(fromRound: 5);
     expect(w.round.introKey, isNull);
-    expect(_play(3).shown, closeTo(FxBanner.baseLife, 2 * World.dt));
+    expect(w.round.itemIntro, isFalse);
+    expect(_play(5).shown, closeTo(FxBanner.baseLife, 2 * World.dt));
   });
 
   test('説明が長いほど長く出す (上限 ${FxBanner.maxLife} 秒)', () {
@@ -246,4 +248,34 @@ void main() {
       ja.introFeverTime.replaceAll(' ', ''),
     );
   });
+
+  // Issue #252: アイテムが初めて出るラウンド (エンドレス R3) の開始の帯に、説明を 1 行足す
+  for (final locale in ['ja', 'en']) {
+    test('エンドレスの R3 の帯にアイテムの説明が出る。R4 には出ない ($locale)', () {
+      final r3 = _play(3, locale: locale, size: const Size(667, 375));
+      final texts = r3.drawn.map((d) => d.text).join(' ');
+      expect(
+        texts,
+        contains(
+          lookupAppLocalizations(Locale(locale)).introItem.substring(0, 12),
+        ),
+      );
+      // 説明の 1 行は、帯の幅に収まるように折り返す
+      for (final d in r3.drawn.where(
+        (d) => d.size == FieldPainter.bannerSubSize(667 / 1200),
+      )) {
+        expect(
+          d.width,
+          lessThanOrEqualTo(FieldPainter.bannerSubWidth + 1),
+          reason: d.text,
+        );
+      }
+      expect(r3.shown, greaterThan(FxBanner.baseLife), reason: '読める長さだけ出す');
+      final r4 = _play(4, locale: locale);
+      expect(
+        r4.drawn.map((d) => d.text).join(' '),
+        isNot(contains((locale == 'ja' ? 'カプセル' : 'CAPSULES'))),
+      );
+    });
+  }
 }

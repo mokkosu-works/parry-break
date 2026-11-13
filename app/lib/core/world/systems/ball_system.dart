@@ -96,6 +96,13 @@ extension _BallSystem on World {
           _reflectOffPaddle(b); // 分身弾はパドルで自動的に跳ね返る
         }
       }
+      // GUARD (アイテム) の防壁: メインのボールを 1 回だけ跳ね返して消える (分身弾は素通り)
+      if (main && effects.guard > 0 && b.vy > 0 && b.y + r >= Field.guardY) {
+        b.y = Field.guardY - r;
+        b.vy = -b.vy.abs();
+        effects.guard = 0;
+        emit(GuardBounced(b.x));
+      }
       if (b.y - r > Field.height) {
         b.lost = true;
         return;
@@ -228,6 +235,12 @@ extension _BallSystem on World {
         : DestroyCause.ball;
     if (main && b.breaker) {
       b.breaker = false;
+      _triggerBreaker(b.x, b.y);
+    } else if (main && effects.blast > 0 && effects.blastLock <= 0) {
+      // BLAST (アイテム): JUST パリィのブレイカーと同じ衝撃波。同じ場所で続けて出さない
+      effects
+        ..blast -= 1
+        ..blastLock = tuning.blastInterval;
       _triggerBreaker(b.x, b.y);
     }
     return bl.behavior.onBall(

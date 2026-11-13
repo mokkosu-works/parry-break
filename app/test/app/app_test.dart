@@ -686,9 +686,9 @@ void main() {
         1: ja
             ? 'キーボード:Space か Enter で発射・パリィ'
             : 'Keyboard: Space or Enter to launch / parry',
-        7: ja ? 'キーボード:Esc か P で一時停止' : 'Keyboard: Esc or P to pause',
+        8: ja ? 'キーボード:Esc か P で一時停止' : 'Keyboard: Esc or P to pause',
       };
-      for (var page = 0; page < 8; page++) {
+      for (var page = 0; page < 9; page++) {
         if (keys[page] case final text?) {
           expect(find.text(text), findsOneWidget, reason: 'page ${page + 1}');
         }
@@ -865,6 +865,42 @@ void main() {
       },
     );
   }
+  // Issue #252: 遊び方に ITEM のページ (6 種の記号・名前・効果と、パリィで取ると強くなること)
+  for (final language in ['en', 'ja']) {
+    for (final size in const [Size(667, 375), Size(1280, 720)]) {
+      testWidgets(
+        '遊び方の ITEM のページが $language・${size.width.toInt()}×${size.height.toInt()} ではみ出さない',
+        (tester) async {
+          await _pumpApp(
+            tester,
+            home: const HelpScreen(),
+            size: size,
+            prefs: {
+              'settings.v1': jsonEncode(Settings(language: language).toJson()),
+            },
+          );
+          await _frames(tester, 0.5);
+          for (var i = 0; i < 6; i++) {
+            await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+            await _frames(tester, 0.5);
+          }
+          expect(find.text('ITEM'), findsOneWidget);
+          expect(find.text('07'), findsOneWidget);
+          final ja = language == 'ja';
+          for (final s
+              in ja
+                  ? ['W:パドルが広がる', 'C:ボールが遅くなる', 'パリィで受けると']
+                  : ['W: wider paddle', 'C: slower ball', 'with a parry']) {
+            expect(find.textContaining(s), findsOneWidget, reason: s);
+          }
+          expect(tester.takeException(), isNull, reason: 'はみ出さない');
+          await _frames(tester, 2);
+          expect(tester.takeException(), isNull, reason: '図を動かしても落ちない');
+        },
+      );
+    }
+  }
+
   // Issue #122: 押せる範囲が 44pt より小さいボタンがあった
   group('押せる範囲が 44pt 以上', () {
     Size hitSize(WidgetTester tester, Finder f) => tester.getSize(
@@ -946,7 +982,7 @@ void main() {
       );
       await _frames(tester, 0.5);
       final dots = find.byType(AnimatedContainer);
-      expect(dots, findsNWidgets(8));
+      expect(dots, findsNWidgets(9));
       expect(
         find.ancestor(of: dots, matching: find.byType(GestureDetector)),
         findsNothing,

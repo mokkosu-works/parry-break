@@ -33,6 +33,9 @@ class Block {
   /// 分裂の子ブロックが落ちていく残り距離。
   double fall = 0;
 
+  /// アイテムを落とさない (ボスが後から足した増援・作り直した装甲)。
+  bool noItem = false;
+
   // 崩落の支え
   bool supported = false;
   int depth = 0;
@@ -111,7 +114,54 @@ class Ball {
   late double prevX = x, prevY = y;
 }
 
-enum BulletKind { bullet, shard, shrapnel }
+/// [shot] は SHOT (アイテム) でパドルから撃つ弾 (敵弾ではない)。
+enum BulletKind { bullet, shard, shrapnel, shot }
+
+/// アイテムの種類 (design.md 7.10)。[symbol] はカプセルに描く 1 文字、[label] は取ったときに出す名前。
+enum ItemKind {
+  wide('W', 'WIDE'),
+  multi('M', 'MULTI'),
+  shot('S', 'SHOT'),
+  blast('B', 'BLAST'),
+  guard('G', 'GUARD'),
+  cool('C', 'COOL');
+
+  const ItemKind(this.symbol, this.label);
+  final String symbol, label;
+}
+
+/// ブロックから落ちてくるアイテム。[x], [y] はカプセルの中心。まっすぐ下に落ちる。
+class Item {
+  Item(this.kind, this.x, this.y);
+  final ItemKind kind;
+  final double x;
+  double y;
+
+  /// パドルに触れたが、まだ通常取得が確定していないアイテムの接触時刻。
+  /// 接触の後の押下 (design.md 7.9) を待つ間はここで止まり、待ちきれば通常取得になる。
+  double? contact;
+
+  /// 直前のステップの位置 (描画でステップ間を補間するため)。
+  late double prevY = y;
+}
+
+/// 効いているアイテムの効果。時間は残り秒数 (0 以下なら効いていない)。
+class ItemEffects {
+  double wide = 0, shot = 0, guard = 0, cool = 0;
+
+  /// BLAST の残り回数と、次に出せるまでの残り時間。
+  int blast = 0;
+  double blastLock = 0;
+
+  /// 効いている効果と残り (HUD 用)。時間のものは秒、BLAST は回数。
+  List<(ItemKind, double)> get active => [
+    if (wide > 0) (ItemKind.wide, wide),
+    if (shot > 0) (ItemKind.shot, shot),
+    if (blast > 0) (ItemKind.blast, blast.toDouble()),
+    if (guard > 0) (ItemKind.guard, guard),
+    if (cool > 0) (ItemKind.cool, cool),
+  ];
+}
 
 class Bullet {
   Bullet({

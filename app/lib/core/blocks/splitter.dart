@@ -47,4 +47,8 @@ class SplitChildBlock extends BlockBehavior {
 
   @override
   bool get structural => false;
+
+  /// 分裂の子からはアイテムは出ない。
+  @override
+  bool get dropsItem => false;
 }

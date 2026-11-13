@@ -11,6 +11,10 @@ extension _RoundSystem on World {
         : baseTuning.copyWith(spec.tuning);
     rng = Mulberry32(spec.seed);
     aux = Mulberry32(spec.seed * 7 + 1);
+    itemRng = Mulberry32(spec.itemSeed);
+    _clearItems();
+    itemsSpawned = 0;
+    breaksSinceItem = 0;
     form
       ..ox = 0
       ..oy = 0;
@@ -98,6 +102,7 @@ extension _RoundSystem on World {
       countdown -= dt;
       if (countdown <= 0) emit(const CountdownFinished());
     }
+    _tickEffects(dt);
     final active = countdown <= 0;
     if (active) {
       // 耐久の時間・全消しボーナス・残り時間の表示は、最初の発射から数える (#100)
@@ -130,6 +135,7 @@ extension _RoundSystem on World {
     }
     _updateBullets(dt);
     if (phase != WorldPhase.playing) return;
+    _updateItems(dt);
     // パリィ判定の窓の終了。このステップのボール・敵弾の接触を調べた後で閉じる
     // (ステップの途中にある press + parryWindow までの接触は成功にする) (#97)
     if (pr.active && t - pr.press > tuning.parryWindow) {
@@ -207,6 +213,7 @@ extension _RoundSystem on World {
     blocks = [];
     bullets = [];
     lasers = [];
+    _clearItems();
     if (phantoms.isNotEmpty) _popPhantoms();
     phase = WorldPhase.clearing;
     clearT = 0;
@@ -236,6 +243,7 @@ extension _RoundSystem on World {
     parry.active = false;
     phantoms = [];
     lasers = [];
+    _clearItems();
     _finishCascade();
     _finishBlastChain();
     emit(

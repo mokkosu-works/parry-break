@@ -58,6 +58,12 @@ List<HelpPage> helpPages(AppLocalizations l, ControlScheme controls) {
       color: Dot.mustard,
     ),
     (
+      topic: HelpTopic.item,
+      title: l.helpItemTitle,
+      body: l.helpItemBody,
+      color: Dot.sky,
+    ), // WIDE のカプセル
+    (
       topic: HelpTopic.over,
       title: l.helpOverTitle,
       body: l.helpOverBody,

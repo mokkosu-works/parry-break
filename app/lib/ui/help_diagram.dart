@@ -5,13 +5,14 @@ import 'package:flutter/material.dart';
 
 import '../core/core.dart';
 import '../render/block_painters.dart';
+import '../render/item_painter.dart';
 import '../render/palette.dart';
 import '../render/pixel.dart';
 import '../render/text_cache.dart';
 import '../services/settings.dart';
 
 /// 遊び方の図で見せる場面。
-enum HelpTopic { move, parry, timing, chain, combo, graze, over, pause }
+enum HelpTopic { move, parry, timing, chain, combo, graze, item, over, pause }
 
 /// 遊び方の 1 場面を、本物のブロックの描き方を使って小さな盤面に描き、繰り返し動かす。
 class HelpDiagram extends StatefulWidget {
@@ -113,6 +114,7 @@ class _DiagramPainter extends CustomPainter {
     HelpTopic.chain: 0.36,
     HelpTopic.combo: 0.55,
     HelpTopic.graze: 0.45,
+    HelpTopic.item: 0.62,
     HelpTopic.over: 0.42,
     HelpTopic.pause: 0.5,
   };
@@ -139,6 +141,8 @@ class _DiagramPainter extends CustomPainter {
         _combo();
       case HelpTopic.graze:
         _graze();
+      case HelpTopic.item:
+        _item();
       case HelpTopic.over:
         _over();
       case HelpTopic.pause:
@@ -689,6 +693,64 @@ class _DiagramPainter extends CustomPainter {
       }
       _paddle(cx);
       _label('RICOCHET ×${n + 4}', cx, 230, Palette.yellow, size: 26);
+    }
+  }
+
+  void _item() {
+    // 上に 6 種の記号と名前。下で、壊したブロックからカプセルが落ち、パリィで取ると + が付く
+    const kinds = ItemKind.values;
+    for (var i = 0; i < kinds.length; i++) {
+      final x = 34.0 + (i % 3) * 196, y = 26.0 + (i ~/ 3) * 34;
+      drawItemCapsule(_c, text, kinds[i], x, y);
+      text.draw(
+        _c,
+        kinds[i].label,
+        x + 32,
+        y,
+        16,
+        Palette.items[kinds[i]]!,
+        align: TextAlignH.left,
+        weight: 900,
+      );
+    }
+    const px = 300.0, blockY = 96.0;
+    for (var j = 0; j < 5; j++) {
+      if (j == 2 && _t > 0.12) continue;
+      _block('N', px - 150 + j * 60, blockY, tier: 1);
+    }
+    const catchAt = 0.6;
+    final wide = _t >= catchAt;
+    // ボールがブロックを壊して戻っていく
+    if (_t < 0.12) {
+      final k = _span(_t, 0, 0.12);
+      _ball(Offset(px + 40 - 40 * k, paddleY - 40 - (paddleY - 170) * k));
+    } else if (_t < 0.4) {
+      final k = _span(_t, 0.12, 0.4);
+      _ball(Offset(px - 180 * k, blockY + 40 + 60 * k));
+    }
+    if (_t > 0.12 && !wide) {
+      final k = _span(_t, 0.12, catchAt);
+      final y = blockY + 12 + (paddleY - 10 - blockY - 12) * k;
+      drawItemCapsule(
+        _c,
+        text,
+        ItemKind.wide,
+        px,
+        y,
+        lit: (_t * 16).floor().isEven,
+      );
+    }
+    final parry = _t > catchAt - 0.08 && _t < catchAt + 0.08;
+    final pw = wide ? paddleW * 1.4 : paddleW;
+    final col = parry ? Palette.yellow : Palette.accent;
+    bevelRect(_c, Rect.fromLTWH(px - pw / 2, paddleY, pw, paddleH + 2), col);
+    if (parry) _finger(const Offset(px + 200, paddleY - 20));
+    if (wide) {
+      final k = _span(_t, catchAt, 1);
+      if (k < 0.5) {
+        _ring(const Offset(px, paddleY), 20 + k * 120, Dot.sky, 1 - k * 2);
+      }
+      _label('WIDE+', px, paddleY - 50 - k * 14, Dot.light(Dot.sky), size: 26);
     }
   }
 

@@ -61,4 +61,11 @@ class MirrorBlock extends BlockBehavior {
     w.emit(const BulletMirrored());
     return false;
   }
+
+  /// SHOT (アイテム) の弾は弾かれて消える。
+  @override
+  bool onShot(World w, Block b) {
+    w.deflect(b);
+    return true;
+  }
 }

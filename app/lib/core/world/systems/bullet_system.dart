@@ -93,7 +93,10 @@ extension _BulletSystem on World {
         )) {
           continue;
         }
-        if (b.behavior.onReturnedBullet(this, b, u)) {
+        final gone = u.kind == BulletKind.shot
+            ? b.behavior.onShot(this, b)
+            : b.behavior.onReturnedBullet(this, b, u);
+        if (gone) {
           final j = bullets.indexOf(u);
           if (j >= 0) bullets.removeAt(j);
         }
