@@ -4,6 +4,7 @@
 - `character_sheet_v2.png`: 既存の動画と編集プロジェクトで使用中のミツバの表情・ポーズ集。
 - `akane_sheet.png` / `shizuku_sheet.png` / `momoka_sheet.png` / `wakana_sheet.png` / `mitsuba_sheet.png`: 性格に合わせた各キャラクターの表情・ポーズ集。左から通常、集中、予想外、失敗、成功、固有の6種類。
 - 人柄・口調・セリフ例と各枠の演技指針は [profiles.md](profiles.md) を参照。
+- 声の採用方針、指定クレジット、利用条件の確認状況は [voice-licenses.md](voice-licenses.md) を参照。ミツバ＝春歌ナナ、アカネ＝満別花丸、モモカ＝満別花丸「ぶりっ子」、シズク・ワカナ＝冥鳴ひまり。兼役はスタイル・話速・抑揚・間で演じ分ける。
 
 線の太さは元のミツバの表情シートを基準にし、太い黒縁を避ける。色別一覧もこの基準に合わせて修正済み。
 
