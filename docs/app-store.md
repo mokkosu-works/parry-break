@@ -54,6 +54,17 @@ SHOT_DIR=build/store_screenshots/ja/iphone flutter drive -d <デバイス ID> --
 
 `lang=en` で英語版になり、`-d` に渡す端末の ID でサイズが決まる。6.3 インチの欄は 6.9 インチの画像を受け付けない。縮めるとドット絵がにじむので、端末ごとに撮る。ボス戦はたまに被弾して「HIT!」が写るので、撮ったら目で確かめ、写っていたらその端末だけ撮り直す。PNG は透過の情報を持つので、`sips -s format jpeg` で JPEG にしてから載せる。
 
+## デイリーのランキング(Game Center)
+
+デイリーチャレンジ(DAILY)のボードは、作るまで `LeaderboardConfig.placeholders` に入っていて、スコアを送らない。作る手順:
+
+1. App Store Connect → マイ App → PARRY BREAK → サービス → Game Center → リーダーボード → 「+」で **クラシック** を作る。
+2. 参照名 `Daily Score`、ID `com.watsuwo.parrybreak.daily_score`、スコアの形式は整数、並べ方は「大きいほど上位」、スコアの送信の種類は「最高スコア」。一度作った ID は削除しても使い回せない。
+3. ローカリゼーションで名前を足す: 日本語「デイリー: スコア」、英語「Daily: Score」。毎日の区切りは、Game Center のランキング画面の「今日」で見てもらう(繰り返しのリーダーボードは使わない)。
+4. 次に出すバージョンのページの Game Center 欄で、このリーダーボードを含める。
+5. `app/lib/services/leaderboard.dart` の `LeaderboardConfig.ios[Board.dailyScore]` が手順 2 の ID と同じことを確かめ、`placeholders` から `Board.dailyScore` を外す(Android も作るまでは、Android の ID が空のまま送られないよう、両方そろってから外す)。
+6. TestFlight で、DAILY を遊んでスコアが「デイリー: スコア」に載ることを確かめる。
+
 ## App のプライバシー
 
 開発者自身は何も集めないが、広告(Google AdMob)と同意画面(UMP)の SDK がデータを集めるため、「データの収集なし」は選べない。下の表は、ビルドに入っている両 SDK のプライバシーマニフェスト(`GoogleMobileAds.framework` と `UserMessagingPlatform.framework` の `PrivacyInfo.xcprivacy`)をまとめたもの。SDK を更新したら、マニフェストを見直して表も直す。

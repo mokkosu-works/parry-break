@@ -202,7 +202,8 @@ class World {
   }
 
   /// 新しいプレイを始める。[fromRound] で途中のラウンドから始められる (テスト・デバッグ用)。
-  void start({int fromRound = 1}) {
+  /// 省くとモードの最初のラウンド ([GameMode.firstRound]) から。
+  void start({int? fromRound}) {
     phase = WorldPhase.playing;
     t = 0;
     score = 0;
@@ -230,7 +231,7 @@ class World {
     _actions.clear();
     practice?.log.clear();
     practiceRespawn = practiceBulletT = 0;
-    final first = mode.roundAt(fromRound);
+    final first = mode.roundAt(fromRound ?? mode.firstRound);
     if (first == null) throw StateError('mode has no rounds');
     _loadRound(first);
   }

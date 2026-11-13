@@ -1142,6 +1142,8 @@ class FieldPainter extends CustomPainter {
         ? 'ALL ROUNDS CLEAR'
         : last && w.mode is StageMode
         ? 'STAGE CLEAR'
+        : last && w.mode is DailyMode
+        ? 'DAILY CLEAR'
         : w.boss != null
         ? 'BOSS DESTROYED'
         : 'ROUND ${w.round.number} CLEAR';

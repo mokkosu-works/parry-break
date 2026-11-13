@@ -233,6 +233,19 @@ void main() {
       expect(pending(), isEmpty);
     });
 
+    test('デイリーのボードは ID が仮のうちは送らず、保留もしない (#255)', () async {
+      expect(LeaderboardConfig.placeholders, contains(Board.dailyScore));
+      expect(LeaderboardConfig.hasId(Board.dailyScore), isFalse);
+      expect(LeaderboardConfig.ios, contains(Board.dailyScore));
+      expect(LeaderboardConfig.android, contains(Board.dailyScore));
+      await setPending({'dailyScore': 70});
+      final lb = GamesServicesLeaderboard(prefs, sp);
+      await lb.signIn();
+      await lb.submit(Board.dailyScore, 900);
+      expect(sp.sent, isEmpty);
+      expect(pending(), isEmpty);
+    });
+
     test('サインインに失敗しても、保留は消さずに次に回す', () async {
       await setPending({'endlessScore': 800});
       sp.signInThrows = true;

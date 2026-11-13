@@ -144,6 +144,16 @@ App Store 用の iPhone のスクリーンショット(2868 × 1320 など)は�
 
 Play Console に載っている順は、この文書で確かめていない。順が違っていたら、Play Console の「メインのストアの掲載情報 → スマートフォンのスクリーンショット」で、ドラッグして上の順に並べ直す(人の作業)。
 
+## デイリーのランキング(Play Games サービス)
+
+Android のランキング(`LeaderboardConfig.androidEnabled`)を有効にするときに、ほかの 3 つのボードと一緒に作る。
+
+1. Google Play Console → Play Games サービス → 設定と管理 → リーダーボード → 「リーダーボードを作成」。
+2. 名前「デイリー: スコア」(英語「Daily: Score」)、スコアの形式は数値、並べ順は「大きいほど上位」。
+3. できたリーダーボード ID を `app/lib/services/leaderboard.dart` の `LeaderboardConfig.android[Board.dailyScore]` に書く。毎日の区切りは、ランキング画面の「今日」で見てもらう。
+4. iOS の `com.watsuwo.parrybreak.daily_score` も作ってあれば、`LeaderboardConfig.placeholders` から `Board.dailyScore` を外す([app-store.md](app-store.md) の「デイリーのランキング」)。
+5. 内部テストトラックで、DAILY を遊んでスコアが載ることを確かめる。
+
 ## データ セーフティ
 
 開発者自身は何も集めないが、広告(Google Mobile Ads SDK)がデータを集めて Google に送る。下の表は、Google の [Play のデータ開示に関するページ](https://developers.google.com/admob/android/privacy/play-data-disclosure) をまとめたもの。SDK を更新したら、このページを見直して表も直す。同意画面(UMP SDK)は広告の SDK と一緒に使うもので、別に申告する項目はない。

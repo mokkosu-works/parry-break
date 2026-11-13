@@ -522,4 +522,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String stageTileLocked(String id) {
     return '$id, locked';
   }
+
+  @override
+  String dailyCounted(int n) {
+    return 'Today\'s run · $n-day streak';
+  }
+
+  @override
+  String dailyPractice(int n) {
+    return 'Practice (only each day\'s first run counts) · $n-day streak';
+  }
 }

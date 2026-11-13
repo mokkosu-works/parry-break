@@ -16,6 +16,7 @@ import '../render/pixel.dart';
 import '../render/text_cache.dart';
 import '../services/ads.dart';
 import '../services/content.dart';
+import '../services/daily.dart';
 import '../services/history.dart';
 import '../services/leaderboard.dart';
 import '../services/records.dart';
@@ -30,16 +31,18 @@ import '../ui/pixel_icons.dart';
 
 /// プレイ画面。[stage] があればステージモード、なければエンドレス (エンドレスは常に NORMAL)。
 /// [practice] なら練習場 (記録・ランキング・履歴・広告の回数・評価の依頼に数えない)。
+/// [daily] ならデイリーチャレンジ (NORMAL 固定。その日の最初の 1 回だけを記録・ランキングに数える)。
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({
     super.key,
     this.stage,
     this.difficulty = Difficulty.normal,
     this.practice = false,
+    this.daily = false,
   });
   final StageDef? stage;
   final Difficulty difficulty;
-  final bool practice;
+  final bool practice, daily;
 
   /// 最後に作られたプレイの進行役 (テストから状態を確かめるため)。
   @visibleForTesting
@@ -51,9 +54,17 @@ class GameScreen extends ConsumerStatefulWidget {
 
 /// プレイの結果 (オーバーレイの表示用)。
 class _Outcome {
-  const _Outcome({required this.newBest, this.stars, this.cleared = false});
+  const _Outcome({
+    required this.newBest,
+    this.stars,
+    this.cleared = false,
+    this.dailyCounted = false,
+  });
   final bool newBest, cleared;
   final List<bool>? stars;
+
+  /// デイリーで、その日の最初の 1 回として記録に数えたか。
+  final bool dailyCounted;
 }
 
 class _GameScreenState extends ConsumerState<GameScreen>
@@ -66,15 +77,23 @@ class _GameScreenState extends ConsumerState<GameScreen>
   FieldPainter? _painter;
   _Outcome? _outcome;
 
+  /// デイリーの日付 (画面を開いた時刻で決め、RETRY しても変えない)。
+  DailyChallenge? _daily;
+
   @override
   void initState() {
     super.initState();
     final settings = ref.read(settingsProvider);
     final content = ref.read(contentProvider);
     final stage = widget.stage;
+    final daily = _daily = widget.daily && stage == null
+        ? DailyChallenge.of(ref.read(dailyClockProvider)())
+        : null;
     _ctl = GameController(
       mode: widget.practice
           ? PracticeMode()
+          : daily != null
+          ? DailyMode(content.endless, daily)
           : stage != null
           ? StageMode(stage)
           : EndlessMode(content.endless),
@@ -144,7 +163,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final stage = widget.stage;
     if (ref.read(debugModeProvider)) {
       // デバッグモードのプレイは記録にもランキングにも残さない
-      final cleared = stage != null && w.phase == WorldPhase.completed;
+      final cleared =
+          (stage != null || _daily != null) && w.phase == WorldPhase.completed;
       final stars = stage?.evaluate(
         StageResult(cleared: cleared, score: w.score, stats: w.stats),
       );
@@ -153,7 +173,20 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
     // 結果画面を見ている間に、戻るときの広告を読み込んでおく
     ref.read(adsProvider).onResult();
-    if (stage == null) {
+    if (_daily case final daily?) {
+      final (:counted, :newBest) = ref
+          .read(dailyProvider.notifier)
+          .submit(daily.day, w.score);
+      ref
+          .read(historyProvider.notifier)
+          .addDaily(score: w.score, round: w.round.number);
+      if (counted) lb.submit(Board.dailyScore, w.score);
+      _outcome = _Outcome(
+        newBest: newBest,
+        cleared: w.phase == WorldPhase.completed,
+        dailyCounted: counted,
+      );
+    } else if (stage == null) {
       final newBest = records.submitEndless(
         score: w.score,
         round: w.round.number,
@@ -582,6 +615,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final records = ref.read(recordsProvider);
     final cleared = o?.cleared ?? false;
     final next = cleared ? _nextStage : null;
+    final daily = _daily == null
+        ? null
+        : (dailyRecord: ref.read(dailyProvider), day: _daily!.day);
     return ResultOverlay(
       key: ValueKey(_runId),
       data: ResultData(
@@ -591,7 +627,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
         stats: w.stats,
         reason: w.overReason,
         newBest: o?.newBest ?? false,
-        bestScore: stage == null
+        bestScore: daily != null
+            ? daily.dailyRecord.bestScore
+            : stage == null
             ? records.endless.bestScore
             : records.stage(stage.id, widget.difficulty).bestScore,
         bestRound: records.endless.bestRound,
@@ -609,6 +647,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
               )
             : null,
         over: w.overInfo,
+        daily: daily == null
+            ? null
+            : DailyResult(
+                counted: o?.dailyCounted ?? false,
+                streak: daily.dailyRecord.streakOn(daily.day),
+              ),
       ),
       reduceMotion:
           ref.read(settingsProvider).reduceEffects ||

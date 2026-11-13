@@ -14,6 +14,7 @@ import 'package:parry_break/main.dart';
 import 'package:parry_break/render/field_painter.dart';
 import 'package:parry_break/services/ads.dart';
 import 'package:parry_break/services/content.dart';
+import 'package:parry_break/services/daily.dart';
 import 'package:parry_break/services/history.dart';
 import 'package:parry_break/services/leaderboard.dart';
 import 'package:parry_break/services/records.dart';
@@ -75,6 +76,7 @@ Future<void> _pumpApp(
   AdsService? ads,
   AudioService? audio,
   LeaderboardService? leaderboard,
+  DateTime? now,
 }) async {
   tester.view
     ..physicalSize = size * dpr
@@ -107,6 +109,7 @@ Future<void> _pumpApp(
         if (audio != null) audioProvider.overrideWithValue(audio),
         if (leaderboard != null)
           leaderboardProvider.overrideWithValue(leaderboard),
+        if (now != null) dailyClockProvider.overrideWithValue(() => now),
       ],
       child: ParryBreakApp(home: home),
     ),
@@ -160,6 +163,14 @@ class _ThrowingAds extends DisabledAds {
 class _AvailableLeaderboard extends DisabledLeaderboard {
   @override
   bool get available => true;
+}
+
+/// 送ったスコアを覚える。
+class _RecordingLeaderboard extends DisabledLeaderboard {
+  final submitted = <(Board, int)>[];
+  @override
+  Future<void> submit(Board board, int value) async =>
+      submitted.add((board, value));
 }
 
 /// 履歴の先頭の 1 件。
@@ -1706,6 +1717,7 @@ void main() {
           'HOW TO PLAY',
           'SETTINGS',
           'RANKING',
+          'DAILY',
           'PRACTICE',
         ]) {
           final r = tester.getRect(find.text(label));
@@ -1727,6 +1739,150 @@ void main() {
       },
     );
   }
+
+  // Issue #255: デイリーチャレンジ
+  for (final size in const [Size(667, 375), Size(852, 393)]) {
+    for (final lang in ['en', 'ja']) {
+      testWidgets(
+        'タイトル ($lang): DAILY の印と連続日数が ${size.width.toInt()}x${size.height.toInt()} ではみ出さない',
+        (tester) async {
+          final today = DailyChallenge.of(DateTime.utc(2026, 11, 13)).day;
+          await _pumpApp(
+            tester,
+            size: size,
+            now: DateTime.utc(2026, 11, 13, 9),
+            leaderboard: _AvailableLeaderboard(),
+            prefs: {
+              'settings.v1': jsonEncode(Settings(language: lang).toJson()),
+              'records': jsonEncode(
+                const Records(
+                  endless: EndlessRecord(bestScore: 123456, bestRound: 45),
+                  stages: {'1-1': StageRecord(cleared: true)},
+                ).toJson(),
+              ),
+              // 昨日まで 12 日続けて遊んだ (今日はまだ)
+              DailyNotifier.key: jsonEncode(
+                DailyRecord(
+                  lastDay: today - 1,
+                  lastScore: 10,
+                  bestScore: 99999999,
+                  streak: 12,
+                ).toJson(),
+              ),
+            },
+          );
+          await _frames(tester, 2.4);
+          for (final label in ['DAILY', 'NEW', 'STREAK 12', 'PRACTICE']) {
+            final r = tester.getRect(find.text(label));
+            expect(r.top, greaterThanOrEqualTo(0), reason: label);
+            expect(r.bottom, lessThanOrEqualTo(size.height), reason: label);
+            expect(r.left, greaterThanOrEqualTo(0), reason: label);
+            expect(r.right, lessThanOrEqualTo(size.width), reason: label);
+          }
+          for (final label in ['DAILY', 'PRACTICE']) {
+            final hit = find
+                .ancestor(
+                  of: find.text(label),
+                  matching: find.byType(GestureDetector),
+                )
+                .first;
+            expect(tester.getSize(hit).height, greaterThanOrEqualTo(44));
+          }
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  testWidgets('デイリー: タイトルから遊び、その日の 1 回目だけ記録・ランキングに数え、2 回目は練習になる', (
+    tester,
+  ) async {
+    final ads = _CountingAds();
+    final lb = _RecordingLeaderboard();
+    final now = DateTime.utc(2026, 11, 13, 9);
+    final day = DailyChallenge.of(now);
+    await _pumpApp(tester, now: now, ads: ads, leaderboard: lb);
+    await _frames(tester, 2.4);
+    expect(find.text('NEW'), findsOneWidget);
+    expect(find.textContaining('STREAK'), findsNothing);
+
+    await tester.tap(find.text('DAILY'));
+    await _frames(tester, 1.2);
+    final w = GameScreen.debugLastController!.world;
+    expect(w.mode, isA<DailyMode>());
+    expect(w.round.number, day.startRound);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await _frames(tester, 0.3);
+    w.addScore(5000);
+    w.ball
+      ..y = Field.height - 4
+      ..vy = 600;
+    await _frames(tester, 3.2);
+    final c = ProviderScope.containerOf(
+      tester.element(find.byType(MaterialApp)),
+    );
+    final first = w.score;
+    expect(c.read(dailyProvider).lastDay, day.day);
+    expect(c.read(dailyProvider).bestScore, first);
+    expect(c.read(dailyProvider).streak, 1);
+    expect(lb.submitted, [(Board.dailyScore, first)]);
+    expect(find.text("Today's run · 1-day streak"), findsOneWidget);
+    expect(_latestPlay(tester).daily, isTrue);
+    expect(ads.results, 1);
+    // エンドレスの記録は変えない
+    expect(c.read(recordsProvider).endless.bestScore, 0);
+
+    // 2 回目は練習: 記録・ランキングに数えない (履歴と広告の回数には数える)
+    await tester.tap(find.text('RETRY'));
+    await _frames(tester, 1.2);
+    expect(w.round.number, day.startRound);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await _frames(tester, 0.3);
+    w.addScore(900000);
+    w.ball
+      ..y = Field.height - 4
+      ..vy = 600;
+    await _frames(tester, 3.2);
+    expect(c.read(dailyProvider).bestScore, first);
+    expect(lb.submitted, hasLength(1));
+    expect(
+      find.text("Practice (only each day's first run counts) · 1-day streak"),
+      findsOneWidget,
+    );
+    expect(c.read(historyProvider).entries.where((e) => e.daily), hasLength(2));
+    expect(ads.results, 2);
+
+    // タイトルに戻ると、今日の印は消え、連続日数が出る
+    await tester.tap(find.text('TITLE'));
+    await _frames(tester, 1);
+    expect(find.text('NEW'), findsNothing);
+    expect(find.text('STREAK 1'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('HISTORY: デイリーは DAILY として出る', (tester) async {
+    await _pumpApp(
+      tester,
+      home: const HistoryScreen(),
+      prefs: {
+        PlayHistoryNotifier.key: jsonEncode(
+          PlayHistory([
+            PlayEntry(
+              at: DateTime(2026, 11, 13, 9),
+              score: 4200,
+              round: 46,
+              daily: true,
+            ),
+          ]).toJson(),
+        ),
+      },
+    );
+    await _frames(tester, 0.5);
+    expect(find.text('DAILY'), findsOneWidget);
+    expect(find.text('ENDLESS'), findsNothing);
+    expect(find.text('ROUND 46'), findsOneWidget);
+  });
 
   group('端末の動きを減らす設定 (#105)', () {
     // 端末の設定 (iOS の「視差効果を減らす」、Android の「アニメーションを削除」) は、

@@ -8,7 +8,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'settings.dart';
 
 /// ランキングのボード。
-enum Board { endlessScore, endlessRound, stagesTotal }
+enum Board {
+  endlessScore,
+  endlessRound,
+  stagesTotal,
+
+  /// デイリーチャレンジのその日のスコア。毎日の区切りは、ストアのランキングの「今日」の表示に任せる。
+  dailyScore,
+}
 
 /// ストアで作ったリーダーボードの ID。
 ///
@@ -30,13 +37,26 @@ abstract final class LeaderboardConfig {
     Board.endlessScore: 'com.watsuwo.parrybreak.endless_score',
     Board.endlessRound: 'com.watsuwo.parrybreak.endless_wave',
     Board.stagesTotal: 'com.watsuwo.parrybreak.stages_total',
+    // 仮の ID (App Store Connect で作るまで [placeholders] に入れて、送らない)。作り方は docs/app-store.md
+    Board.dailyScore: 'com.watsuwo.parrybreak.daily_score',
   };
 
   static const android = <Board, String>{
     Board.endlessScore: '',
     Board.endlessRound: '',
     Board.stagesTotal: '',
+    Board.dailyScore: '',
   };
+
+  /// ID がまだ仮の値のボード (ストアでリーダーボードを作るまで、送らない・保留もしない)。
+  /// ストアで作ったら、[ios] / [android] に ID を書き、ここから外す。
+  static const placeholders = <Board>{Board.dailyScore};
+
+  /// [board] の ID が決まっているか。仮なら false で、送らない。
+  static bool hasId(Board board) => !placeholders.contains(board);
+
+  /// 送れなかったときに保留しないボード。デイリーはその日のスコアなので、後日に送ると別の日の「今日」に入ってしまう。
+  static const notDeferred = {Board.dailyScore};
 }
 
 abstract class LeaderboardService {
@@ -133,7 +153,7 @@ class GamesServicesLeaderboard implements LeaderboardService {
     final done = <String, int?>{};
     for (final e in _pending.entries) {
       final b = boards[e.key];
-      if (b == null) {
+      if (b == null || !LeaderboardConfig.hasId(b)) {
         done[e.key] = null;
       } else if (await _send(b, e.value)) {
         done[e.key] = e.value;
@@ -161,7 +181,10 @@ class GamesServicesLeaderboard implements LeaderboardService {
 
   @override
   Future<void> submit(Board board, int value) async {
+    // ID が仮のボードには送らない (保留もしない)
+    if (!LeaderboardConfig.hasId(board)) return;
     if (_signedIn && await _send(board, value)) return;
+    if (LeaderboardConfig.notDeferred.contains(board)) return;
     // 送れなかった: ボードごとに最高値だけを保留する
     final p = _pending;
     if ((p[board.name] ?? -1) < value) p[board.name] = value;

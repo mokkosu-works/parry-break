@@ -27,6 +27,7 @@ class ResultData {
     this.achieved,
     this.rank,
     this.over,
+    this.daily,
   });
 
   final int score, round, maxChain, bestScore, bestRound;
@@ -44,6 +45,20 @@ class ResultData {
 
   /// ミスの原因と、ステージで失敗したときの残り。
   final OverInfo? over;
+
+  /// デイリーチャレンジなら、その日の記録に数えたかと連続日数。[bestScore] はデイリーの自己ベスト。
+  final DailyResult? daily;
+}
+
+/// 結果画面に出す、デイリーチャレンジの記録。
+class DailyResult {
+  const DailyResult({required this.counted, required this.streak});
+
+  /// その日の最初の 1 回として、記録・ランキングに数えたか (2 回目以降は練習)。
+  final bool counted;
+
+  /// 連続日数。
+  final int streak;
 }
 
 /// ゲームオーバー / ステージの結果画面。見出し → スコアの数え上げ → 記録更新のハンコ → 成績・星 → ボタン の順に出る。
@@ -217,9 +232,9 @@ class _ResultOverlayState extends State<ResultOverlay>
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final d = widget.data, stage = d.stage;
-    final win = stage != null && d.cleared;
+    final win = (stage != null || d.daily != null) && d.cleared;
     final title = stage == null
-        ? 'GAME OVER'
+        ? (win ? 'DAILY CLEAR' : 'GAME OVER')
         : (win ? 'STAGE CLEAR' : 'STAGE FAILED');
     // 勝ちはメインカラー (黄)、負けはアクセントカラー (赤)
     final color = win ? Palette.main : Palette.sub;
@@ -319,6 +334,7 @@ class _ResultOverlayState extends State<ResultOverlay>
         PixelTag('STAGE ${stage.id}', color: Palette.sub),
         PixelTag(d.difficulty.label, color: difficultyColor(d.difficulty)),
       ],
+      if (d.daily != null) const PixelTag('DAILY', color: Palette.accent),
       if (!win) PixelTag(cause, color: Palette.sub),
     ];
     if (compact) {
@@ -743,10 +759,19 @@ class _ResultOverlayState extends State<ResultOverlay>
   /// スコア (数え上げ) と記録更新のハンコ。
   Widget _score(ResultData d, {bool compact = false}) {
     final big = compact ? 44.0 : 84.0;
-    // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える
-    final note = d.stage != null && !d.cleared
-        ? AppLocalizations.of(context).bestScoreClearOnly
+    // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える。
+    // デイリーは、その日の記録に数えたか (2 回目以降は練習) と連続日数を添える
+    final l = AppLocalizations.of(context);
+    final daily = d.daily;
+    final note = daily != null
+        ? (daily.counted
+              ? l.dailyCounted(daily.streak)
+              : l.dailyPractice(daily.streak))
+        : d.stage != null && !d.cleared
+        ? l.bestScoreClearOnly
         : null;
+    // デイリーの添え書きは長いので、HI-SCORE の横ではなく下に出す
+    final noteBelow = compact || daily != null;
     final t = _p(0.12, 0.55, Curves.easeOutQuart);
     final shown = (d.score * t).round();
     final stampT = _p(0.56, 0.66, Curves.easeOutBack);
@@ -791,7 +816,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                   ),
                   SizedBox(width: compact ? 8 : 10),
                   Text(
-                    'HI-SCORE',
+                    daily != null ? 'DAILY BEST' : 'HI-SCORE',
                     style: pixelFont(
                       compact ? 12 : 14,
                       color: Palette.main,
@@ -822,7 +847,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                         weight: 900,
                       ).copyWith(fontFeatures: tab),
                     ),
-                  if (note != null && !compact) ...[
+                  if (note != null && !noteBelow) ...[
                     const SizedBox(width: 14),
                     Flexible(
                       child: Text(
@@ -835,11 +860,17 @@ class _ResultOverlayState extends State<ResultOverlay>
                 ],
               ),
               // 狭い画面では HI-SCORE の横に入らないので、下に折り返して出す
-              if (note != null && compact) ...[
+              if (note != null && noteBelow) ...[
                 const SizedBox(height: 6),
                 Text(
                   note,
-                  style: pixelFont(12, color: Palette.pale, weight: 400),
+                  style: pixelFont(
+                    compact ? 12 : 14,
+                    color: daily != null && !daily.counted
+                        ? Palette.main
+                        : Palette.pale,
+                    weight: 400,
+                  ),
                 ),
               ],
               if (d.newBest) ...[
@@ -865,7 +896,11 @@ class _ResultOverlayState extends State<ResultOverlay>
   Widget _stats(ResultData d, {bool compact = false}) {
     final s = d.stats;
     final items = <(String, String, bool)>[
-      ('ROUND', '${d.round}', d.round >= d.bestRound && d.round > 1),
+      (
+        'ROUND',
+        '${d.round}',
+        d.daily == null && d.round >= d.bestRound && d.round > 1,
+      ),
       ('MAX CHAIN', '${d.maxChain}', false),
       ('JUST', '${s.just}', false),
       ('GRAZE', '${s.graze}', false),

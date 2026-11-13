@@ -94,6 +94,8 @@ Oct 4, 2026 · @watsuwo
 
 練習場(`PracticeMode`、タイトルの PRACTICE)はブロックのない 1 ラウンドを終わりなく続けるモードで、ボールを落としても出直す。記録・ランキング・履歴・広告の回数・評価の依頼には数えない(`game_screen.dart` の `_onFinished` で何もしない。ゲームオーバーにもならない)。直近 20 回の判定は `PracticeLog` に持ち、保存しない。
 
+デイリーチャレンジ(`DailyMode`、タイトルの DAILY)は、`DailyChallenge`(UTC の日付 → 1970-01-01 からの日数 → 種 → 始まりのラウンド)が決めたエンドレスの 5 ラウンドを遊ぶ(`GameMode.firstRound` から始め、`roundAt` は範囲の外で null)。難易度は NORMAL 固定。記録は `lib/services/daily.dart` の `DailyRecord` を `daily.v1` に保存し(`records`・`history.v1`・`settings.v1` は変えない)、その日の最初の 1 回だけを記録・ランキングに数える。履歴の行には `"daily": true` を足す(古い版のアプリはエンドレスとして読む)。広告の回数はエンドレス・ステージと同じく結果画面の数に数える。
+
 ### 4.2 ランキング
 
 | ボード | 値 |
@@ -101,6 +103,9 @@ Oct 4, 2026 · @watsuwo
 | エンドレス: スコア | 1回のプレイの最終スコア |
 | エンドレス: 到達ラウンド | 最終ラウンド番号 |
 | ステージ: 合計スコア | 全ステージの最高スコアの合計(ステージごとにボードを作るとボード数が増え続けるため、合計にした) |
+| デイリー: スコア | デイリーチャレンジの、その日の最初の 1 回のスコア。ボードは 1 つで、日ごとの区切りはストアの「今日」の表示に任せる。送れなかったときは保留しない(後日に送ると別の日に入るため) |
+
+ストアでボードを作るまでの ID は仮の値にし、`LeaderboardConfig.placeholders` に入れておく。入っているボードには送らない(保留もしない)。作り方は [app-store.md](app-store.md) と [play-store.md](play-store.md) の「デイリーのランキング」。
 
 不正対策として、乱数の固定(A3)により「シード + 入力ログ」からスコアを再現できる構造にしておく。サーバーでの検証は将来の課題とする。
 
@@ -355,7 +360,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 | 言語 | `Info.plist` の `CFBundleLocalizations` に en / ja。これがないと App Store で対応言語が英語だけになる |
 | 暗号化 | `ITSAppUsesNonExemptEncryption = false`(輸出コンプライアンスの質問が出ない) |
 | Game Center | `ios/Runner/Runner.entitlements`(`com.apple.developer.game-center`)を Runner の全構成に設定済み |
-| ランキング | `LeaderboardConfig.iosEnabled = true`。ID は `com.watsuwo.parrybreak.endless_score` / `.endless_wave` / `.stages_total`。Android は `androidEnabled = false` のまま |
+| ランキング | `LeaderboardConfig.iosEnabled = true`。ID は `com.watsuwo.parrybreak.endless_score` / `.endless_wave` / `.stages_total`。デイリーの `.daily_score` は App Store Connect で作るまで仮(`placeholders`)で送らない。Android は `androidEnabled = false` のまま |
 | 評価の依頼 | ステージを星3つでクリアして結果画面から戻るときに、OS 標準の評価ダイアログを出す(`lib/services/review.dart`、`in_app_review`)。クリア済みが5面以上、前回から60日以上、通算3回まで。出したときはその回の広告は出さない。データは集めないので、プライバシーの申告は変わらない |
 | アイコン・起動画面 | 16 色のドット絵で、`python3 tools/make_icons.py` が描く(元画像の `branding/icons/` と、iOS / Android / Web の各サイズをまとめて書き出す)。元画像だけ変えたときは `dart run flutter_launcher_icons`、`dart run flutter_native_splash:create` でも作り直せる |
 | ポリシー・サポート | 別のリポジトリ `watsuwo/watsuwo.github.io` の `parry-break/privacy.html` と `parry-break/support.html` を GitHub Pages で公開している(https://watsuwo.github.io/parry-break/privacy と https://watsuwo.github.io/parry-break/support)。広告(AdMob)の `app-ads.txt` も同じリポジトリにある |
