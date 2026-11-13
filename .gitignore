@@ -11,3 +11,6 @@ promo/capture/raw/
 promo/build/out/
 promo/build/fonts/
 promo/build/assets/
+
+# Python のキャッシュ
+__pycache__/

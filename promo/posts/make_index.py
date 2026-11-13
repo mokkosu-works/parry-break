@@ -28,14 +28,14 @@ def main():
         name, hook = r["パターン名"], r["冒頭の種類"]
         spec_path = ROOT / f"promo/build/specs/spec.{name}.json"
         spec = json.loads(spec_path.read_text(encoding="utf-8")) if spec_path.exists() else None
-        cap = spec["hooks"][hook]["caption"] if spec else "?"
+        cap = spec["hooks"][hook]["caption"] if spec and hook else "?"
         body = spec["body"]["caption"] if spec else "?"
         video = ROOT / r["ファイルパス"]
         if (r.get("長さ(秒)") or "").strip():
             sec = f"{round(float(r['長さ(秒)']))}秒"
         else:
             sec = f"{duration(video)}秒" if video.exists() else "?"
-        lines.append(f"| {r['id']} | {r['投稿日'] or '-'} | {name} | {hook} {HOOK_TYPE[hook]} | {sec} | {cap} | {body} | `{pathlib.Path(r['ファイルパス']).name}` |")
+        lines.append(f"| {r['id']} | {r['投稿日'] or '-'} | {name} | {f'{hook} {HOOK_TYPE[hook]}' if hook else '-'} | {sec} | {cap} | {body} | `{pathlib.Path(r['ファイルパス']).name}` |")
     (ROOT / "promo/posts/一覧.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"promo/posts/一覧.md を作った ({len(rows)} 行)")
 

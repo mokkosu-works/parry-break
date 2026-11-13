@@ -59,6 +59,11 @@ records/    videos.csv、youtube_uploads.csv
 - 字幕は、気取らない話し言葉で 11 文字以内。最初のフレームから出す。パターンごとに言い回しを変える。
 - 音は、ゲーム内の BGM と効果音 (自作の合成音) だけを使う。外部の音源は使わない。
 - キャラクター主体の試作は例外。`python3 promo/build/character_promo.py` は起動中のローカル VOICEVOX エンジンと `Pillow`、`ffmpeg` を使い、24秒の `promo/build/out/character-promo-v12.mp4` を出力する。既存動画と投稿記録は変更せず、出力は上書きしない。音声は「VOICEVOX:春歌ナナ」で、動画の締めに控えめなクレジットを表示する。プレイ中は全カットで同じ小さな縦揺れ、アウトロは静止。プレイ中にもアプリアイコン、「ストアで検索」、ストアバッジを出し、PARRY BREAKのロゴを大きく表示する。用語は「白いブロック」に統一。投稿文は `promo/posts/character-promo-v12.txt` にあり、概要欄・キャプションにも同じクレジットを含む。
+- キャラクター主体の動画の配置は、ブラウザーの編集ツールでも試せる (標準ライブラリ + Pillow + ffmpeg。npm などは不要)。
+  ```sh
+  python3 promo/editor/server.py      # http://127.0.0.1:8765/ を開く (127.0.0.1 だけで待ち受ける)
+  ```
+  配置は `promo/editor/projects/*.json` に保存する (既定の `character-promo.json` は v12 と同じ配置)。「動画を書き出す」で、保存した配置から `promo/build/out/{名前}-e001.mp4` のような新しい名前の動画を作る (既存のファイルは上書きしない。VOICEVOX の起動が要る)。画面なしなら `python3 promo/editor/render.py promo/editor/projects/character-promo.json`。台詞と話し始めの時刻は、レイヤーを選んでいないときの右パネルで変えられる (JSON の `voice.lines`。ないときは v12 と同じ台詞)。声 (春歌ナナ) と 24 秒の構成は変えられない。
 - 字幕とバッジは、TikTok などの表示領域 (上 約 130px、下 約 480px) を避けて置く。
 - 映像は、ボットの自動プレイ。人の腕前に見える言い切り (「神業」など) は避ける。
 
