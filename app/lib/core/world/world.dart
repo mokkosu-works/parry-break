@@ -8,6 +8,7 @@ import '../config/tuning.dart';
 import '../entities/entities.dart';
 import '../events/game_event.dart';
 import '../modes/game_mode.dart';
+import '../result_info.dart';
 import '../sim/geom.dart';
 import '../sim/rng.dart';
 import '../sim/time_sync.dart';
@@ -154,6 +155,12 @@ class World {
   RunStats stats = RunStats();
   double clearT = 0, overT = 0;
   String overReason = '';
+
+  /// ゲームオーバーの詳細 (ミスの原因・ステージの残り)。終わるまで null。
+  OverInfo? overInfo;
+
+  /// 最後にパリィに成功した時刻 ([t])。まだなければ null。
+  double? lastParryT;
   List<Bonus> bonuses = const [];
 
   /// 練習場: ボールが出直すまでの残り (秒、0 なら出直し待ちではない) と、次の敵弾までの経過 (秒)。
@@ -215,6 +222,8 @@ class World {
     blastChain = BlastChainTally();
     stats = RunStats();
     overReason = '';
+    overInfo = null;
+    lastParryT = null;
     lastBreak = const Vec2(Field.width / 2, Field.gridY0);
     clearT = overT = 0;
     bonuses = const [];

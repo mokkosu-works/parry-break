@@ -109,6 +109,7 @@ extension _RoundSystem on World {
       // 耐久の時間・全消しボーナス・残り時間の表示は、最初の発射から数える (#100)
       if (launched) roundTime += dt;
       stats.playTime += dt;
+      stats.maxTier = math.max(stats.maxTier, stage + 1);
       if (practice != null) {
         _updatePractice(dt);
       } else if (boss != null) {
@@ -146,6 +147,7 @@ extension _RoundSystem on World {
       if (!pr.success) {
         pr.cooldownUntil = pr.press + tuning.parryCooldown;
         streak = 0;
+        stats.misses++;
         emit(ParryMissed(offset: _missOffset(pr.press)));
       }
     }
@@ -238,11 +240,40 @@ extension _RoundSystem on World {
     }
   }
 
+  /// ゲームオーバーの詳細。FEVER TIME・パリィの状態を消す前に作る。
+  OverInfo _overInfo(String reason) {
+    ClearGap? gap;
+    if (mode is StageMode) {
+      gap = switch (round.clear) {
+        _ when boss != null => ClearGap(GapKind.boss, bossHp),
+        AnnihilateClear() => ClearGap(
+          GapKind.annihilate,
+          blocks.where((b) => b.behavior.clearable).length,
+        ),
+        ScoreClear(:final target) => ClearGap(
+          GapKind.score,
+          math.max(0, target - score),
+        ),
+        SurviveClear(:final seconds) => ClearGap(
+          GapKind.survive,
+          math.max(0.0, seconds - roundTime),
+        ),
+      };
+    }
+    return OverInfo(
+      cause: OverCause.fromReason(reason),
+      tier: od ? 5 : stage + 1,
+      sinceParry: lastParryT == null ? null : t - lastParryT!,
+      gap: gap,
+    );
+  }
+
   void _gameOver(String reason) {
     if (phase == WorldPhase.over) return;
     phase = WorldPhase.over;
     overT = 0;
     overReason = reason;
+    overInfo = _overInfo(reason);
     od = false;
     parry.active = false;
     phantoms = [];

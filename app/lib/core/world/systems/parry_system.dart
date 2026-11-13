@@ -164,6 +164,7 @@ extension _ParrySystem on World {
     stats.parries++;
     if (perfect) stats.perfects++;
     if (just) stats.just++;
+    lastParryT = t;
     if (target == ParryTarget.ball) {
       final b = ball;
       addCombo(
@@ -222,6 +223,7 @@ extension _ParrySystem on World {
 
   void _startFeverTime() {
     od = true;
+    stats.fevers++;
     combo = tuning.odCombo;
     odTime = tuning.odTime;
     odElapsed = 0;

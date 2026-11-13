@@ -34,6 +34,62 @@
   "helpPrev": "前へ",
   "helpNext": "次へ",
   "bestScoreClearOnly": "クリアした回のみ記録",
+  "resultCauseBall": "ボールを落とした",
+  "resultCauseBreached": "ブロックが下まで来た",
+  "resultCauseTime": "時間切れ",
+  "resultCauseDetail": "最後のパリィから{sec}秒・ボールは段階{tier}",
+  "@resultCauseDetail": {
+    "placeholders": {
+      "sec": {
+        "type": "String"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "resultCauseDetailFever": "最後のパリィから{sec}秒・FEVER TIME 中",
+  "@resultCauseDetailFever": {
+    "placeholders": {
+      "sec": {
+        "type": "String"
+      }
+    }
+  },
+  "resultCauseNoParry": "一度もパリィしないまま",
+  "resultGapTitle": "あと少し",
+  "resultGapAnnihilate": "全消しまで残り{n}個",
+  "@resultGapAnnihilate": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultGapScore": "目標スコアまで残り{n}",
+  "@resultGapScore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultGapSurvive": "生き残りまで残り{n}秒",
+  "@resultGapSurvive": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultGapBoss": "ボスの残り HP {n}",
+  "@resultGapBoss": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "unlockBy": "{stage} をクリアすると開く",
   "@unlockBy": {
     "placeholders": {

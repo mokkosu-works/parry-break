@@ -302,6 +302,72 @@ abstract class AppLocalizations {
   /// **'クリアした回のみ記録'**
   String get bestScoreClearOnly;
 
+  /// No description provided for @resultCauseBall.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボールを落とした'**
+  String get resultCauseBall;
+
+  /// No description provided for @resultCauseBreached.
+  ///
+  /// In ja, this message translates to:
+  /// **'ブロックが下まで来た'**
+  String get resultCauseBreached;
+
+  /// No description provided for @resultCauseTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'時間切れ'**
+  String get resultCauseTime;
+
+  /// No description provided for @resultCauseDetail.
+  ///
+  /// In ja, this message translates to:
+  /// **'最後のパリィから{sec}秒・ボールは段階{tier}'**
+  String resultCauseDetail(String sec, String tier);
+
+  /// No description provided for @resultCauseDetailFever.
+  ///
+  /// In ja, this message translates to:
+  /// **'最後のパリィから{sec}秒・FEVER TIME 中'**
+  String resultCauseDetailFever(String sec);
+
+  /// No description provided for @resultCauseNoParry.
+  ///
+  /// In ja, this message translates to:
+  /// **'一度もパリィしないまま'**
+  String get resultCauseNoParry;
+
+  /// No description provided for @resultGapTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'あと少し'**
+  String get resultGapTitle;
+
+  /// No description provided for @resultGapAnnihilate.
+  ///
+  /// In ja, this message translates to:
+  /// **'全消しまで残り{n}個'**
+  String resultGapAnnihilate(String n);
+
+  /// No description provided for @resultGapScore.
+  ///
+  /// In ja, this message translates to:
+  /// **'目標スコアまで残り{n}'**
+  String resultGapScore(String n);
+
+  /// No description provided for @resultGapSurvive.
+  ///
+  /// In ja, this message translates to:
+  /// **'生き残りまで残り{n}秒'**
+  String resultGapSurvive(String n);
+
+  /// No description provided for @resultGapBoss.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボスの残り HP {n}'**
+  String resultGapBoss(String n);
+
   /// No description provided for @unlockBy.
   ///
   /// In ja, this message translates to:

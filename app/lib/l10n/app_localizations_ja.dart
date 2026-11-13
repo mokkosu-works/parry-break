@@ -119,6 +119,51 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bestScoreClearOnly => 'クリアした回のみ記録';
 
   @override
+  String get resultCauseBall => 'ボールを落とした';
+
+  @override
+  String get resultCauseBreached => 'ブロックが下まで来た';
+
+  @override
+  String get resultCauseTime => '時間切れ';
+
+  @override
+  String resultCauseDetail(String sec, String tier) {
+    return '最後のパリィから$sec秒・ボールは段階$tier';
+  }
+
+  @override
+  String resultCauseDetailFever(String sec) {
+    return '最後のパリィから$sec秒・FEVER TIME 中';
+  }
+
+  @override
+  String get resultCauseNoParry => '一度もパリィしないまま';
+
+  @override
+  String get resultGapTitle => 'あと少し';
+
+  @override
+  String resultGapAnnihilate(String n) {
+    return '全消しまで残り$n個';
+  }
+
+  @override
+  String resultGapScore(String n) {
+    return '目標スコアまで残り$n';
+  }
+
+  @override
+  String resultGapSurvive(String n) {
+    return '生き残りまで残り$n秒';
+  }
+
+  @override
+  String resultGapBoss(String n) {
+    return 'ボスの残り HP $n';
+  }
+
+  @override
   String unlockBy(String stage) {
     return '$stage をクリアすると開く';
   }
