@@ -507,4 +507,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String stageTileLocked(String id) {
     return '$id、未解放';
   }
+
+  @override
+  String dailyCounted(int n) {
+    return '今日の記録・連続$n日';
+  }
+
+  @override
+  String dailyPractice(int n) {
+    return '2回目以降は記録に数えない・連続$n日';
+  }
 }

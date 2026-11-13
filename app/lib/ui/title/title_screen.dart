@@ -12,6 +12,7 @@ import '../../game/game_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../render/palette.dart';
 import '../../services/content.dart';
+import '../../services/daily.dart';
 import '../../services/leaderboard.dart';
 import '../../services/records.dart';
 import '../../services/settings.dart';
@@ -30,12 +31,16 @@ class _MenuEntry {
     this.meta = '',
     this.primary = false,
     this.side = false,
+    this.badge = '',
   });
   final String label, meta;
+
+  /// 名前の横に出す目立つ印 (デイリーを今日まだ遊んでいないときの NEW)。空なら出さない。
+  final String badge;
   final VoidCallback action;
   final bool primary;
 
-  /// 右のメニューの窓ではなく、左のハイスコアの下に置く (右の窓は背の低い画面で 7 項目までしか収まらないため)。
+  /// 右のメニューの窓ではなく、左のハイスコアの下の窓に置く (右の窓は背の低い画面で 7 項目までしか収まらないため)。
   /// キーボードでは右の窓の最後の項目の次に選ぶ。
   final bool side;
 }
@@ -105,6 +110,9 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
       0,
       (s, st) => s + st.stars.length,
     );
+    final daily = ref.watch(dailyProvider);
+    final today = DailyChallenge.of(ref.read(dailyClockProvider)()).day;
+    final streak = daily.streakOn(today);
     void push(Widget w) => nav.push(fadeRoute<void>(w));
     return [
       if (firstTime)
@@ -146,6 +154,13 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
             );
           }
         }),
+      _MenuEntry(
+        'DAILY',
+        () => push(const GameScreen(daily: true)),
+        meta: streak > 0 ? 'STREAK $streak' : '',
+        badge: daily.playedOn(today) ? '' : 'NEW',
+        side: true,
+      ),
       _MenuEntry(
         'PRACTICE',
         () => push(const GameScreen(practice: true)),
@@ -299,31 +314,44 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                                     opacity: _stage(0.5, 0.9),
                                     child: _HiScore(record: records.endless),
                                   ),
-                                for (var i = 0; i < entries.length; i++)
-                                  if (entries[i].side)
-                                    Opacity(
-                                      opacity: _stage(0.5, 0.9),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 8),
-                                        child: ConstrainedBox(
-                                          constraints: const BoxConstraints(
-                                            maxWidth: 300,
-                                          ),
-                                          child: PixelWindow(
-                                            padding: EdgeInsets.zero,
-                                            child: _MenuItem(
-                                              entry: entries[i],
-                                              squeeze: 0,
-                                              selected: i == _selected,
-                                              firing: _firing == i,
-                                              onHover: () => _select(i),
-                                              onTap: () =>
-                                                  _activate(entries, i),
-                                            ),
+                                if (entries.any((e) => e.side))
+                                  Opacity(
+                                    opacity: _stage(0.5, 0.9),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                          maxWidth: 300,
+                                        ),
+                                        // デイリーと練習場を 1 つの窓に縦に並べる (窓を分けると背の低い画面で入らない)
+                                        child: PixelWindow(
+                                          padding: EdgeInsets.zero,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              for (
+                                                var i = 0;
+                                                i < entries.length;
+                                                i++
+                                              )
+                                                if (entries[i].side)
+                                                  _MenuItem(
+                                                    entry: entries[i],
+                                                    squeeze: 0,
+                                                    selected: i == _selected,
+                                                    firing: _firing == i,
+                                                    onHover: () => _select(i),
+                                                    onTap: () =>
+                                                        _activate(entries, i),
+                                                  ),
+                                            ],
                                           ),
                                         ),
                                       ),
                                     ),
+                                  ),
                               ],
                             ),
                           ),
@@ -491,6 +519,22 @@ class _MenuItem extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (entry.badge.isNotEmpty) ...[
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(5, 2, 5, 2),
+                          color: firing ? Dot.ink : Palette.yellow,
+                          child: Text(
+                            entry.badge,
+                            style: pixelFont(
+                              10,
+                              color: firing ? Palette.yellow : Dot.ink,
+                              weight: 800,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                      ],
                       if (entry.meta.isNotEmpty) ...[
                         const SizedBox(width: 12),
                         Text(

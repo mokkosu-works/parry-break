@@ -171,4 +171,24 @@ void main() {
       expect(sp.getString(PlayHistoryNotifier.brokenKey), raw);
     });
   });
+
+  test('デイリーは DAILY として残り、古い版のデータ (daily がない) はエンドレスとして読む (#255)', () async {
+    final (c, sp) = await load();
+    c.read(historyProvider.notifier).addDaily(score: 4200, round: 46);
+    final e = c.read(historyProvider).entries.single;
+    expect(e.daily, isTrue);
+    expect(e.endless, isTrue);
+    expect(e.round, 46);
+    final saved = jsonDecode(sp.getString(PlayHistoryNotifier.key)!) as Map;
+    expect((saved['entries'] as List).single, containsPair('daily', true));
+
+    final old = PlayEntry.fromJson({
+      'at': 0,
+      'difficulty': 'normal',
+      'score': 10,
+      'round': 3,
+    })!;
+    expect(old.daily, isFalse);
+    expect(old.toJson().containsKey('daily'), isFalse);
+  });
 }

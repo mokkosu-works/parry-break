@@ -349,5 +349,21 @@
         "type": "String"
       }
     }
+  },
+  "dailyCounted": "今日の記録・連続{n}日",
+  "dailyPractice": "2回目以降は記録に数えない・連続{n}日",
+  "@dailyCounted": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@dailyPractice": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

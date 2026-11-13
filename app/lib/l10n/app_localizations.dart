@@ -961,6 +961,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'{id}、未解放'**
   String stageTileLocked(String id);
+
+  /// No description provided for @dailyCounted.
+  ///
+  /// In ja, this message translates to:
+  /// **'今日の記録・連続{n}日'**
+  String dailyCounted(int n);
+
+  /// No description provided for @dailyPractice.
+  ///
+  /// In ja, this message translates to:
+  /// **'2回目以降は記録に数えない・連続{n}日'**
+  String dailyPractice(int n);
 }
 
 class _AppLocalizationsDelegate

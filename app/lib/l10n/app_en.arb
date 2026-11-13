@@ -143,5 +143,7 @@
   "pauseGame": "Pause",
   "stageTileCleared": "{id} {title}, cleared, {got} of {total} stars",
   "stageTileNotCleared": "{id} {title}, not cleared, {got} of {total} stars",
-  "stageTileLocked": "{id}, locked"
+  "stageTileLocked": "{id}, locked",
+  "dailyCounted": "Today's run · {n}-day streak",
+  "dailyPractice": "Practice (only each day's first run counts) · {n}-day streak"
 }

@@ -13,6 +13,9 @@ abstract class GameMode {
 
   /// [number] 番目 (1 始まり) のラウンド。モードが終わりなら null。
   RoundSpec? roundAt(int number);
+
+  /// 最初に遊ぶラウンドの番号。
+  int get firstRound => 1;
 }
 
 /// エンドレス (アーケード): 60 ラウンドを繰り返し、1 周ごとに速くなる。10 ラウンドごとにボス。
@@ -38,6 +41,75 @@ class StageMode extends GameMode {
   @override
   RoundSpec? roundAt(int number) =>
       number <= stage.rounds.length ? stage.rounds[number - 1] : null;
+}
+
+/// デイリーチャレンジの 1 日分: その日 (UTC の日付) から決まる、エンドレスの続いた [rounds] ラウンド。
+///
+/// 配置・乱数はラウンドの番号から決まるので、同じ日付なら、どの端末でも同じ配置・同じアイテムになる。
+class DailyChallenge {
+  const DailyChallenge(this.day);
+
+  /// [time] の UTC の日付の [DailyChallenge]。
+  factory DailyChallenge.of(DateTime time) => DailyChallenge(dayOf(time));
+
+  /// 1970-01-01 (UTC) からの日数。
+  final int day;
+
+  /// 1 日に遊ぶラウンドの数。
+  static const rounds = 5;
+
+  /// 始まりのラウンドの範囲 (エンドレスの 1 周目の中に収める。最初の数ラウンドは練習寄りなので外す)。
+  static const minStart = 6, maxStart = 56;
+
+  /// 始まりの候補の数。
+  static const _span = maxStart - minStart + 1;
+
+  /// [time] の UTC の日付の、1970-01-01 からの日数。
+  static int dayOf(DateTime time) {
+    final u = time.toUtc();
+    return DateTime.utc(u.year, u.month, u.day).millisecondsSinceEpoch ~/
+        Duration.millisecondsPerDay;
+  }
+
+  /// その日の種。始まりのラウンドを決める。
+  int get seed => day * 7919 + 17;
+
+  /// 始まりのラウンドの番号。[_span] と互いに素な数ずつずらすので、隣り合う日は必ず違う番号になり、
+  /// [_span] 日のうちに同じ番号は 2 度出ない。
+  int get startRound => minStart + (seed * 23) % _span;
+
+  /// 最後のラウンドの番号。
+  int get lastRound => startRound + rounds - 1;
+
+  /// UTC の日付 (YYYY-MM-DD)。
+  String get label {
+    final d = DateTime.fromMillisecondsSinceEpoch(
+      day * Duration.millisecondsPerDay,
+      isUtc: true,
+    );
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${d.year}-${two(d.month)}-${two(d.day)}';
+  }
+}
+
+/// デイリーチャレンジ (DAILY): その日のエンドレスの [DailyChallenge.rounds] ラウンドを続けて遊ぶ。
+/// ミスしたらそこで終わり。難易度は NORMAL 固定。
+class DailyMode extends GameMode {
+  const DailyMode(this.content, this.challenge);
+  final EndlessContent content;
+  final DailyChallenge challenge;
+
+  @override
+  String get recordKey => 'daily';
+
+  @override
+  int get firstRound => challenge.startRound;
+
+  @override
+  RoundSpec? roundAt(int number) =>
+      number >= challenge.startRound && number <= challenge.lastRound
+      ? content.round(number)
+      : null;
 }
 
 /// 練習場のボールの速さ。

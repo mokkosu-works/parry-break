@@ -14,6 +14,7 @@ class PlayEntry {
     required this.score,
     this.round = 0,
     this.cleared = false,
+    this.daily = false,
   });
 
   /// 結果画面が出た日時 (端末の時刻)。
@@ -30,6 +31,10 @@ class PlayEntry {
   /// ステージをクリアしたか (エンドレスでは false)。
   final bool cleared;
 
+  /// デイリーチャレンジか ([stageId] は null)。古い版のアプリは、エンドレスとして読む。
+  final bool daily;
+
+  /// エンドレスかデイリー (ステージではない)。到達したラウンドを出す。
   bool get endless => stageId == null;
 
   Map<String, Object?> toJson() => {
@@ -39,6 +44,7 @@ class PlayEntry {
     'score': score,
     if (stageId == null) 'round': round,
     if (stageId != null) 'cleared': cleared,
+    if (daily) 'daily': true,
   };
 
   /// 読めない (必要な項目がない・型が違う) ときは null。
@@ -46,6 +52,7 @@ class PlayEntry {
     if (j is! Map<String, Object?>) return null;
     final at = j['at'], stage = j['stage'], score = j['score'];
     final diff = j['difficulty'], round = j['round'], cleared = j['cleared'];
+    final daily = j['daily'];
     if (at is! int || score is! num || !score.isFinite) return null;
     if (stage != null && stage is! String) return null;
     final difficulty = Difficulty.values
@@ -59,6 +66,7 @@ class PlayEntry {
       score: score.toInt(),
       round: round is num && round.isFinite ? round.toInt() : 0,
       cleared: cleared == true,
+      daily: stage == null && daily == true,
     );
   }
 }
@@ -140,6 +148,16 @@ class PlayHistoryNotifier extends Notifier<PlayHistory> {
   /// エンドレスのゲームオーバーを残す。
   void addEndless({required int score, required int round}) => _add(
     PlayEntry(at: ref.read(historyClockProvider)(), score: score, round: round),
+  );
+
+  /// デイリーチャレンジの結果を残す (練習として遊んだ 2 回目以降も)。
+  void addDaily({required int score, required int round}) => _add(
+    PlayEntry(
+      at: ref.read(historyClockProvider)(),
+      score: score,
+      round: round,
+      daily: true,
+    ),
   );
 
   /// ステージの結果 (クリア・失敗) を残す。
