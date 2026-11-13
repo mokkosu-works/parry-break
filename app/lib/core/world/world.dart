@@ -22,6 +22,7 @@ part 'systems/bullet_system.dart';
 part 'systems/boss_system.dart';
 part 'systems/round_system.dart';
 part 'systems/item_system.dart';
+part 'systems/practice_system.dart';
 
 enum WorldPhase {
   /// ラウンド進行中。
@@ -155,6 +156,9 @@ class World {
   String overReason = '';
   List<Bonus> bonuses = const [];
 
+  /// 練習場: ボールが出直すまでの残り (秒、0 なら出直し待ちではない) と、次の敵弾までの経過 (秒)。
+  double practiceRespawn = 0, practiceBulletT = 0;
+
   final List<double> _actions = [];
   final List<GameEvent> _events = [];
 
@@ -165,7 +169,23 @@ class World {
 
   void clearActions() => _actions.clear();
 
-  void emit(GameEvent e) => _events.add(e);
+  void emit(GameEvent e) {
+    _events.add(e);
+    practice?.log.observe(e);
+  }
+
+  /// 練習場なら、そのモード。
+  PracticeMode? get practice => switch (mode) {
+    final PracticeMode m => m,
+    _ => null,
+  };
+
+  /// メインのボールを使うか (練習場の敵弾の撃ち返しの練習では使わない)。
+  bool get ballInPlay => !(practice?.bullets ?? false);
+
+  /// 練習場のボールの速さと、敵弾の撃ち返しの練習を切り替える。直近の判定は消し、ボールはパドルの上から出直す。
+  void setPractice({required PracticeSpeed speed, required bool bullets}) =>
+      _setPractice(speed, bullets);
 
   /// 溜まったイベントを取り出す。
   List<GameEvent> drainEvents() {
@@ -199,6 +219,8 @@ class World {
     clearT = overT = 0;
     bonuses = const [];
     _actions.clear();
+    practice?.log.clear();
+    practiceRespawn = practiceBulletT = 0;
     final first = mode.roundAt(fromRound);
     if (first == null) throw StateError('mode has no rounds');
     _loadRound(first);
@@ -286,6 +308,13 @@ class World {
   /// FEVER TIME 中は段階4 の速さから [Tuning.odTime] 秒かけて [odTopSpeed] まで上げる (入った瞬間に減速しない)。
   /// COOL (アイテム) が効いている間は、FEVER TIME 中も含めて [Tuning.coolSpeedMul] 倍になる。
   double get targetSpeed {
+    if (practice case final p?) {
+      return switch (p.speed) {
+        PracticeSpeed.stage1 => stageSpeedOf(0),
+        PracticeSpeed.stage3 => stageSpeedOf(2),
+        PracticeSpeed.fever => odTopSpeed,
+      };
+    }
     final cool = effects.cool > 0 ? tuning.coolSpeedMul : 1.0;
     if (od) {
       final s4 = stageSpeedOf(3);
@@ -398,7 +427,8 @@ class World {
   }
 
   void addCombo(double v) {
-    if (od) return;
+    // 練習場では FEVER TIME に入らず、ボールの速さを選んだ段階のままにする
+    if (od || practice != null) return;
     combo = math.max(0, combo + v);
     if (combo >= tuning.odCombo) _startFeverTime();
   }

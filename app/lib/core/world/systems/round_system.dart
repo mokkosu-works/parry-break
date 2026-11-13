@@ -68,6 +68,7 @@ extension _RoundSystem on World {
         introKey: spec.introKey,
       ),
     );
+    if (practice != null) return; // 練習場はラウンドの帯を出さない
     emit(
       b != null
           ? Banner(BannerKind.boss, value: b.index + 1)
@@ -108,7 +109,9 @@ extension _RoundSystem on World {
       // 耐久の時間・全消しボーナス・残り時間の表示は、最初の発射から数える (#100)
       if (launched) roundTime += dt;
       stats.playTime += dt;
-      if (boss != null) {
+      if (practice != null) {
+        _updatePractice(dt);
+      } else if (boss != null) {
         _updateBoss(dt);
       } else {
         // 降下: ボールが最後にブロックへ当たってから 0.5 秒間は半速
@@ -143,7 +146,7 @@ extension _RoundSystem on World {
       if (!pr.success) {
         pr.cooldownUntil = pr.press + tuning.parryCooldown;
         streak = 0;
-        emit(const ParryMissed());
+        emit(ParryMissed(offset: _missOffset(pr.press)));
       }
     }
     _updateLasers(dt);
@@ -173,7 +176,8 @@ extension _RoundSystem on World {
           ScoreClear(:final target) => score >= target,
           SurviveClear(:final seconds) => roundTime >= seconds,
         };
-    if (cleared) {
+    // 練習場はブロックがなくてもクリアにしない
+    if (cleared && practice == null) {
       _roundClear();
       return;
     }

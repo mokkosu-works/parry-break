@@ -137,6 +137,15 @@ class _FakeAds extends DisabledAds {
   Future<void> showInterstitialIfDue() async => shown++;
 }
 
+/// 結果画面を見た回数 (広告の頻度の制限に数える) と、広告を出そうとした回数を数える。
+class _CountingAds extends DisabledAds {
+  int results = 0, shown = 0;
+  @override
+  void onResult() => results++;
+  @override
+  Future<void> showInterstitialIfDue() async => shown++;
+}
+
 /// 広告を出そうとすると例外を投げる。
 class _ThrowingAds extends DisabledAds {
   int calls = 0;
@@ -342,6 +351,102 @@ void main() {
     );
     await _frames(tester, 2.4);
     expect(find.text('CONTINUE'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('練習場 (#253): タイトルから開き、ボールを落としても出直し、キーボードで切り替えて TITLE で戻る', (
+    tester,
+  ) async {
+    final ads = _CountingAds();
+    await _pumpApp(tester, ads: ads);
+    await _frames(tester, 2.4);
+    await tester.tap(find.text('PRACTICE'));
+    await _frames(tester, 0.8);
+    expect(
+      find.byWidgetPredicate((w) => w is GameScreen && w.practice),
+      findsOneWidget,
+    );
+    final ctl = GameScreen.debugLastController!;
+    final w = ctl.world;
+    final mode = w.practice!;
+    expect(w.blocks, isEmpty);
+    await _frames(tester, 0.6);
+
+    // ボールを 3 回落としても、ゲームオーバーにならず 1 秒後に出直す
+    for (var i = 0; i < 3; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
+      await _frames(tester, 0.3);
+      expect(w.ball.attached, isFalse);
+      w.ball
+        ..y = Field.height - 4
+        ..vy = 600;
+      await _frames(tester, 1.4);
+      expect(ctl.finished, isFalse);
+      expect(w.phase, WorldPhase.playing);
+      expect(w.ball.attached, isTrue);
+    }
+    // 空振りは直近の判定に入る
+    await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
+    await _frames(tester, 0.2);
+    w.ball
+      ..y = Field.topY + 40
+      ..vy = -300;
+    await tester.sendKeyEvent(LogicalKeyboardKey.space); // 空振り
+    await _frames(tester, 0.3);
+    expect(mode.log.count(null), 1);
+
+    // ポーズ: RESUME / SPEED / MODE / SETTINGS / TITLE をキーボードで
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _frames(tester, 0.1);
+    expect(find.text('SPEED LV1'), findsOneWidget);
+    expect(find.text('RETRY'), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _frames(tester, 0.1);
+    expect(mode.speed, PracticeSpeed.stage3);
+    expect(mode.log.length, 0);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _frames(tester, 0.1);
+    expect(mode.speed, PracticeSpeed.fever);
+    expect(find.text('SPEED FEVER'), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _frames(tester, 0.1);
+    expect(mode.bullets, isTrue);
+    expect(find.text('MODE BULLETS'), findsOneWidget);
+    expect(ctl.paused, isTrue); // 切り替えてもポーズのまま
+
+    // 再開すると、敵弾が落ちてくる
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _frames(tester, 1.2 + 2 * w.tuning.practiceBulletInterval);
+    expect(w.bullets, isNotEmpty);
+    expect(ctl.finished, isFalse);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _frames(tester, 0.1);
+    for (var i = 0; i < 4; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    }
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _frames(tester, 0.8);
+    expect(find.byType(GameScreen), findsNothing);
+    expect(find.text('PRACTICE'), findsOneWidget);
+
+    // 記録・履歴・ランキング・広告の回数・評価の依頼のどれにも数えない
+    final sp = await SharedPreferences.getInstance();
+    expect(
+      sp.getKeys().where(
+        (k) =>
+            k.startsWith('records') ||
+            k.startsWith('history') ||
+            k.startsWith('leaderboard') ||
+            k.startsWith('ads.') ||
+            k.startsWith('review.'),
+      ),
+      isEmpty,
+    );
+    expect(ads.results, 0);
+    expect(ads.shown, 0);
     expect(tester.takeException(), isNull);
   });
 
@@ -1316,6 +1421,13 @@ void main() {
       expect(s().reduceEffects, isTrue);
       await key(LogicalKeyboardKey.arrowLeft);
       expect(s().reduceEffects, isFalse);
+      // タイミングの表示 (#253): 既定は ON、← で OFF、→ で ON
+      await key(LogicalKeyboardKey.arrowDown);
+      expect(s().showTiming, isTrue);
+      await key(LogicalKeyboardKey.arrowLeft);
+      expect(s().showTiming, isFalse);
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(s().showTiming, isTrue);
       await key(LogicalKeyboardKey.arrowDown);
       await key(LogicalKeyboardKey.arrowLeft);
       expect(s().language, 'ja');
@@ -1594,6 +1706,7 @@ void main() {
           'HOW TO PLAY',
           'SETTINGS',
           'RANKING',
+          'PRACTICE',
         ]) {
           final r = tester.getRect(find.text(label));
           expect(r.top, greaterThanOrEqualTo(0), reason: label);

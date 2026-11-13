@@ -29,10 +29,15 @@ class _MenuEntry {
     this.action, {
     this.meta = '',
     this.primary = false,
+    this.side = false,
   });
   final String label, meta;
   final VoidCallback action;
   final bool primary;
+
+  /// 右のメニューの窓ではなく、左のハイスコアの下に置く (右の窓は背の低い画面で 7 項目までしか収まらないため)。
+  /// キーボードでは右の窓の最後の項目の次に選ぶ。
+  final bool side;
 }
 
 /// タイトル画面: 奥で流れるデモプレイ、ロゴ、アーケード風の縦メニュー、ハイスコア。
@@ -141,6 +146,12 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
             );
           }
         }),
+      _MenuEntry(
+        'PRACTICE',
+        () => push(const GameScreen(practice: true)),
+        meta: 'JUST TIMING',
+        side: true,
+      ),
     ];
   }
 
@@ -234,7 +245,8 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                   );
                   // 背の低い画面では、メニューが収まるよう項目の高さを詰める (押せる範囲の 44 は割らない)。
                   // 上下の余白 28 と、窓の枠と内側の余白 38 を引いた高さに収める。それでも入らなければ送れる
-                  final spare = entries.fold(
+                  final menu = entries.where((e) => !e.side).toList();
+                  final spare = menu.fold(
                     0.0,
                     (h, e) => h + _MenuItem.heightOf(e) - _MenuItem.minHeight,
                   );
@@ -243,7 +255,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                       : ((c.maxHeight -
                                     28 -
                                     38 -
-                                    entries.length * _MenuItem.minHeight) /
+                                    menu.length * _MenuItem.minHeight) /
                                 spare)
                             .clamp(0.0, 1.0);
                   return AnimatedBuilder(
@@ -287,6 +299,31 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                                     opacity: _stage(0.5, 0.9),
                                     child: _HiScore(record: records.endless),
                                   ),
+                                for (var i = 0; i < entries.length; i++)
+                                  if (entries[i].side)
+                                    Opacity(
+                                      opacity: _stage(0.5, 0.9),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                            maxWidth: 300,
+                                          ),
+                                          child: PixelWindow(
+                                            padding: EdgeInsets.zero,
+                                            child: _MenuItem(
+                                              entry: entries[i],
+                                              squeeze: 0,
+                                              selected: i == _selected,
+                                              firing: _firing == i,
+                                              onHover: () => _select(i),
+                                              onTap: () =>
+                                                  _activate(entries, i),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                               ],
                             ),
                           ),
@@ -305,21 +342,22 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                                           CrossAxisAlignment.stretch,
                                       children: [
                                         for (var i = 0; i < entries.length; i++)
-                                          Opacity(
-                                            opacity: _stage(
-                                              0.25 + i * 0.07,
-                                              0.6 + i * 0.07,
+                                          if (!entries[i].side)
+                                            Opacity(
+                                              opacity: _stage(
+                                                0.25 + i * 0.07,
+                                                0.6 + i * 0.07,
+                                              ),
+                                              child: _MenuItem(
+                                                entry: entries[i],
+                                                squeeze: menuSqueeze,
+                                                selected: i == _selected,
+                                                firing: _firing == i,
+                                                onHover: () => _select(i),
+                                                onTap: () =>
+                                                    _activate(entries, i),
+                                              ),
                                             ),
-                                            child: _MenuItem(
-                                              entry: entries[i],
-                                              squeeze: menuSqueeze,
-                                              selected: i == _selected,
-                                              firing: _firing == i,
-                                              onHover: () => _select(i),
-                                              onTap: () =>
-                                                  _activate(entries, i),
-                                            ),
-                                          ),
                                       ],
                                     ),
                                   ),

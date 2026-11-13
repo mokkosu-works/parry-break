@@ -12,6 +12,7 @@ import '../l10n/app_localizations.dart';
 import '../render/block_painters.dart';
 import '../render/field_painter.dart';
 import '../render/palette.dart';
+import '../render/pixel.dart';
 import '../render/text_cache.dart';
 import '../services/ads.dart';
 import '../services/content.dart';
@@ -28,14 +29,17 @@ import 'result_overlay.dart';
 import '../ui/pixel_icons.dart';
 
 /// プレイ画面。[stage] があればステージモード、なければエンドレス (エンドレスは常に NORMAL)。
+/// [practice] なら練習場 (記録・ランキング・履歴・広告の回数・評価の依頼に数えない)。
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({
     super.key,
     this.stage,
     this.difficulty = Difficulty.normal,
+    this.practice = false,
   });
   final StageDef? stage;
   final Difficulty difficulty;
+  final bool practice;
 
   /// 最後に作られたプレイの進行役 (テストから状態を確かめるため)。
   @visibleForTesting
@@ -69,12 +73,17 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final content = ref.read(contentProvider);
     final stage = widget.stage;
     _ctl = GameController(
-      mode: stage != null ? StageMode(stage) : EndlessMode(content.endless),
+      mode: widget.practice
+          ? PracticeMode()
+          : stage != null
+          ? StageMode(stage)
+          : EndlessMode(content.endless),
       audio: ref.read(audioProvider),
       haptics: ref.read(hapticsProvider),
       inputLag: settings.timingOffsetMs / 1000,
       difficulty: stage != null ? widget.difficulty : Difficulty.normal,
       reduceEffects: settings.reduceEffects,
+      showTiming: settings.showTiming,
       timeSource: ref.read(timeSourceProvider),
     )..onFinished = _onFinished;
     GameScreen.debugLastController = _ctl;
@@ -128,6 +137,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
   // ---- 結果の記録 ---------------------------------------------------------
 
   void _onFinished(World w) {
+    // 練習場はゲームオーバーにならないが、念のため何にも数えない
+    if (widget.practice) return;
     final records = ref.read(recordsProvider.notifier);
     final lb = ref.read(leaderboardProvider);
     final stage = widget.stage;
@@ -201,15 +212,38 @@ class _GameScreenState extends ConsumerState<GameScreen>
     input.axis = axis;
   }
 
-  /// ポーズ中にキーボードで選んでいるボタン (RESUME / RETRY / SETTINGS / TITLE の順)。
+  /// ポーズ中にキーボードで選んでいるボタン ([_pauseActions] の順)。
   int _pauseIndex = 0;
 
+  /// ポーズのボタン。RESUME / RETRY / SETTINGS / TITLE、練習場は RESUME / 速さ / 練習の対象 / SETTINGS / TITLE。
   List<VoidCallback> get _pauseActions => [
     _ctl.requestResume,
-    _retry,
+    if (widget.practice) ...[_cycleSpeed, _toggleBullets] else _retry,
     _openSettings,
     _toTitle,
   ];
+
+  PracticeMode? get _practice => _ctl.world.practice;
+
+  /// 練習場のボールの速さを 段階 1 → 段階 3 → FEVER TIME → 段階 1 と切り替える。
+  void _cycleSpeed() {
+    final p = _practice;
+    if (p == null) return;
+    const all = PracticeSpeed.values;
+    setState(
+      () => _ctl.world.setPractice(
+        speed: all[(p.speed.index + 1) % all.length],
+        bullets: p.bullets,
+      ),
+    );
+  }
+
+  /// 練習場の対象を、ボールと敵弾の撃ち返しで切り替える。
+  void _toggleBullets() {
+    final p = _practice;
+    if (p == null) return;
+    setState(() => _ctl.world.setPractice(speed: p.speed, bullets: !p.bullets));
+  }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
@@ -335,6 +369,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     // どちらも変われば build し直されるので、遊んでいる途中の変更も反映される
     _ctl.fx.reduceEffects =
         settings.reduceEffects || MediaQuery.disableAnimationsOf(context);
+    _ctl.fx.showTiming = settings.showTiming;
     // ポーズ中に設定で言語・画質を変えたら、盤面の描画役を作り直す
     if (_painter case final p?
         when p.l10n.localeName != l.localeName ||
@@ -491,33 +526,55 @@ class _GameScreenState extends ConsumerState<GameScreen>
                             selected: _pauseIndex == 0,
                             onPressed: _ctl.requestResume,
                           ),
-                          PixelButton(
-                            label: 'RETRY',
-                            icon: PixelIcons.replay,
-                            selected: _pauseIndex == 1,
-                            onPressed: _retry,
-                          ),
-                          PixelButton(
-                            label: 'SETTINGS',
-                            icon: PixelIcons.tune,
-                            selected: _pauseIndex == 2,
-                            onPressed: _openSettings,
-                          ),
-                          PixelButton(
-                            label: 'TITLE',
-                            color: Palette.gray,
-                            icon: PixelIcons.home,
-                            selected: _pauseIndex == 3,
-                            onPressed: _toTitle,
-                          ),
+                          for (final (i, b) in _pauseButtons().indexed)
+                            PixelButton(
+                              label: b.label,
+                              color: b.color,
+                              icon: b.icon,
+                              selected: _pauseIndex == i + 1,
+                              onPressed: _pauseActions[i + 1],
+                            ),
                         ],
                       ),
+                      if (_practice != null) ...[
+                        const SizedBox(height: 20),
+                        Text(
+                          l.practiceHelp,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Palette.gray,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
         ),
       ],
     );
+  }
+
+  /// ポーズの RESUME の後に並べるボタン ([_pauseActions] と同じ順)。
+  List<({String label, DotSprite icon, Color? color})> _pauseButtons() {
+    final p = _practice;
+    return [
+      if (p != null) ...[
+        (
+          label: 'SPEED ${practiceSpeedLabel(p.speed)}',
+          icon: PixelIcons.skipNext,
+          color: null,
+        ),
+        (
+          label: p.bullets ? 'MODE BULLETS' : 'MODE BALL',
+          icon: PixelIcons.swap,
+          color: null,
+        ),
+      ] else
+        (label: 'RETRY', icon: PixelIcons.replay, color: null),
+      (label: 'SETTINGS', icon: PixelIcons.tune, color: null),
+      (label: 'TITLE', icon: PixelIcons.home, color: Palette.gray),
+    ];
   }
 
   Widget _resultOverlay() {

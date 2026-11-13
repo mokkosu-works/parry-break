@@ -261,6 +261,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsReduceEffectsHelp => 'フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます';
 
   @override
+  String get settingsShowTiming => 'タイミングの表示';
+
+  @override
+  String get settingsShowTimingHelp =>
+      'パリィの判定の下に、早い (EARLY)・遅い (LATE) とずれ (ms) を出します';
+
+  @override
+  String get practiceHelp => 'ボールは落としても 1 秒で出直します。ここでのプレイは記録に残りません';
+
+  @override
   String get settingsLanguage => '言語';
 
   @override

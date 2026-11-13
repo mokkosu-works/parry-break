@@ -20,7 +20,7 @@ extension _ParrySystem on World {
 
   void _onAction(double pt) {
     final b = ball, p = paddle, pr = parry;
-    if (b.attached) {
+    if (b.attached && ballInPlay) {
       if (countdown <= 0) _launch();
       return;
     }
@@ -36,7 +36,13 @@ extension _ParrySystem on World {
       lastContact = Contact(lastContact.t, used: true);
       pr.hits = 0;
       late = true;
-      _applyParry(_grade(dl.abs()), ParryTarget.ball, b.x, Field.paddleY);
+      _applyParry(
+        _grade(dl.abs()),
+        ParryTarget.ball,
+        b.x,
+        Field.paddleY,
+        offset: dl,
+      );
     }
     for (final u in List.of(bullets)) {
       final tc = u.contact;
@@ -46,7 +52,7 @@ extension _ParrySystem on World {
       if (!late) pr.hits = 0;
       late = true;
       u.contact = null;
-      _parryBullet(u, _grade(du.abs()));
+      _parryBullet(u, _grade(du.abs()), du);
     }
     // パドルに触れて、通常取得の確定を待っているアイテムはパリィ取得になる
     for (final it in List.of(items)) {
@@ -85,6 +91,45 @@ extension _ParrySystem on World {
     return null;
   }
 
+  /// 空振りのとき、押した時刻 [press] にいちばん近い接触 (済んだもの・これから来るもの) とのずれ (秒)。
+  /// [Tuning.missNearWindow] より離れたものしかなければ null。
+  double? _missOffset(double press) {
+    final near = tuning.missNearWindow;
+    var best = double.infinity;
+    void consider(double tc) {
+      final d = press - tc;
+      if (d.abs() <= near && d.abs() < best.abs()) best = d;
+    }
+
+    if (!lastContact.used) consider(lastContact.t);
+    // これから触れるもの: 今の速度のまま下りて、パドルの上面に届く時刻。
+    // 横はパドルの幅の倍までを「近い」とみなす (壁での跳ね返りは見ない)
+    final reach = paddleWidth;
+    void incoming(double x, double y, double vx, double vy, double r) {
+      if (vy <= 0) return;
+      final dy = Field.paddleY - r - y;
+      if (dy < 0) return;
+      final dtc = dy / vy;
+      if ((x + vx * dtc - paddle.x).abs() > reach + r) return;
+      consider(t + dtc);
+    }
+
+    final b = ball;
+    if (ballInPlay && practiceRespawn <= 0 && !b.attached && !b.lost) {
+      incoming(b.x, b.y, b.vx, b.vy, Field.ballR);
+    }
+    for (final u in bullets) {
+      if (!u.hostile || u.dead) continue;
+      final tc = u.contact;
+      if (tc != null) {
+        consider(tc);
+      } else {
+        incoming(u.x, u.y, u.vx, u.vy, u.r);
+      }
+    }
+    return best.isFinite ? best : null;
+  }
+
   void _launch() {
     final b = ball;
     b.attached = false;
@@ -97,7 +142,14 @@ extension _ParrySystem on World {
     emit(const BallLaunched());
   }
 
-  void _applyParry(ParryGrade grade, ParryTarget target, double x, double y) {
+  /// [offset] は接触とのずれ (秒、[ParrySucceeded.offset])。
+  void _applyParry(
+    ParryGrade grade,
+    ParryTarget target,
+    double x,
+    double y, {
+    required double offset,
+  }) {
     final pr = parry;
     final just = grade == ParryGrade.just,
         perfect = just || grade == ParryGrade.perfect;
@@ -155,6 +207,7 @@ extension _ParrySystem on World {
         y: y,
         paddleX: paddle.x,
         streak: streak,
+        offset: offset,
       ),
     );
     if (pr.hits >= 3) {

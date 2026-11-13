@@ -47,11 +47,21 @@ class FxCallout {
 }
 
 class FxJudge {
-  FxJudge(this.text, this.color, {this.big = false});
+  FxJudge(this.text, this.color, {this.big = false, this.sub});
   final String text;
   final Color color;
   final bool big;
+
+  /// 判定の文字の下に小さく出す、接触とのずれ (`EARLY 18ms` など)。
+  final String? sub;
   double t = 0;
+}
+
+/// 接触とのずれ [offset] (秒、負なら早い) の表示。`EARLY 18ms` / `LATE 7ms`。
+String timingLabel(double offset) {
+  final ms = (offset.abs() * 1000).round();
+  if (ms == 0) return '0ms';
+  return '${offset < 0 ? 'EARLY' : 'LATE'} ${ms}ms';
 }
 
 class FxBanner {
@@ -124,10 +134,13 @@ class FxDebris {
 
 /// 演出の状態。コアのイベントを受けて作り、シミュレーションのステップごとに進める。
 class FxState {
-  FxState(this.world, {this.reduceEffects = false});
+  FxState(this.world, {this.reduceEffects = false, this.showTiming = true});
 
   final World world;
   bool reduceEffects;
+
+  /// パリィの判定の下に、接触とのずれを出すか (設定の「タイミングの表示」)。
+  bool showTiming;
   final math.Random _rnd = math.Random();
 
   final particles = <Particle>[];
@@ -253,7 +266,13 @@ class FxState {
           PopupKind.coreDamage => (Dot.mustard, 24.0),
         };
         popup(x, y, text, color, size);
-      case ParrySucceeded(:final grade, :final target, :final x, :final y):
+      case ParrySucceeded(
+        :final grade,
+        :final target,
+        :final x,
+        :final y,
+        :final offset,
+      ):
         final just = grade == ParryGrade.just,
             perfect = grade != ParryGrade.good;
         final col = just
@@ -265,6 +284,8 @@ class FxState {
           just ? 'JUST!!' : grade.name.toUpperCase(),
           col,
           big: just,
+          // JUST はぴったりなので出さない
+          sub: showTiming && !just ? timingLabel(offset) : null,
         );
         burst(
           x,
@@ -302,8 +323,12 @@ class FxState {
               : 4,
         );
         if (just) _flash(0.15, Dot.blush);
-      case ParryMissed():
-        judge = FxJudge('MISS', Dot.dim);
+      case ParryMissed(:final offset):
+        judge = FxJudge(
+          'MISS',
+          Dot.dim,
+          sub: showTiming && offset != null ? timingLabel(offset) : null,
+        );
       case BlockDestroyed(
         :final block,
         :final cx,

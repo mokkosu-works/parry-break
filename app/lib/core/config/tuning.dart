@@ -79,6 +79,9 @@ class Tuning {
     this.coolTime = 8,
     this.coolTimeParry = 14,
     this.coolSpeedMul = 0.8,
+    this.missNearWindow = 0.2,
+    this.practiceRespawn = 1.0,
+    this.practiceBulletInterval = 1.4,
   });
 
   // パリィ判定 (秒)
@@ -166,6 +169,12 @@ class Tuning {
 
   /// COOL: 続く時間 (通常取得 / パリィ取得) と、ボールの速さの倍率。
   final double coolTime, coolTimeParry, coolSpeedMul;
+
+  /// 空振り (MISS) のとき、ずれを出す相手を探す範囲 (秒)。押した時刻からこれより離れた接触は出さない。
+  final double missNearWindow;
+
+  /// 練習場: ボールを落としてから出直すまでの時間 (秒) と、敵弾の撃ち返しの練習で敵弾が落ちてくる間隔 (秒)。
+  final double practiceRespawn, practiceBulletInterval;
 
   /// ボールの基準速度 (px/秒)。
   double baseSpeed(int difficulty, double loopMul) {
@@ -285,6 +294,12 @@ class Tuning {
       coolTime: d('coolTime', coolTime),
       coolTimeParry: d('coolTimeParry', coolTimeParry),
       coolSpeedMul: d('coolSpeedMul', coolSpeedMul),
+      missNearWindow: d('missNearWindow', missNearWindow),
+      practiceRespawn: d('practiceRespawn', practiceRespawn),
+      practiceBulletInterval: d(
+        'practiceBulletInterval',
+        practiceBulletInterval,
+      ),
     );
   }
 }

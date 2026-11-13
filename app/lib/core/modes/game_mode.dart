@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import '../events/game_event.dart';
 import '../stages/content.dart';
 import '../stages/round_spec.dart';
 
@@ -35,4 +38,93 @@ class StageMode extends GameMode {
   @override
   RoundSpec? roundAt(int number) =>
       number <= stage.rounds.length ? stage.rounds[number - 1] : null;
+}
+
+/// 練習場のボールの速さ。
+enum PracticeSpeed {
+  /// コンボ段階 1 の速さ。
+  stage1,
+
+  /// コンボ段階 3 の速さ。
+  stage3,
+
+  /// FEVER TIME の最高速度。
+  fever,
+}
+
+/// 練習場 (PRACTICE): ブロックのない盤面でボールを弾き続ける。ボールを落としても出直し、
+/// ゲームオーバーにならない。記録・ランキング・履歴・広告の回数には数えない。
+///
+/// [speed] と [bullets] はプレイの途中で変えられる (`World.setPractice`)。
+class PracticeMode extends GameMode {
+  PracticeMode({this.speed = PracticeSpeed.stage1, this.bullets = false});
+
+  PracticeSpeed speed;
+
+  /// 敵弾の撃ち返しの練習 (ボールを出さず、上から一定の間隔で敵弾が落ちてくる)。
+  bool bullets;
+
+  /// 直近の判定の内訳とずれ。
+  final PracticeLog log = PracticeLog();
+
+  @override
+  String get recordKey => 'practice';
+
+  @override
+  RoundSpec? roundAt(int number) => number == 1
+      ? const RoundSpec(number: 1, difficulty: 1, content: LayoutContent([]))
+      : null;
+}
+
+/// 練習場の直近 [capacity] 回の判定 (JUST / PERFECT / GOOD / MISS) と、接触とのずれ。
+class PracticeLog {
+  static const capacity = 20;
+
+  final List<({ParryGrade? grade, double? offset})> _entries = [];
+
+  /// 古い順。grade が null なら MISS。offset は秒 (負なら早い)。MISS で近くに何もなければ null。
+  List<({ParryGrade? grade, double? offset})> get entries =>
+      List.unmodifiable(_entries);
+
+  void add(ParryGrade? grade, double? offset) {
+    _entries.add((grade: grade, offset: offset));
+    if (_entries.length > capacity) _entries.removeAt(0);
+  }
+
+  /// 判定のイベントなら記録する。
+  void observe(GameEvent e) {
+    switch (e) {
+      case ParrySucceeded(:final grade, :final offset):
+        add(grade, offset);
+      case ParryMissed(:final offset):
+        add(null, offset);
+      default:
+    }
+  }
+
+  void clear() => _entries.clear();
+
+  int get length => _entries.length;
+
+  /// [grade] の回数。null なら MISS の回数。
+  int count(ParryGrade? grade) =>
+      _entries.where((e) => e.grade == grade).length;
+
+  Iterable<double> get _offsets => _entries.map((e) => e.offset).nonNulls;
+
+  /// ずれの平均 (秒、負なら早い)。ずれのある判定がなければ null。
+  double? get mean {
+    final o = _offsets.toList();
+    if (o.isEmpty) return null;
+    return o.fold(0.0, (s, v) => s + v) / o.length;
+  }
+
+  /// ずれのばらつき (標準偏差、秒)。ずれのある判定がなければ null。
+  double? get spread {
+    final m = mean;
+    if (m == null) return null;
+    final o = _offsets.toList();
+    final v = o.fold(0.0, (s, x) => s + (x - m) * (x - m)) / o.length;
+    return math.sqrt(v);
+  }
 }

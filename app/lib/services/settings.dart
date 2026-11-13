@@ -30,6 +30,7 @@ class Settings {
     this.haptics = true,
     this.quality = GraphicsQuality.high,
     this.reduceEffects = false,
+    this.showTiming = true,
     this.language,
     this.debugMode = false,
     this.difficulty = Difficulty.normal,
@@ -53,6 +54,9 @@ class Settings {
   /// フラッシュ・点滅・画面の揺れを弱める。
   final bool reduceEffects;
 
+  /// パリィの判定の下に、接触とのずれ (EARLY / LATE と ms) を出す。
+  final bool showTiming;
+
   /// 'ja' / 'en'。null なら端末の言語。
   final String? language;
 
@@ -72,6 +76,7 @@ class Settings {
     bool? haptics,
     GraphicsQuality? quality,
     bool? reduceEffects,
+    bool? showTiming,
     String? Function()? language,
     bool? debugMode,
     Difficulty? difficulty,
@@ -85,6 +90,7 @@ class Settings {
     haptics: haptics ?? this.haptics,
     quality: quality ?? this.quality,
     reduceEffects: reduceEffects ?? this.reduceEffects,
+    showTiming: showTiming ?? this.showTiming,
     language: language != null ? language() : this.language,
     debugMode: debugMode ?? this.debugMode,
     difficulty: difficulty ?? this.difficulty,
@@ -100,6 +106,7 @@ class Settings {
     'haptics': haptics,
     'quality': quality.name,
     'reduceEffects': reduceEffects,
+    'showTiming': showTiming,
     'language': language,
     'debugMode': debugMode,
     'difficulty': difficulty.name,
@@ -127,6 +134,7 @@ class Settings {
       haptics: bool_(j['haptics'], d.haptics),
       quality: pick(GraphicsQuality.values, j['quality'], d.quality),
       reduceEffects: bool_(j['reduceEffects'], d.reduceEffects),
+      showTiming: bool_(j['showTiming'], d.showTiming),
       language: switch (j['language']) {
         'ja' => 'ja',
         'en' => 'en',

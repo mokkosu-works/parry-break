@@ -181,7 +181,7 @@ class FieldPainter extends CustomPainter {
     for (final f in w.phantoms) {
       _ball(f);
     }
-    if (w.phase == WorldPhase.playing) _ball(w.ball);
+    if (w.phase == WorldPhase.playing && w.ballInPlay) _ball(w.ball);
     _paddle();
     _lasers();
     _rings();
@@ -192,6 +192,7 @@ class FieldPainter extends CustomPainter {
     if (!attract) {
       _effects();
       _hud();
+      if (w.practice case final p?) _practicePanel(p);
       _callouts();
       _banner();
       if (w.phase == WorldPhase.clearing) _clearScreen();
@@ -322,6 +323,7 @@ class FieldPainter extends CustomPainter {
       const Rect.fromLTWH(0, Field.topY - _d, _w, _d),
       pixelPaint(Dot.edge),
     );
+    if (world.practice != null) return; // 練習場にはブロックがないので、デッドラインを描かない
     final danger = world.isDanger;
     final col = danger
         ? (_blink(7, calm: true) ? Dot.bulletRed : Dot.brick)
@@ -843,15 +845,22 @@ class FieldPainter extends CustomPainter {
       align: TextAlignH.left,
     );
     final boss = w.boss;
+    final practice = w.practice;
     _txt(
-      boss != null ? 'BOSS ${boss.index + 1}' : 'ROUND',
+      practice != null
+          ? 'PRACTICE'
+          : boss != null
+          ? 'BOSS ${boss.index + 1}'
+          : 'ROUND',
       400,
       _labelY,
       _label,
       Dot.dim,
     );
     _txt(
-      '${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}',
+      practice != null
+          ? practiceSpeedLabel(practice.speed)
+          : '${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}',
       400,
       38,
       24,
@@ -937,15 +946,46 @@ class FieldPainter extends CustomPainter {
     final j = fx.judge;
     if (j != null && w.phase == WorldPhase.playing) {
       // 出た瞬間だけ 1 段大きく (なめらかに縮めない)
-      final size = (j.big ? 40.0 : 32.0) + (j.t < 0.08 ? 8 : 0);
-      _bigTxt(
-        j.text,
-        w.paddle.x,
-        Field.paddleY - 36 - (j.t * 20 / 4).floor() * 4,
-        size,
-        j.color,
-      );
+      final base = j.big ? 40.0 : 32.0;
+      final size = base + (j.t < 0.08 ? 8 : 0);
+      final y = Field.paddleY - 36 - (j.t * 20 / 4).floor() * 4;
+      _bigTxt(j.text, w.paddle.x, y, size, j.color);
+      // ずれ: 判定の文字の下、パドルの上に小さく (判定の文字が出た瞬間に大きくなっても重ならない位置)
+      final sub = j.sub;
+      if (sub != null) {
+        _txt(sub, w.paddle.x, y + base / 2 + 10, 16, Dot.white);
+      }
     }
+  }
+
+  /// 練習場の画面の左端: 直近 [PracticeLog.capacity] 回の判定の内訳と、ずれの平均・ばらつき。
+  void _practicePanel(PracticeMode p) {
+    final log = p.log;
+    const x = 24.0, x2 = 236.0, lh = 22.0, s = 16.0;
+    var y = Field.topY + 22;
+    _txt(
+      'LAST ${log.length}/${PracticeLog.capacity}',
+      x,
+      y,
+      s,
+      Dot.dim,
+      align: TextAlignH.left,
+    );
+    y += lh + 4;
+    void row(String label, String value, Color c) {
+      _txt(label, x, y, s, Dot.dim, align: TextAlignH.left);
+      _txt(value, x2, y, s, c, align: TextAlignH.right);
+      y += lh;
+    }
+
+    row('JUST', '${log.count(ParryGrade.just)}', Dot.rose);
+    row('PERFECT', '${log.count(ParryGrade.perfect)}', Dot.mustard);
+    row('GOOD', '${log.count(ParryGrade.good)}', Dot.peach);
+    row('MISS', '${log.count(null)}', Dot.white);
+    y += 4;
+    final m = log.mean, sd = log.spread;
+    row('AVG', m == null ? '-' : timingLabel(m), Dot.white);
+    row('SPREAD', sd == null ? '-' : '${(sd * 1000).round()}ms', Dot.white);
   }
 
   void _callouts() {
@@ -1152,3 +1192,10 @@ class FieldPainter extends CustomPainter {
 extension on String {
   String? get nullIfEmpty => isEmpty ? null : this;
 }
+
+/// 練習場のボールの速さの表示。
+String practiceSpeedLabel(PracticeSpeed s) => switch (s) {
+  PracticeSpeed.stage1 => 'LV1',
+  PracticeSpeed.stage3 => 'LV3',
+  PracticeSpeed.fever => 'FEVER',
+};
