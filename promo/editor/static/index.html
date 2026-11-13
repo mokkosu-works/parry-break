@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>動画レイアウト編集</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header id="toolbar">
+  <label class="project">プロジェクト <select id="projectSelect" title="プロジェクトを開く"></select></label>
+  <span id="dirty" class="dirty" hidden>未保存</span>
+  <span class="sep"></span>
+  <button id="saveBtn" title="保存 (Ctrl+S)">保存</button>
+  <button id="undoBtn" title="元に戻す (Ctrl+Z)">元に戻す</button>
+  <button id="redoBtn" title="やり直す (Ctrl+Shift+Z / Ctrl+Y)">やり直す</button>
+  <span class="sep"></span>
+  <button id="playBtn" title="選択中のシーンを再生 (Space)">再生</button>
+  <span id="playTime" class="muted"></span>
+  <span class="sep"></span>
+  <label class="toggle"><input type="checkbox" id="safeToggle" checked> セーフエリア</label>
+  <label class="toggle"><input type="checkbox" id="outlineToggle"> レイヤーの枠</label>
+  <span class="grow"></span>
+  <button id="exportBtn" class="primary">動画を書き出す</button>
+</header>
+<main>
+  <aside id="left">
+    <section>
+      <h2>シーン</h2>
+      <ol id="sceneList" class="list"></ol>
+    </section>
+    <section>
+      <h2>レイヤー <span class="muted small">(上ほど手前)</span></h2>
+      <ol id="layerList" class="list"></ol>
+      <div class="add">
+        <span class="muted small">追加:</span>
+        <div id="addButtons"></div>
+      </div>
+    </section>
+    <section>
+      <h2>問題 <span id="problemCount" class="muted small"></span></h2>
+      <ul id="problems" class="problems"></ul>
+    </section>
+  </aside>
+  <section id="center">
+    <div id="viewport">
+      <div id="stageWrap">
+        <div id="stage">
+          <img id="bg" alt="" draggable="false">
+          <div id="layers"></div>
+          <div id="safe">
+            <div class="safe-top"><span>上 130px: アプリの表示に隠れやすい</span></div>
+            <div class="safe-bottom"><span>下 480px: 字幕・ボタンに隠れやすい</span></div>
+          </div>
+          <div id="selection" hidden>
+            <div class="handle" data-handle="nw"></div><div class="handle" data-handle="ne"></div>
+            <div class="handle" data-handle="sw"></div><div class="handle" data-handle="se"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="status" class="muted small"></div>
+  </section>
+  <aside id="right"></aside>
+</main>
+<div id="exportPanel" class="modal" hidden>
+  <div class="modal-body">
+    <h2>動画の書き出し</h2>
+    <div id="exportContent"></div>
+    <div class="modal-actions"><button id="exportClose">閉じる</button></div>
+  </div>
+</div>
+<div id="toast" hidden></div>
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,562 @@
+{
+  "version": 1,
+  "name": "character-promo-miss",
+  "canvas": {
+    "width": 1080,
+    "height": 1920
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "start": 0,
+      "duration": 3,
+      "background": {
+        "src": "../../capture/raw/s2-7_just_01.mp4",
+        "time": 24.0
+      },
+      "layers": [
+        {
+          "id": "headline",
+          "type": "text",
+          "name": "見出し",
+          "visible": true,
+          "x": 211,
+          "y": 179,
+          "text": "あっ、落ちた…",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 94,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "left"
+        },
+        {
+          "id": "frame",
+          "type": "rect",
+          "name": "ゲーム映像の枠",
+          "visible": true,
+          "x": 70,
+          "y": 330,
+          "width": 940,
+          "height": 572,
+          "color": "#ffc61a",
+          "strokeWidth": 10
+        },
+        {
+          "id": "game",
+          "type": "video",
+          "name": "ゲーム映像",
+          "visible": true,
+          "x": 82,
+          "y": 340,
+          "width": 920,
+          "height": 552,
+          "src": "../../capture/raw/s2-7_just_01.mp4",
+          "start": 23.2,
+          "crop": {
+            "x": 245,
+            "y": 0,
+            "width": 1800,
+            "height": 1080
+          }
+        },
+        {
+          "id": "character",
+          "type": "character",
+          "name": "キャラクター",
+          "visible": true,
+          "x": 326,
+          "y": 906,
+          "height": 850,
+          "src": "../../characters/character_sheet_v2.png",
+          "pose": 3,
+          "bob": true,
+          "bobAmplitude": 4
+        }
+      ]
+    },
+    {
+      "id": "parry",
+      "start": 3,
+      "duration": 8,
+      "background": {
+        "src": "../../capture/raw/s2-7_just_01.mp4",
+        "time": 5.8
+      },
+      "layers": [
+        {
+          "id": "headline",
+          "type": "text",
+          "name": "見出し",
+          "visible": true,
+          "x": 176,
+          "y": 155,
+          "text": "当たる瞬間にタップ",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 81,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "center"
+        },
+        {
+          "id": "frame",
+          "type": "rect",
+          "name": "ゲーム映像の枠",
+          "visible": true,
+          "x": 30,
+          "y": 290,
+          "width": 1020,
+          "height": 628,
+          "color": "#ffc61a",
+          "strokeWidth": 10
+        },
+        {
+          "id": "caption",
+          "type": "text",
+          "name": "字幕",
+          "visible": true,
+          "x": 484,
+          "y": 927,
+          "text": "早くても遅くてもダメ",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 52,
+          "color": "#ffffff",
+          "strokeWidth": 3,
+          "strokeColor": "#0b0b1a",
+          "align": "left"
+        },
+        {
+          "id": "logo-parry",
+          "type": "text",
+          "name": "ロゴ PARRY",
+          "visible": true,
+          "x": 635,
+          "y": 1002,
+          "text": "PARRY",
+          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
+          "fontSize": 82,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "left"
+        },
+        {
+          "id": "logo-break",
+          "type": "text",
+          "name": "ロゴ BREAK",
+          "visible": true,
+          "x": 635,
+          "y": 1089,
+          "text": "BREAK",
+          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
+          "fontSize": 82,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "left"
+        },
+        {
+          "id": "app-icon",
+          "type": "image",
+          "name": "アプリアイコン",
+          "visible": true,
+          "x": 449,
+          "y": 1027,
+          "width": 162,
+          "height": 162,
+          "src": "../../../app/branding/icons/icon-512.png",
+          "opacity": 1,
+          "resample": "lanczos"
+        },
+        {
+          "id": "store-search",
+          "type": "text",
+          "name": "ストアで検索",
+          "visible": true,
+          "x": 601,
+          "y": 1230,
+          "text": "ストアで検索",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 46,
+          "color": "#ffffff",
+          "strokeWidth": 3,
+          "strokeColor": "#0b0b1a",
+          "align": "left"
+        },
+        {
+          "id": "badge-appstore",
+          "type": "image",
+          "name": "App Store バッジ",
+          "visible": true,
+          "x": 479,
+          "y": 1306,
+          "width": 251,
+          "height": 92,
+          "src": "../../build/assets/badges/appstore.png",
+          "opacity": 1,
+          "resample": "bicubic"
+        },
+        {
+          "id": "badge-googleplay",
+          "type": "image",
+          "name": "Google Play バッジ",
+          "visible": true,
+          "x": 765,
+          "y": 1298,
+          "width": 269,
+          "height": 104,
+          "src": "../../build/assets/badges/googleplay.png",
+          "opacity": 1,
+          "resample": "bicubic"
+        },
+        {
+          "id": "game",
+          "type": "video",
+          "name": "ゲーム映像",
+          "visible": true,
+          "x": 40,
+          "y": 304,
+          "width": 1000,
+          "height": 600,
+          "src": "../../capture/raw/s2-7_just_01.mp4",
+          "start": 4.3,
+          "crop": {
+            "x": 245,
+            "y": 0,
+            "width": 1800,
+            "height": 1080
+          }
+        },
+        {
+          "id": "character",
+          "type": "character",
+          "name": "キャラクター",
+          "visible": true,
+          "x": 47,
+          "y": 895,
+          "height": 699,
+          "src": "../../characters/character_sheet_v2.png",
+          "pose": 2,
+          "bob": true,
+          "bobAmplitude": 4
+        }
+      ]
+    },
+    {
+      "id": "collapse",
+      "start": 11,
+      "duration": 8,
+      "background": {
+        "src": "../../capture/raw/s4-7_just_01.mp4",
+        "time": 16.0
+      },
+      "layers": [
+        {
+          "id": "headline",
+          "type": "text",
+          "name": "見出し",
+          "visible": true,
+          "x": 256,
+          "y": 155,
+          "text": "今度は返せた！",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 81,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "center"
+        },
+        {
+          "id": "frame",
+          "type": "rect",
+          "name": "ゲーム映像の枠",
+          "visible": true,
+          "x": 30,
+          "y": 290,
+          "width": 1020,
+          "height": 628,
+          "color": "#ffc61a",
+          "strokeWidth": 10
+        },
+        {
+          "id": "caption",
+          "type": "text",
+          "name": "字幕",
+          "visible": true,
+          "x": 588,
+          "y": 925,
+          "text": "ステージクリア！",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 52,
+          "color": "#ffffff",
+          "strokeWidth": 3,
+          "strokeColor": "#0b0b1a",
+          "align": "left"
+        },
+        {
+          "id": "logo-parry",
+          "type": "text",
+          "name": "ロゴ PARRY",
+          "visible": true,
+          "x": 635,
+          "y": 1002,
+          "text": "PARRY",
+          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
+          "fontSize": 82,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "left"
+        },
+        {
+          "id": "logo-break",
+          "type": "text",
+          "name": "ロゴ BREAK",
+          "visible": true,
+          "x": 635,
+          "y": 1089,
+          "text": "BREAK",
+          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
+          "fontSize": 82,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "left"
+        },
+        {
+          "id": "app-icon",
+          "type": "image",
+          "name": "アプリアイコン",
+          "visible": true,
+          "x": 449,
+          "y": 1027,
+          "width": 162,
+          "height": 162,
+          "src": "../../../app/branding/icons/icon-512.png",
+          "opacity": 1,
+          "resample": "lanczos"
+        },
+        {
+          "id": "store-search",
+          "type": "text",
+          "name": "ストアで検索",
+          "visible": true,
+          "x": 601,
+          "y": 1230,
+          "text": "ストアで検索",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 46,
+          "color": "#ffffff",
+          "strokeWidth": 3,
+          "strokeColor": "#0b0b1a",
+          "align": "left"
+        },
+        {
+          "id": "badge-appstore",
+          "type": "image",
+          "name": "App Store バッジ",
+          "visible": true,
+          "x": 479,
+          "y": 1306,
+          "width": 251,
+          "height": 92,
+          "src": "../../build/assets/badges/appstore.png",
+          "opacity": 1,
+          "resample": "bicubic"
+        },
+        {
+          "id": "badge-googleplay",
+          "type": "image",
+          "name": "Google Play バッジ",
+          "visible": true,
+          "x": 765,
+          "y": 1298,
+          "width": 269,
+          "height": 104,
+          "src": "../../build/assets/badges/googleplay.png",
+          "opacity": 1,
+          "resample": "bicubic"
+        },
+        {
+          "id": "game",
+          "type": "video",
+          "name": "ゲーム映像",
+          "visible": true,
+          "x": 40,
+          "y": 304,
+          "width": 1000,
+          "height": 600,
+          "src": "../../capture/raw/s4-7_just_01.mp4",
+          "start": 14.5,
+          "crop": {
+            "x": 245,
+            "y": 0,
+            "width": 1800,
+            "height": 1080
+          }
+        },
+        {
+          "id": "character",
+          "type": "character",
+          "name": "キャラクター",
+          "visible": true,
+          "x": 50,
+          "y": 872,
+          "height": 699,
+          "src": "../../characters/character_sheet_v2.png",
+          "pose": 4,
+          "bob": true,
+          "bobAmplitude": 4
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "start": 19,
+      "duration": 5,
+      "background": {
+        "src": "../../capture/raw/s3-3_just_01.mp4",
+        "time": 9
+      },
+      "layers": [
+        {
+          "id": "logo-parry",
+          "type": "text",
+          "name": "ロゴ PARRY",
+          "visible": true,
+          "x": 447,
+          "y": 260,
+          "text": "PARRY",
+          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
+          "fontSize": 134,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "left"
+        },
+        {
+          "id": "logo-break",
+          "type": "text",
+          "name": "ロゴ BREAK",
+          "visible": true,
+          "x": 448,
+          "y": 389,
+          "text": "BREAK",
+          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
+          "fontSize": 134,
+          "color": "#ffc61a",
+          "strokeWidth": 7,
+          "strokeColor": "#8a1c00",
+          "align": "left"
+        },
+        {
+          "id": "store-search",
+          "type": "text",
+          "name": "ストアで検索",
+          "visible": true,
+          "x": 594,
+          "y": 744,
+          "text": "ストアで検索！",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 53,
+          "color": "#ffffff",
+          "strokeWidth": 3,
+          "strokeColor": "#0b0b1a",
+          "align": "left"
+        },
+        {
+          "id": "badge-appstore",
+          "type": "image",
+          "name": "App Store バッジ",
+          "visible": true,
+          "x": 565,
+          "y": 847,
+          "width": 424,
+          "height": 156,
+          "src": "../../build/assets/badges/appstore.png",
+          "opacity": 1,
+          "resample": "bicubic"
+        },
+        {
+          "id": "badge-googleplay",
+          "type": "image",
+          "name": "Google Play バッジ",
+          "visible": true,
+          "x": 567,
+          "y": 1007,
+          "width": 418,
+          "height": 161,
+          "src": "../../build/assets/badges/googleplay.png",
+          "opacity": 1,
+          "resample": "bicubic"
+        },
+        {
+          "id": "app-icon",
+          "type": "image",
+          "name": "アプリアイコン",
+          "visible": true,
+          "x": 88,
+          "y": 263,
+          "width": 302,
+          "height": 302,
+          "src": "../../../app/branding/icons/icon-512.png",
+          "opacity": 1,
+          "resample": "lanczos"
+        },
+        {
+          "id": "credit",
+          "type": "text",
+          "name": "クレジット",
+          "visible": true,
+          "x": 158,
+          "y": 1387,
+          "text": "VOICEVOX:春歌ナナ",
+          "font": "../../build/fonts/DotGothic16-Regular.ttf",
+          "fontSize": 32,
+          "color": "#d9d9e2",
+          "strokeWidth": 1,
+          "strokeColor": "#0b0b1a",
+          "align": "left"
+        },
+        {
+          "id": "character",
+          "type": "character",
+          "name": "キャラクター",
+          "visible": true,
+          "x": 31,
+          "y": 582,
+          "height": 865,
+          "src": "../../characters/character_sheet_v2.png",
+          "pose": 5,
+          "bob": false,
+          "bobAmplitude": 4
+        }
+      ]
+    }
+  ],
+  "voice": {
+    "lines": [
+      {
+        "start": 0.2,
+        "text": "あっ、落ちた……"
+      },
+      {
+        "start": 3.2,
+        "text": "コツは、当たる瞬間にタップ！"
+      },
+      {
+        "start": 12.0,
+        "text": "ほら、返せた！"
+      },
+      {
+        "start": 17.4,
+        "text": "やった、クリア！"
+      },
+      {
+        "start": 19.3,
+        "text": "パリィブレイク。ストアで検索！"
+      }
+    ]
+  }
+}
