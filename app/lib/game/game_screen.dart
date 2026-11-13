@@ -599,6 +599,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
         difficulty: widget.difficulty,
         cleared: cleared,
         achieved: o?.stars,
+        rank: stage == null
+            ? RankTable.standard.endless(score: w.score, round: w.round.number)
+            : cleared && o?.stars != null
+            ? RankTable.standard.stage(
+                stage,
+                StageResult(cleared: true, score: w.score, stats: w.stats),
+                o!.stars!,
+              )
+            : null,
+        over: w.overInfo,
       ),
       reduceMotion:
           ref.read(settingsProvider).reduceEffects ||

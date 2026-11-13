@@ -122,6 +122,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bestScoreClearOnly => 'CLEAR ONLY';
 
   @override
+  String get resultCauseBall => 'The ball was dropped';
+
+  @override
+  String get resultCauseBreached => 'The blocks reached the bottom';
+
+  @override
+  String get resultCauseTime => 'Out of time';
+
+  @override
+  String resultCauseDetail(String sec, String tier) {
+    return '${sec}s after the last parry, ball at stage $tier';
+  }
+
+  @override
+  String resultCauseDetailFever(String sec) {
+    return '${sec}s after the last parry, during FEVER TIME';
+  }
+
+  @override
+  String get resultCauseNoParry => 'Without a single parry';
+
+  @override
+  String get resultGapTitle => 'SO CLOSE';
+
+  @override
+  String resultGapAnnihilate(String n) {
+    return 'Blocks left to clear: $n';
+  }
+
+  @override
+  String resultGapScore(String n) {
+    return '$n to the target score';
+  }
+
+  @override
+  String resultGapSurvive(String n) {
+    return '${n}s left to survive';
+  }
+
+  @override
+  String resultGapBoss(String n) {
+    return 'Boss HP left: $n';
+  }
+
+  @override
   String unlockBy(String stage) {
     return 'Clear $stage to unlock';
   }

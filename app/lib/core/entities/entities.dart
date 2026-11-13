@@ -259,6 +259,9 @@ class RunStats {
   /// パリィの成功数 / うち PERFECT 以上の数 / 撃ち返し弾で壊したブロック数。
   int parries = 0, perfects = 0, returnKills = 0;
 
+  /// パリィの窓が成功なしで閉じた数 (空振り) / FEVER TIME に入った回数 / ボールの速さの最高段階 (1〜4)。
+  int misses = 0, fevers = 0, maxTier = 0;
+
   /// ラウンドを進めていた時間の合計 (カウントダウン・クリア演出を除く)。
   double playTime = 0;
 }

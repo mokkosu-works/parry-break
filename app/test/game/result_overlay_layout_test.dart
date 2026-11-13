@@ -79,11 +79,19 @@ void main() {
       ..bestCollapse = 99
       ..bestBlast = 99
       ..bestRicochet = 99
+      ..perfects = 999
+      ..parries = 999
+      ..misses = 999
+      ..fevers = 99
+      ..returnKills = 99
+      ..maxTier = 4
       ..playTime = 3599,
     reason: 'BLOCKS BREACHED',
     newBest: true,
     bestScore: 123456789,
     bestRound: 27,
+    rank: Rank.s,
+    over: const OverInfo(cause: OverCause.ballLost, tier: 5, sinceParry: 12.3),
   );
 
   ResultData stageResult(StageDef s, {required bool cleared}) => ResultData(
@@ -92,6 +100,16 @@ void main() {
     maxChain: 117,
     stats: RunStats()
       ..just = 999
+      ..perfects = 999
+      ..parries = 999
+      ..misses = 999
+      ..fevers = 99
+      ..graze = 999
+      ..bestCollapse = 99
+      ..bestBlast = 99
+      ..bestRicochet = 99
+      ..returnKills = 99
+      ..maxTier = 4
       ..playTime = 3599,
     reason: 'BLOCKS BREACHED',
     newBest: cleared,
@@ -101,6 +119,12 @@ void main() {
     difficulty: Difficulty.normal,
     cleared: cleared,
     achieved: [for (var i = 0; i < s.stars.length; i++) i.isEven],
+    rank: cleared ? Rank.s : null,
+    over: OverInfo(
+      cause: OverCause.breached,
+      tier: 3,
+      gap: ClearGap(GapKind.score, 12345678),
+    ),
   );
 
   /// 画面上のボタンの高さ (縮めた分を含む) と、画面上の文字の大きさの最小。
@@ -133,6 +157,12 @@ void main() {
     return (button: button, text: text);
   }
 
+  /// Tab で 2 ページ目に切り替える。
+  Future<void> page2(WidgetTester t) async {
+    await t.sendKeyEvent(LogicalKeyboardKey.pageDown);
+    await t.pump();
+  }
+
   const phones = {
     '667×375': (Size(667, 375), EdgeInsets.zero),
     '844×390 (セーフエリアあり)': (Size(844, 390), EdgeInsets.fromLTRB(47, 0, 47, 21)),
@@ -159,6 +189,22 @@ void main() {
         expect(find.text(label), findsOneWidget);
       }
       expect(find.text('NEW RECORD'), findsOneWidget);
+      expect(find.text('S'), findsOneWidget); // ランク
+
+      // 2 ページ目 (パリィの内訳・ミスの原因)
+      await page2(t);
+      expect(t.takeException(), isNull);
+      final m2 = measure(t);
+      expect(m2.button, greaterThanOrEqualTo(44));
+      expect(m2.text, greaterThanOrEqualTo(11));
+      for (final label in ['JUST', 'PERFECT', 'GOOD', 'MISS', 'JUST RATE']) {
+        expect(find.text(label), findsOneWidget);
+      }
+      expect(find.text('The ball was dropped'), findsWidgets);
+      expect(
+        find.text('12.3s after the last parry, during FEVER TIME'),
+        findsOneWidget,
+      );
     });
 
     for (final lang in ['en', 'ja']) {
@@ -185,6 +231,22 @@ void main() {
                 findsNWidgets(4),
                 reason: reason,
               );
+              // ランク (クリア) か「あと少し」(失敗) が出る
+              if (cleared) {
+                expect(find.text('RANK'), findsOneWidget, reason: reason);
+              } else {
+                expect(
+                  find.text(lang == 'ja' ? 'あと少し' : 'SO CLOSE'),
+                  findsOneWidget,
+                  reason: reason,
+                );
+              }
+              await page2(t);
+              expect(t.takeException(), isNull, reason: '$reason page2');
+              final m2 = measure(t);
+              expect(m2.button, greaterThanOrEqualTo(44), reason: reason);
+              expect(m2.text, greaterThanOrEqualTo(11), reason: reason);
+              expect(find.text('RICOCHET'), findsOneWidget, reason: reason);
             }
           }
         },
@@ -204,5 +266,118 @@ void main() {
       closeTo(1000, 0.5),
     ); // 1074×536 が 1256×776 に入るので縮めない
     expect(measure(t).button, greaterThanOrEqualTo(48));
+  });
+
+  for (final lang in ['en', 'ja']) {
+    testWidgets('1280×800 ($lang): 2 ページ目もはみ出さず、文字は 11pt 以上', (t) async {
+      for (final data in [
+        endless(),
+        stageResult(campaign.stages.first, cleared: true),
+        stageResult(campaign.stages.first, cleared: false),
+      ]) {
+        await pump(
+          t,
+          data,
+          size: const Size(1280, 800),
+          lang: lang,
+          stage: data.stage != null,
+        );
+        await page2(t);
+        expect(t.takeException(), isNull);
+        expect(measure(t).text, greaterThanOrEqualTo(11));
+        expect(measure(t).button, greaterThanOrEqualTo(44));
+      }
+    });
+  }
+
+  testWidgets('2 ページ目は、Tab・PageUp / PageDown とタップで行き来できる', (t) async {
+    await pump(t, endless(), size: const Size(844, 390));
+    expect(find.text('JUST RATE'), findsNothing);
+    await page2(t);
+    expect(find.text('JUST RATE'), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.pageUp);
+    await t.pump();
+    expect(find.text('JUST RATE'), findsNothing);
+    await t.sendKeyEvent(LogicalKeyboardKey.tab);
+    await t.pump();
+    expect(find.text('JUST RATE'), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.tab);
+    await t.pump();
+    expect(find.text('JUST RATE'), findsNothing);
+    // 成績の欄のタップでも切り替わる
+    await t.tap(find.text('DETAILS ▸'));
+    await t.pump();
+    expect(find.text('JUST RATE'), findsOneWidget);
+    await t.tap(find.text('◂ BACK'));
+    await t.pump();
+    expect(find.text('JUST RATE'), findsNothing);
+  });
+
+  testWidgets('ページを切り替えても、Enter でボタンを決められる', (t) async {
+    var retry = 0;
+    t.view
+      ..physicalSize = const Size(1280, 800)
+      ..devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: ResultOverlay(
+          data: endless(),
+          onRetry: () => retry++,
+          onTitle: () {},
+          reduceMotion: true,
+        ),
+      ),
+    );
+    await page2(t);
+    await t.sendKeyEvent(LogicalKeyboardKey.enter);
+    expect(retry, 1);
+  });
+
+  testWidgets('演出を控えめにする: ランクは待たずに 1 倍で出る。ふだんは大きく出て縮む', (t) async {
+    double scaleOfRank() {
+      final e = find.ancestor(
+        of: find.text('RANK'),
+        matching: find.byType(Transform),
+      );
+      return t
+          .widgetList<Transform>(e)
+          .map((w) => w.transform.getMaxScaleOnAxis())
+          .reduce((a, b) => a > b ? a : b);
+    }
+
+    Future<void> mount({required bool reduce}) async {
+      t.view
+        ..physicalSize = const Size(1280, 800)
+        ..devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: ResultOverlay(
+            key: UniqueKey(),
+            data: endless(),
+            onRetry: () {},
+            onTitle: () {},
+            reduceMotion: reduce,
+          ),
+        ),
+      );
+    }
+
+    await mount(reduce: true);
+    expect(find.text('RANK'), findsOneWidget);
+    expect(scaleOfRank(), 1.0);
+
+    await mount(reduce: false);
+    await t.pump(const Duration(milliseconds: 1600)); // 出始め
+    expect(scaleOfRank(), greaterThan(1.0));
+    await t.pump(const Duration(seconds: 3));
+    expect(scaleOfRank(), 1.0);
   });
 }
