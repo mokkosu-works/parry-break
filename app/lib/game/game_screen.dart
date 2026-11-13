@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '../render/field_painter.dart';
 import '../render/palette.dart';
 import '../render/pixel.dart';
 import '../render/text_cache.dart';
+import '../services/achievements.dart';
 import '../services/ads.dart';
 import '../services/content.dart';
 import '../services/daily.dart';
@@ -104,6 +106,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
       reduceEffects: settings.reduceEffects,
       showTiming: settings.showTiming,
       timeSource: ref.read(timeSourceProvider),
+      achievements: AchievementTracker.forPlay(
+        practice: widget.practice,
+        debug: () => ref.read(debugModeProvider),
+        endless: stage == null && daily == null,
+        onUnlock: _unlock,
+      ),
     )..onFinished = _onFinished;
     GameScreen.debugLastController = _ctl;
     _ctl.addListener(_onControllerChange);
@@ -154,6 +162,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
   }
 
   // ---- 結果の記録 ---------------------------------------------------------
+
+  void _unlock(AchievementKind a) {
+    unawaited(ref.read(achievementsProvider).unlock(a));
+  }
 
   void _onFinished(World w) {
     // 練習場はゲームオーバーにならないが、念のため何にも数えない
@@ -222,6 +234,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
           );
       if (cleared) {
         lb.submit(Board.stagesTotal, ref.read(recordsProvider).stagesTotal);
+        // 章のクリア・全星・HARD のクリア (取れていなかったものだけが新しく送られる)
+        for (final a in progressAchievements(
+          ref.read(recordsProvider),
+          ref.read(contentProvider).campaign,
+        )) {
+          _unlock(a);
+        }
       }
       _outcome = _Outcome(newBest: newBest, stars: stars, cleared: cleared);
     }

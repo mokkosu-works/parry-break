@@ -65,6 +65,43 @@ SHOT_DIR=build/store_screenshots/ja/iphone flutter drive -d <デバイス ID> --
 5. `app/lib/services/leaderboard.dart` の `LeaderboardConfig.ios[Board.dailyScore]` が手順 2 の ID と同じことを確かめ、`placeholders` から `Board.dailyScore` を外す(Android も作るまでは、Android の ID が空のまま送られないよう、両方そろってから外す)。
 6. TestFlight で、DAILY を遊んでスコアが「デイリー: スコア」に載ることを確かめる。
 
+## 実績(Game Center)
+
+実績は 21 個(合計 830 点。Game Center の上限は 100 個・1000 点)。作るまで `AchievementConfig.placeholders`(`app/lib/services/achievements.dart`)に全部入っていて、解除を送らない。作る手順:
+
+1. App Store Connect → マイ App → PARRY BREAK → サービス → Game Center → 実績 →「+」で、下の表の 1 つにつき 1 つ作る。
+2. 参照名は英語の名前、ID は `com.watsuwo.parrybreak.ach_` + 表の「ID の末尾」(例: `com.watsuwo.parrybreak.ach_firstJust`)、点数は表のとおり。隠し実績にはしない。繰り返しの実績にもしない。
+3. ローカリゼーションで日本語・英語の名前と、獲得前・獲得後の説明(どちらも表の説明)を入れる。画像(1024 × 1024)も要る。
+4. 次に出すバージョンのページの Game Center 欄で、実績を含める。
+5. `AchievementConfig.ios` の ID が手順 2 と同じことを確かめ、できた実績を `placeholders` から外す。Android も作るまでは、Android の ID が空のまま送られないよう、両方そろってから外す。
+6. TestFlight で、条件を満たしてストアの実績に出ることと、タイトルの RANKING → ACHIEVEMENTS で画面が開くことを確かめる(1 つでも外すと入口が出る)。
+
+| 名前(日本語) | 名前(英語) | 説明(日本語) | 説明(英語) | 点数 | ID の末尾 |
+| --- | --- | --- | --- | --- | --- |
+| 初めての PERFECT | First PERFECT | パリィを PERFECT 以上で決める | Land a parry rated PERFECT or better. | 10 | `firstPerfect` |
+| 初めての JUST | First JUST | パリィを JUST で決める | Land a JUST parry. | 10 | `firstJust` |
+| 初めての撃ち返し | First Return | 敵の弾をパリィで撃ち返す | Parry an enemy bullet back. | 10 | `firstReturn` |
+| 初めての FEVER TIME | First FEVER TIME | FEVER TIME に入る | Trigger FEVER TIME. | 10 | `firstFever` |
+| ジャストの達人 | JUST Adept | 1 プレイで JUST を 10 回決める | Land 10 JUST parries in one run. | 30 | `just10` |
+| ノーミスパリィ | Flawless Parry | パリィを 30 連続で成功させる | Land 30 parries in a row. | 40 | `parry30` |
+| 大崩落 | Great Collapse | COLLAPSE を ×30 以上つなげる | Chain a COLLAPSE of 30 or more. | 40 | `collapse30` |
+| 跳弾の名手 | Ricochet Master | RICOCHET ×20 を決める | Hit a RICOCHET x20. | 40 | `ricochet20` |
+| 紙一重 | Close Call | 1 ラウンドでグレイズを 20 回決める | Graze 20 times in one round. | 30 | `graze20` |
+| 第 1 章クリア | Chapter 1 Clear | 第 1 章の全ステージをクリアする | Clear every stage in Chapter 1. | 20 | `chapter1` |
+| 第 2 章クリア | Chapter 2 Clear | 第 2 章の全ステージをクリアする | Clear every stage in Chapter 2. | 20 | `chapter2` |
+| 第 3 章クリア | Chapter 3 Clear | 第 3 章の全ステージをクリアする | Clear every stage in Chapter 3. | 30 | `chapter3` |
+| 第 4 章クリア | Chapter 4 Clear | 第 4 章の全ステージをクリアする | Clear every stage in Chapter 4. | 30 | `chapter4` |
+| 第 5 章クリア | Chapter 5 Clear | 第 5 章の全ステージをクリアする | Clear every stage in Chapter 5. | 40 | `chapter5` |
+| 第 6 章クリア | Chapter 6 Clear | 第 6 章の全ステージをクリアする | Clear every stage in Chapter 6. | 50 | `chapter6` |
+| 星をすべて集める | Every Star | 全ステージの星をすべて取る | Earn every star in every stage. | 100 | `allStars` |
+| R20 到達 | Reach R20 | エンドレスで R20 に到達する | Reach R20 in Endless. | 30 | `endlessR20` |
+| R60 到達 | Reach R60 | エンドレスで R60(1 周)に到達する | Reach R60 (one full loop) in Endless. | 60 | `endlessR60` |
+| ミリオン | Millionaire | エンドレスの 1 プレイで 1,000,000 点を取る | Score 1,000,000 in one Endless run. | 100 | `score1m` |
+| ノーダメージ撃破 | Untouchable | ボスを被弾なしで倒す | Defeat a boss without taking a hit. | 60 | `bossNoHit` |
+| HARD クリア | HARD Clear | HARD でステージをクリアする | Clear a stage on HARD. | 70 | `hardClear` |
+
+1 プレイで決まるもの(手ほどき・技・エンドレス・ボス)は条件を満たした瞬間に、進行(章・星・HARD)はクリアの時点で解除する。解除済みは端末の `achievements.unlocked.v1` に、送れていない分は `achievements.pending.v1` に保存し、次のサインインで送る。実績を足す前に取った星・クリアは、サインインのたびに見直して解除する。デバッグモードと練習場では解除しない。
+
 ## App のプライバシー
 
 開発者自身は何も集めないが、広告(Google AdMob)と同意画面(UMP)の SDK がデータを集めるため、「データの収集なし」は選べない。下の表は、ビルドに入っている両 SDK のプライバシーマニフェスト(`GoogleMobileAds.framework` と `UserMessagingPlatform.framework` の `PrivacyInfo.xcprivacy`)をまとめたもの。SDK を更新したら、マニフェストを見直して表も直す。
