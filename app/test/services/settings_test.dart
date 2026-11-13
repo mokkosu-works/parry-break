@@ -55,4 +55,20 @@ void main() {
       expect(s.debugMode, isTrue);
     });
   });
+
+  group('タイミングの表示 (#253)', () {
+    test('項目がない古い保存データはオンになる', () {
+      expect(const Settings().showTiming, isTrue);
+      expect(
+        Settings.fromJson(const {'reduceEffects': true}).showTiming,
+        isTrue,
+      );
+    });
+
+    test('オフにして保存すると、読み直してもオフ', () {
+      final s = const Settings().copyWith(showTiming: false);
+      expect(s.toJson()['showTiming'], isFalse);
+      expect(Settings.fromJson(s.toJson()).showTiming, isFalse);
+    });
+  });
 }

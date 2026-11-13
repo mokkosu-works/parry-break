@@ -265,6 +265,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tones down flashes, blinking, screen shake and menu animations';
 
   @override
+  String get settingsShowTiming => 'Show timing';
+
+  @override
+  String get settingsShowTimingHelp =>
+      'Shows EARLY / LATE and how many ms you were off under each parry';
+
+  @override
+  String get practiceHelp =>
+      'A dropped ball comes back after 1 second. Practice plays are not recorded';
+
+  @override
   String get settingsLanguage => 'Language';
 
   @override

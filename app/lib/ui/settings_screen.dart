@@ -436,6 +436,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
         _Row(
+          label: l.settingsShowTiming,
+          help: l.settingsShowTimingHelp,
+          child: _OnOff(
+            color: color,
+            value: s.showTiming,
+            onChanged: (v) => n.update((x) => x.copyWith(showTiming: v)),
+          ),
+        ),
+        _Row(
           label: l.settingsLanguage,
           child: _Choice<String>(
             color: color,

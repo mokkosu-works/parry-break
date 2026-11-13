@@ -139,15 +139,23 @@ final class ParrySucceeded extends GameEvent {
     required this.y,
     required this.paddleX,
     required this.streak,
+    this.offset = 0,
   });
   final ParryGrade grade;
   final ParryTarget target;
   final double x, y, paddleX;
   final int streak;
+
+  /// 接触とのずれ (秒)。判定に使う入力の時刻 (判定タイミングの補正を差し引いた後) − 接触の時刻。
+  /// 負なら早い (EARLY)、正なら遅い (LATE)。
+  final double offset;
 }
 
+/// パリィの空振り。[offset] は、いちばん近くにあったボール・敵弾の接触とのずれ (秒、
+/// [ParrySucceeded.offset] と同じ向き)。近くに何もなければ null。
 final class ParryMissed extends GameEvent {
-  const ParryMissed();
+  const ParryMissed({this.offset});
+  final double? offset;
 }
 
 final class PlayerHurt extends GameEvent {

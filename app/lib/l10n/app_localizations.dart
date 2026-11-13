@@ -536,6 +536,24 @@ abstract class AppLocalizations {
   /// **'フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます'**
   String get settingsReduceEffectsHelp;
 
+  /// No description provided for @settingsShowTiming.
+  ///
+  /// In ja, this message translates to:
+  /// **'タイミングの表示'**
+  String get settingsShowTiming;
+
+  /// No description provided for @settingsShowTimingHelp.
+  ///
+  /// In ja, this message translates to:
+  /// **'パリィの判定の下に、早い (EARLY)・遅い (LATE) とずれ (ms) を出します'**
+  String get settingsShowTimingHelp;
+
+  /// No description provided for @practiceHelp.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボールは落としても 1 秒で出直します。ここでのプレイは記録に残りません'**
+  String get practiceHelp;
+
   /// No description provided for @settingsLanguage.
   ///
   /// In ja, this message translates to:

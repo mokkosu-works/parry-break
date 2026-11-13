@@ -18,10 +18,11 @@ class GameController extends ChangeNotifier {
     required double inputLag,
     Difficulty difficulty = Difficulty.normal,
     bool reduceEffects = false,
+    bool showTiming = true,
     double Function()? timeSource,
   }) : world = World(mode: mode, difficulty: difficulty, inputLag: inputLag),
        clock = InputClock(source: timeSource) {
-    fx = FxState(world, reduceEffects: reduceEffects);
+    fx = FxState(world, reduceEffects: reduceEffects, showTiming: showTiming);
     session = Session(world, onStep: _onStep);
     if (kPromoAutoplay) {
       _bot = Bot(

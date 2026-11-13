@@ -3,7 +3,8 @@ part of '../world.dart';
 /// ボールと分身弾の移動、壁・パドル・ブロックとの衝突。
 extension _BallSystem on World {
   void _updateAllBalls(double dt) {
-    _updateBall(ball, dt);
+    // 練習場でボールを落として出直しを待つ間、または敵弾の撃ち返しの練習 (ボールなし) では動かさない
+    if (ballInPlay && practiceRespawn <= 0) _updateBall(ball, dt);
     if (phase != WorldPhase.playing) return;
     for (final f in List.of(phantoms)) {
       if (f.lost) continue;
@@ -14,7 +15,9 @@ extension _BallSystem on World {
     phantoms.removeWhere((f) => f.lost || f.life <= 0);
     // メインのボールを落としても、分身弾が1つでも残っていればそれが新しいボールになる
     if (ball.lost) {
-      if (phantoms.isEmpty) {
+      if (practice != null) {
+        _losePracticeBall();
+      } else if (phantoms.isEmpty) {
         _gameOver('BALL LOST');
       } else {
         _promotePhantom();
@@ -128,7 +131,13 @@ extension _BallSystem on World {
     b.pierce = 0;
     final grade = _judgeContact(tc);
     if (grade != null) {
-      _applyParry(grade, ParryTarget.ball, b.x, Field.paddleY);
+      _applyParry(
+        grade,
+        ParryTarget.ball,
+        b.x,
+        Field.paddleY,
+        offset: parry.press - tc,
+      );
       lastContact = Contact(tc, used: true);
     } else {
       lastContact = Contact(tc, used: false);

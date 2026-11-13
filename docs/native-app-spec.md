@@ -75,6 +75,7 @@ Oct 4, 2026 · @watsuwo
 | 振動 | ON | ON / OFF |
 | 画質 | 高 | 高 / 低 |
 | 演出を控えめにする | OFF | ON / OFF(フラッシュ・点滅・揺れ・メニューの動き) |
+| タイミングの表示 | ON | ON / OFF(パリィの判定の下に、接触とのずれ。項目のない古い保存データはオン) |
 | 言語 | 端末の言語 | 日本語 / English |
 | 難易度 | NORMAL | EASY / NORMAL / HARD。設定の画面ではなく、ステージ選択の右上で選ぶ。最後に選んだものを保存する。エンドレスは常に NORMAL |
 
@@ -90,6 +91,8 @@ Oct 4, 2026 · @watsuwo
 - チャプター単位で解禁する(前のチャプターの最終ステージをクリアすると次が開く)。
 - 第1章(10ステージ前後)は既存の学習ラウンド(R1 / 2 / 4 / 6 / 8 / 14 / 20 / 26)とボス1をもとにしたチュートリアルにする。
 - 記録とランキングはエンドレスとは別に持つ。
+
+練習場(`PracticeMode`、タイトルの PRACTICE)はブロックのない 1 ラウンドを終わりなく続けるモードで、ボールを落としても出直す。記録・ランキング・履歴・広告の回数・評価の依頼には数えない(`game_screen.dart` の `_onFinished` で何もしない。ゲームオーバーにもならない)。直近 20 回の判定は `PracticeLog` に持ち、保存しない。
 
 ### 4.2 ランキング
 
@@ -149,7 +152,7 @@ app/
       stages/     round_spec.dart(RoundSpec + クリア条件), procedural_generator.dart,
                   boss_def.dart(BossDef + 攻撃パターン + BossPatternRegistry),
                   content.dart(JSON の読み込み: EndlessContent / Campaign / StageDef / 星の条件)
-      modes/      game_mode.dart(GameMode + EndlessMode + StageMode)
+      modes/      game_mode.dart(GameMode + EndlessMode + StageMode + PracticeMode・PracticeLog)
       events/     game_event.dart
     app/          providers.dart(音・振動・デバッグモードなど、画面をまたいで使う Provider)
     game/         game_controller.dart(実時間で進め、イベントを演出・音・振動へ配る), game_screen.dart,
