@@ -4,12 +4,15 @@
 
 ```
 capture/    実機の画面録画 (capture.sh、raw/、apk/)
+characters/ 採用した色別一覧、5人の表情差分、プロフィール
 build/      動画の組み立て (build.py、specs/、fonts/、assets/、out/)
 upload/     YouTube へのアップロード
 analytics/  アナリティクスの CSV (exports/) と集計
 posts/      動画の ID ごとの投稿文、一覧.md
 records/    videos.csv、youtube_uploads.csv
 ```
+
+キャラクター素材は [characters/README.md](characters/README.md)、性格・口調・表情の使い分けは [characters/profiles.md](characters/profiles.md) を参照する。
 
 実機の画面録画から、SNS 向けの縦動画 (9:16、15〜30秒) を作る道具。冒頭 3 秒だけ違う A / B / C の 3 本を、同じ映像から作る。
 
