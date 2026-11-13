@@ -132,6 +132,19 @@ void main() {
       expect(sdk.loads, 2);
     });
 
+    test('読み込みの途中で戻っても、読み込みが終わるのを待って出す', () async {
+      sdk.loadGate = Completer<void>();
+      ads = create();
+      await start();
+      expect(sdk.loads, 1);
+      final shown = ads.showInterstitialIfDue();
+      await pumpEventQueue();
+      expect(sdk.shown, 0);
+      sdk.loadGate!.complete();
+      await shown;
+      expect(sdk.shown, 1);
+    });
+
     test('頻度の制限に当たるときは出さず、読み込んだ広告は取っておく', () async {
       ads = create();
       await start();
@@ -366,6 +379,7 @@ class FakeSdk implements AdsSdk {
   int consentCalls = 0, loads = 0, shown = 0, failLoads = 0;
   final ads = <FakeInterstitial>[];
   Future<bool>? consentResult;
+  Completer<void>? loadGate;
 
   @override
   Future<bool> gatherConsent() async {
@@ -388,6 +402,7 @@ class FakeSdk implements AdsSdk {
   @override
   Future<LoadedInterstitial> loadInterstitial() async {
     loads++;
+    await loadGate?.future;
     if (failLoads > 0) {
       failLoads--;
       throw Exception('no fill');

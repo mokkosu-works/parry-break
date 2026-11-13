@@ -173,6 +173,9 @@ class AdMobAds implements AdsService {
   /// 読み込んだ広告はおよそ 1 時間で期限が切れて出せなくなるので、少し手前で読み込み直す。
   static const maxAge = Duration(minutes: 50);
 
+  /// 結果画面から戻るとき、読み込み中の広告をここまで待つ (読み込みは結果画面が出てから始まり、数秒かかるため)。
+  static const loadWait = Duration(seconds: 3);
+
   /// 読み込みに失敗したときの再試行の間隔。使い切ったら、次に結果画面が出るか前面に戻るまで試さない。
   static const retryDelays = [
     Duration(seconds: 30),
@@ -193,6 +196,7 @@ class AdMobAds implements AdsService {
   LoadedInterstitial? _ad;
   DateTime? _loadedAt;
   int _failures = 0;
+  Future<void>? _loadFuture;
   Timer? _retry;
   AppLifecycleListener? _lifecycle;
 
@@ -278,7 +282,8 @@ class AdMobAds implements AdsService {
     if (_retry?.isActive ?? false) return;
     // 再試行を使い切っていても、結果画面や前面復帰など外からの呼び出しでは最初の間隔からやり直す
     if (!fromRetryTimer) _failures = 0;
-    unawaited(_load());
+    _loadFuture = _load();
+    unawaited(_loadFuture);
   }
 
   Future<void> _load() async {
@@ -304,6 +309,10 @@ class AdMobAds implements AdsService {
   @override
   Future<void> showInterstitialIfDue() async {
     if (_expired) _discard();
+    // 結果画面を出してすぐ戻ったときは、読み込みの途中のことがある。出す時期なら少し待つ
+    if (_ad == null && _loading && _policy.due) {
+      await _loadFuture?.timeout(loadWait, onTimeout: () {});
+    }
     final ad = _ad;
     if (ad == null || !_policy.due) {
       _preload();
