@@ -11,6 +11,7 @@ import '../../core/core.dart';
 import '../../game/game_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../render/palette.dart';
+import '../../services/achievements.dart';
 import '../../services/content.dart';
 import '../../services/daily.dart';
 import '../../services/leaderboard.dart';
@@ -95,6 +96,18 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
       MediaQuery.disableAnimationsOf(context) ||
       ref.read(settingsProvider).reduceEffects;
 
+  /// サインインして、送れていなかった実績を送ってから、ストアの実績の画面を開く。
+  Future<bool> _showAchievements(AchievementService ach) async {
+    final lb = ref.read(leaderboardProvider);
+    await lb.signIn();
+    if (!mounted) return false;
+    await ach.sync(
+      ref.read(recordsProvider),
+      ref.read(contentProvider).campaign,
+    );
+    return ach.show();
+  }
+
   List<_MenuEntry> _entries() {
     final records = ref.watch(recordsProvider);
     final content = ref.read(contentProvider);
@@ -145,7 +158,29 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
       _MenuEntry('SETTINGS', () => push(const SettingsScreen())),
       if (lb.available)
         _MenuEntry('RANKING', () async {
-          final ok = await lb.show();
+          final ach = ref.read(achievementsProvider);
+          // 実績がストアに作ってあれば、ランキングと実績のどちらを開くか選ぶ
+          final showAchievements = ach.available
+              ? await showDialog<bool>(
+                  context: context,
+                  builder: (c) => SimpleDialog(
+                    children: [
+                      SimpleDialogOption(
+                        onPressed: () => Navigator.pop(c, false),
+                        child: const Text('LEADERBOARDS'),
+                      ),
+                      SimpleDialogOption(
+                        onPressed: () => Navigator.pop(c, true),
+                        child: const Text('ACHIEVEMENTS'),
+                      ),
+                    ],
+                  ),
+                )
+              : false;
+          if (showAchievements == null || !mounted) return;
+          final ok = showAchievements
+              ? await _showAchievements(ach)
+              : await lb.show();
           if (!ok && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
