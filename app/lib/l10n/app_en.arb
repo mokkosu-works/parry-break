@@ -141,6 +141,7 @@
   "stageTileCleared": "{id} {title}, cleared, {got} of {total} stars",
   "stageTileNotCleared": "{id} {title}, not cleared, {got} of {total} stars",
   "stageTileLocked": "{id}, locked",
-  "dailyCounted": "Today's run · {n}-day streak",
-  "dailyPractice": "Practice (only each day's first run counts) · {n}-day streak"
+  "dailyFirst": "Saved as today's record · {n}-day streak",
+  "dailyUpdated": "New record for today · {n}-day streak",
+  "dailyKept": "Today's record stands · {n}-day streak"
 }
