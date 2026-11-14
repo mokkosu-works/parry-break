@@ -561,27 +561,44 @@ class ScreenFrame extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      icon: PixelIcon(PixelIcons.back, color: Palette.sub),
-                      tooltip: MaterialLocalizations.of(context)
-                          .backButtonTooltip,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        title,
-                        overflow: TextOverflow.ellipsis,
-                        style: pixelFont(
-                          24,
-                          color: Palette.yellow,
-                        ).copyWith(shadows: hardShadow(24, color: Dot.brick)),
+                LayoutBuilder(
+                  builder: (context, c) => Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        icon: PixelIcon(PixelIcons.back, color: Palette.sub),
+                        tooltip: MaterialLocalizations.of(context)
+                            .backButtonTooltip,
                       ),
-                    ),
-                    ...actions,
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          overflow: TextOverflow.ellipsis,
+                          style: pixelFont(
+                            24,
+                            color: Palette.yellow,
+                          ).copyWith(shadows: hardShadow(24, color: Dot.brick)),
+                        ),
+                      ),
+                      // 端末の文字サイズが大きいときは、右の部品を縮めて収める (#142)。
+                      // 幅の 6 割までにして、題名の場所を残す
+                      if (actions.isNotEmpty)
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: c.maxWidth * 0.6,
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: actions,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Expanded(child: child),
