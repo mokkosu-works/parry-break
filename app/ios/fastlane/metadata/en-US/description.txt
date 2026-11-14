@@ -15,7 +15,7 @@ Broken blocks sometimes drop capsules. Catch one with your paddle to power up, o
 - FOUR MODES
 Endless: Survive 60 rounds and the loop beyond, with a boss fortress every 10 rounds.
 Stages: 60 short 1-2 minute stages across 6 chapters, rated with up to three stars. Pick EASY, NORMAL or HARD; HARD turns up the bullet hell. Chapter 1 teaches the basics.
-Daily: A new layout every day, the same for everyone. Your first run of the day is the one that counts, and your streak keeps growing.
+Daily: A new layout every day, the same for everyone. Your best score of the day counts, and your streak keeps growing.
 Practice: Drill your parry timing. A dropped ball comes right back.
 
 - ONE BALL, NO CONTINUES
