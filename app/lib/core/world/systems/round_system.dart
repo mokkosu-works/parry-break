@@ -11,6 +11,10 @@ extension _RoundSystem on World {
         : baseTuning.copyWith(spec.tuning);
     rng = Mulberry32(spec.seed);
     aux = Mulberry32(spec.seed * 7 + 1);
+    itemRng = Mulberry32(spec.itemSeed);
+    _clearItems();
+    itemsSpawned = 0;
+    breaksSinceItem = 0;
     form
       ..ox = 0
       ..oy = 0;
@@ -64,6 +68,7 @@ extension _RoundSystem on World {
         introKey: spec.introKey,
       ),
     );
+    if (practice != null) return; // 練習場はラウンドの帯を出さない
     emit(
       b != null
           ? Banner(BannerKind.boss, value: b.index + 1)
@@ -98,12 +103,16 @@ extension _RoundSystem on World {
       countdown -= dt;
       if (countdown <= 0) emit(const CountdownFinished());
     }
+    _tickEffects(dt);
     final active = countdown <= 0;
     if (active) {
       // 耐久の時間・全消しボーナス・残り時間の表示は、最初の発射から数える (#100)
       if (launched) roundTime += dt;
       stats.playTime += dt;
-      if (boss != null) {
+      stats.maxTier = math.max(stats.maxTier, stage + 1);
+      if (practice != null) {
+        _updatePractice(dt);
+      } else if (boss != null) {
         _updateBoss(dt);
       } else {
         // 降下: ボールが最後にブロックへ当たってから 0.5 秒間は半速
@@ -130,6 +139,7 @@ extension _RoundSystem on World {
     }
     _updateBullets(dt);
     if (phase != WorldPhase.playing) return;
+    _updateItems(dt);
     // パリィ判定の窓の終了。このステップのボール・敵弾の接触を調べた後で閉じる
     // (ステップの途中にある press + parryWindow までの接触は成功にする) (#97)
     if (pr.active && t - pr.press > tuning.parryWindow) {
@@ -137,7 +147,8 @@ extension _RoundSystem on World {
       if (!pr.success) {
         pr.cooldownUntil = pr.press + tuning.parryCooldown;
         streak = 0;
-        emit(const ParryMissed());
+        stats.misses++;
+        emit(ParryMissed(offset: _missOffset(pr.press)));
       }
     }
     _updateLasers(dt);
@@ -167,7 +178,8 @@ extension _RoundSystem on World {
           ScoreClear(:final target) => score >= target,
           SurviveClear(:final seconds) => roundTime >= seconds,
         };
-    if (cleared) {
+    // 練習場はブロックがなくてもクリアにしない
+    if (cleared && practice == null) {
       _roundClear();
       return;
     }
@@ -207,6 +219,7 @@ extension _RoundSystem on World {
     blocks = [];
     bullets = [];
     lasers = [];
+    _clearItems();
     if (phantoms.isNotEmpty) _popPhantoms();
     phase = WorldPhase.clearing;
     clearT = 0;
@@ -227,15 +240,45 @@ extension _RoundSystem on World {
     }
   }
 
+  /// ゲームオーバーの詳細。FEVER TIME・パリィの状態を消す前に作る。
+  OverInfo _overInfo(String reason) {
+    ClearGap? gap;
+    if (mode is StageMode) {
+      gap = switch (round.clear) {
+        _ when boss != null => ClearGap(GapKind.boss, bossHp),
+        AnnihilateClear() => ClearGap(
+          GapKind.annihilate,
+          blocks.where((b) => b.behavior.clearable).length,
+        ),
+        ScoreClear(:final target) => ClearGap(
+          GapKind.score,
+          math.max(0, target - score),
+        ),
+        SurviveClear(:final seconds) => ClearGap(
+          GapKind.survive,
+          math.max(0.0, seconds - roundTime),
+        ),
+      };
+    }
+    return OverInfo(
+      cause: OverCause.fromReason(reason),
+      tier: od ? 5 : stage + 1,
+      sinceParry: lastParryT == null ? null : t - lastParryT!,
+      gap: gap,
+    );
+  }
+
   void _gameOver(String reason) {
     if (phase == WorldPhase.over) return;
     phase = WorldPhase.over;
     overT = 0;
     overReason = reason;
+    overInfo = _overInfo(reason);
     od = false;
     parry.active = false;
     phantoms = [];
     lasers = [];
+    _clearItems();
     _finishCascade();
     _finishBlastChain();
     emit(

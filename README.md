@@ -10,8 +10,8 @@
 - アプリ本体: [app/](app/)
 - アイコンと日本語フォントを作る道具: [tools/](tools/) (`make_icons.py` はアイコンと起動画面のドット絵、`subset_jp_font.sh` は日本語のドット文字を使っている字だけに絞る)
 - 宣伝動画を作る道具: [promo/](promo/) (実機の画面録画から SNS 向けの縦動画を作る。使い方は [promo/README.md](promo/README.md))
-- 宣伝動画の投稿文: [posts/](posts/) (動画ごとの投稿文と一覧)
-- 宣伝動画の記録: [records/](records/) (`videos.csv` に作成日・投稿日・媒体・再生数などを残す)
+- 宣伝動画の投稿文: [promo/posts/](promo/posts/) (動画ごとの投稿文と一覧)
+- 宣伝動画の記録: [promo/records/](promo/records/) (`videos.csv` に作成日・投稿日・媒体・再生数などを残す)
 
 使う Flutter の版は `app/pubspec.yaml` の `environment.flutter` に書いてある (CI も同じ値を読む)。版が違うと `flutter pub get` が止まるので、その版の Flutter を入れる (`flutter --version` で確かめる)。
 

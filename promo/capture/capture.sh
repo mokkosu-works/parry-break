@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
 # 実機 (撮影用ビルド入り、デバッグモード済み) でステージを選び、映像と音を録画する。
-# 使い方: promo/capture.sh <ステージ 例 2-7> <腕前ラベル 例 sloppy> <テイク番号 例 01> [録画秒数=45]
-# 保存先: promo/raw/s<ステージ>_<ラベル>_<テイク>.mp4 (あるファイルは上書きせず、そこで止まる)
+# 使い方: promo/capture/capture.sh <ステージ 例 2-7> <腕前ラベル 例 sloppy> <テイク番号 例 01> [録画秒数=45]
+# 保存先: promo/capture/raw/s<ステージ>_<ラベル>_<テイク>.mp4 (あるファイルは上書きせず、そこで止まる)
 # 録画の前の端末の状態は promo/README.md の「録画の前に」を見る。
 set -euo pipefail
 cd "$(dirname "$0")"
 die() { echo "capture.sh: $*" >&2; exit 1; }
-[ $# -ge 3 ] || die "使い方: promo/capture.sh <ステージ 例 2-7> <腕前ラベル> <テイク番号> [録画秒数=45]"
+# 要るもの: adb、scrcpy 2.6 以上、timeout (macOS は coreutils の gtimeout)。promo/README.md の「要るもの」
+for c in adb scrcpy; do command -v "$c" >/dev/null 2>&1 || die "$c がない (promo/README.md の「要るもの」)"; done
+if command -v timeout >/dev/null 2>&1; then timeout_cmd=timeout
+elif command -v gtimeout >/dev/null 2>&1; then timeout_cmd=gtimeout
+else die "timeout がない。macOS は brew install coreutils で gtimeout を入れる"; fi
+[ $# -ge 3 ] || die "使い方: promo/capture/capture.sh <ステージ 例 2-7> <腕前ラベル> <テイク番号> [録画秒数=45]"
 stage=$1; label=$2; take=$3; secs=${4:-45}
 ch=${stage%-*}; n=${stage#*-}
 [[ $ch =~ ^[0-9]+$ && $n =~ ^[0-9]+$ ]] || die "ステージは <章>-<番号> の形で書く: $stage"
 # 章の数 (campaign.json の ch01, ch02, …)
-chapters=$(grep -o '"id": *"ch[0-9]*"' ../app/assets/stages/campaign.json | wc -l | tr -d ' ')
+chapters=$(grep -o '"id": *"ch[0-9]*"' ../../app/assets/stages/campaign.json | wc -l | tr -d ' ')
 [ "$ch" -ge 1 ] && [ "$ch" -le "$chapters" ] || die "章は 1〜$chapters: $stage"
 [ "$n" -ge 1 ] && [ "$n" -le 9 ] || die "ボス (x-10) は撮らない: $stage"
 mkdir -p raw
@@ -42,7 +47,7 @@ adb shell input keyevent $keys; sleep 1
 for _ in $(seq 2 "$ch"); do adb shell input tap 1368 222; sleep 1.2; done   # 次の章へ
 adb shell input tap $x $y; sleep 1
 
-timeout "$secs" scrcpy --no-playback --no-control --audio-source=playback --video-bit-rate=16M \
+"$timeout_cmd" "$secs" scrcpy --no-playback --no-control --audio-source=playback --video-bit-rate=16M \
   --max-fps=60 --record="$out" --record-format=mp4 >"$log" 2>&1 &
 pid=$!
 sleep 3
@@ -50,20 +55,20 @@ if ! kill -0 "$pid" 2>/dev/null; then
   # 録画が始まる前に scrcpy が終わった。START は押さない
   wait "$pid" || true
   tail -n 20 "$log" >&2
-  die "scrcpy が録画を始められなかった (ログ: promo/$log)"
+  die "scrcpy が録画を始められなかった (ログ: promo/capture/$log)"
 fi
 adb shell input tap 1990 925                   # START
 status=0
 wait "$pid" || status=$?
-# timeout が秒数で scrcpy を止めたときは 124 (scrcpy は止められても録画を閉じてから終わる)
+# timeout (gtimeout) が秒数で scrcpy を止めたときは 124 (scrcpy は止められても録画を閉じてから終わる)
 if [ "$status" -ne 0 ] && [ "$status" -ne 124 ]; then
   tail -n 20 "$log" >&2
-  die "scrcpy が失敗した (終了コード $status、ログ: promo/$log)"
+  die "scrcpy が失敗した (終了コード $status、ログ: promo/capture/$log)"
 fi
 if [ ! -s "$out" ]; then
   tail -n 20 "$log" >&2
   rm -f "$out"   # 空のファイルが残ると、次のテイクで「既にある」で止まる
-  die "録画のファイルがない、または空: promo/$out (ログ: promo/$log)"
+  die "録画のファイルがない、または空: promo/capture/$out (ログ: promo/capture/$log)"
 fi
 rm -f "$log"
 echo "録画: $out"

@@ -68,13 +68,13 @@ Oct 4, 2026 · @watsuwo
 | 項目 | 初期値 | 範囲 |
 | --- | --- | --- |
 | 操作方式 | 領域方式 | 領域方式 / 操作レール(横) / 操作レール(縦) |
-| 移動感度 | ×2.0 | ×1.0〜×4.0(領域方式のときだけ使う) |
-| レール感度 | ×1.0 | ×0.5〜×2.0(操作レールのときだけ使う。×1.0 でレールの端から端が盤面の端から端) |
+| 移動感度 | ×2.0(領域方式)/ ×1.0(レール) | 領域方式: ×1.0〜×4.0(`sensitivity`)/ 操作レール: ×0.5〜×2.0(`railSensitivity`。×1.0 でレールの端から端が盤面の端から端)。項目は 1 つで、いま選んでいる操作方法の値を変える |
 | 判定タイミング補正 | 36ms(タッチ) | 0〜100ms(キャリブレーションで設定可) |
 | BGM 音量 / 効果音音量 | 80% / 100% | 0〜100% |
 | 振動 | ON | ON / OFF |
 | 画質 | 高 | 高 / 低 |
 | 演出を控えめにする | OFF | ON / OFF(フラッシュ・点滅・揺れ・メニューの動き) |
+| タイミングの表示 | ON | ON / OFF(パリィの判定の下に、接触とのずれ。項目のない古い保存データはオン) |
 | 言語 | 端末の言語 | 日本語 / English |
 | 難易度 | NORMAL | EASY / NORMAL / HARD。設定の画面ではなく、ステージ選択の右上で選ぶ。最後に選んだものを保存する。エンドレスは常に NORMAL |
 
@@ -91,6 +91,10 @@ Oct 4, 2026 · @watsuwo
 - 第1章(10ステージ前後)は既存の学習ラウンド(R1 / 2 / 4 / 6 / 8 / 14 / 20 / 26)とボス1をもとにしたチュートリアルにする。
 - 記録とランキングはエンドレスとは別に持つ。
 
+練習場(`PracticeMode`、タイトルの PRACTICE)はブロックのない 1 ラウンドを終わりなく続けるモードで、ボールを落としても出直す。記録・ランキング・履歴・広告の回数・評価の依頼には数えない(`game_screen.dart` の `_onFinished` で何もしない。ゲームオーバーにもならない)。直近 20 回の判定は `PracticeLog` に持ち、保存しない。
+
+デイリーチャレンジ(`DailyMode`、タイトルの DAILY)は、`DailyChallenge`(UTC の日付 → 1970-01-01 からの日数 → 種 → 始まりのラウンド)が決めたエンドレスの 5 ラウンドを遊ぶ(`GameMode.firstRound` から始め、`roundAt` は範囲の外で null)。難易度は NORMAL 固定。記録は `lib/services/daily.dart` の `DailyRecord` を `daily.v1` に保存し(`records`・`history.v1`・`settings.v1` は変えない)、その日の最初の 1 回だけを記録・ランキングに数える。履歴の行には `"daily": true` を足す(古い版のアプリはエンドレスとして読む)。広告の回数はエンドレス・ステージと同じく結果画面の数に数える。
+
 ### 4.2 ランキング
 
 | ボード | 値 |
@@ -98,6 +102,9 @@ Oct 4, 2026 · @watsuwo
 | エンドレス: スコア | 1回のプレイの最終スコア |
 | エンドレス: 到達ラウンド | 最終ラウンド番号 |
 | ステージ: 合計スコア | 全ステージの最高スコアの合計(ステージごとにボードを作るとボード数が増え続けるため、合計にした) |
+| デイリー: スコア | デイリーチャレンジの、その日の最初の 1 回のスコア。ボードは 1 つで、日ごとの区切りはストアの「今日」の表示に任せる。送れなかったときは保留しない(後日に送ると別の日に入るため) |
+
+ストアでボードを作るまでの ID は仮の値にし、`LeaderboardConfig.placeholders` に入れておく。入っているボードには送らない(保留もしない)。作り方は [app-store.md](app-store.md) と [play-store.md](play-store.md) の「デイリーのランキング」。
 
 不正対策として、乱数の固定(A3)により「シード + 入力ログ」からスコアを再現できる構造にしておく。サーバーでの検証は将来の課題とする。
 
@@ -145,16 +152,16 @@ app/
                   normal / turret / reflector(反射・磁力) / splitter / mirror / wall / keystone / explosive / core_block.dart
       world/      world.dart(状態・公開操作・step)
         systems/  round_system / ball_system / parry_system / block_system / collapse_system /
-                  bullet_system / boss_system.dart(World の part。システムごとに分割)
+                  bullet_system / boss_system / item_system.dart(World の part。システムごとに分割)
       stages/     round_spec.dart(RoundSpec + クリア条件), procedural_generator.dart,
                   boss_def.dart(BossDef + 攻撃パターン + BossPatternRegistry),
                   content.dart(JSON の読み込み: EndlessContent / Campaign / StageDef / 星の条件)
-      modes/      game_mode.dart(GameMode + EndlessMode + StageMode)
+      modes/      game_mode.dart(GameMode + EndlessMode + StageMode + PracticeMode・PracticeLog)
       events/     game_event.dart
     app/          providers.dart(音・振動・デバッグモードなど、画面をまたいで使う Provider)
     game/         game_controller.dart(実時間で進め、イベントを演出・音・振動へ配る), game_screen.dart,
                   result_overlay.dart(結果画面), autoplay_bot.dart(撮影用ビルドだけの自動プレイ。promo/ で使う)
-    render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿),
+    render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿), item_painter.dart(アイテムのカプセル),
                   fx.dart(パーティクル・ポップアップ・コールアウトなど), pixel.dart(ドット絵の部品), text_cache.dart, palette.dart(16 色のパレットと画面の 3 色)
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
@@ -181,12 +188,18 @@ app/
   test/balance/                       # 難易度の確認用。全ステージを自動プレイし、クリア率などを出す(flutter test で明示して動かす)
   integration_test/                   # 実機・エミュレーターで動かすテスト(flutter drive)。smoke_test.dart は CI の e2e が使う
 tools/
-  subset_jp_font.sh  # 日本語のドット文字 (DotGothic16) を使っている文字だけに絞る
-  make_icons.py      # アプリのアイコンと起動画面の画像をドット絵で描く
-promo/               # 実機の画面録画から SNS 向けの宣伝動画を作る道具(promo/README.md)
-posts/               # 宣伝動画の投稿文(動画の ID ごとの .txt と 一覧.md)
-records/             # 宣伝動画の記録(videos.csv。作成日・投稿日・媒体・再生数など)
+  subset_jp_font.sh  # 日本語のドット文字 (DotGothic16) を使っている文字だけに絞る。fonttools (pyftsubset) が要る
+  make_icons.py      # アプリのアイコンと起動画面の画像をドット絵で描く。Python 3 と Pillow が要る
+promo/               # 宣伝動画まわりすべて(promo/README.md)。ゲームの機能とは分けて進める
+  capture/           #   実機の画面録画 (capture.sh)
+  build/             #   動画の組み立て (build.py、specs/)
+  upload/            #   YouTube へのアップロード
+  analytics/         #   アナリティクスの CSV (exports/) と集計
+  posts/             #   動画の ID ごとの投稿文と 一覧.md
+  records/           #   videos.csv (作成日・投稿日・媒体・再生数など)
 ```
+
+`tools/` の 2 つが要る Python のパッケージは `python3 -m pip install Pillow fonttools` で入る(Pillow は `make_icons.py`、fonttools は `subset_jp_font.sh` の `pyftsubset`)。どちらも Linux と macOS で動く。`promo/` の道具の要るものは `promo/README.md` の「要るもの」にある。
 
 ### 5.4 コアの主要な型
 
@@ -203,6 +216,8 @@ abstract class BlockBehavior {
   void afterBounce(World w, Block b, Ball ball, double nx, double ny) {}  // 反射ブロックのずれ
   void onBlast(World w, Block b, {required bool breaker});
   bool onReturnedBullet(World w, Block b, Bullet u);            // 弾が消えるなら true
+  bool onShot(World w, Block b);                                 // アイテムの SHOT の弾。既定は 1 ダメージ
+  bool get dropsItem => true;                                    // アイテムの抽選の対象か (分裂の子は false)
   void onDestroyed(World w, Block b, double cx, double cy) {}   // 誘爆・分裂など
   void onRoundStart(World w, Block b) {}                         // 砲台の初期タイマー
   void onFell(World w, Block b, double cx, double cy) {}        // 崩落した爆薬の爆発
@@ -222,7 +237,8 @@ abstract class GameMode {
 // コアが発行する出来事 (core/events/game_event.dart)。描画・音・振動・統計が購読する
 sealed class GameEvent {}
 // RoundStarted, ParrySucceeded, BlockDestroyed, CollapseStarted, BlockFell, BlastExploded,
-// PlayerHurt, FeverTimeStarted, BossPhaseChanged, RoundCleared, GameOver, StageCompleted … (約40種)
+// PlayerHurt, FeverTimeStarted, BossPhaseChanged, RoundCleared, GameOver, StageCompleted,
+// ItemSpawned, ItemTaken, ShotFired, GuardBounced … (約45種)
 ```
 
 System は `World` が決まった順に呼ぶ(入力 → パドル → パリィの窓 → 降下 / ボス → コンボ → ボール → 砲台 → 弾 → レーザー → 爆発 → 崩落 → クリア判定)。この順序はブラウザ版の `updatePlay` に合わせる。
@@ -264,6 +280,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
 ```
 
 - ラウンドは `rows`(配置を直接書く。`legend` で文字をブロック ID に読み替え可)/ `endless`(エンドレスの W 番号の中身)/ `boss`(ボス番号)のどれかで書く。共通で `difficulty`・`clear`・`tuning`・`intro` を書ける。
+- アイテム(design.md 7.10): 章・ステージ・ラウンドに `"items": false` を書くと、その範囲では出ない(内側の指定が優先。既定は出す。第1章は章ごと `false`)。エンドレスは `itemsFromRound`(既定 3。0 なら出ない)から出る。数値(`itemChance` など)は `tuning` で上書きできる。
 - クリア条件 `clear.type`: `annihilate`(既定。ボス戦はコア全破壊)/ `score` / `survive`。
 - 星 `stars[].type`: `clear` / `noHit` / `time`(秒以内)/ `score` / `just` / `perfect` / `collapse` / `chainBlast` / `returnKills` / `graze` / `ricochet`。
 - 自動生成(`genLayout`)は Dart に移植した。解禁ラウンドは JSON、形の候補・出現率・上限数はコード(`procedural_generator.dart`)にある。mulberry32 は 32bit 整数演算を再現しており、ブラウザ版と同じ配置になることをテストで保証している。
@@ -298,7 +315,8 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
   - パリィ判定の境界: 接触時刻との差が ±12 / 30 / 100ms ちょうどのときの判定。
   - 崩落: 要石の破壊、つながりの切断で、期待どおりのブロックが崩れる。
   - スコア: 崩落・連鎖爆発・跳弾のボーナス計算。
-  - 決定性: 同じシードと同じ入力ログから、同じスコアになる。
+  - 決定性: 同じシードと同じ入力ログから、同じスコアになる。アイテムの抽選は専用の乱数で行い、ほかの乱数を引く回数を変えない(`test/core/items_test.dart`)。
+  - バランス: `test/balance/balance_report.dart`(難易度ごとのクリア率)と `test/balance/item_report.dart`(アイテムなし / あり / 全部取るの比較)。どちらも手で流す(`flutter test test/balance/...`。CI では `_test.dart` でないので動かない)。
 - `flutter analyze` で警告がない。
 - iOS シミュレーターと Android エミュレーターで R1〜R10(ボス1)を通しで遊び、ブラウザ版と並べて挙動・数値・演出を比べる。
 - 実機で、FEVER TIME 中や大崩落の最中も 60fps 以上を保つことを確認する。
@@ -343,7 +361,7 @@ flutter build appbundle     # Android (要: key.properties、第9章)
 | 言語 | `Info.plist` の `CFBundleLocalizations` に en / ja。これがないと App Store で対応言語が英語だけになる |
 | 暗号化 | `ITSAppUsesNonExemptEncryption = false`(輸出コンプライアンスの質問が出ない) |
 | Game Center | `ios/Runner/Runner.entitlements`(`com.apple.developer.game-center`)を Runner の全構成に設定済み |
-| ランキング | `LeaderboardConfig.iosEnabled = true`。ID は `com.watsuwo.parrybreak.endless_score` / `.endless_wave` / `.stages_total`。Android は `androidEnabled = false` のまま |
+| ランキング | `LeaderboardConfig.iosEnabled = true`。ID は `com.watsuwo.parrybreak.endless_score` / `.endless_wave` / `.stages_total`。デイリーの `.daily_score` は App Store Connect で作るまで仮(`placeholders`)で送らない。Android は `androidEnabled = false` のまま |
 | 評価の依頼 | ステージを星3つでクリアして結果画面から戻るときに、OS 標準の評価ダイアログを出す(`lib/services/review.dart`、`in_app_review`)。クリア済みが5面以上、前回から60日以上、通算3回まで。出したときはその回の広告は出さない。データは集めないので、プライバシーの申告は変わらない |
 | アイコン・起動画面 | 16 色のドット絵で、`python3 tools/make_icons.py` が描く(元画像の `branding/icons/` と、iOS / Android / Web の各サイズをまとめて書き出す)。元画像だけ変えたときは `dart run flutter_launcher_icons`、`dart run flutter_native_splash:create` でも作り直せる |
 | ポリシー・サポート | 別のリポジトリ `watsuwo/watsuwo.github.io` の `parry-break/privacy.html` と `parry-break/support.html` を GitHub Pages で公開している(https://watsuwo.github.io/parry-break/privacy と https://watsuwo.github.io/parry-break/support)。広告(AdMob)の `app-ads.txt` も同じリポジトリにある |

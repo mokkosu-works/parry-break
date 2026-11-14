@@ -1,6 +1,6 @@
 {
  "version": 1,
- "_comment": "ステージモードの定義。ラウンドは rows(直接配置) / endless(エンドレスの W番号) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet",
+ "_comment": "ステージモードの定義。ラウンドは rows(直接配置) / endless(エンドレスのラウンド番号 R) / boss(ボス番号) で書く。星の type: clear, noHit, time, score, just, perfect, collapse, chainBlast, returnKills, graze, ricochet。章・ステージ・ラウンドの items: false で、アイテム (design.md 7.10) を出さない (第1章は出さない)。アイテムの数値は tuning (itemChance など) で上書きできる",
  "chapters": [
   {
    "id": "ch01",
@@ -8,6 +8,7 @@
     "ja": "第1章 基礎訓練",
     "en": "CHAPTER 1  BASICS"
    },
+   "items": false,
    "stages": [
     {
      "id": "1-1",
@@ -297,7 +298,7 @@
      "id": "2-1",
      "title": {
       "ja": "限界突破",
-      "en": "FEVER TIME"
+      "en": "BREAK THE LIMIT"
      },
      "rounds": [
       {
@@ -1845,7 +1846,7 @@
         "NNNNBNNNNBNNNN",
         "NNNNNNNNNNNNNN"
        ],
-       "difficulty": 57
+       "difficulty": 50
       },
       {
        "endless": 56

@@ -20,7 +20,7 @@ extension _ParrySystem on World {
 
   void _onAction(double pt) {
     final b = ball, p = paddle, pr = parry;
-    if (b.attached) {
+    if (b.attached && ballInPlay) {
       if (countdown <= 0) _launch();
       return;
     }
@@ -36,7 +36,13 @@ extension _ParrySystem on World {
       lastContact = Contact(lastContact.t, used: true);
       pr.hits = 0;
       late = true;
-      _applyParry(_grade(dl.abs()), ParryTarget.ball, b.x, Field.paddleY);
+      _applyParry(
+        _grade(dl.abs()),
+        ParryTarget.ball,
+        b.x,
+        Field.paddleY,
+        offset: dl,
+      );
     }
     for (final u in List.of(bullets)) {
       final tc = u.contact;
@@ -46,7 +52,18 @@ extension _ParrySystem on World {
       if (!late) pr.hits = 0;
       late = true;
       u.contact = null;
-      _parryBullet(u, _grade(du.abs()));
+      _parryBullet(u, _grade(du.abs()), du);
+    }
+    // パドルに触れて、通常取得の確定を待っているアイテムはパリィ取得になる
+    for (final it in List.of(items)) {
+      final tc = it.contact;
+      if (tc == null) continue;
+      final di = pt - tc;
+      if (di > tuning.perfectWindow || di < -tuning.parryWindow) continue;
+      if (!late) pr.hits = 0;
+      late = true;
+      items.remove(it);
+      _takeItem(it, _grade(di.abs()));
     }
     if (late) return;
     pr
@@ -74,6 +91,45 @@ extension _ParrySystem on World {
     return null;
   }
 
+  /// 空振りのとき、押した時刻 [press] にいちばん近い接触 (済んだもの・これから来るもの) とのずれ (秒)。
+  /// [Tuning.missNearWindow] より離れたものしかなければ null。
+  double? _missOffset(double press) {
+    final near = tuning.missNearWindow;
+    var best = double.infinity;
+    void consider(double tc) {
+      final d = press - tc;
+      if (d.abs() <= near && d.abs() < best.abs()) best = d;
+    }
+
+    if (!lastContact.used) consider(lastContact.t);
+    // これから触れるもの: 今の速度のまま下りて、パドルの上面に届く時刻。
+    // 横はパドルの幅の倍までを「近い」とみなす (壁での跳ね返りは見ない)
+    final reach = paddleWidth;
+    void incoming(double x, double y, double vx, double vy, double r) {
+      if (vy <= 0) return;
+      final dy = Field.paddleY - r - y;
+      if (dy < 0) return;
+      final dtc = dy / vy;
+      if ((x + vx * dtc - paddle.x).abs() > reach + r) return;
+      consider(t + dtc);
+    }
+
+    final b = ball;
+    if (ballInPlay && practiceRespawn <= 0 && !b.attached && !b.lost) {
+      incoming(b.x, b.y, b.vx, b.vy, Field.ballR);
+    }
+    for (final u in bullets) {
+      if (!u.hostile || u.dead) continue;
+      final tc = u.contact;
+      if (tc != null) {
+        consider(tc);
+      } else {
+        incoming(u.x, u.y, u.vx, u.vy, u.r);
+      }
+    }
+    return best.isFinite ? best : null;
+  }
+
   void _launch() {
     final b = ball;
     b.attached = false;
@@ -86,7 +142,14 @@ extension _ParrySystem on World {
     emit(const BallLaunched());
   }
 
-  void _applyParry(ParryGrade grade, ParryTarget target, double x, double y) {
+  /// [offset] は接触とのずれ (秒、[ParrySucceeded.offset])。
+  void _applyParry(
+    ParryGrade grade,
+    ParryTarget target,
+    double x,
+    double y, {
+    required double offset,
+  }) {
     final pr = parry;
     final just = grade == ParryGrade.just,
         perfect = just || grade == ParryGrade.perfect;
@@ -101,6 +164,7 @@ extension _ParrySystem on World {
     stats.parries++;
     if (perfect) stats.perfects++;
     if (just) stats.just++;
+    lastParryT = t;
     if (target == ParryTarget.ball) {
       final b = ball;
       addCombo(
@@ -135,6 +199,7 @@ extension _ParrySystem on World {
       odTime = math.min(odTime + (just ? 2 : 1), tuning.odMaxTime);
     }
     if (just) slowmo = math.max(slowmo, 0.15);
+    if (effects.shot > 0) _fireShots();
     emit(
       ParrySucceeded(
         grade: grade,
@@ -143,6 +208,7 @@ extension _ParrySystem on World {
         y: y,
         paddleX: paddle.x,
         streak: streak,
+        offset: offset,
       ),
     );
     if (pr.hits >= 3) {
@@ -157,6 +223,7 @@ extension _ParrySystem on World {
 
   void _startFeverTime() {
     od = true;
+    stats.fevers++;
     combo = tuning.odCombo;
     odTime = tuning.odTime;
     odElapsed = 0;
@@ -209,23 +276,24 @@ extension _ParrySystem on World {
   }
 
   /// FEVER TIME 中の PERFECT / JUST で分身弾を出す (同時に最大 [Tuning.phantomMax] 個)。
-  void _spawnPhantoms(int n) {
+  /// MULTI (アイテム) は [x] (パドルの位置) から、[life] 秒の分身弾を [random] (アイテムの乱数) で出す。
+  void _spawnPhantoms(int n, {double? x, double? life, Mulberry32? random}) {
     final b = ball;
     var spawned = 0;
     for (var k = 0; k < n && phantoms.length < tuning.phantomMax; k++) {
       final a =
           (k - (n - 1) / 2) * 26 * deg +
           (k == (n - 1) / 2 ? 12 * deg : 0) +
-          aux.range(-0.06, 0.06);
+          (random ?? aux).range(-0.06, 0.06);
       phantoms.add(
         Ball(
-          x: b.x,
+          x: x ?? b.x,
           y: Field.paddleY - Field.ballR - 2,
           vx: math.sin(a) * b.speed,
           vy: -math.cos(a) * b.speed,
           speed: b.speed,
           phantom: true,
-          life: tuning.phantomLife,
+          life: life ?? tuning.phantomLife,
         ),
       );
       spawned++;

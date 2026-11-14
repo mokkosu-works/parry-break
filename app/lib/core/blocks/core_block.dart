@@ -52,4 +52,11 @@ class CoreBlock extends BlockBehavior {
     }
     return true;
   }
+
+  /// SHOT (アイテム) の弾は弾かれて消える。
+  @override
+  bool onShot(World w, Block b) {
+    w.deflect(b);
+    return true;
+  }
 }

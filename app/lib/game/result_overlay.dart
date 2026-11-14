@@ -25,6 +25,9 @@ class ResultData {
     this.difficulty = Difficulty.normal,
     this.cleared = false,
     this.achieved,
+    this.rank,
+    this.over,
+    this.daily,
   });
 
   final int score, round, maxChain, bestScore, bestRound;
@@ -36,11 +39,33 @@ class ResultData {
 
   /// 今回達成した星 (ステージのみ)。
   final List<bool>? achieved;
+
+  /// ランク (エンドレス・クリアしたステージ)。ステージで失敗したときは null。
+  final Rank? rank;
+
+  /// ミスの原因と、ステージで失敗したときの残り。
+  final OverInfo? over;
+
+  /// デイリーチャレンジなら、その日の記録に数えたかと連続日数。[bestScore] はデイリーの自己ベスト。
+  final DailyResult? daily;
+}
+
+/// 結果画面に出す、デイリーチャレンジの記録。
+class DailyResult {
+  const DailyResult({required this.counted, required this.streak});
+
+  /// その日の最初の 1 回として、記録・ランキングに数えたか (2 回目以降は練習)。
+  final bool counted;
+
+  /// 連続日数。
+  final int streak;
 }
 
 /// ゲームオーバー / ステージの結果画面。見出し → スコアの数え上げ → 記録更新のハンコ → 成績・星 → ボタン の順に出る。
 /// どこかをタップすると演出を飛ばす。キーボードでは、演出中の Enter / Space で演出を飛ばし、
 /// 出きったあとは矢印キーでボタンを選んで Enter / Space で決める。
+/// 成績の欄は 2 ページあり (1 ページ目: スコア・成績・星、2 ページ目: パリィの内訳・ミスの原因)、
+/// 出きったあとの欄のタップか、Tab (PageUp / PageDown) で切り替える。
 class ResultOverlay extends StatefulWidget {
   const ResultOverlay({
     super.key,
@@ -76,6 +101,9 @@ class _ResultOverlayState extends State<ResultOverlay>
 
   /// キーボードで選んでいるボタン (並びは [_buttons] の順)。
   int _selected = 0;
+
+  /// 成績の欄のページ (0: スコア・成績・星、1: パリィの内訳・ミスの原因)。
+  int _page = 0;
 
   @override
   void initState() {
@@ -156,6 +184,19 @@ class _ResultOverlayState extends State<ResultOverlay>
       _c.value = 1;
       return KeyEventResult.handled;
     }
+    // ← → ↑ ↓ はボタンの選択に使っているので、ページは Tab (切り替え)・PageUp / PageDown で動かす
+    if (key == LogicalKeyboardKey.tab ||
+        key == LogicalKeyboardKey.pageUp ||
+        key == LogicalKeyboardKey.pageDown) {
+      setState(
+        () => _page = switch (key) {
+          LogicalKeyboardKey.pageUp => 0,
+          LogicalKeyboardKey.pageDown => 1,
+          _ => 1 - _page,
+        },
+      );
+      return KeyEventResult.handled;
+    }
     final buttons = _buttons;
     if (arrowStep(key) case final step?) {
       setState(
@@ -191,9 +232,9 @@ class _ResultOverlayState extends State<ResultOverlay>
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final d = widget.data, stage = d.stage;
-    final win = stage != null && d.cleared;
+    final win = (stage != null || d.daily != null) && d.cleared;
     final title = stage == null
-        ? 'GAME OVER'
+        ? (win ? 'DAILY CLEAR' : 'GAME OVER')
         : (win ? 'STAGE CLEAR' : 'STAGE FAILED');
     // 勝ちはメインカラー (黄)、負けはアクセントカラー (赤)
     final color = win ? Palette.main : Palette.sub;
@@ -278,6 +319,7 @@ class _ResultOverlayState extends State<ResultOverlay>
 
   /// 見出し (後ろに帯) と、ステージ・難易度・ミスの理由の札。
   Widget _header(
+    AppLocalizations l,
     ResultData d,
     String title,
     Color color,
@@ -285,16 +327,19 @@ class _ResultOverlayState extends State<ResultOverlay>
     required bool compact,
   }) {
     final stage = d.stage;
+    final trail = _trail(l, d, compact: compact);
+    final cause = d.over == null ? d.reason : _causeText(l, d.over!.cause);
     final tags = [
       if (stage != null) ...[
         PixelTag('STAGE ${stage.id}', color: Palette.sub),
         PixelTag(d.difficulty.label, color: difficultyColor(d.difficulty)),
       ],
-      if (!win) PixelTag(d.reason, color: Palette.sub),
+      if (d.daily != null) const PixelTag('DAILY', color: Palette.accent),
+      if (!win) PixelTag(cause, color: Palette.sub),
     ];
     if (compact) {
       // 札は縮めると読めなくなるので、見出しの下に折り返して並べる
-      return _in(
+      final band = _in(
         0,
         0.16,
         CustomPaint(
@@ -315,8 +360,18 @@ class _ResultOverlayState extends State<ResultOverlay>
         ),
         from: const Offset(-60, 0),
       );
+      return trail == null
+          ? band
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: band),
+                const SizedBox(width: 12),
+                trail,
+              ],
+            );
     }
-    return _in(
+    final band = _in(
       0,
       0.16,
       CustomPaint(
@@ -351,7 +406,62 @@ class _ResultOverlayState extends State<ResultOverlay>
       ),
       from: const Offset(-60, 0),
     );
+    return trail == null
+        ? band
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: band),
+              const SizedBox(width: 20),
+              trail,
+            ],
+          );
   }
+
+  static String _causeText(AppLocalizations l, OverCause c) => switch (c) {
+    OverCause.ballLost => l.resultCauseBall,
+    OverCause.breached => l.resultCauseBreached,
+    OverCause.timeOver => l.resultCauseTime,
+  };
+
+  /// 見出しの右端: ランク、またはステージで失敗したときの「あと少し」。
+  Widget? _trail(AppLocalizations l, ResultData d, {required bool compact}) {
+    if (d.rank case final rank?) {
+      return _in(
+        0.6,
+        0.72,
+        _RankBadge(
+          rank,
+          compact: compact,
+          motion: _motion,
+          t: _p(0.6, 0.78, Curves.easeOut),
+        ),
+      );
+    }
+    if (d.over?.gap case final gap?) {
+      if (d.stage == null || d.cleared) return null;
+      return _in(
+        0.6,
+        0.72,
+        _GapBox(
+          title: l.resultGapTitle,
+          text: _gapText(l, gap),
+          compact: compact,
+        ),
+      );
+    }
+    return null;
+  }
+
+  /// ランクの出方の演出 (大きく出て 1 段ずつ縮む) をつけるか。「演出を控えめにする」では付けない。
+  bool get _motion => !widget.reduceMotion;
+
+  static String _gapText(AppLocalizations l, ClearGap g) => switch (g.kind) {
+    GapKind.annihilate => l.resultGapAnnihilate('${g.left}'),
+    GapKind.score => l.resultGapScore(formatScore(g.left.toInt())),
+    GapKind.survive => l.resultGapSurvive(g.left.ceil().toString()),
+    GapKind.boss => l.resultGapBoss(formatScore(g.left.toInt())),
+  };
 
   /// ボタンの並び。出きるまでは押せない (演出を飛ばすつもりのタップが、見えていないボタンに当たらないように)。
   Widget _buttonRow({
@@ -395,23 +505,27 @@ class _ResultOverlayState extends State<ResultOverlay>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _header(d, title, color, win, compact: false),
+        _header(l, d, title, color, win, compact: false),
         const SizedBox(height: 26),
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 11, child: _score(d)),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 28),
-                width: 2,
-                color: withAlpha(Dot.edge, _p(0.3, 0.5)),
-              ),
-              Expanded(
-                flex: 9,
-                child: stage == null ? _stats(d) : _stars(l, d, stage),
-              ),
-            ],
+          child: _pager(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 11, child: _score(d)),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 28),
+                  width: 2,
+                  color: withAlpha(Dot.edge, _p(0.3, 0.5)),
+                ),
+                Expanded(
+                  flex: 9,
+                  child: stage == null ? _stats(d) : _stars(l, d, stage),
+                ),
+              ],
+            ),
+            _details(l, d, compact: false),
+            compact: false,
           ),
         ),
         _buttonRow(),
@@ -432,32 +546,36 @@ class _ResultOverlayState extends State<ResultOverlay>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _header(d, title, color, win, compact: true),
+        _header(l, d, title, color, win, compact: true),
         const SizedBox(height: 12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(flex: 9, child: _score(d, compact: true)),
-            const SizedBox(width: 14),
-            // 区切りの線は右の欄の左の縁に引く (欄の高さが中身で決まるので)
-            Expanded(
-              flex: 12,
-              child: Container(
-                padding: const EdgeInsets.only(left: 14),
-                decoration: BoxDecoration(
-                  border: Border(
-                    left: BorderSide(
-                      color: withAlpha(Dot.edge, _p(0.3, 0.5)),
-                      width: 2,
+        _pager(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 9, child: _score(d, compact: true)),
+              const SizedBox(width: 14),
+              // 区切りの線は右の欄の左の縁に引く (欄の高さが中身で決まるので)
+              Expanded(
+                flex: 12,
+                child: Container(
+                  padding: const EdgeInsets.only(left: 14),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color: withAlpha(Dot.edge, _p(0.3, 0.5)),
+                        width: 2,
+                      ),
                     ),
                   ),
+                  child: stage == null
+                      ? _stats(d, compact: true)
+                      : _stars(l, d, stage, compact: true),
                 ),
-                child: stage == null
-                    ? _stats(d, compact: true)
-                    : _stars(l, d, stage, compact: true),
               ),
-            ),
-          ],
+            ],
+          ),
+          _details(l, d, compact: true),
+          compact: true,
         ),
         const SizedBox(height: 12),
         _buttonRow(fontSize: 14, spacing: 8, dense: true),
@@ -465,13 +583,195 @@ class _ResultOverlayState extends State<ResultOverlay>
     );
   }
 
+  /// 成績の欄 (1 ページ目 [first]、2 ページ目 [second])。出きったあとのタップで切り替え、
+  /// 右下にページを出す。
+  Widget _pager(Widget first, Widget second, {required bool compact}) {
+    final page = _page == 0 ? first : second;
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        if (_c.value < 1) {
+          _c.value = 1;
+        } else {
+          setState(() => _page = 1 - _page);
+        }
+      },
+      child: compact
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [page, _pageHint(compact: true)],
+            )
+          : Stack(
+              children: [
+                Positioned.fill(child: page),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: _pageHint(compact: false),
+                ),
+              ],
+            ),
+    );
+  }
+
+  /// 「いまのページ / 切り替えたときのページ」の表示。
+  Widget _pageHint({required bool compact}) => Semantics(
+    button: true,
+    label: _page == 0 ? 'Details' : 'Back',
+    // 見えている表示は小さいが、押せる範囲は成績の欄ぜんたい ([_pager])
+    child: Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: _in(
+          0.7,
+          0.8,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < 2; i++)
+                Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsets.only(right: 4),
+                  color: i == _page ? Palette.main : Dot.edge,
+                ),
+              const SizedBox(width: 6),
+              Text(
+                _page == 0 ? 'DETAILS ▸' : '◂ BACK',
+                style: pixelFont(
+                  compact ? 12 : 14,
+                  color: Palette.pale,
+                  letterSpacing: 2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /// 2 ページ目: パリィの判定の内訳・ミスの原因。1 ページ目 (エンドレスの成績) に出ているものは重ねない。
+  Widget _details(AppLocalizations l, ResultData d, {required bool compact}) {
+    final s = d.stats;
+    final judged = s.parries + s.misses;
+    final rate = judged == 0 ? '-' : '${(s.just * 100 / judged).round()}%';
+    final items = <(String, String)>[
+      ('JUST', '${s.just}'),
+      ('PERFECT', '${s.perfects - s.just}'),
+      ('GOOD', '${s.parries - s.perfects}'),
+      ('MISS', '${s.misses}'),
+      ('JUST RATE', rate),
+      ('MAX TIER', '${s.maxTier}'),
+      ('FEVER', '×${s.fevers}'),
+      ('RETURN', '${s.returnKills}'),
+      // エンドレスの 1 ページ目に出ている
+      if (d.stage != null) ...[
+        ('GRAZE', '${s.graze}'),
+        ('COLLAPSE', '×${s.bestCollapse}'),
+        ('BLAST', '×${s.bestBlast}'),
+        ('RICOCHET', '×${s.bestRicochet}'),
+      ],
+    ];
+    final over = d.over;
+    final line = over == null || (d.stage != null && d.cleared)
+        ? null
+        : _causeText(l, over.cause);
+    final detail = over == null || line == null ? null : _causeDetail(l, over);
+    return LayoutBuilder(
+      builder: (context, c) {
+        final w = (c.maxWidth / 6).floorToDouble();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (line != null) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 4,
+                    height: compact ? 36 : 54,
+                    color: Palette.sub,
+                  ),
+                  SizedBox(width: compact ? 8 : 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          line,
+                          style: TextStyle(
+                            fontSize: compact ? 16 : 24,
+                            color: Palette.white,
+                            height: 1.2,
+                          ),
+                        ),
+                        if (detail != null)
+                          Text(
+                            detail,
+                            style: TextStyle(
+                              fontSize: compact ? 13 : 16,
+                              color: Palette.pale,
+                              height: 1.3,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: compact ? 10 : 24),
+            ],
+            Wrap(
+              runSpacing: compact ? 8 : 20,
+              children: [
+                for (final (label, value) in items)
+                  SizedBox(
+                    width: w,
+                    child: StatReadout(
+                      label: label,
+                      value: value,
+                      highlight: label == 'JUST RATE',
+                      compact: compact,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// ミスの原因に添える 1 行 (最後のパリィからの時間とボールの速さ)。ボールを落としたときだけ。
+  static String? _causeDetail(AppLocalizations l, OverInfo o) {
+    if (o.cause != OverCause.ballLost) return null;
+    final since = o.sinceParry;
+    if (since == null) return l.resultCauseNoParry;
+    final sec = since.toStringAsFixed(1);
+    return o.tier >= 5
+        ? l.resultCauseDetailFever(sec)
+        : l.resultCauseDetail(sec, '${o.tier}');
+  }
+
   /// スコア (数え上げ) と記録更新のハンコ。
   Widget _score(ResultData d, {bool compact = false}) {
     final big = compact ? 44.0 : 84.0;
-    // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える
-    final note = d.stage != null && !d.cleared
-        ? AppLocalizations.of(context).bestScoreClearOnly
+    // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える。
+    // デイリーは、その日の記録に数えたか (2 回目以降は練習) と連続日数を添える
+    final l = AppLocalizations.of(context);
+    final daily = d.daily;
+    final note = daily != null
+        ? (daily.counted
+              ? l.dailyCounted(daily.streak)
+              : l.dailyPractice(daily.streak))
+        : d.stage != null && !d.cleared
+        ? l.bestScoreClearOnly
         : null;
+    // デイリーの添え書きは長いので、HI-SCORE の横ではなく下に出す
+    final noteBelow = compact || daily != null;
     final t = _p(0.12, 0.55, Curves.easeOutQuart);
     final shown = (d.score * t).round();
     final stampT = _p(0.56, 0.66, Curves.easeOutBack);
@@ -516,7 +816,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                   ),
                   SizedBox(width: compact ? 8 : 10),
                   Text(
-                    'HI-SCORE',
+                    daily != null ? 'DAILY BEST' : 'HI-SCORE',
                     style: pixelFont(
                       compact ? 12 : 14,
                       color: Palette.main,
@@ -547,7 +847,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                         weight: 900,
                       ).copyWith(fontFeatures: tab),
                     ),
-                  if (note != null && !compact) ...[
+                  if (note != null && !noteBelow) ...[
                     const SizedBox(width: 14),
                     Flexible(
                       child: Text(
@@ -560,11 +860,17 @@ class _ResultOverlayState extends State<ResultOverlay>
                 ],
               ),
               // 狭い画面では HI-SCORE の横に入らないので、下に折り返して出す
-              if (note != null && compact) ...[
+              if (note != null && noteBelow) ...[
                 const SizedBox(height: 6),
                 Text(
                   note,
-                  style: pixelFont(12, color: Palette.pale, weight: 400),
+                  style: pixelFont(
+                    compact ? 12 : 14,
+                    color: daily != null && !daily.counted
+                        ? Palette.main
+                        : Palette.pale,
+                    weight: 400,
+                  ),
                 ),
               ],
               if (d.newBest) ...[
@@ -590,7 +896,11 @@ class _ResultOverlayState extends State<ResultOverlay>
   Widget _stats(ResultData d, {bool compact = false}) {
     final s = d.stats;
     final items = <(String, String, bool)>[
-      ('ROUND', '${d.round}', d.round >= d.bestRound && d.round > 1),
+      (
+        'ROUND',
+        '${d.round}',
+        d.daily == null && d.round >= d.bestRound && d.round > 1,
+      ),
       ('MAX CHAIN', '${d.maxChain}', false),
       ('JUST', '${s.just}', false),
       ('GRAZE', '${s.graze}', false),
@@ -717,6 +1027,129 @@ class _ResultOverlayState extends State<ResultOverlay>
         ? '$m:${sec.toStringAsFixed(1).padLeft(4, '0')}'
         : '${sec.toStringAsFixed(1)}s';
   }
+}
+
+/// ランクの色。
+Color _rankColor(Rank r) => switch (r) {
+  Rank.s => Palette.main,
+  Rank.a => Palette.orange,
+  Rank.b => Dot.mint,
+  Rank.c => Palette.accent,
+  Rank.d => Palette.gray,
+};
+
+/// 結果画面の見出しの右端に出すランク (大きな 1 文字)。[t] は出方の進み具合 (0 → 1)。
+/// [motion] なら、大きく出て 1 段ずつ縮む。「演出を控えめにする」(motion なし) では、はじめから 1 倍で出す。
+class _RankBadge extends StatelessWidget {
+  const _RankBadge(
+    this.rank, {
+    required this.compact,
+    required this.motion,
+    required this.t,
+  });
+  final Rank rank;
+  final bool compact, motion;
+  final double t;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _rankColor(rank);
+    final size = compact ? 60.0 : 96.0;
+    // 大きく出て 1 段ずつ縮む (ドット絵らしく、なめらかには縮めない)
+    final scale = motion && t < 1 ? 1 + ((1 - t) * 3).ceil() * 0.3 : 1.0;
+    return Semantics(
+      label: 'RANK ${rank.label}',
+      child: ExcludeSemantics(
+        child: Transform.scale(
+          scale: scale,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'RANK',
+                style: pixelFont(
+                  compact ? 12 : 14,
+                  color: Palette.pale,
+                  letterSpacing: 3,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Container(
+                width: size,
+                height: size,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: withAlpha(color, 0.16),
+                  border: Border.all(color: color, width: 3),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black, offset: Offset(4, 4)),
+                  ],
+                ),
+                child: Text(
+                  rank.label,
+                  style: pixelFont(
+                    size * 0.7,
+                    color: color,
+                    weight: 900,
+                  ).copyWith(height: 1, shadows: hardShadow(size * 0.7)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ステージで失敗したとき、ランクの代わりに出す「あと少し」の情報。
+class _GapBox extends StatelessWidget {
+  const _GapBox({
+    required this.title,
+    required this.text,
+    required this.compact,
+  });
+  final String title, text;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: BoxConstraints(maxWidth: compact ? 200 : 300),
+    child: Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 10 : 16,
+        vertical: compact ? 6 : 12,
+      ),
+      decoration: BoxDecoration(
+        color: withAlpha(Palette.main, 0.12),
+        border: Border.all(color: Palette.main, width: 3),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: pixelFont(
+              compact ? 14 : 20,
+              color: Palette.main,
+              weight: 900,
+              letterSpacing: 2,
+            ),
+          ),
+          SizedBox(height: compact ? 2 : 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: compact ? 13 : 18,
+              color: Palette.white,
+              height: 1.25,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// 記録更新のハンコ。

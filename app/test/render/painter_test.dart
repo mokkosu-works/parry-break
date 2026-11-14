@@ -235,6 +235,69 @@ void main() {
     await _paint(tester, w, fx, 'p3_round_clear');
   });
 
+  // Issue #252: アイテム (落下中のカプセル・効いている効果・GUARD の防壁・SHOT の弾・取ったときの名前)
+  (World, FxState) itemScene({bool reduceEffects = false}) {
+    final w = World(mode: endlessMode)..start(fromRound: 3);
+    final fx = FxState(w, reduceEffects: reduceEffects);
+    _run(w, fx, 1.2);
+    w.items
+      ..add(Item(ItemKind.wide, 300, 400))
+      ..add(Item(ItemKind.guard, 800, 500));
+    w.effects
+      ..wide = 10
+      ..shot = 2.5
+      ..blast = 2
+      ..guard = 5
+      ..cool = 7;
+    w.bullets.add(
+      Bullet(x: 600, y: 500, vx: 0, vy: -900, kind: BulletKind.shot)
+        ..hostile = false,
+    );
+    for (final e in [
+      ItemTaken(
+        kind: ItemKind.multi,
+        grade: ParryGrade.just,
+        x: w.paddle.x,
+        paddleX: w.paddle.x,
+        points: 500,
+      ),
+      ItemSpawned(w.items.first),
+      const GuardBounced(600),
+    ]) {
+      fx.handle(e);
+    }
+    return (w, fx);
+  }
+
+  testWidgets('アイテム: カプセル・効果の一覧・防壁・SHOT の弾・取ったときの名前', (tester) async {
+    final (w, fx) = itemScene();
+    expect(fx.popups.map((p) => p.text), contains('MULTI+'));
+    expect(fx.flash, greaterThan(0), reason: 'パリィ取得は光る');
+    await _paint(tester, w, fx, 'p4_items');
+    expect(w.paddleWidth, closeTo(168, 1e-9));
+  });
+
+  testWidgets('アイテム: 演出を控えめにするとパリィ取得でも光らせず、1 秒に 3 回を超えて点滅しない', (tester) async {
+    final (w, fx) = itemScene(reduceEffects: true);
+    expect(fx.flash, 0);
+    expect(fx.popups.map((p) => p.text), contains('MULTI+'));
+    fx.popups.clear();
+    w.ball.attached = false; // TAP の点滅を出さない
+    expect(_fastestBlink(w, fx), lessThanOrEqualTo(3));
+    final normal = FxState(w)
+      ..handle(
+        const ItemTaken(
+          kind: ItemKind.wide,
+          grade: null,
+          x: 0,
+          paddleX: 600,
+          points: 0,
+        ),
+      );
+    expect(normal.popups.single.text, 'WIDE');
+    expect(normal.flash, 0, reason: '通常取得は光らせない');
+  });
+
   group('演出を控えめにする (#102)', () {
     testWidgets('OFF では速い点滅がある (このテストが点滅を見分けられること)', (tester) async {
       final (w, fx) = _blinkScene(reduceEffects: false);

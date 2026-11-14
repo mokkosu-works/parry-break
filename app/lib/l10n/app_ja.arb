@@ -22,6 +22,8 @@
   "helpComboBody": "パリィや敵弾の撃ち返しを決めると、上の COMBO メーターが満ちていく。段階が上がるほど、得点の倍率(×1 → ×2 → ×4 → ×8)とボールの速さが上がる\nメーターが満ちると FEVER TIME。しばらくの間、ボールがブロックを貫き、倍率は ×16\n敵の弾に当たると、COMBO は下がる",
   "helpGrazeTitle": "GRAZE・RICOCHET",
   "helpGrazeBody": "GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。COMBO が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点",
+  "helpItemTitle": "ITEM",
+  "helpItemBody": "ブロックを壊すと、ときどきカプセルが落ちてくる。パドルで受けると取れる\nパリィで受けると、効果が強くなる(名前に + が付く)\nW:パドルが広がる M:分身弾が出る S:パリィのたびに弾を撃つ\nB:次に当たった所で衝撃波 G:下に防壁ができる C:ボールが遅くなる",
   "helpOverTitle": "ゲームオーバー",
   "helpOverBody": "ボールを画面の下に落とすと終わり\nブロックが赤い点線(デッドライン)まで下りてきても終わり",
   "helpPauseTitle": "一時停止",
@@ -32,6 +34,62 @@
   "helpPrev": "前へ",
   "helpNext": "次へ",
   "bestScoreClearOnly": "クリアした回のみ記録",
+  "resultCauseBall": "ボールを落とした",
+  "resultCauseBreached": "ブロックが下まで来た",
+  "resultCauseTime": "時間切れ",
+  "resultCauseDetail": "最後のパリィから{sec}秒・ボールは段階{tier}",
+  "@resultCauseDetail": {
+    "placeholders": {
+      "sec": {
+        "type": "String"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "resultCauseDetailFever": "最後のパリィから{sec}秒・FEVER TIME 中",
+  "@resultCauseDetailFever": {
+    "placeholders": {
+      "sec": {
+        "type": "String"
+      }
+    }
+  },
+  "resultCauseNoParry": "一度もパリィしないまま",
+  "resultGapTitle": "あと少し",
+  "resultGapAnnihilate": "全消しまで残り{n}個",
+  "@resultGapAnnihilate": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultGapScore": "目標スコアまで残り{n}",
+  "@resultGapScore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultGapSurvive": "生き残りまで残り{n}秒",
+  "@resultGapSurvive": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultGapBoss": "ボスの残り HP {n}",
+  "@resultGapBoss": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "unlockBy": "{stage} をクリアすると開く",
   "@unlockBy": {
     "placeholders": {
@@ -141,9 +199,6 @@
   "controlsRailH": "レール(横)",
   "controlsRailV": "レール(縦)",
   "settingsSensitivity": "移動感度",
-  "settingsRailSensitivity": "レール感度",
-  "settingsZonesOnly": "操作方法が「画面の左右」のときに使います",
-  "settingsRailOnly": "操作方法が「レール」のときに使います",
   "settingsTiming": "判定タイミング補正",
   "settingsTimingHelp": "画面表示やタッチの遅れを補正するため、入力をこの時間だけ早く受け付けたものとして扱います",
   "calibrate": "測定する",
@@ -155,6 +210,9 @@
   "qualityLow": "低(省電力)",
   "settingsReduceEffects": "演出を控えめにする",
   "settingsReduceEffectsHelp": "フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます",
+  "settingsShowTiming": "タイミングの表示",
+  "settingsShowTimingHelp": "パリィの判定の下に、早い (EARLY)・遅い (LATE) とずれ (ms) を出します",
+  "practiceHelp": "ボールは落としても 1 秒で出直します。ここでのプレイは記録に残りません",
   "settingsLanguage": "言語",
   "settingsAdPrivacy": "広告のプライバシー設定",
   "settingsDebugMode": "デバッグモード",
@@ -220,6 +278,7 @@
   "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
   "introFeverTime": "PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ",
   "introSurvive": "ブロックをデッドラインまで下ろさずに耐え抜け",
+  "introItem": "NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる",
   "introScore": "スコア {value} に到達すればクリア",
   "@introScore": {
     "placeholders": {
@@ -285,6 +344,22 @@
     "placeholders": {
       "id": {
         "type": "String"
+      }
+    }
+  },
+  "dailyCounted": "今日の記録・連続{n}日",
+  "dailyPractice": "2回目以降は記録に数えない・連続{n}日",
+  "@dailyCounted": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@dailyPractice": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
   }

@@ -84,6 +84,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'GRAZE: dodge an enemy shot by a hair, without letting it hit the paddle. It raises COMBO\nRICOCHET: break 8 or more blocks before the ball returns to the paddle. The more you break, the higher the score';
 
   @override
+  String get helpItemTitle => 'ITEM';
+
+  @override
+  String get helpItemBody =>
+      'Breaking blocks sometimes drops a capsule. Catch it with the paddle\nCatch it with a parry for a stronger effect (its name gets a +)\nW: wider paddle  M: extra balls  S: shots on every parry\nB: shockwave on the next hit  G: barrier below  C: slower ball';
+
+  @override
   String get helpOverTitle => 'GAME OVER';
 
   @override
@@ -113,6 +120,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bestScoreClearOnly => 'CLEAR ONLY';
+
+  @override
+  String get resultCauseBall => 'The ball was dropped';
+
+  @override
+  String get resultCauseBreached => 'The blocks reached the bottom';
+
+  @override
+  String get resultCauseTime => 'Out of time';
+
+  @override
+  String resultCauseDetail(String sec, String tier) {
+    return '${sec}s after the last parry, ball at stage $tier';
+  }
+
+  @override
+  String resultCauseDetailFever(String sec) {
+    return '${sec}s after the last parry, during FEVER TIME';
+  }
+
+  @override
+  String get resultCauseNoParry => 'Without a single parry';
+
+  @override
+  String get resultGapTitle => 'SO CLOSE';
+
+  @override
+  String resultGapAnnihilate(String n) {
+    return 'Blocks left to clear: $n';
+  }
+
+  @override
+  String resultGapScore(String n) {
+    return '$n to the target score';
+  }
+
+  @override
+  String resultGapSurvive(String n) {
+    return '${n}s left to survive';
+  }
+
+  @override
+  String resultGapBoss(String n) {
+    return 'Boss HP left: $n';
+  }
 
   @override
   String unlockBy(String stage) {
@@ -214,15 +266,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSensitivity => 'Move sensitivity';
 
   @override
-  String get settingsRailSensitivity => 'Rail sensitivity';
-
-  @override
-  String get settingsZonesOnly => 'Used when Controls is \"Screen halves\"';
-
-  @override
-  String get settingsRailOnly => 'Used when Controls is \"Rail\"';
-
-  @override
   String get settingsTiming => 'Timing offset';
 
   @override
@@ -256,6 +299,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsReduceEffectsHelp =>
       'Tones down flashes, blinking, screen shake and menu animations';
+
+  @override
+  String get settingsShowTiming => 'Show timing';
+
+  @override
+  String get settingsShowTimingHelp =>
+      'Shows EARLY / LATE and how many ms you were off under each parry';
+
+  @override
+  String get practiceHelp =>
+      'A dropped ball comes back after 1 second. Practice plays are not recorded';
 
   @override
   String get settingsLanguage => 'Language';
@@ -374,6 +428,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
 
   @override
+  String get introItem =>
+      'NEW: ITEMS — CATCH FALLING CAPSULES WITH THE PADDLE. PARRY THEM FOR A STRONGER EFFECT';
+
+  @override
   String introScore(String value) {
     return 'REACH SCORE $value';
   }
@@ -454,5 +512,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String stageTileLocked(String id) {
     return '$id, locked';
+  }
+
+  @override
+  String dailyCounted(int n) {
+    return 'Today\'s run · $n-day streak';
+  }
+
+  @override
+  String dailyPractice(int n) {
+    return 'Practice (only each day\'s first run counts) · $n-day streak';
   }
 }

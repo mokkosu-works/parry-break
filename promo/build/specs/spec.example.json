@@ -6,8 +6,8 @@
   "font": "",
   "body": {"file": "raw/play.mp4", "start": 10, "end": 28, "caption": "弾幕を、武器にする。"},
   "hooks": {
-    "A": {"file": "raw/play.mp4", "start": 40, "caption": "受けるな、弾け。"},
-    "B": {"file": "raw/play.mp4", "start": 55, "caption": "あと1ミリだった…"},
+    "A": {"file": "raw/play.mp4", "start": 40, "caption": "あと1ミリだった…"},
+    "B": {"file": "raw/play.mp4", "start": 55, "caption": "受けるな、弾け。"},
     "C": {"file": "raw/play.mp4", "start": 70, "caption": "この連鎖、止まらない"}
   },
   "title": "弾幕を撃ち返すブロック崩し【PARRY BREAK】",

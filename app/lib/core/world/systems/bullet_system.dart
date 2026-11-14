@@ -66,7 +66,7 @@ extension _BulletSystem on World {
           final tcB = t0 + dt * _contactFraction(u, ux0, uy0, px, pw);
           final grade = _judgeContact(tcB);
           if (grade != null) {
-            _parryBullet(u, grade);
+            _parryBullet(u, grade, parry.press - tcB);
           } else if (p.invuln <= 0) {
             u.contact = tcB; // 接触の後の押下を待つ (被弾の確定は上で)
           }
@@ -93,7 +93,10 @@ extension _BulletSystem on World {
         )) {
           continue;
         }
-        if (b.behavior.onReturnedBullet(this, b, u)) {
+        final gone = u.kind == BulletKind.shot
+            ? b.behavior.onShot(this, b)
+            : b.behavior.onReturnedBullet(this, b, u);
+        if (gone) {
           final j = bullets.indexOf(u);
           if (j >= 0) bullets.removeAt(j);
         }
@@ -164,7 +167,8 @@ extension _BulletSystem on World {
   }
 
   /// 敵弾を撃ち返す。赤い弾はコアへ、それ以外は発射元の砲台 (なければ最寄りのブロック) へ向かう。
-  void _parryBullet(Bullet u, ParryGrade grade) {
+  /// [offset] は接触とのずれ (秒、[ParrySucceeded.offset])。
+  void _parryBullet(Bullet u, ParryGrade grade, double offset) {
     u
       ..hostile = false
       ..y = Field.paddleY - u.r - 1;
@@ -194,7 +198,7 @@ extension _BulletSystem on World {
         ..vx = 0
         ..vy = -sp;
     }
-    _applyParry(grade, ParryTarget.bullet, u.x, Field.paddleY);
+    _applyParry(grade, ParryTarget.bullet, u.x, Field.paddleY, offset: offset);
   }
 
   Block? _nearestCore(double x, double y) {

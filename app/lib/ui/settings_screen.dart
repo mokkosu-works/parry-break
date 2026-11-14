@@ -309,36 +309,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onChanged: (v) => n.update((x) => x.copyWith(controls: v)),
           ),
         ),
+        // 感度は 1 つにまとめ、いま選んでいる操作方法の値を変える (領域は sensitivity、レールは railSensitivity)
         _Row(
           label: l.settingsSensitivity,
-          enabled: s.controls == ControlScheme.zones,
-          // 使えないときは、色だけでなく理由も書く
-          help: s.controls == ControlScheme.zones ? null : l.settingsZonesOnly,
-          child: _Meter(
-            color: color,
-            value: s.sensitivity,
-            min: 1,
-            max: 4,
-            divisions: 30,
-            format: (v) => '×${v.toStringAsFixed(1)}',
-            enabled: s.controls == ControlScheme.zones,
-            onChanged: (v) => n.update((x) => x.copyWith(sensitivity: v)),
-          ),
-        ),
-        _Row(
-          label: l.settingsRailSensitivity,
-          enabled: s.controls != ControlScheme.zones,
-          help: s.controls != ControlScheme.zones ? null : l.settingsRailOnly,
-          child: _Meter(
-            color: color,
-            value: s.railSensitivity,
-            min: 0.5,
-            max: 2,
-            divisions: 15,
-            format: (v) => '×${v.toStringAsFixed(1)}',
-            enabled: s.controls != ControlScheme.zones,
-            onChanged: (v) => n.update((x) => x.copyWith(railSensitivity: v)),
-          ),
+          child: s.controls == ControlScheme.zones
+              ? _Meter(
+                  color: color,
+                  value: s.sensitivity,
+                  min: 1,
+                  max: 4,
+                  divisions: 30,
+                  format: (v) => '×${v.toStringAsFixed(1)}',
+                  onChanged: (v) => n.update((x) => x.copyWith(sensitivity: v)),
+                )
+              : _Meter(
+                  color: color,
+                  value: s.railSensitivity,
+                  min: 0.5,
+                  max: 2,
+                  divisions: 15,
+                  format: (v) => '×${v.toStringAsFixed(1)}',
+                  onChanged: (v) =>
+                      n.update((x) => x.copyWith(railSensitivity: v)),
+                ),
         ),
         _Row(
           label: l.settingsTiming,
@@ -433,6 +426,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             color: color,
             value: s.reduceEffects,
             onChanged: (v) => n.update((x) => x.copyWith(reduceEffects: v)),
+          ),
+        ),
+        _Row(
+          label: l.settingsShowTiming,
+          help: l.settingsShowTimingHelp,
+          child: _OnOff(
+            color: color,
+            value: s.showTiming,
+            onChanged: (v) => n.update((x) => x.copyWith(showTiming: v)),
           ),
         ),
         _Row(
@@ -566,16 +568,10 @@ class _Selectable extends StatelessWidget {
 
 /// 1 項目。広い枠では名前の右に操作を、狭い枠では名前の下に操作を、どちらも左に寄せて置く。
 class _Row extends StatelessWidget {
-  const _Row({
-    required this.label,
-    required this.child,
-    this.help,
-    this.enabled = true,
-  });
+  const _Row({required this.label, required this.child, this.help});
   final String label;
   final String? help;
   final Widget child;
-  final bool enabled;
 
   /// 項目の中の、キーボードで操作できる部品 (時間の補正は目盛りと「測定する」の 2 つ)。
   List<_KeyControl> get _controls => [
@@ -584,29 +580,19 @@ class _Row extends StatelessWidget {
       ...children.whereType<_KeyControl>(),
   ];
 
-  /// 項目を使えないとき (操作方式に合わない感度) は、動かさずに「動かせる」と答える (← で見出しへ戻らない)。
-  bool keyStep(int dir) =>
-      _controls.any((c) => enabled ? c.keyStep(dir) : c is _Meter);
+  bool keyStep(int dir) => _controls.any((c) => c.keyStep(dir));
 
-  bool keyEnter() => enabled && _controls.any((c) => c.keyEnter());
+  bool keyEnter() => _controls.any((c) => c.keyEnter());
 
   @override
   Widget build(BuildContext context) {
-    // 使えない項目は、灰色にするだけでなく読み上げでも使えないと伝える
     final name = Semantics(
       container: true,
-      enabled: enabled ? null : false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              color: enabled ? Palette.white : Palette.gray,
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 16, color: Palette.white)),
           if (help != null) ...[
             const SizedBox(height: 3),
             Text(
@@ -798,7 +784,6 @@ class _Meter extends StatelessWidget implements _KeyControl {
     required this.onChanged,
     required this.color,
     this.onChangeEnd,
-    this.enabled = true,
   });
 
   final double value, min, max;
@@ -807,7 +792,6 @@ class _Meter extends StatelessWidget implements _KeyControl {
   final ValueChanged<double> onChanged;
   final ValueChanged<double>? onChangeEnd;
   final Color color;
-  final bool enabled;
 
   double get step => (max - min) / divisions;
 
@@ -824,7 +808,7 @@ class _Meter extends StatelessWidget implements _KeyControl {
 
   @override
   bool keyStep(int dir) {
-    if (enabled) _step(dir);
+    _step(dir);
     return true;
   }
 
@@ -834,7 +818,7 @@ class _Meter extends StatelessWidget implements _KeyControl {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final col = enabled ? color : Palette.gray;
+    final col = color;
     final k = ((value - min) / (max - min)).clamp(0.0, 1.0);
     // −/+ (48px ずつ) と数値の欄を除いた幅に収める
     return LayoutBuilder(
@@ -843,9 +827,8 @@ class _Meter extends StatelessWidget implements _KeyControl {
         value: format(value),
         increasedValue: format(_snap(value + step)),
         decreasedValue: format(_snap(value - step)),
-        enabled: enabled,
-        onIncrease: enabled ? () => _step(1) : null,
-        onDecrease: enabled ? () => _step(-1) : null,
+        onIncrease: () => _step(1),
+        onDecrease: () => _step(-1),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -853,7 +836,7 @@ class _Meter extends StatelessWidget implements _KeyControl {
               icon: PixelIcons.minus,
               label: l.stepDown,
               color: col,
-              onTap: enabled && value > min ? () => _step(-1) : null,
+              onTap: value > min ? () => _step(-1) : null,
             ),
             SizedBox(
               width: (outer.maxWidth - 176).clamp(60.0, 240.0),
@@ -864,18 +847,11 @@ class _Meter extends StatelessWidget implements _KeyControl {
                   );
                   return GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTapDown: enabled
-                        ? (d) => onChanged(at(d.localPosition))
-                        : null,
-                    onTapUp: enabled
-                        ? (d) => onChangeEnd?.call(at(d.localPosition))
-                        : null,
-                    onHorizontalDragUpdate: enabled
-                        ? (d) => onChanged(at(d.localPosition))
-                        : null,
-                    onHorizontalDragEnd: enabled
-                        ? (_) => onChangeEnd?.call(value)
-                        : null,
+                    onTapDown: (d) => onChanged(at(d.localPosition)),
+                    onTapUp: (d) => onChangeEnd?.call(at(d.localPosition)),
+                    onHorizontalDragUpdate: (d) =>
+                        onChanged(at(d.localPosition)),
+                    onHorizontalDragEnd: (_) => onChangeEnd?.call(value),
                     child: SizedBox(
                       height: 44,
                       child: CustomPaint(painter: _MeterPainter(k, col)),
@@ -888,7 +864,7 @@ class _Meter extends StatelessWidget implements _KeyControl {
               icon: PixelIcons.plus,
               label: l.stepUp,
               color: col,
-              onTap: enabled && value < max ? () => _step(1) : null,
+              onTap: value < max ? () => _step(1) : null,
             ),
             SizedBox(
               width: 76,

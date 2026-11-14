@@ -47,11 +47,21 @@ class FxCallout {
 }
 
 class FxJudge {
-  FxJudge(this.text, this.color, {this.big = false});
+  FxJudge(this.text, this.color, {this.big = false, this.sub});
   final String text;
   final Color color;
   final bool big;
+
+  /// 判定の文字の下に小さく出す、接触とのずれ (`EARLY 18ms` など)。
+  final String? sub;
   double t = 0;
+}
+
+/// 接触とのずれ [offset] (秒、負なら早い) の表示。`EARLY 18ms` / `LATE 7ms`。
+String timingLabel(double offset) {
+  final ms = (offset.abs() * 1000).round();
+  if (ms == 0) return '0ms';
+  return '${offset < 0 ? 'EARLY' : 'LATE'} ${ms}ms';
 }
 
 class FxBanner {
@@ -76,10 +86,11 @@ class FxBanner {
   bool _described = false;
 
   /// 帯の説明文 [sub] が決まったら呼ぶ (描く側が翻訳して渡す)。説明のある帯なら、読める長さまで延ばす。
-  void describe(String? sub) {
+  /// [extra] は、[introKey] のほかに説明の行を足したとき (アイテムの説明) に true にする。
+  void describe(String? sub, {bool extra = false}) {
     if (_described) return;
     _described = true;
-    if (introKey != null && sub != null) life = lifeFor(sub);
+    if ((introKey != null || extra) && sub != null) life = lifeFor(sub);
   }
 
   /// 説明文 [sub] を読むのに足りる長さ。全角の字は 1 字 0.12 秒、半角は 0.06 秒で数え、
@@ -123,10 +134,13 @@ class FxDebris {
 
 /// 演出の状態。コアのイベントを受けて作り、シミュレーションのステップごとに進める。
 class FxState {
-  FxState(this.world, {this.reduceEffects = false});
+  FxState(this.world, {this.reduceEffects = false, this.showTiming = true});
 
   final World world;
   bool reduceEffects;
+
+  /// パリィの判定の下に、接触とのずれを出すか (設定の「タイミングの表示」)。
+  bool showTiming;
   final math.Random _rnd = math.Random();
 
   final particles = <Particle>[];
@@ -252,7 +266,13 @@ class FxState {
           PopupKind.coreDamage => (Dot.mustard, 24.0),
         };
         popup(x, y, text, color, size);
-      case ParrySucceeded(:final grade, :final target, :final x, :final y):
+      case ParrySucceeded(
+        :final grade,
+        :final target,
+        :final x,
+        :final y,
+        :final offset,
+      ):
         final just = grade == ParryGrade.just,
             perfect = grade != ParryGrade.good;
         final col = just
@@ -264,6 +284,8 @@ class FxState {
           just ? 'JUST!!' : grade.name.toUpperCase(),
           col,
           big: just,
+          // JUST はぴったりなので出さない
+          sub: showTiming && !just ? timingLabel(offset) : null,
         );
         burst(
           x,
@@ -301,8 +323,12 @@ class FxState {
               : 4,
         );
         if (just) _flash(0.15, Dot.blush);
-      case ParryMissed():
-        judge = FxJudge('MISS', Dot.dim);
+      case ParryMissed(:final offset):
+        judge = FxJudge(
+          'MISS',
+          Dot.dim,
+          sub: showTiming && offset != null ? timingLabel(offset) : null,
+        );
       case BlockDestroyed(
         :final block,
         :final cx,
@@ -402,6 +428,36 @@ class FxState {
       case FeverTimeStarted():
         _flash(0.5);
         _shake(14);
+      case ItemSpawned(:final item):
+        burst(item.x, item.y, 6, Palette.items[item.kind]!, 160);
+      case ItemTaken(:final kind, :final grade, :final paddleX):
+        // 取ったアイテムの名前をパドルの上に出す。パリィ取得は + を付ける
+        final col = Palette.items[kind]!;
+        final parried = grade != null;
+        popup(
+          paddleX,
+          Field.paddleY - 64,
+          parried ? '${kind.label}+' : kind.label,
+          parried ? Dot.light(col) : col,
+          24,
+        );
+        burst(
+          paddleX,
+          Field.paddleY,
+          parried ? 24 : 10,
+          col,
+          parried ? 380 : 240,
+        );
+        ring(paddleX, Field.paddleY, parried ? 80 : 44, col, parried ? 4 : 2);
+        // 「演出を控えめにする」のときは光らせない
+        if (parried && !reduceEffects) _flash(0.1, col);
+      case ShotFired(:final x):
+        burst(x, Field.paddleY - 6, 6, Palette.items[ItemKind.shot]!, 200);
+      case GuardBounced(:final x):
+        final col = Palette.items[ItemKind.guard]!;
+        ring(x, Field.guardY, 60, col, 4);
+        burst(x, Field.guardY, 24, col, 320);
+        _shake(6);
       case BossPhaseChanged():
         _shake(16);
         _flash(0.3, Dot.orange);

@@ -230,6 +230,18 @@ abstract class AppLocalizations {
   /// **'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。COMBO が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点'**
   String get helpGrazeBody;
 
+  /// No description provided for @helpItemTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ITEM'**
+  String get helpItemTitle;
+
+  /// No description provided for @helpItemBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'ブロックを壊すと、ときどきカプセルが落ちてくる。パドルで受けると取れる\nパリィで受けると、効果が強くなる(名前に + が付く)\nW:パドルが広がる M:分身弾が出る S:パリィのたびに弾を撃つ\nB:次に当たった所で衝撃波 G:下に防壁ができる C:ボールが遅くなる'**
+  String get helpItemBody;
+
   /// No description provided for @helpOverTitle.
   ///
   /// In ja, this message translates to:
@@ -289,6 +301,72 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'クリアした回のみ記録'**
   String get bestScoreClearOnly;
+
+  /// No description provided for @resultCauseBall.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボールを落とした'**
+  String get resultCauseBall;
+
+  /// No description provided for @resultCauseBreached.
+  ///
+  /// In ja, this message translates to:
+  /// **'ブロックが下まで来た'**
+  String get resultCauseBreached;
+
+  /// No description provided for @resultCauseTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'時間切れ'**
+  String get resultCauseTime;
+
+  /// No description provided for @resultCauseDetail.
+  ///
+  /// In ja, this message translates to:
+  /// **'最後のパリィから{sec}秒・ボールは段階{tier}'**
+  String resultCauseDetail(String sec, String tier);
+
+  /// No description provided for @resultCauseDetailFever.
+  ///
+  /// In ja, this message translates to:
+  /// **'最後のパリィから{sec}秒・FEVER TIME 中'**
+  String resultCauseDetailFever(String sec);
+
+  /// No description provided for @resultCauseNoParry.
+  ///
+  /// In ja, this message translates to:
+  /// **'一度もパリィしないまま'**
+  String get resultCauseNoParry;
+
+  /// No description provided for @resultGapTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'あと少し'**
+  String get resultGapTitle;
+
+  /// No description provided for @resultGapAnnihilate.
+  ///
+  /// In ja, this message translates to:
+  /// **'全消しまで残り{n}個'**
+  String resultGapAnnihilate(String n);
+
+  /// No description provided for @resultGapScore.
+  ///
+  /// In ja, this message translates to:
+  /// **'目標スコアまで残り{n}'**
+  String resultGapScore(String n);
+
+  /// No description provided for @resultGapSurvive.
+  ///
+  /// In ja, this message translates to:
+  /// **'生き残りまで残り{n}秒'**
+  String resultGapSurvive(String n);
+
+  /// No description provided for @resultGapBoss.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボスの残り HP {n}'**
+  String resultGapBoss(String n);
 
   /// No description provided for @unlockBy.
   ///
@@ -440,24 +518,6 @@ abstract class AppLocalizations {
   /// **'移動感度'**
   String get settingsSensitivity;
 
-  /// No description provided for @settingsRailSensitivity.
-  ///
-  /// In ja, this message translates to:
-  /// **'レール感度'**
-  String get settingsRailSensitivity;
-
-  /// No description provided for @settingsZonesOnly.
-  ///
-  /// In ja, this message translates to:
-  /// **'操作方法が「画面の左右」のときに使います'**
-  String get settingsZonesOnly;
-
-  /// No description provided for @settingsRailOnly.
-  ///
-  /// In ja, this message translates to:
-  /// **'操作方法が「レール」のときに使います'**
-  String get settingsRailOnly;
-
   /// No description provided for @settingsTiming.
   ///
   /// In ja, this message translates to:
@@ -523,6 +583,24 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます'**
   String get settingsReduceEffectsHelp;
+
+  /// No description provided for @settingsShowTiming.
+  ///
+  /// In ja, this message translates to:
+  /// **'タイミングの表示'**
+  String get settingsShowTiming;
+
+  /// No description provided for @settingsShowTimingHelp.
+  ///
+  /// In ja, this message translates to:
+  /// **'パリィの判定の下に、早い (EARLY)・遅い (LATE) とずれ (ms) を出します'**
+  String get settingsShowTimingHelp;
+
+  /// No description provided for @practiceHelp.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボールは落としても 1 秒で出直します。ここでのプレイは記録に残りません'**
+  String get practiceHelp;
 
   /// No description provided for @settingsLanguage.
   ///
@@ -728,6 +806,12 @@ abstract class AppLocalizations {
   /// **'ブロックをデッドラインまで下ろさずに耐え抜け'**
   String get introSurvive;
 
+  /// No description provided for @introItem.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる'**
+  String get introItem;
+
   /// No description provided for @introScore.
   ///
   /// In ja, this message translates to:
@@ -859,6 +943,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'{id}、未解放'**
   String stageTileLocked(String id);
+
+  /// No description provided for @dailyCounted.
+  ///
+  /// In ja, this message translates to:
+  /// **'今日の記録・連続{n}日'**
+  String dailyCounted(int n);
+
+  /// No description provided for @dailyPractice.
+  ///
+  /// In ja, this message translates to:
+  /// **'2回目以降は記録に数えない・連続{n}日'**
+  String dailyPractice(int n);
 }
 
 class _AppLocalizationsDelegate

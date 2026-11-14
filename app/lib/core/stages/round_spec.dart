@@ -67,6 +67,8 @@ class RoundSpec {
     this.introKey,
     this.ending = false,
     this.tuning = const {},
+    this.items = false,
+    this.itemIntro = false,
   });
 
   /// 画面に出すラウンド番号。乱数のシードにも使う。
@@ -94,8 +96,17 @@ class RoundSpec {
   /// このラウンドだけ上書きするバランス値 ([Tuning.copyWith])。
   final Map<String, Object?> tuning;
 
+  /// アイテム (design.md 7.10) が出るラウンドか。
+  final bool items;
+
+  /// 開始の帯に、アイテムの説明を 1 行足すか (アイテムが初めて出るラウンド)。
+  final bool itemIntro;
+
   /// 反射ブロック・砲台の初期タイマーに使う固定シード (ブラウザ版と同じ式)。
   int get seed => number * 131 + 7;
+
+  /// アイテムの抽選だけに使う乱数のシード。ほかの乱数 ([seed] から作る 2 本) とは別の列にする。
+  int get itemSeed => seed * 13 + 5;
 
   RoundSpec copyWith({
     int? number,
@@ -103,6 +114,7 @@ class RoundSpec {
     double? loopMul,
     String? introKey,
     bool? ending,
+    bool? items,
   }) => RoundSpec(
     number: number ?? this.number,
     difficulty: difficulty,
@@ -113,6 +125,8 @@ class RoundSpec {
     introKey: introKey ?? this.introKey,
     ending: ending ?? this.ending,
     tuning: tuning,
+    items: items ?? this.items,
+    itemIntro: (items ?? this.items) && itemIntro,
   );
 
   BossDef? get boss => switch (content) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -12,9 +13,12 @@ import '../l10n/app_localizations.dart';
 import '../render/block_painters.dart';
 import '../render/field_painter.dart';
 import '../render/palette.dart';
+import '../render/pixel.dart';
 import '../render/text_cache.dart';
+import '../services/achievements.dart';
 import '../services/ads.dart';
 import '../services/content.dart';
+import '../services/daily.dart';
 import '../services/history.dart';
 import '../services/leaderboard.dart';
 import '../services/records.dart';
@@ -28,14 +32,19 @@ import 'result_overlay.dart';
 import '../ui/pixel_icons.dart';
 
 /// プレイ画面。[stage] があればステージモード、なければエンドレス (エンドレスは常に NORMAL)。
+/// [practice] なら練習場 (記録・ランキング・履歴・広告の回数・評価の依頼に数えない)。
+/// [daily] ならデイリーチャレンジ (NORMAL 固定。その日の最初の 1 回だけを記録・ランキングに数える)。
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({
     super.key,
     this.stage,
     this.difficulty = Difficulty.normal,
+    this.practice = false,
+    this.daily = false,
   });
   final StageDef? stage;
   final Difficulty difficulty;
+  final bool practice, daily;
 
   /// 最後に作られたプレイの進行役 (テストから状態を確かめるため)。
   @visibleForTesting
@@ -47,9 +56,17 @@ class GameScreen extends ConsumerStatefulWidget {
 
 /// プレイの結果 (オーバーレイの表示用)。
 class _Outcome {
-  const _Outcome({required this.newBest, this.stars, this.cleared = false});
+  const _Outcome({
+    required this.newBest,
+    this.stars,
+    this.cleared = false,
+    this.dailyCounted = false,
+  });
   final bool newBest, cleared;
   final List<bool>? stars;
+
+  /// デイリーで、その日の最初の 1 回として記録に数えたか。
+  final bool dailyCounted;
 }
 
 class _GameScreenState extends ConsumerState<GameScreen>
@@ -62,20 +79,39 @@ class _GameScreenState extends ConsumerState<GameScreen>
   FieldPainter? _painter;
   _Outcome? _outcome;
 
+  /// デイリーの日付 (画面を開いた時刻で決め、RETRY しても変えない)。
+  DailyChallenge? _daily;
+
   @override
   void initState() {
     super.initState();
     final settings = ref.read(settingsProvider);
     final content = ref.read(contentProvider);
     final stage = widget.stage;
+    final daily = _daily = widget.daily && stage == null
+        ? DailyChallenge.of(ref.read(dailyClockProvider)())
+        : null;
     _ctl = GameController(
-      mode: stage != null ? StageMode(stage) : EndlessMode(content.endless),
+      mode: widget.practice
+          ? PracticeMode()
+          : daily != null
+          ? DailyMode(content.endless, daily)
+          : stage != null
+          ? StageMode(stage)
+          : EndlessMode(content.endless),
       audio: ref.read(audioProvider),
       haptics: ref.read(hapticsProvider),
       inputLag: settings.timingOffsetMs / 1000,
       difficulty: stage != null ? widget.difficulty : Difficulty.normal,
       reduceEffects: settings.reduceEffects,
+      showTiming: settings.showTiming,
       timeSource: ref.read(timeSourceProvider),
+      achievements: AchievementTracker.forPlay(
+        practice: widget.practice,
+        debug: () => ref.read(debugModeProvider),
+        endless: stage == null && daily == null,
+        onUnlock: _unlock,
+      ),
     )..onFinished = _onFinished;
     GameScreen.debugLastController = _ctl;
     _ctl.addListener(_onControllerChange);
@@ -127,13 +163,20 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   // ---- 結果の記録 ---------------------------------------------------------
 
+  void _unlock(AchievementKind a) {
+    unawaited(ref.read(achievementsProvider).unlock(a));
+  }
+
   void _onFinished(World w) {
+    // 練習場はゲームオーバーにならないが、念のため何にも数えない
+    if (widget.practice) return;
     final records = ref.read(recordsProvider.notifier);
     final lb = ref.read(leaderboardProvider);
     final stage = widget.stage;
     if (ref.read(debugModeProvider)) {
       // デバッグモードのプレイは記録にもランキングにも残さない
-      final cleared = stage != null && w.phase == WorldPhase.completed;
+      final cleared =
+          (stage != null || _daily != null) && w.phase == WorldPhase.completed;
       final stars = stage?.evaluate(
         StageResult(cleared: cleared, score: w.score, stats: w.stats),
       );
@@ -142,7 +185,20 @@ class _GameScreenState extends ConsumerState<GameScreen>
     }
     // 結果画面を見ている間に、戻るときの広告を読み込んでおく
     ref.read(adsProvider).onResult();
-    if (stage == null) {
+    if (_daily case final daily?) {
+      final (:counted, :newBest) = ref
+          .read(dailyProvider.notifier)
+          .submit(daily.day, w.score);
+      ref
+          .read(historyProvider.notifier)
+          .addDaily(score: w.score, round: w.round.number);
+      if (counted) lb.submit(Board.dailyScore, w.score);
+      _outcome = _Outcome(
+        newBest: newBest,
+        cleared: w.phase == WorldPhase.completed,
+        dailyCounted: counted,
+      );
+    } else if (stage == null) {
       final newBest = records.submitEndless(
         score: w.score,
         round: w.round.number,
@@ -178,6 +234,13 @@ class _GameScreenState extends ConsumerState<GameScreen>
           );
       if (cleared) {
         lb.submit(Board.stagesTotal, ref.read(recordsProvider).stagesTotal);
+        // 章のクリア・全星・HARD のクリア (取れていなかったものだけが新しく送られる)
+        for (final a in progressAchievements(
+          ref.read(recordsProvider),
+          ref.read(contentProvider).campaign,
+        )) {
+          _unlock(a);
+        }
       }
       _outcome = _Outcome(newBest: newBest, stars: stars, cleared: cleared);
     }
@@ -201,15 +264,38 @@ class _GameScreenState extends ConsumerState<GameScreen>
     input.axis = axis;
   }
 
-  /// ポーズ中にキーボードで選んでいるボタン (RESUME / RETRY / SETTINGS / TITLE の順)。
+  /// ポーズ中にキーボードで選んでいるボタン ([_pauseActions] の順)。
   int _pauseIndex = 0;
 
+  /// ポーズのボタン。RESUME / RETRY / SETTINGS / TITLE、練習場は RESUME / 速さ / 練習の対象 / SETTINGS / TITLE。
   List<VoidCallback> get _pauseActions => [
     _ctl.requestResume,
-    _retry,
+    if (widget.practice) ...[_cycleSpeed, _toggleBullets] else _retry,
     _openSettings,
     _toTitle,
   ];
+
+  PracticeMode? get _practice => _ctl.world.practice;
+
+  /// 練習場のボールの速さを 段階 1 → 段階 3 → FEVER TIME → 段階 1 と切り替える。
+  void _cycleSpeed() {
+    final p = _practice;
+    if (p == null) return;
+    const all = PracticeSpeed.values;
+    setState(
+      () => _ctl.world.setPractice(
+        speed: all[(p.speed.index + 1) % all.length],
+        bullets: p.bullets,
+      ),
+    );
+  }
+
+  /// 練習場の対象を、ボールと敵弾の撃ち返しで切り替える。
+  void _toggleBullets() {
+    final p = _practice;
+    if (p == null) return;
+    setState(() => _ctl.world.setPractice(speed: p.speed, bullets: !p.bullets));
+  }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
@@ -335,6 +421,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     // どちらも変われば build し直されるので、遊んでいる途中の変更も反映される
     _ctl.fx.reduceEffects =
         settings.reduceEffects || MediaQuery.disableAnimationsOf(context);
+    _ctl.fx.showTiming = settings.showTiming;
     // ポーズ中に設定で言語・画質を変えたら、盤面の描画役を作り直す
     if (_painter case final p?
         when p.l10n.localeName != l.localeName ||
@@ -491,27 +578,27 @@ class _GameScreenState extends ConsumerState<GameScreen>
                             selected: _pauseIndex == 0,
                             onPressed: _ctl.requestResume,
                           ),
-                          PixelButton(
-                            label: 'RETRY',
-                            icon: PixelIcons.replay,
-                            selected: _pauseIndex == 1,
-                            onPressed: _retry,
-                          ),
-                          PixelButton(
-                            label: 'SETTINGS',
-                            icon: PixelIcons.tune,
-                            selected: _pauseIndex == 2,
-                            onPressed: _openSettings,
-                          ),
-                          PixelButton(
-                            label: 'TITLE',
-                            color: Palette.gray,
-                            icon: PixelIcons.home,
-                            selected: _pauseIndex == 3,
-                            onPressed: _toTitle,
-                          ),
+                          for (final (i, b) in _pauseButtons().indexed)
+                            PixelButton(
+                              label: b.label,
+                              color: b.color,
+                              icon: b.icon,
+                              selected: _pauseIndex == i + 1,
+                              onPressed: _pauseActions[i + 1],
+                            ),
                         ],
                       ),
+                      if (_practice != null) ...[
+                        const SizedBox(height: 20),
+                        Text(
+                          l.practiceHelp,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Palette.gray,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -520,11 +607,36 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
+  /// ポーズの RESUME の後に並べるボタン ([_pauseActions] と同じ順)。
+  List<({String label, DotSprite icon, Color? color})> _pauseButtons() {
+    final p = _practice;
+    return [
+      if (p != null) ...[
+        (
+          label: 'SPEED ${practiceSpeedLabel(p.speed)}',
+          icon: PixelIcons.skipNext,
+          color: null,
+        ),
+        (
+          label: p.bullets ? 'MODE BULLETS' : 'MODE BALL',
+          icon: PixelIcons.swap,
+          color: null,
+        ),
+      ] else
+        (label: 'RETRY', icon: PixelIcons.replay, color: null),
+      (label: 'SETTINGS', icon: PixelIcons.tune, color: null),
+      (label: 'TITLE', icon: PixelIcons.home, color: Palette.gray),
+    ];
+  }
+
   Widget _resultOverlay() {
     final w = _ctl.world, o = _outcome, stage = widget.stage;
     final records = ref.read(recordsProvider);
     final cleared = o?.cleared ?? false;
     final next = cleared ? _nextStage : null;
+    final daily = _daily == null
+        ? null
+        : (dailyRecord: ref.read(dailyProvider), day: _daily!.day);
     return ResultOverlay(
       key: ValueKey(_runId),
       data: ResultData(
@@ -534,7 +646,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
         stats: w.stats,
         reason: w.overReason,
         newBest: o?.newBest ?? false,
-        bestScore: stage == null
+        bestScore: daily != null
+            ? daily.dailyRecord.bestScore
+            : stage == null
             ? records.endless.bestScore
             : records.stage(stage.id, widget.difficulty).bestScore,
         bestRound: records.endless.bestRound,
@@ -542,6 +656,22 @@ class _GameScreenState extends ConsumerState<GameScreen>
         difficulty: widget.difficulty,
         cleared: cleared,
         achieved: o?.stars,
+        rank: stage == null
+            ? RankTable.standard.endless(score: w.score, round: w.round.number)
+            : cleared && o?.stars != null
+            ? RankTable.standard.stage(
+                stage,
+                StageResult(cleared: true, score: w.score, stats: w.stats),
+                o!.stars!,
+              )
+            : null,
+        over: w.overInfo,
+        daily: daily == null
+            ? null
+            : DailyResult(
+                counted: o?.dailyCounted ?? false,
+                streak: daily.dailyRecord.streakOn(daily.day),
+              ),
       ),
       reduceMotion:
           ref.read(settingsProvider).reduceEffects ||

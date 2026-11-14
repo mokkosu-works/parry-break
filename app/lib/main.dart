@@ -9,10 +9,12 @@ import 'app/providers.dart';
 import 'audio/audio_service.dart';
 import 'game/autoplay_bot.dart' show kPromoAutoplay;
 import 'l10n/app_localizations.dart';
+import 'services/achievements.dart';
 import 'services/ads.dart';
 import 'services/content.dart';
 import 'services/error_log.dart';
 import 'services/leaderboard.dart';
+import 'services/records.dart';
 import 'services/review.dart';
 import 'services/settings.dart';
 import 'ui/title/title_screen.dart';
@@ -138,7 +140,17 @@ class _ParryBreakAppState extends ConsumerState<ParryBreakApp>
         ref.read(audioProvider).setVolumes(bgm: s.bgmVolume, sfx: s.sfxVolume);
       }),
     );
-    unawaited(ref.read(leaderboardProvider).signIn());
+    unawaited(
+      ref.read(leaderboardProvider).signIn().then((_) {
+        // サインインのあとで、送れていなかった実績を送り、進行の実績を見直す
+        return ref
+            .read(achievementsProvider)
+            .sync(
+              ref.read(recordsProvider),
+              ref.read(contentProvider).campaign,
+            );
+      }),
+    );
     // 同意の画面を出すことがあるので、最初の画面が出てから始める
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => unawaited(ref.read(adsProvider).init()),

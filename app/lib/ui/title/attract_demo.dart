@@ -81,7 +81,7 @@ class _AttractDemoState extends ConsumerState<AttractDemo>
     final content = ref.read(contentProvider);
     _world = World(mode: EndlessMode(content.endless), inputLag: 0)
       ..start(fromRound: _rounds[_run++ % _rounds.length]);
-    _fx = FxState(_world, reduceEffects: true);
+    _fx = FxState(_world, reduceEffects: true, showTiming: false);
     _session = Session(_world, onStep: _onStep);
     _startedAt = _clock.now;
     _launchAt = _startedAt + 1.4;

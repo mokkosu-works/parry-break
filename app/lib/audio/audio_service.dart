@@ -271,6 +271,14 @@ class SoLoudAudio implements AudioService {
         play('clink', gap: 0.04);
       case StageCompleted():
         cutMusic();
+      case ItemSpawned():
+        play('itemDrop', gap: 0.05);
+      case ItemTaken(:final parried):
+        play(parried ? 'itemParry' : 'item');
+      case ShotFired():
+        play('shot', gap: 0.03);
+      case GuardBounced():
+        play('guard');
       default:
         break;
     }

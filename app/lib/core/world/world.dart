@@ -8,6 +8,7 @@ import '../config/tuning.dart';
 import '../entities/entities.dart';
 import '../events/game_event.dart';
 import '../modes/game_mode.dart';
+import '../result_info.dart';
 import '../sim/geom.dart';
 import '../sim/rng.dart';
 import '../sim/time_sync.dart';
@@ -21,6 +22,8 @@ part 'systems/collapse_system.dart';
 part 'systems/bullet_system.dart';
 part 'systems/boss_system.dart';
 part 'systems/round_system.dart';
+part 'systems/item_system.dart';
+part 'systems/practice_system.dart';
 
 enum WorldPhase {
   /// ラウンド進行中。
@@ -119,6 +122,18 @@ class World {
   /// ゲーム結果に影響するその他の乱数 (瓦礫・分身弾など)。これもラウンドのシードで決まる。
   late Mulberry32 aux;
 
+  /// アイテムの抽選だけに使う乱数 (design.md 7.10)。[rng]・[aux] を引く回数を変えないよう、別の列にする。
+  late Mulberry32 itemRng;
+
+  /// 落ちてきているアイテム。
+  List<Item> items = [];
+
+  /// 効いているアイテムの効果。
+  ItemEffects effects = ItemEffects();
+
+  /// このラウンドに出たアイテムの数と、前のアイテム (なければラウンドの開始) から壊したブロックの数。
+  int itemsSpawned = 0, breaksSinceItem = 0;
+
   double countdown = 0, roundTime = 0;
   bool launched = false;
   double lastBlockHit = -9;
@@ -140,7 +155,16 @@ class World {
   RunStats stats = RunStats();
   double clearT = 0, overT = 0;
   String overReason = '';
+
+  /// ゲームオーバーの詳細 (ミスの原因・ステージの残り)。終わるまで null。
+  OverInfo? overInfo;
+
+  /// 最後にパリィに成功した時刻 ([t])。まだなければ null。
+  double? lastParryT;
   List<Bonus> bonuses = const [];
+
+  /// 練習場: ボールが出直すまでの残り (秒、0 なら出直し待ちではない) と、次の敵弾までの経過 (秒)。
+  double practiceRespawn = 0, practiceBulletT = 0;
 
   final List<double> _actions = [];
   final List<GameEvent> _events = [];
@@ -152,7 +176,23 @@ class World {
 
   void clearActions() => _actions.clear();
 
-  void emit(GameEvent e) => _events.add(e);
+  void emit(GameEvent e) {
+    _events.add(e);
+    practice?.log.observe(e);
+  }
+
+  /// 練習場なら、そのモード。
+  PracticeMode? get practice => switch (mode) {
+    final PracticeMode m => m,
+    _ => null,
+  };
+
+  /// メインのボールを使うか (練習場の敵弾の撃ち返しの練習では使わない)。
+  bool get ballInPlay => !(practice?.bullets ?? false);
+
+  /// 練習場のボールの速さと、敵弾の撃ち返しの練習を切り替える。直近の判定は消し、ボールはパドルの上から出直す。
+  void setPractice({required PracticeSpeed speed, required bool bullets}) =>
+      _setPractice(speed, bullets);
 
   /// 溜まったイベントを取り出す。
   List<GameEvent> drainEvents() {
@@ -162,7 +202,8 @@ class World {
   }
 
   /// 新しいプレイを始める。[fromRound] で途中のラウンドから始められる (テスト・デバッグ用)。
-  void start({int fromRound = 1}) {
+  /// 省くとモードの最初のラウンド ([GameMode.firstRound]) から。
+  void start({int? fromRound}) {
     phase = WorldPhase.playing;
     t = 0;
     score = 0;
@@ -182,11 +223,15 @@ class World {
     blastChain = BlastChainTally();
     stats = RunStats();
     overReason = '';
+    overInfo = null;
+    lastParryT = null;
     lastBreak = const Vec2(Field.width / 2, Field.gridY0);
     clearT = overT = 0;
     bonuses = const [];
     _actions.clear();
-    final first = mode.roundAt(fromRound);
+    practice?.log.clear();
+    practiceRespawn = practiceBulletT = 0;
+    final first = mode.roundAt(fromRound ?? mode.firstRound);
     if (first == null) throw StateError('mode has no rounds');
     _loadRound(first);
   }
@@ -231,6 +276,9 @@ class World {
         ..prevX = u.x
         ..prevY = u.y;
     }
+    for (final it in items) {
+      it.prevY = it.y;
+    }
   }
 
   // ---- 派生値 -------------------------------------------------------------
@@ -250,7 +298,9 @@ class World {
   /// 得点倍率。
   int get mult => od ? tuning.stageMult[4] : tuning.stageMult[stage];
 
-  double get paddleWidth => tuning.paddleWidth;
+  /// パドルの幅。WIDE (アイテム) が効いている間は広い。
+  double get paddleWidth =>
+      tuning.paddleWidth * (effects.wide > 0 ? tuning.wideScale : 1);
 
   double get descentSpeed =>
       tuning.descentSpeed(round.difficulty, round.loopMul) * difficulty.descent;
@@ -266,12 +316,22 @@ class World {
 
   /// ボールの目標速度。段階が上がると補間して加速する。
   /// FEVER TIME 中は段階4 の速さから [Tuning.odTime] 秒かけて [odTopSpeed] まで上げる (入った瞬間に減速しない)。
+  /// COOL (アイテム) が効いている間は、FEVER TIME 中も含めて [Tuning.coolSpeedMul] 倍になる。
   double get targetSpeed {
+    if (practice case final p?) {
+      return switch (p.speed) {
+        PracticeSpeed.stage1 => stageSpeedOf(0),
+        PracticeSpeed.stage3 => stageSpeedOf(2),
+        PracticeSpeed.fever => odTopSpeed,
+      };
+    }
+    final cool = effects.cool > 0 ? tuning.coolSpeedMul : 1.0;
     if (od) {
       final s4 = stageSpeedOf(3);
-      return s4 + (odTopSpeed - s4) * math.min(1, odElapsed / tuning.odTime);
+      return (s4 + (odTopSpeed - s4) * math.min(1, odElapsed / tuning.odTime)) *
+          cool;
     }
-    return stageSpeedOf(stage);
+    return stageSpeedOf(stage) * cool;
   }
 
   /// ブロックがデッドラインに 3 秒以内に届きそうか (画面端を赤く光らせる)。
@@ -377,7 +437,8 @@ class World {
   }
 
   void addCombo(double v) {
-    if (od) return;
+    // 練習場では FEVER TIME に入らず、ボールの速さを選んだ段階のままにする
+    if (od || practice != null) return;
     combo = math.max(0, combo + v);
     if (combo >= tuning.odCombo) _startFeverTime();
   }

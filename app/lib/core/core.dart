@@ -9,6 +9,7 @@ export 'config/tuning.dart';
 export 'entities/entities.dart';
 export 'events/game_event.dart';
 export 'modes/game_mode.dart';
+export 'result_info.dart';
 export 'sim/geom.dart';
 export 'sim/rng.dart';
 export 'sim/session.dart';

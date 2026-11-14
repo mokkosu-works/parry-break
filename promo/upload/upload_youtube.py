@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""records/videos.csv の動画を YouTube にアップロードする (標準ライブラリだけで動く)。
+"""promo/records/videos.csv の動画を YouTube にアップロードする (標準ライブラリだけで動く)。
 
-  python3 promo/upload_youtube.py auth                       # 初回だけ: ブラウザで許可して token を保存
-  python3 promo/upload_youtube.py auth-start                 # 離れたオーナーに許可してもらう: URL を作る
-  python3 promo/upload_youtube.py auth-finish '<届いた URL>'   # ……届いた URL でトークンを保存する
-  python3 promo/upload_youtube.py upload v002b               # 予行 (何も送らず、送る内容を表示する)
-  python3 promo/upload_youtube.py upload v002b --yes         # 限定公開 (unlisted) でアップロード
-  python3 promo/upload_youtube.py upload v002b --yes --publish-at 2026-11-08T19:00:00+09:00   # 予約公開
-  python3 promo/upload_youtube.py upload v002b --yes --privacy public                        # すぐ公開
+  python3 promo/upload/upload_youtube.py auth                       # 初回だけ: ブラウザで許可して token を保存
+  python3 promo/upload/upload_youtube.py auth-start                 # 離れたオーナーに許可してもらう: URL を作る
+  python3 promo/upload/upload_youtube.py auth-finish '<届いた URL>'   # ……届いた URL でトークンを保存する
+  python3 promo/upload/upload_youtube.py upload v002b               # 予行 (何も送らず、送る内容を表示する)
+  python3 promo/upload/upload_youtube.py upload v002b --yes         # 限定公開 (unlisted) でアップロード
+  python3 promo/upload/upload_youtube.py upload v002b --yes --publish-at 2026-11-08T19:00:00+09:00   # 予約公開
+  python3 promo/upload/upload_youtube.py upload v002b --yes --privacy public                        # すぐ公開
 
 安全のための決めごと:
 - --yes がなければ、何も送らない (予行)。
@@ -23,18 +23,18 @@
    「テスト中」で使う場合は、テストユーザーに自分のアカウントを入れ、7 日ごとに auth をやり直す。
 3. 「認証情報」で OAuth クライアント ID を作る。種類は「デスクトップ アプリ」。JSON をダウンロードして
    ~/.config/parry-break/youtube/client_secret.json に置く。
-4. `python3 promo/upload_youtube.py auth` を実行し、投稿先のチャンネルの Google アカウントで許可する。
+4. `python3 promo/upload/upload_youtube.py auth` を実行し、投稿先のチャンネルの Google アカウントで許可する。
 """
 import argparse, base64, csv, datetime, hashlib, http.server, json, os, pathlib, re, secrets, sys
 import threading, urllib.error, urllib.parse, urllib.request, webbrowser
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 CONF = pathlib.Path(os.environ.get("PARRY_YT_DIR", "~/.config/parry-break/youtube")).expanduser()
 SCOPE = "https://www.googleapis.com/auth/youtube.upload"
 AUTH_URI, TOKEN_URI = "https://accounts.google.com/o/oauth2/v2/auth", "https://oauth2.googleapis.com/token"
 UPLOAD_URI = "https://www.googleapis.com/upload/youtube/v3/videos"
-CSV_PATH = ROOT / "records/videos.csv"
-LOG_PATH = ROOT / "records/youtube_uploads.csv"
+CSV_PATH = ROOT / "promo/records/videos.csv"
+LOG_PATH = ROOT / "promo/records/youtube_uploads.csv"
 
 
 def die(msg):
@@ -136,7 +136,7 @@ def cmd_auth_start(_):
           "  4. 「YouTube への動画のアップロード」の権限を許可する。\n"
           "  5. 最後に「このサイトにアクセスできません」のエラー画面になるが、正常。\n"
           "     アドレス欄の URL (http://127.0.0.1:8765/?state=…&code=… で始まる) を全部コピーして送る。\n")
-    print("URL が届いたら:  python3 promo/upload_youtube.py auth-finish '<届いた URL>'")
+    print("URL が届いたら:  python3 promo/upload/upload_youtube.py auth-finish '<届いた URL>'")
 
 
 def cmd_auth_finish(a):
@@ -177,7 +177,7 @@ def read_rows():
 
 def parse_post(rid):
     """posts/{id}.txt の「=== YouTube ===」の [タイトル] と [説明文] を読む。"""
-    p = ROOT / f"posts/{rid}.txt"
+    p = ROOT / f"promo/posts/{rid}.txt"
     if not p.exists():
         die(f"{p} がない")
     text = p.read_text(encoding="utf-8")
@@ -275,7 +275,7 @@ def cmd_upload(a):
             w.writerow(["id", "動画ID", "公開の範囲", "公開予約", "アップロード日時"])
         w.writerow([a.id, vid, body["status"]["privacyStatus"], a.publish_at or "",
                     datetime.datetime.now().isoformat(timespec="seconds")])
-    print("records/videos.csv の投稿日と媒体を更新した。")
+    print("promo/records/videos.csv の投稿日と媒体を更新した。")
 
 
 def main():

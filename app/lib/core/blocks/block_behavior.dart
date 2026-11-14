@@ -77,6 +77,16 @@ abstract class BlockBehavior {
     return true;
   }
 
+  /// SHOT (アイテム) の弾が当たった。弾が消えるなら true を返す。
+  /// 既定は 1 ダメージ (耐久 1 のブロックは壊れる)。撃ち返し弾の 2 倍の得点にはならない。
+  bool onShot(World w, Block b) {
+    w.damage(b, 1, DestroyCause.shot);
+    return true;
+  }
+
+  /// 壊れたとき (崩落で落ちたときを含む) に、アイテムの抽選の対象になるか。
+  bool get dropsItem => true;
+
   /// 壊れた直後に呼ばれる (誘爆・分裂など)。
   void onDestroyed(World w, Block b, double cx, double cy) {}
 

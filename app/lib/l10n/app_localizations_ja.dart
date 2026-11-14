@@ -82,6 +82,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'GRAZE:敵の弾をパドルに当てず、すれすれでよけると決まる。COMBO が上がる\nRICOCHET:ボールがパドルに戻るまでに、続けて 8 個以上壊すと決まる。数が多いほど高得点';
 
   @override
+  String get helpItemTitle => 'ITEM';
+
+  @override
+  String get helpItemBody =>
+      'ブロックを壊すと、ときどきカプセルが落ちてくる。パドルで受けると取れる\nパリィで受けると、効果が強くなる(名前に + が付く)\nW:パドルが広がる M:分身弾が出る S:パリィのたびに弾を撃つ\nB:次に当たった所で衝撃波 G:下に防壁ができる C:ボールが遅くなる';
+
+  @override
   String get helpOverTitle => 'ゲームオーバー';
 
   @override
@@ -110,6 +117,51 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get bestScoreClearOnly => 'クリアした回のみ記録';
+
+  @override
+  String get resultCauseBall => 'ボールを落とした';
+
+  @override
+  String get resultCauseBreached => 'ブロックが下まで来た';
+
+  @override
+  String get resultCauseTime => '時間切れ';
+
+  @override
+  String resultCauseDetail(String sec, String tier) {
+    return '最後のパリィから$sec秒・ボールは段階$tier';
+  }
+
+  @override
+  String resultCauseDetailFever(String sec) {
+    return '最後のパリィから$sec秒・FEVER TIME 中';
+  }
+
+  @override
+  String get resultCauseNoParry => '一度もパリィしないまま';
+
+  @override
+  String get resultGapTitle => 'あと少し';
+
+  @override
+  String resultGapAnnihilate(String n) {
+    return '全消しまで残り$n個';
+  }
+
+  @override
+  String resultGapScore(String n) {
+    return '目標スコアまで残り$n';
+  }
+
+  @override
+  String resultGapSurvive(String n) {
+    return '生き残りまで残り$n秒';
+  }
+
+  @override
+  String resultGapBoss(String n) {
+    return 'ボスの残り HP $n';
+  }
 
   @override
   String unlockBy(String stage) {
@@ -211,15 +263,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsSensitivity => '移動感度';
 
   @override
-  String get settingsRailSensitivity => 'レール感度';
-
-  @override
-  String get settingsZonesOnly => '操作方法が「画面の左右」のときに使います';
-
-  @override
-  String get settingsRailOnly => '操作方法が「レール」のときに使います';
-
-  @override
   String get settingsTiming => '判定タイミング補正';
 
   @override
@@ -252,6 +295,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsReduceEffectsHelp => 'フラッシュ・点滅・画面の揺れと、メニューの動きを抑えます';
+
+  @override
+  String get settingsShowTiming => 'タイミングの表示';
+
+  @override
+  String get settingsShowTimingHelp =>
+      'パリィの判定の下に、早い (EARLY)・遅い (LATE) とずれ (ms) を出します';
+
+  @override
+  String get practiceHelp => 'ボールは落としても 1 秒で出直します。ここでのプレイは記録に残りません';
 
   @override
   String get settingsLanguage => '言語';
@@ -364,6 +417,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
 
   @override
+  String get introItem => 'NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる';
+
+  @override
   String introScore(String value) {
     return 'スコア $value に到達すればクリア';
   }
@@ -441,5 +497,15 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String stageTileLocked(String id) {
     return '$id、未解放';
+  }
+
+  @override
+  String dailyCounted(int n) {
+    return '今日の記録・連続$n日';
+  }
+
+  @override
+  String dailyPractice(int n) {
+    return '2回目以降は記録に数えない・連続$n日';
   }
 }

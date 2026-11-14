@@ -70,8 +70,10 @@ class HistoryRow extends StatelessWidget {
     final l = AppLocalizations.of(context);
     const tab = [FontFeature.tabularFigures()];
     final e = entry;
-    // ENDLESS / ROUND はタイトルや HUD と同じく、どちらの言語でも英語のまま (design.md 9.7)
-    final mode = e.endless
+    // ENDLESS / DAILY / ROUND はタイトルや HUD と同じく、どちらの言語でも英語のまま (design.md 9.7)
+    final mode = e.daily
+        ? 'DAILY'
+        : e.endless
         ? 'ENDLESS'
         : 'STAGE ${e.stageId}  ${e.difficulty.label}';
     final (detail, detailColor) = e.endless

@@ -14,6 +14,7 @@ import 'package:parry_break/main.dart';
 import 'package:parry_break/render/field_painter.dart';
 import 'package:parry_break/services/ads.dart';
 import 'package:parry_break/services/content.dart';
+import 'package:parry_break/services/daily.dart';
 import 'package:parry_break/services/history.dart';
 import 'package:parry_break/services/leaderboard.dart';
 import 'package:parry_break/services/records.dart';
@@ -72,14 +73,20 @@ Future<void> _pumpApp(
   Map<String, Object> prefs = const {},
   Size size = const Size(1600, 740),
   double dpr = 1,
+  double textScale = 1,
   AdsService? ads,
   AudioService? audio,
   LeaderboardService? leaderboard,
+  DateTime? now,
 }) async {
   tester.view
     ..physicalSize = size * dpr
     ..devicePixelRatio = dpr;
   addTearDown(tester.view.reset);
+  if (textScale != 1) {
+    tester.platformDispatcher.textScaleFactorTestValue = textScale;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  }
   PackageInfo.setMockInitialValues(
     appName: 'PARRY BREAK',
     packageName: 'parry_break',
@@ -107,6 +114,7 @@ Future<void> _pumpApp(
         if (audio != null) audioProvider.overrideWithValue(audio),
         if (leaderboard != null)
           leaderboardProvider.overrideWithValue(leaderboard),
+        if (now != null) dailyClockProvider.overrideWithValue(() => now),
       ],
       child: ParryBreakApp(home: home),
     ),
@@ -137,6 +145,15 @@ class _FakeAds extends DisabledAds {
   Future<void> showInterstitialIfDue() async => shown++;
 }
 
+/// 結果画面を見た回数 (広告の頻度の制限に数える) と、広告を出そうとした回数を数える。
+class _CountingAds extends DisabledAds {
+  int results = 0, shown = 0;
+  @override
+  void onResult() => results++;
+  @override
+  Future<void> showInterstitialIfDue() async => shown++;
+}
+
 /// 広告を出そうとすると例外を投げる。
 class _ThrowingAds extends DisabledAds {
   int calls = 0;
@@ -151,6 +168,14 @@ class _ThrowingAds extends DisabledAds {
 class _AvailableLeaderboard extends DisabledLeaderboard {
   @override
   bool get available => true;
+}
+
+/// 送ったスコアを覚える。
+class _RecordingLeaderboard extends DisabledLeaderboard {
+  final submitted = <(Board, int)>[];
+  @override
+  Future<void> submit(Board board, int value) async =>
+      submitted.add((board, value));
 }
 
 /// 履歴の先頭の 1 件。
@@ -342,6 +367,102 @@ void main() {
     );
     await _frames(tester, 2.4);
     expect(find.text('CONTINUE'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('練習場 (#253): タイトルから開き、ボールを落としても出直し、キーボードで切り替えて TITLE で戻る', (
+    tester,
+  ) async {
+    final ads = _CountingAds();
+    await _pumpApp(tester, ads: ads);
+    await _frames(tester, 2.4);
+    await tester.tap(find.text('PRACTICE'));
+    await _frames(tester, 0.8);
+    expect(
+      find.byWidgetPredicate((w) => w is GameScreen && w.practice),
+      findsOneWidget,
+    );
+    final ctl = GameScreen.debugLastController!;
+    final w = ctl.world;
+    final mode = w.practice!;
+    expect(w.blocks, isEmpty);
+    await _frames(tester, 0.6);
+
+    // ボールを 3 回落としても、ゲームオーバーにならず 1 秒後に出直す
+    for (var i = 0; i < 3; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
+      await _frames(tester, 0.3);
+      expect(w.ball.attached, isFalse);
+      w.ball
+        ..y = Field.height - 4
+        ..vy = 600;
+      await _frames(tester, 1.4);
+      expect(ctl.finished, isFalse);
+      expect(w.phase, WorldPhase.playing);
+      expect(w.ball.attached, isTrue);
+    }
+    // 空振りは直近の判定に入る
+    await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
+    await _frames(tester, 0.2);
+    w.ball
+      ..y = Field.topY + 40
+      ..vy = -300;
+    await tester.sendKeyEvent(LogicalKeyboardKey.space); // 空振り
+    await _frames(tester, 0.3);
+    expect(mode.log.count(null), 1);
+
+    // ポーズ: RESUME / SPEED / MODE / SETTINGS / TITLE をキーボードで
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _frames(tester, 0.1);
+    expect(find.text('SPEED LV1'), findsOneWidget);
+    expect(find.text('RETRY'), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _frames(tester, 0.1);
+    expect(mode.speed, PracticeSpeed.stage3);
+    expect(mode.log.length, 0);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _frames(tester, 0.1);
+    expect(mode.speed, PracticeSpeed.fever);
+    expect(find.text('SPEED FEVER'), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _frames(tester, 0.1);
+    expect(mode.bullets, isTrue);
+    expect(find.text('MODE BULLETS'), findsOneWidget);
+    expect(ctl.paused, isTrue); // 切り替えてもポーズのまま
+
+    // 再開すると、敵弾が落ちてくる
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _frames(tester, 1.2 + 2 * w.tuning.practiceBulletInterval);
+    expect(w.bullets, isNotEmpty);
+    expect(ctl.finished, isFalse);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _frames(tester, 0.1);
+    for (var i = 0; i < 4; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    }
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _frames(tester, 0.8);
+    expect(find.byType(GameScreen), findsNothing);
+    expect(find.text('PRACTICE'), findsOneWidget);
+
+    // 記録・履歴・ランキング・広告の回数・評価の依頼のどれにも数えない
+    final sp = await SharedPreferences.getInstance();
+    expect(
+      sp.getKeys().where(
+        (k) =>
+            k.startsWith('records') ||
+            k.startsWith('history') ||
+            k.startsWith('leaderboard') ||
+            k.startsWith('ads.') ||
+            k.startsWith('review.'),
+      ),
+      isEmpty,
+    );
+    expect(ads.results, 0);
+    expect(ads.shown, 0);
     expect(tester.takeException(), isNull);
   });
 
@@ -686,9 +807,9 @@ void main() {
         1: ja
             ? 'キーボード:Space か Enter で発射・パリィ'
             : 'Keyboard: Space or Enter to launch / parry',
-        7: ja ? 'キーボード:Esc か P で一時停止' : 'Keyboard: Esc or P to pause',
+        8: ja ? 'キーボード:Esc か P で一時停止' : 'Keyboard: Esc or P to pause',
       };
-      for (var page = 0; page < 8; page++) {
+      for (var page = 0; page < 9; page++) {
         if (keys[page] case final text?) {
           expect(find.text(text), findsOneWidget, reason: 'page ${page + 1}');
         }
@@ -807,18 +928,24 @@ void main() {
     await _pumpApp(tester, ads: _PrivacyAds());
     await tester.tap(find.text('SETTINGS'));
     await _frames(tester, 0.5);
-    // 操作のタブ: 移動感度・レールの感度・タイミングの 3 つの目盛り
-    expect(find.bySemanticsLabel('Decrease'), findsNWidgets(3));
-    expect(find.bySemanticsLabel('Increase'), findsNWidgets(3));
+    // 操作のタブ: 移動感度・タイミングの 2 つの目盛り
+    expect(find.bySemanticsLabel('Decrease'), findsNWidgets(2));
+    expect(find.bySemanticsLabel('Increase'), findsNWidgets(2));
     expect(
       tester.getSemantics(find.bySemanticsLabel('Increase').first),
       isSemantics(isButton: true, isEnabled: true, hasTapAction: true),
     );
-    // 既定 (左右に分ける操作) ではレールの感度は使えない
-    expect(
-      tester.getSemantics(find.bySemanticsLabel(RegExp(r'^Rail sensitivity'))),
-      isSemantics(hasEnabledState: true, isEnabled: false),
+    // 移動感度は、どの操作方法でも使える (項目名と今の値が読まれる)
+    expect(find.bySemanticsLabel(RegExp(r'^Rail sensitivity')), findsNothing);
+    expect(find.bySemanticsLabel(RegExp(r'^Move sensitivity')), findsOneWidget);
+    final slider = tester.getSemantics(
+      find
+          .byWidgetPredicate(
+            (w) => w is Semantics && w.properties.slider == true,
+          )
+          .first,
     );
+    expect(slider.value, '×2.0');
     expect(
       tester.getSemantics(find.bySemanticsLabel(RegExp(r'^Move sensitivity'))),
       isNot(isSemantics(hasEnabledState: true, isEnabled: false)),
@@ -865,6 +992,42 @@ void main() {
       },
     );
   }
+  // Issue #252: 遊び方に ITEM のページ (6 種の記号・名前・効果と、パリィで取ると強くなること)
+  for (final language in ['en', 'ja']) {
+    for (final size in const [Size(667, 375), Size(1280, 720)]) {
+      testWidgets(
+        '遊び方の ITEM のページが $language・${size.width.toInt()}×${size.height.toInt()} ではみ出さない',
+        (tester) async {
+          await _pumpApp(
+            tester,
+            home: const HelpScreen(),
+            size: size,
+            prefs: {
+              'settings.v1': jsonEncode(Settings(language: language).toJson()),
+            },
+          );
+          await _frames(tester, 0.5);
+          for (var i = 0; i < 6; i++) {
+            await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+            await _frames(tester, 0.5);
+          }
+          expect(find.text('ITEM'), findsOneWidget);
+          expect(find.text('07'), findsOneWidget);
+          final ja = language == 'ja';
+          for (final s
+              in ja
+                  ? ['W:パドルが広がる', 'C:ボールが遅くなる', 'パリィで受けると']
+                  : ['W: wider paddle', 'C: slower ball', 'with a parry']) {
+            expect(find.textContaining(s), findsOneWidget, reason: s);
+          }
+          expect(tester.takeException(), isNull, reason: 'はみ出さない');
+          await _frames(tester, 2);
+          expect(tester.takeException(), isNull, reason: '図を動かしても落ちない');
+        },
+      );
+    }
+  }
+
   // Issue #122: 押せる範囲が 44pt より小さいボタンがあった
   group('押せる範囲が 44pt 以上', () {
     Size hitSize(WidgetTester tester, Finder f) => tester.getSize(
@@ -946,7 +1109,7 @@ void main() {
       );
       await _frames(tester, 0.5);
       final dots = find.byType(AnimatedContainer);
-      expect(dots, findsNWidgets(8));
+      expect(dots, findsNWidgets(9));
       expect(
         find.ancestor(of: dots, matching: find.byType(GestureDetector)),
         findsNothing,
@@ -1280,6 +1443,13 @@ void main() {
       expect(s().reduceEffects, isTrue);
       await key(LogicalKeyboardKey.arrowLeft);
       expect(s().reduceEffects, isFalse);
+      // タイミングの表示 (#253): 既定は ON、← で OFF、→ で ON
+      await key(LogicalKeyboardKey.arrowDown);
+      expect(s().showTiming, isTrue);
+      await key(LogicalKeyboardKey.arrowLeft);
+      expect(s().showTiming, isFalse);
+      await key(LogicalKeyboardKey.arrowRight);
+      expect(s().showTiming, isTrue);
       await key(LogicalKeyboardKey.arrowDown);
       await key(LogicalKeyboardKey.arrowLeft);
       expect(s().language, 'ja');
@@ -1291,7 +1461,7 @@ void main() {
       await key(LogicalKeyboardKey.arrowUp);
       await key(LogicalKeyboardKey.arrowUp);
       await key(LogicalKeyboardKey.arrowRight);
-      for (var i = 0; i < 3; i++) {
+      for (var i = 0; i < 2; i++) {
         await key(LogicalKeyboardKey.arrowDown);
       }
       await key(LogicalKeyboardKey.enter);
@@ -1315,42 +1485,100 @@ void main() {
     });
   });
 
-  // Issue #151: 使えない感度の項目は灰色になるだけで、理由が書かれていなかった
-  testWidgets('設定: 使えない感度の項目に理由が出て、操作方法を切り替えると入れ替わる', (tester) async {
-    await _pumpApp(tester, size: const Size(667, 375));
-    await tester.tap(find.text('SETTINGS'));
-    await _frames(tester, 0.5);
-    // 領域方式 (既定): レール感度の下に理由が出る
-    expect(find.text('Used when Controls is "Rail"'), findsOneWidget);
-    expect(find.text('Used when Controls is "Screen halves"'), findsNothing);
-    await tester.tap(find.text('Rail (horizontal)'));
-    await _frames(tester, 0.3);
-    expect(find.text('Used when Controls is "Screen halves"'), findsOneWidget);
-    expect(find.text('Used when Controls is "Rail"'), findsNothing);
-    await tester.tap(find.text('Screen halves'));
-    await _frames(tester, 0.3);
-    expect(find.text('Used when Controls is "Rail"'), findsOneWidget);
-    expect(find.text('Used when Controls is "Screen halves"'), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
+  // Issue #265: 感度は「移動感度」1 つ。いま選んでいる操作方法の値を変える
+  group('設定: 移動感度は操作方法の値を変える', () {
+    Future<ProviderContainer> open(
+      WidgetTester tester, {
+      ControlScheme controls = ControlScheme.zones,
+      String language = 'en',
+    }) async {
+      await _pumpApp(
+        tester,
+        home: const SettingsScreen(),
+        size: const Size(667, 375),
+        prefs: {
+          'settings.v1': jsonEncode(
+            Settings(
+              language: language,
+              controls: controls,
+              sensitivity: 3,
+              railSensitivity: 1.5,
+            ).toJson(),
+          ),
+        },
+      );
+      await _frames(tester, 0.5);
+      return ProviderScope.containerOf(
+        tester.element(find.byType(SettingsScreen)),
+      );
+    }
 
-  testWidgets('設定: 使えない理由は日本語でも出る', (tester) async {
-    await _pumpApp(
-      tester,
-      home: const SettingsScreen(),
-      prefs: {
-        'settings.v1': jsonEncode(
-          const Settings(
-            language: 'ja',
-            controls: ControlScheme.railVertical,
-          ).toJson(),
-        ),
-      },
-    );
-    await _frames(tester, 0.5);
-    expect(find.text('操作方法が「画面の左右」のときに使います'), findsOneWidget);
-    expect(find.text('操作方法が「レール」のときに使います'), findsNothing);
-    expect(tester.takeException(), isNull);
+    testWidgets('「レール感度」の行も、使えない理由の文もない', (tester) async {
+      await open(tester, controls: ControlScheme.railHorizontal);
+      expect(find.text('Move sensitivity'), findsOneWidget);
+      expect(find.text('Rail sensitivity'), findsNothing);
+      expect(find.textContaining('Used when Controls'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    for (final scheme in [
+      ControlScheme.railHorizontal,
+      ControlScheme.railVertical,
+    ]) {
+      testWidgets('${scheme.name}: 移動感度を動かすと railSensitivity が変わる', (
+        tester,
+      ) async {
+        final c = await open(tester, controls: scheme);
+        expect(find.text('×1.5'), findsOneWidget);
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight); // 項目へ
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown); // 移動感度
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await tester.pump();
+        final s = c.read(settingsProvider);
+        expect(s.railSensitivity, closeTo(1.6, 1e-9));
+        expect(s.sensitivity, 3, reason: '領域方式の値は変わらない');
+      });
+    }
+
+    testWidgets('領域方式: 移動感度を動かすと sensitivity が変わる', (tester) async {
+      final c = await open(tester);
+      expect(find.text('×3.0'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      final s = c.read(settingsProvider);
+      expect(s.sensitivity, greaterThan(3));
+      expect(s.railSensitivity, 1.5, reason: 'レールの値は変わらない');
+    });
+
+    testWidgets('操作方法を切り替えると、スライダーの値と範囲がその方式のものになる', (tester) async {
+      final c = await open(tester);
+      expect(find.text('×3.0'), findsOneWidget);
+      await tester.tap(find.text('Rail (horizontal)'));
+      await _frames(tester, 0.3);
+      expect(find.text('×1.5'), findsOneWidget);
+      // レールの範囲は ×0.5〜×2.0: 上限まで上げても ×2.0 で止まる
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      for (var i = 0; i < 20; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await tester.pump();
+      }
+      await tester.pump();
+      expect(c.read(settingsProvider).railSensitivity, 2.0);
+      expect(c.read(settingsProvider).sensitivity, 3);
+      await tester.tap(find.text('Screen halves'));
+      await _frames(tester, 0.3);
+      expect(find.text('×3.0'), findsOneWidget);
+    });
+
+    testWidgets('日本語でも「移動感度」だけが出る', (tester) async {
+      await open(tester, controls: ControlScheme.railVertical, language: 'ja');
+      expect(find.text('移動感度'), findsOneWidget);
+      expect(find.text('レール感度'), findsNothing);
+      expect(find.textContaining('のときに使います'), findsNothing);
+    });
   });
 
   // Issue #13: スコア履歴
@@ -1558,6 +1786,8 @@ void main() {
           'HOW TO PLAY',
           'SETTINGS',
           'RANKING',
+          'DAILY',
+          'PRACTICE',
         ]) {
           final r = tester.getRect(find.text(label));
           expect(r.top, greaterThanOrEqualTo(0), reason: label);
@@ -1578,6 +1808,150 @@ void main() {
       },
     );
   }
+
+  // Issue #255: デイリーチャレンジ
+  for (final size in const [Size(667, 375), Size(852, 393)]) {
+    for (final lang in ['en', 'ja']) {
+      testWidgets(
+        'タイトル ($lang): DAILY の印と連続日数が ${size.width.toInt()}x${size.height.toInt()} ではみ出さない',
+        (tester) async {
+          final today = DailyChallenge.of(DateTime.utc(2026, 11, 13)).day;
+          await _pumpApp(
+            tester,
+            size: size,
+            now: DateTime.utc(2026, 11, 13, 9),
+            leaderboard: _AvailableLeaderboard(),
+            prefs: {
+              'settings.v1': jsonEncode(Settings(language: lang).toJson()),
+              'records': jsonEncode(
+                const Records(
+                  endless: EndlessRecord(bestScore: 123456, bestRound: 45),
+                  stages: {'1-1': StageRecord(cleared: true)},
+                ).toJson(),
+              ),
+              // 昨日まで 12 日続けて遊んだ (今日はまだ)
+              DailyNotifier.key: jsonEncode(
+                DailyRecord(
+                  lastDay: today - 1,
+                  lastScore: 10,
+                  bestScore: 99999999,
+                  streak: 12,
+                ).toJson(),
+              ),
+            },
+          );
+          await _frames(tester, 2.4);
+          for (final label in ['DAILY', 'NEW', 'STREAK 12', 'PRACTICE']) {
+            final r = tester.getRect(find.text(label));
+            expect(r.top, greaterThanOrEqualTo(0), reason: label);
+            expect(r.bottom, lessThanOrEqualTo(size.height), reason: label);
+            expect(r.left, greaterThanOrEqualTo(0), reason: label);
+            expect(r.right, lessThanOrEqualTo(size.width), reason: label);
+          }
+          for (final label in ['DAILY', 'PRACTICE']) {
+            final hit = find
+                .ancestor(
+                  of: find.text(label),
+                  matching: find.byType(GestureDetector),
+                )
+                .first;
+            expect(tester.getSize(hit).height, greaterThanOrEqualTo(44));
+          }
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  testWidgets('デイリー: タイトルから遊び、その日の 1 回目だけ記録・ランキングに数え、2 回目は練習になる', (
+    tester,
+  ) async {
+    final ads = _CountingAds();
+    final lb = _RecordingLeaderboard();
+    final now = DateTime.utc(2026, 11, 13, 9);
+    final day = DailyChallenge.of(now);
+    await _pumpApp(tester, now: now, ads: ads, leaderboard: lb);
+    await _frames(tester, 2.4);
+    expect(find.text('NEW'), findsOneWidget);
+    expect(find.textContaining('STREAK'), findsNothing);
+
+    await tester.tap(find.text('DAILY'));
+    await _frames(tester, 1.2);
+    final w = GameScreen.debugLastController!.world;
+    expect(w.mode, isA<DailyMode>());
+    expect(w.round.number, day.startRound);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await _frames(tester, 0.3);
+    w.addScore(5000);
+    w.ball
+      ..y = Field.height - 4
+      ..vy = 600;
+    await _frames(tester, 3.2);
+    final c = ProviderScope.containerOf(
+      tester.element(find.byType(MaterialApp)),
+    );
+    final first = w.score;
+    expect(c.read(dailyProvider).lastDay, day.day);
+    expect(c.read(dailyProvider).bestScore, first);
+    expect(c.read(dailyProvider).streak, 1);
+    expect(lb.submitted, [(Board.dailyScore, first)]);
+    expect(find.text("Today's run · 1-day streak"), findsOneWidget);
+    expect(_latestPlay(tester).daily, isTrue);
+    expect(ads.results, 1);
+    // エンドレスの記録は変えない
+    expect(c.read(recordsProvider).endless.bestScore, 0);
+
+    // 2 回目は練習: 記録・ランキングに数えない (履歴と広告の回数には数える)
+    await tester.tap(find.text('RETRY'));
+    await _frames(tester, 1.2);
+    expect(w.round.number, day.startRound);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await _frames(tester, 0.3);
+    w.addScore(900000);
+    w.ball
+      ..y = Field.height - 4
+      ..vy = 600;
+    await _frames(tester, 3.2);
+    expect(c.read(dailyProvider).bestScore, first);
+    expect(lb.submitted, hasLength(1));
+    expect(
+      find.text("Practice (only each day's first run counts) · 1-day streak"),
+      findsOneWidget,
+    );
+    expect(c.read(historyProvider).entries.where((e) => e.daily), hasLength(2));
+    expect(ads.results, 2);
+
+    // タイトルに戻ると、今日の印は消え、連続日数が出る
+    await tester.tap(find.text('TITLE'));
+    await _frames(tester, 1);
+    expect(find.text('NEW'), findsNothing);
+    expect(find.text('STREAK 1'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('HISTORY: デイリーは DAILY として出る', (tester) async {
+    await _pumpApp(
+      tester,
+      home: const HistoryScreen(),
+      prefs: {
+        PlayHistoryNotifier.key: jsonEncode(
+          PlayHistory([
+            PlayEntry(
+              at: DateTime(2026, 11, 13, 9),
+              score: 4200,
+              round: 46,
+              daily: true,
+            ),
+          ]).toJson(),
+        ),
+      },
+    );
+    await _frames(tester, 0.5);
+    expect(find.text('DAILY'), findsOneWidget);
+    expect(find.text('ENDLESS'), findsNothing);
+    expect(find.text('ROUND 46'), findsOneWidget);
+  });
 
   group('端末の動きを減らす設定 (#105)', () {
     // 端末の設定 (iOS の「視差効果を減らす」、Android の「アニメーションを削除」) は、
@@ -1630,4 +2004,119 @@ void main() {
       expect(GameScreen.debugLastController!.fx.reduceEffects, isTrue);
     });
   });
+
+  // Issue #142: 端末の文字サイズを大きくしても、盤面の外の画面がはみ出さない
+  for (final scale in const [1.3, 2.0]) {
+    group('文字サイズ $scale・667x375', () {
+      const size = Size(667, 375);
+      Future<void> open(
+        WidgetTester tester, {
+        Widget? home,
+        Map<String, Object> prefs = const {},
+      }) async {
+        await _pumpApp(
+          tester,
+          size: size,
+          dpr: 2,
+          textScale: scale,
+          home: home,
+          prefs: prefs,
+        );
+        await _frames(tester, home == null ? 2.4 : 1.2);
+      }
+
+      testWidgets('タイトル', (tester) async {
+        await open(
+          tester,
+          prefs: {
+            'records': jsonEncode(
+              const Records(stages: {'1-1': StageRecord(cleared: true)})
+                  .toJson(),
+            ),
+          },
+        );
+        expect(find.text('ENDLESS'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('ステージ選択 (タイルと右の窓)', (tester) async {
+        await open(
+          tester,
+          prefs: {
+            'records': jsonEncode(
+              const Records(
+                stages: {
+                  '1-1': StageRecord(
+                    cleared: true,
+                    bestScore: 50000,
+                    stars: [true, true, false],
+                  ),
+                },
+              ).toJson(),
+            ),
+          },
+        );
+        await tester.tap(find.text('STAGES'));
+        await _frames(tester, 0.5);
+        expect(find.byType(StageSelectScreen), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.text('1-2'));
+        await _frames(tester, 0.5);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('設定', (tester) async {
+        await open(tester);
+        await tester.tap(find.text('SETTINGS'));
+        await _frames(tester, 0.5);
+        expect(find.byType(SettingsScreen), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('遊び方', (tester) async {
+        await open(tester);
+        await tester.tap(find.text('HOW TO PLAY'));
+        await _frames(tester, 0.5);
+        expect(find.byType(HelpScreen), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('ポーズ', (tester) async {
+        await open(tester, home: const GameScreen());
+        await tester.tap(
+          find.byWidgetPredicate(
+            (w) => w is PixelIcon && w.glyph == PixelIcons.pause,
+          ),
+        );
+        await _frames(tester, 0.2);
+        expect(find.text('RESUME'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('結果画面: エンドレス', (tester) async {
+        await open(tester, home: const GameScreen());
+        await _gameOver(tester);
+        expect(find.text('RETRY'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('結果画面: ステージ (クリア)', (tester) async {
+        await open(tester, home: GameScreen(stage: _campaign.stage('1-4')));
+        final w = GameScreen.debugLastController!.world;
+        for (final b in w.blocks.where((b) => b.behavior.clearable).toList()) {
+          w.destroyBlock(b, DestroyCause.pierce);
+        }
+        await _frames(tester, 6.5);
+        expect(find.text('NEXT STAGE'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('結果画面: ステージ (失敗)', (tester) async {
+        await open(tester, home: GameScreen(stage: _campaign.stage('1-4')));
+        await _gameOver(tester);
+        expect(find.text('RETRY'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    });
+  }
 }

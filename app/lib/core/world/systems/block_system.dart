@@ -31,6 +31,7 @@ extension _BlockSystem on World {
     emit(BlockDestroyed(bl, c.x, c.y, cause, v));
     bl.behavior.onDestroyed(this, bl, c.x, c.y);
     if (cause != DestroyCause.blast) _revenge(c.x, c.y);
+    _maybeDropItem(bl, c.x, c.y);
   }
 
   /// 撃ち返し弾 (打ち返し): HARD では、壊されたブロックが一定の確率でパドルへ 3 方向弾を撃ってくる。

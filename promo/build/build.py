@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """同じプレイ映像から、冒頭3秒だけ違う A/B/C の縦動画 (1080x1920) を作る。
 
-使い方:  python3 promo/build.py promo/spec.json [--dry-run] [--no-record] [--posts-only]
+使い方:  python3 promo/build/build.py promo/build/specs/spec.json [--dry-run] [--no-record] [--posts-only]
 
 構成: [冒頭 3 秒 (A/B/C で違う)] + [本編 (3 本とも完全に同じ)] + [最後の 2 秒: アプリ名 + ストアで検索]
 - 字幕は最初のフレームから出す。音はゲーム内の BGM と効果音 (録画の音声) をそのまま使う。外部の BGM は使わない。
-- 出力は promo/out/{パターン名}_{A|B|C}.mp4 。既存ファイルは上書きせず、そこで止まる。
-- 1 本作るごとに records/videos.csv へ 1 行追記し、posts/{id}.txt に投稿文を書く。
+- 出力は promo/build/out/{パターン名}_{A|B|C}.mp4 。既存ファイルは上書きせず、そこで止まる。
+- 1 本作るごとに promo/records/videos.csv へ 1 行追記し、promo/posts/{id}.txt に投稿文を書く。
   長さ (秒) も csv に書くので、出力動画のない環境でも make_index.py が同じ一覧を作れる。
 """
 import csv, datetime, json, pathlib, re, shutil, subprocess, sys, tempfile
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 HOOK_SEC, OUTRO_SEC = 3, 2
 CSV_COLS = ["id", "作成日", "パターン名", "冒頭の種類", "タイトル", "説明文", "ファイルパス",
             "投稿日", "媒体", "再生数", "視聴率(視聴 vs スワイプ)", "長さ(秒)"]
@@ -27,7 +27,20 @@ def duration(path):
     return float(out)
 
 
-DEFAULT_FONT = ROOT / "promo/fonts/DotGothic16-Regular.ttf"  # SIL OFL。ゲーム内の文字と同じ系統
+DEFAULT_FONT = ROOT / "promo/build/fonts/DotGothic16-Regular.ttf"  # SIL OFL。ゲーム内の文字と同じ系統
+
+
+def check_ffmpeg():
+    """ffmpeg / ffprobe があり、字幕 (drawtext = freetype) と libx264 が使えるか。入れ方は promo/README.md の「要るもの」。"""
+    for c in ("ffmpeg", "ffprobe"):
+        if not shutil.which(c):
+            sys.exit(f"{c} がない: sudo apt install -y ffmpeg (macOS は promo/README.md の「要るもの」)")
+    filters = subprocess.run(["ffmpeg", "-hide_banner", "-filters"], capture_output=True, text=True).stdout
+    encoders = subprocess.run(["ffmpeg", "-hide_banner", "-encoders"], capture_output=True, text=True).stdout
+    missing = [n for n, ok in (("drawtext (freetype)", re.search(r"\bdrawtext\b", filters)),
+                               ("libx264", re.search(r"\blibx264\b", encoders))) if not ok]
+    if missing:
+        sys.exit(f"この ffmpeg には {' と '.join(missing)} がない。promo/README.md の「要るもの」の入れ方で入れ直す")
 
 
 def find_font(spec):
@@ -35,6 +48,8 @@ def find_font(spec):
         return spec["font"]
     if DEFAULT_FONT.exists():
         return str(DEFAULT_FONT)
+    if not shutil.which("fc-match"):
+        sys.exit("fc-match がない (fontconfig)。promo/build/fetch_assets.sh で既定のフォントを取るか、spec.json の font にフォントファイルを指定する")
     out = subprocess.run(["fc-match", "-f", "%{file}", ":lang=ja"], capture_output=True, text=True)
     if out.returncode or not out.stdout:
         sys.exit("日本語フォントが見つからない。spec.json の font にフォントファイルを指定する")
@@ -116,7 +131,7 @@ def segment(src, start, length, caption, out, font, tmp, name, fade_out=0.03, cr
          "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", *AUDIO_ENC, out])
 
 
-BADGES = [ROOT / "promo/assets/badges/appstore.png", ROOT / "promo/assets/badges/googleplay.png"]
+BADGES = [ROOT / "promo/build/assets/badges/appstore.png", ROOT / "promo/build/assets/badges/googleplay.png"]
 BADGE_H = 120
 
 
@@ -157,7 +172,7 @@ def outro(spec, out, font, tmp):
 
 
 def post_text(spec, rid=None):
-    """posts/{id}.txt の中身。YouTube 用 (タイトル・説明文) と TikTok 用 (短いキャプション)。
+    """promo/posts/{id}.txt の中身。YouTube 用 (タイトル・説明文) と TikTok 用 (短いキャプション)。
     upload_youtube.py がこの見出しを読むので、見出しの書式は変えない。"""
     tags = " ".join(spec["hashtags"])
     if "#shorts" not in tags.lower():
@@ -189,7 +204,7 @@ def csv_columns(path):
 
 
 def next_id():
-    p = ROOT / "records/videos.csv"
+    p = ROOT / "promo/records/videos.csv"
     if not p.exists():
         return "v001"
     nums = [int(m.group(1)) for r in csv.DictReader(p.open(encoding="utf-8-sig"))
@@ -207,11 +222,11 @@ def main():
     spec = json.loads(pathlib.Path(args[0]).read_text(encoding="utf-8"))
     name = spec["name"]
     if "--posts-only" in sys.argv:
-        csv_path = ROOT / "records/videos.csv"
+        csv_path = ROOT / "promo/records/videos.csv"
         ids = [r["id"] for r in csv.DictReader(csv_path.open(encoding="utf-8-sig")) if r["パターン名"] == name]
-        (ROOT / "posts").mkdir(exist_ok=True)
+        (ROOT / "promo/posts").mkdir(exist_ok=True)
         for rid in ids:
-            post = ROOT / f"posts/{rid}.txt"
+            post = ROOT / f"promo/posts/{rid}.txt"
             if post.exists():
                 print("既にある、スキップ:", post)
             else:
@@ -226,7 +241,7 @@ def main():
     if not 15 <= total <= 30:
         sys.exit(f"全体が {total:.1f} 秒。15〜30 秒にする (本編を {15-HOOK_SEC-OUTRO_SEC}〜{30-HOOK_SEC-OUTRO_SEC} 秒に)")
 
-    outs = {k: ROOT / f"promo/out/{name}_{k}.mp4" for k in hooks}
+    outs = {k: ROOT / f"promo/build/out/{name}_{k}.mp4" for k in hooks}
     posts = {}
     for k in hooks:
         if outs[k].exists():
@@ -234,20 +249,19 @@ def main():
     if dry:
         print(f"OK: 全体 {total:.1f} 秒、出力予定 {[str(p.relative_to(ROOT)) for p in outs.values()]}")
         return
-    if not shutil.which("ffmpeg"):
-        sys.exit("ffmpeg がない: sudo apt install -y ffmpeg")
+    check_ffmpeg()
 
     font = find_font(spec)
     FOOTER["tagline"] = spec.get("tagline", "弾幕を撃ち返す、ドット絵ブロック崩し")
-    (ROOT / "promo/out").mkdir(exist_ok=True)
+    (ROOT / "promo/build/out").mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory() as t:
         tmp = pathlib.Path(t)
         # 本編と最後は 1 回だけ作り、3 本で使い回す (= 完全に同じ)
-        segment(ROOT / "promo" / body["file"], str(body["start"]), str(body_len), body["caption"],
+        segment(ROOT / "promo/capture" / body["file"], str(body["start"]), str(body_len), body["caption"],
                 tmp / "body.mp4", font, tmp, "body", fade_out=0.6, vfade_in=0.15, vfade_out=0.35, fade_in=0.15)
         outro(spec, tmp / "outro.mp4", font, tmp)
         for k, h in hooks.items():
-            segment(ROOT / "promo" / h["file"], str(h["start"]), str(HOOK_SEC), h["caption"],
+            segment(ROOT / "promo/capture" / h["file"], str(h["start"]), str(HOOK_SEC), h["caption"],
                     tmp / f"hook{k}.mp4", font, tmp, f"hook{k}", crop=h.get("crop"),
                     fade_out=0.15, vfade_out=0.15)
             lst = tmp / f"list{k}.txt"
@@ -262,9 +276,9 @@ def main():
         print("--no-record: records と posts は触らない")
         return
     # 記録と投稿文 (既存の行・ファイルは触らない)
-    (ROOT / "records").mkdir(exist_ok=True)
-    (ROOT / "posts").mkdir(exist_ok=True)
-    csv_path = ROOT / "records/videos.csv"
+    (ROOT / "promo/records").mkdir(exist_ok=True)
+    (ROOT / "promo/posts").mkdir(exist_ok=True)
+    csv_path = ROOT / "promo/records/videos.csv"
     vid = next_id()
     today = datetime.date.today().isoformat()
     cols = csv_columns(csv_path)
@@ -278,12 +292,12 @@ def main():
                         "タイトル": spec["title"], "説明文": spec["description"],
                         "ファイルパス": outs[k].relative_to(ROOT).as_posix(),
                         "長さ(秒)": round(duration(outs[k]))})
-            post = ROOT / f"posts/{rid}.txt"
+            post = ROOT / f"promo/posts/{rid}.txt"
             if post.exists():
                 print("投稿文は既にある、スキップ:", post)
                 continue
             post.write_text(post_text(spec, rid), encoding="utf-8")
-    print("records/videos.csv に 3 行追記、posts/ に投稿文を出力")
+    print("promo/records/videos.csv に 3 行追記、promo/posts/ に投稿文を出力")
 
 
 main()

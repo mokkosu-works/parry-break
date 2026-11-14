@@ -3,7 +3,8 @@ part of '../world.dart';
 /// ボールと分身弾の移動、壁・パドル・ブロックとの衝突。
 extension _BallSystem on World {
   void _updateAllBalls(double dt) {
-    _updateBall(ball, dt);
+    // 練習場でボールを落として出直しを待つ間、または敵弾の撃ち返しの練習 (ボールなし) では動かさない
+    if (ballInPlay && practiceRespawn <= 0) _updateBall(ball, dt);
     if (phase != WorldPhase.playing) return;
     for (final f in List.of(phantoms)) {
       if (f.lost) continue;
@@ -14,7 +15,9 @@ extension _BallSystem on World {
     phantoms.removeWhere((f) => f.lost || f.life <= 0);
     // メインのボールを落としても、分身弾が1つでも残っていればそれが新しいボールになる
     if (ball.lost) {
-      if (phantoms.isEmpty) {
+      if (practice != null) {
+        _losePracticeBall();
+      } else if (phantoms.isEmpty) {
         _gameOver('BALL LOST');
       } else {
         _promotePhantom();
@@ -96,6 +99,13 @@ extension _BallSystem on World {
           _reflectOffPaddle(b); // 分身弾はパドルで自動的に跳ね返る
         }
       }
+      // GUARD (アイテム) の防壁: メインのボールを 1 回だけ跳ね返して消える (分身弾は素通り)
+      if (main && effects.guard > 0 && b.vy > 0 && b.y + r >= Field.guardY) {
+        b.y = Field.guardY - r;
+        b.vy = -b.vy.abs();
+        effects.guard = 0;
+        emit(GuardBounced(b.x));
+      }
       if (b.y - r > Field.height) {
         b.lost = true;
         return;
@@ -121,7 +131,13 @@ extension _BallSystem on World {
     b.pierce = 0;
     final grade = _judgeContact(tc);
     if (grade != null) {
-      _applyParry(grade, ParryTarget.ball, b.x, Field.paddleY);
+      _applyParry(
+        grade,
+        ParryTarget.ball,
+        b.x,
+        Field.paddleY,
+        offset: parry.press - tc,
+      );
       lastContact = Contact(tc, used: true);
     } else {
       lastContact = Contact(tc, used: false);
@@ -228,6 +244,12 @@ extension _BallSystem on World {
         : DestroyCause.ball;
     if (main && b.breaker) {
       b.breaker = false;
+      _triggerBreaker(b.x, b.y);
+    } else if (main && effects.blast > 0 && effects.blastLock <= 0) {
+      // BLAST (アイテム): JUST パリィのブレイカーと同じ衝撃波。同じ場所で続けて出さない
+      effects
+        ..blast -= 1
+        ..blastLock = tuning.blastInterval;
       _triggerBreaker(b.x, b.y);
     }
     return bl.behavior.onBall(

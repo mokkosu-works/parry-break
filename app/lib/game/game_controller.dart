@@ -5,6 +5,7 @@ import '../core/core.dart';
 import '../haptics/haptics_service.dart';
 import '../input/input_clock.dart';
 import '../render/fx.dart';
+import '../services/achievements.dart';
 import 'autoplay_bot.dart';
 
 /// 1 回のプレイの進行役。シミュレーションを実時間で進め、イベントを演出・音・振動へ配る。
@@ -18,10 +19,12 @@ class GameController extends ChangeNotifier {
     required double inputLag,
     Difficulty difficulty = Difficulty.normal,
     bool reduceEffects = false,
+    bool showTiming = true,
     double Function()? timeSource,
+    this.achievements,
   }) : world = World(mode: mode, difficulty: difficulty, inputLag: inputLag),
        clock = InputClock(source: timeSource) {
-    fx = FxState(world, reduceEffects: reduceEffects);
+    fx = FxState(world, reduceEffects: reduceEffects, showTiming: showTiming);
     session = Session(world, onStep: _onStep);
     if (kPromoAutoplay) {
       _bot = Bot(
@@ -46,6 +49,9 @@ class GameController extends ChangeNotifier {
   late final Session session;
   final InputClock clock;
 
+  /// 実績の判定 (練習場など、解除しないプレイでは null)。
+  final AchievementTracker? achievements;
+
   /// 毎フレーム増える (盤面の再描画の合図)。
   final ValueNotifier<int> frame = ValueNotifier(0);
 
@@ -64,6 +70,7 @@ class GameController extends ChangeNotifier {
 
   void start() {
     world.start();
+    achievements?.reset();
     fx.reset();
     _finished = false;
     resumeCountdown = null;
@@ -76,6 +83,7 @@ class GameController extends ChangeNotifier {
   void _onStep(double dt) {
     _bot?.call();
     world.drainEvents().forEach(_dispatch);
+    achievements?.observeWorld(world);
     fx.step(dt);
   }
 
@@ -83,6 +91,7 @@ class GameController extends ChangeNotifier {
     fx.handle(e);
     audio.handle(e);
     haptics.handle(e);
+    achievements?.observe(e);
     if (e is GameOver || e is StageCompleted) _finish();
   }
 

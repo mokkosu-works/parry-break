@@ -18,6 +18,11 @@ void main() {
         'music4',
         'musicTitle',
         'brk2',
+        'itemDrop',
+        'item',
+        'itemParry',
+        'shot',
+        'guard',
       ]),
     );
     for (final e in bank.entries) {

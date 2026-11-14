@@ -44,6 +44,7 @@ gh pr diff <番号>
 | `records.dart` | `records`、`records.broken` | 記録(最高スコア・ステージごとの星など)。読めなかった元の文字列の退避 |
 | `history.dart` | `history.v1`、`history.broken` | 最近のプレイの履歴。読めなかった元の文字列の退避 |
 | `settings.dart` | `settings.v1` | 設定 |
+| `daily.dart` | `daily.v1`、`daily.broken` | デイリーチャレンジの記録(最後に数えた日・その日のスコア・自己ベスト・連続日数)。読めなかった元の文字列の退避 |
 | `ads.dart` | `ads.*` | 広告の頻度の制限(結果画面の回数・前回の表示・その日の回数) |
 | `leaderboard.dart` | `leaderboard.pending` | 送れなかったスコア(次の起動・サインインで送る) |
 | `review.dart` | `review.lastAsked`、`review.count` | 評価の依頼を出した日時と回数(2.4 の条件の判定に使う) |
