@@ -882,7 +882,7 @@ class FieldPainter extends CustomPainter {
     _txt(
       practice != null
           ? practiceSpeedLabel(practice.speed)
-          : stage != null && !multi
+          : stage != null && !multi && boss == null
           ? stage.id
           : '${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}',
       400,

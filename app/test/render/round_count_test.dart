@@ -111,6 +111,12 @@ void main() {
     }
   });
 
+  test('ボス戦の面は、HUD のラベルを BOSS のまま、値をラウンドの番号のままにする', () {
+    final drawn = _draw('1-10');
+    expect(drawn, contains('BOSS 1'));
+    expect(drawn, isNot(contains('1-10')));
+  });
+
   test('エンドレスは今のまま ROUND を出す', () {
     final drawn = _draw(null);
     expect(drawn, containsAll(['ROUND', '1', 'ROUND 1']));
