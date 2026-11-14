@@ -8,7 +8,7 @@ import 'settings.dart';
 
 /// デイリーチャレンジの記録。記録 (`records`)・履歴とは別のキーに保存する。
 ///
-/// 1 日に記録として数えるのは最初の 1 回だけ。2 回目以降は練習として遊べるが、ここには残さない。
+/// 何回遊んでもよく、その日の最高得点を記録 ([lastScore]) にする。
 class DailyRecord {
   const DailyRecord({
     this.lastDay = -1,
@@ -20,7 +20,7 @@ class DailyRecord {
   /// 最後に記録として数えた日 ([DailyChallenge.day])。まだなければ -1。
   final int lastDay;
 
-  /// [lastDay] のスコア。
+  /// [lastDay] の最高得点 (その日の記録)。
   final int lastScore;
 
   /// デイリーの中での自己ベスト。
@@ -38,9 +38,23 @@ class DailyRecord {
   /// [today] の時点の連続日数。昨日か今日に遊んでいれば続いている。1 日空いたら 0。
   int streakOn(int today) => lastDay >= today - 1 ? streak : 0;
 
-  /// [day] のスコア [score] を記録する。その日の最初の 1 回なら `counted` が true。
-  ({DailyRecord record, bool counted}) submit(int day, int score) {
-    if (playedOn(day)) return (record: this, counted: false);
+  /// [day] のスコア [score] を記録する。その日の記録はその日の最高得点。
+  /// `counted` は記録に数えたか (端末の時計を [lastDay] より前に戻したときだけ false)。
+  /// `first` はその日の最初の 1 回か。
+  ({DailyRecord record, bool counted, bool first}) submit(int day, int score) {
+    if (lastDay > day) return (record: this, counted: false, first: false);
+    if (lastDay == day) {
+      return (
+        record: DailyRecord(
+          lastDay: day,
+          lastScore: math.max(lastScore, score),
+          bestScore: math.max(bestScore, score),
+          streak: streak,
+        ),
+        counted: true,
+        first: false,
+      );
+    }
     return (
       record: DailyRecord(
         lastDay: day,
@@ -49,6 +63,7 @@ class DailyRecord {
         streak: lastDay == day - 1 ? streak + 1 : 1,
       ),
       counted: true,
+      first: true,
     );
   }
 
@@ -113,15 +128,19 @@ class DailyNotifier extends Notifier<DailyRecord> {
     return record;
   }
 
-  /// [day] のデイリーの結果を記録する。その日の最初の 1 回なら `counted` が true、
-  /// そのうえで自己ベストを更新したら `newBest` が true。
-  ({bool counted, bool newBest}) submit(int day, int score) {
+  /// [day] のデイリーの結果を記録する。`counted` は記録に数えたか、`first` はその日の最初の 1 回か、
+  /// `newBest` は同じ日のそれまでの記録を超えたか (最初の 1 回は false)。
+  ({bool counted, bool first, bool newBest}) submit(int day, int score) {
     final old = state;
-    final (:record, :counted) = old.submit(day, score);
-    if (!counted) return (counted: false, newBest: false);
+    final (:record, :counted, :first) = old.submit(day, score);
+    if (!counted) return (counted: false, first: false, newBest: false);
     state = record;
     ref.read(sharedPrefsProvider).setString(key, jsonEncode(record.toJson()));
-    return (counted: true, newBest: score > old.bestScore);
+    return (
+      counted: true,
+      first: first,
+      newBest: !first && score > old.lastScore,
+    );
   }
 }
 

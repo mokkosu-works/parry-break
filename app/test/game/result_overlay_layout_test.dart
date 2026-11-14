@@ -381,8 +381,8 @@ void main() {
     expect(scaleOfRank(), 1.0);
   });
 
-  // Issue #255: デイリーの結果画面 (今日のスコア・デイリーの自己ベスト・連続日数・練習の印)
-  ResultData daily({required bool counted, required bool cleared}) {
+  // Issue #255: デイリーの結果画面 (今日のスコア・その日の最高得点・連続日数・記録をどうしたか)
+  ResultData daily({required DailyOutcome outcome, required bool cleared}) {
     final e = endless();
     return ResultData(
       score: e.score,
@@ -390,13 +390,13 @@ void main() {
       maxChain: e.maxChain,
       stats: e.stats,
       reason: e.reason,
-      newBest: counted,
+      newBest: outcome == DailyOutcome.updated,
       bestScore: 123456789,
       bestRound: 0,
       cleared: cleared,
       rank: Rank.s,
       over: cleared ? null : e.over,
-      daily: DailyResult(counted: counted, streak: 365),
+      daily: DailyResult(outcome: outcome, streak: 365),
     );
   }
 
@@ -406,34 +406,38 @@ void main() {
   ]) {
     for (final lang in ['en', 'ja']) {
       testWidgets(
-        '${size.width.toInt()}×${size.height.toInt()} ($lang): デイリーの結果画面がはみ出さず、連続日数と練習の印が出る',
+        '${size.width.toInt()}×${size.height.toInt()} ($lang): デイリーの結果画面がはみ出さず、連続日数と記録をどうしたかが出る',
         (t) async {
-          for (final counted in [true, false]) {
+          for (final outcome in DailyOutcome.values) {
             for (final cleared in [true, false]) {
               await pump(
                 t,
-                daily(counted: counted, cleared: cleared),
+                daily(outcome: outcome, cleared: cleared),
                 size: size,
                 safe: safe,
                 lang: lang,
               );
-              final why = 'counted=$counted cleared=$cleared';
+              final why = 'outcome=$outcome cleared=$cleared';
               expect(t.takeException(), isNull, reason: why);
               final m = measure(t);
               expect(m.button, greaterThanOrEqualTo(44), reason: why);
               expect(m.text, greaterThanOrEqualTo(11), reason: why);
               expect(find.text('DAILY'), findsOneWidget, reason: why);
-              expect(find.text('DAILY BEST'), findsOneWidget, reason: why);
+              expect(find.text('TODAY BEST'), findsOneWidget, reason: why);
               expect(
                 find.text(cleared ? 'DAILY CLEAR' : 'GAME OVER'),
                 findsWidgets, // 見出しは影と重ねて描く
                 reason: why,
               );
-              final note = switch ((lang, counted)) {
-                ('ja', true) => '今日の記録・連続365日',
-                ('ja', false) => '2回目以降は記録に数えない・連続365日',
-                (_, true) => "Today's run · 365-day streak",
-                _ => "Practice (only each day's first run counts) · 365-day streak",
+              final note = switch ((lang, outcome)) {
+                ('ja', DailyOutcome.first) => '今日の記録として残しました・365日連続プレイ中',
+                ('ja', DailyOutcome.updated) => '今日の記録を更新しました・365日連続プレイ中',
+                ('ja', DailyOutcome.kept) => '今日の記録は更新ならず・365日連続プレイ中',
+                (_, DailyOutcome.first) =>
+                  "Saved as today's record · 365-day streak",
+                (_, DailyOutcome.updated) =>
+                  'New record for today · 365-day streak',
+                _ => "Today's record stands · 365-day streak",
               };
               final r = t.getRect(find.text(note));
               expect(r.left, greaterThanOrEqualTo(0), reason: why);
