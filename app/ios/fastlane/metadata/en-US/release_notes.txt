@@ -1,6 +1,6 @@
-・New falling items: catch a capsule to power up, or parry it for a stronger effect
-・New modes: DAILY, a fresh layout every day, and PRACTICE for drilling your parry timing
-・The results screen now shows an S-D rank, a parry breakdown and what ended your run
-・Parries can now show whether you were EARLY or LATE, and by how much
-・The real ball is easier to spot during FEVER TIME, and Move sensitivity now works with rail controls
-・Eased 6-9 on HARD and fixed screens overflowing with large text sizes
+・New falling items: catch a capsule to power up, or parry it for more
+・New modes: DAILY, a fresh layout every day (your best of the day counts), and PRACTICE for parry timing
+・Results show an S-D rank, a parry breakdown and what ended your run
+・Parries can show whether you were EARLY or LATE
+・The real ball is easier to spot in FEVER TIME; dropping it ends the run even if clones remain
+・Stage numbers instead of rounds, Move sensitivity for rail controls, and an easier 6-9 on HARD

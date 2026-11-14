@@ -515,12 +515,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dailyCounted(int n) {
-    return 'Today\'s run · $n-day streak';
+  String dailyFirst(int n) {
+    return 'Saved as today\'s record · $n-day streak';
   }
 
   @override
-  String dailyPractice(int n) {
-    return 'Practice (only each day\'s first run counts) · $n-day streak';
+  String dailyUpdated(int n) {
+    return 'New record for today · $n-day streak';
+  }
+
+  @override
+  String dailyKept(int n) {
+    return 'Today\'s record stands · $n-day streak';
   }
 }

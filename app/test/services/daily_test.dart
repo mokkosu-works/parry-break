@@ -22,21 +22,24 @@ void main() {
     return (c, sp);
   }
 
-  test('その日の最初の 1 回だけを数え、2 回目以降は数えない', () async {
+  test('何回でも遊べ、その日の最高得点を記録にする', () async {
     final (c, _) = await load();
     final n = c.read(dailyProvider.notifier);
-    expect(n.submit(100, 5000), (counted: true, newBest: true));
-    expect(n.submit(100, 9000), (counted: false, newBest: false));
+    expect(n.submit(100, 5000), (counted: true, first: true, newBest: false));
+    expect(n.submit(100, 3000), (counted: true, first: false, newBest: false));
+    expect(c.read(dailyProvider).lastScore, 5000);
+    expect(n.submit(100, 9000), (counted: true, first: false, newBest: true));
     final r = c.read(dailyProvider);
-    expect(r.lastScore, 5000);
-    expect(r.bestScore, 5000);
-    expect(r.streak, 1);
+    expect(r.lastScore, 9000);
+    expect(r.bestScore, 9000);
+    expect(r.streak, 1); // 同じ日に何回遊んでも増えない
     expect(r.playedOn(100), isTrue);
     expect(r.playedOn(101), isFalse);
-    // 次の日の 1 回目は数える。自己ベストを下回れば newBest は false
-    expect(n.submit(101, 3000), (counted: true, newBest: false));
-    expect(c.read(dailyProvider).bestScore, 5000);
+    // 次の日は 0 から数え直す
+    expect(n.submit(101, 3000), (counted: true, first: true, newBest: false));
+    expect(c.read(dailyProvider).bestScore, 9000);
     expect(c.read(dailyProvider).lastScore, 3000);
+    expect(c.read(dailyProvider).streak, 2);
   });
 
   test('連続日数: 続けば 1 ずつ増え、1 日空くと 1 に戻る', () {
@@ -62,6 +65,7 @@ void main() {
     final back = r.submit(20, 999);
     expect(back.counted, isFalse);
     expect(back.record.streak, 2);
+    expect(back.record.lastScore, 100); // 前の日の記録は書き換えない
     expect(r.playedOn(20), isTrue);
     expect(r.submit(19, 999).counted, isFalse);
     // 本当の次の日には、1 つだけ増える

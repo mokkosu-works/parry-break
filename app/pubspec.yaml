@@ -4,7 +4,7 @@ description: "PARRY BREAK — ブロック崩し × パリィ × 弾幕"
 publish_to: 'none'
 
 # バージョン名+ビルド番号。上げ方は docs/release-flow.md の「バージョン名の上げ方」。+N は CI が上書きする
-version: 1.5.0+11
+version: 1.5.1+12
 
 environment:
   sdk: ^3.13.5
