@@ -21,6 +21,44 @@ records/    videos.csv、youtube_uploads.csv
 
 冒頭以外 (本編と最後の 2 秒) は 3 本で同じ。最後の 2 秒に、アプリ名・「ストアで検索」・公式のストアバッジを出す。
 
+## 要るもの
+
+Linux (apt) と macOS (Homebrew) で動く (macOS での実行は手元では未確認)。
+
+| 道具 | 使うところ | 版・条件 | apt | Homebrew |
+| --- | --- | --- | --- | --- |
+| Python | `build/build.py` ほかの `*.py` | 3.8 以上 (`:=` を使う) | `python3` | Command Line Tools の `python3` でよい |
+| Pillow | `build/character_promo.py`・`editor/render.py` (と `tools/make_icons.py`) | `build/build.py` だけなら要らない | `python3 -m pip install Pillow` | 同じ |
+| ffmpeg / ffprobe | `build/build.py`・`build/fetch_assets.sh` | `libx264` と、字幕の `drawtext` のための freetype が入ったもの。`fetch_assets.sh` は SVG を読むための librsvg も要る | `ffmpeg` (多くの配布版は 3 つとも入っている) | 下を見る |
+| fontconfig (`fc-match`) | `build/build.py` | 既定のフォント (`fetch_assets.sh` で取る) がないときだけ | `fontconfig` | `fontconfig` |
+| curl | `build/fetch_assets.sh` | | `curl` | (macOS に入っている) |
+| adb | `capture/capture.sh` | | `adb` | `--cask android-platform-tools` |
+| scrcpy | `capture/capture.sh` | `--audio-source=playback` と `--no-playback` が使える版 (**2.6 以上** を目安にしたが、何版からかは未確認。足りなければ `capture.sh` の録画が始まらず、ログを出して止まる)。端末は **Android 13 以上** (再生中の音を録る `playback` の条件) | `scrcpy` (版が古ければ GitHub のリリースから入れる) | `scrcpy` |
+| timeout | `capture/capture.sh` | | (coreutils に入っている) | `coreutils` (`gtimeout` を使う。`capture.sh` は `timeout` がなければ `gtimeout` を探す) |
+
+```sh
+# Linux (Ubuntu / Debian)
+sudo apt install -y python3 ffmpeg fontconfig curl adb scrcpy
+scrcpy --version    # 古ければ https://github.com/Genymobile/scrcpy/releases から入れる
+
+# macOS
+brew uninstall ffmpeg                                       # 本家の ffmpeg が入っていれば外す
+brew tap homebrew-ffmpeg/ffmpeg
+brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-librsvg   # 本家の ffmpeg は freetype と librsvg がなく、字幕とバッジが作れない
+brew install fontconfig scrcpy coreutils
+brew install --cask android-platform-tools
+```
+
+ffmpeg に要るものが入っているかは、次で確かめられる (3 行とも出れば足りている)。`build.py` と `fetch_assets.sh` も、足りなければ始める前に止まる。
+
+```sh
+ffmpeg -hide_banner -filters  | grep -w drawtext
+ffmpeg -hide_banner -encoders | grep -w libx264
+ffmpeg -hide_banner -decoders | grep -w librsvg
+```
+
+アプリのアイコンと日本語フォントを作る道具 (`tools/`) の要るものは、`docs/native-app-spec.md` の 5.3 にある。
+
 ## 流れ
 
 1. **撮る**: 撮影用ビルド (自動プレイ入り) を実機に入れて録画する。
@@ -33,7 +71,7 @@ records/    videos.csv、youtube_uploads.csv
    adb install -r build/app/outputs/flutter-apk/app-release.apk
    ```
    実機でタイトルの `VER` を 3 回タップしてデバッグモードにすると、全ステージを選べる (撮影用ビルドでは、DEBUG の帯は出ない)。
-   `promo/capture/capture.sh <ステージ 例 2-7> <ラベル 例 just> <テイク 例 01>` で、ステージを選んで録画する (scrcpy と adb が要る)。ボスのステージは撮らない。
+   `promo/capture/capture.sh <ステージ 例 2-7> <ラベル 例 just> <テイク 例 01>` で、ステージを選んで録画する (scrcpy・adb・timeout が要る。上の「要るもの」)。ボスのステージは撮らない。
 2. **作る**: `promo/build/specs/spec.example.json` を写して、録画の切り出し位置と字幕を書き、実行する。
    ```sh
    promo/build/fetch_assets.sh                # 初回だけ: フォントとストアの公式バッジを取る (git に入れない素材)

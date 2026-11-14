@@ -30,11 +30,26 @@ def duration(path):
 DEFAULT_FONT = ROOT / "promo/build/fonts/DotGothic16-Regular.ttf"  # SIL OFL。ゲーム内の文字と同じ系統
 
 
+def check_ffmpeg():
+    """ffmpeg / ffprobe があり、字幕 (drawtext = freetype) と libx264 が使えるか。入れ方は promo/README.md の「要るもの」。"""
+    for c in ("ffmpeg", "ffprobe"):
+        if not shutil.which(c):
+            sys.exit(f"{c} がない: sudo apt install -y ffmpeg (macOS は promo/README.md の「要るもの」)")
+    filters = subprocess.run(["ffmpeg", "-hide_banner", "-filters"], capture_output=True, text=True).stdout
+    encoders = subprocess.run(["ffmpeg", "-hide_banner", "-encoders"], capture_output=True, text=True).stdout
+    missing = [n for n, ok in (("drawtext (freetype)", re.search(r"\bdrawtext\b", filters)),
+                               ("libx264", re.search(r"\blibx264\b", encoders))) if not ok]
+    if missing:
+        sys.exit(f"この ffmpeg には {' と '.join(missing)} がない。promo/README.md の「要るもの」の入れ方で入れ直す")
+
+
 def find_font(spec):
     if spec.get("font"):
         return spec["font"]
     if DEFAULT_FONT.exists():
         return str(DEFAULT_FONT)
+    if not shutil.which("fc-match"):
+        sys.exit("fc-match がない (fontconfig)。promo/build/fetch_assets.sh で既定のフォントを取るか、spec.json の font にフォントファイルを指定する")
     out = subprocess.run(["fc-match", "-f", "%{file}", ":lang=ja"], capture_output=True, text=True)
     if out.returncode or not out.stdout:
         sys.exit("日本語フォントが見つからない。spec.json の font にフォントファイルを指定する")
@@ -234,8 +249,7 @@ def main():
     if dry:
         print(f"OK: 全体 {total:.1f} 秒、出力予定 {[str(p.relative_to(ROOT)) for p in outs.values()]}")
         return
-    if not shutil.which("ffmpeg"):
-        sys.exit("ffmpeg がない: sudo apt install -y ffmpeg")
+    check_ffmpeg()
 
     font = find_font(spec)
     FOOTER["tagline"] = spec.get("tagline", "弾幕を撃ち返す、ドット絵ブロック崩し")

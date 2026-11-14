@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """アイコンと起動画面の画像を、16 色のドット絵で描いて書き出す。
 
+    python3 -m pip install Pillow   # 初回だけ
     python3 tools/make_icons.py
 
 色は app/lib/render/palette.dart の Dot から取る。64 × 64 ドットで描き、
