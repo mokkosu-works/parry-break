@@ -20,6 +20,17 @@ void main() {
       );
     });
 
+    // Issue #265: 感度の項目は 1 つにまとめたが、保存は 2 つの値のまま
+    test('sensitivity と railSensitivity は、どちらも別々の値のまま保存される', () {
+      final s = const Settings().copyWith(sensitivity: 3, railSensitivity: 1.5);
+      final j = s.toJson();
+      expect(j['sensitivity'], 3);
+      expect(j['railSensitivity'], 1.5);
+      final back = Settings.fromJson(j);
+      expect(back.sensitivity, 3);
+      expect(back.railSensitivity, 1.5);
+    });
+
     test('JSON を往復しても同じ値になる', () {
       final s = const Settings().copyWith(railSensitivity: 1.5);
       expect(Settings.fromJson(s.toJson()).railSensitivity, 1.5);

@@ -263,15 +263,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsSensitivity => '移動感度';
 
   @override
-  String get settingsRailSensitivity => 'レール感度';
-
-  @override
-  String get settingsZonesOnly => '操作方法が「画面の左右」のときに使います';
-
-  @override
-  String get settingsRailOnly => '操作方法が「レール」のときに使います';
-
-  @override
   String get settingsTiming => '判定タイミング補正';
 
   @override

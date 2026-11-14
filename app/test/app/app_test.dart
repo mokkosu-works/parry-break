@@ -923,18 +923,24 @@ void main() {
     await _pumpApp(tester, ads: _PrivacyAds());
     await tester.tap(find.text('SETTINGS'));
     await _frames(tester, 0.5);
-    // 操作のタブ: 移動感度・レールの感度・タイミングの 3 つの目盛り
-    expect(find.bySemanticsLabel('Decrease'), findsNWidgets(3));
-    expect(find.bySemanticsLabel('Increase'), findsNWidgets(3));
+    // 操作のタブ: 移動感度・タイミングの 2 つの目盛り
+    expect(find.bySemanticsLabel('Decrease'), findsNWidgets(2));
+    expect(find.bySemanticsLabel('Increase'), findsNWidgets(2));
     expect(
       tester.getSemantics(find.bySemanticsLabel('Increase').first),
       isSemantics(isButton: true, isEnabled: true, hasTapAction: true),
     );
-    // 既定 (左右に分ける操作) ではレールの感度は使えない
-    expect(
-      tester.getSemantics(find.bySemanticsLabel(RegExp(r'^Rail sensitivity'))),
-      isSemantics(hasEnabledState: true, isEnabled: false),
+    // 移動感度は、どの操作方法でも使える (項目名と今の値が読まれる)
+    expect(find.bySemanticsLabel(RegExp(r'^Rail sensitivity')), findsNothing);
+    expect(find.bySemanticsLabel(RegExp(r'^Move sensitivity')), findsOneWidget);
+    final slider = tester.getSemantics(
+      find
+          .byWidgetPredicate(
+            (w) => w is Semantics && w.properties.slider == true,
+          )
+          .first,
     );
+    expect(slider.value, '×2.0');
     expect(
       tester.getSemantics(find.bySemanticsLabel(RegExp(r'^Move sensitivity'))),
       isNot(isSemantics(hasEnabledState: true, isEnabled: false)),
@@ -1450,7 +1456,7 @@ void main() {
       await key(LogicalKeyboardKey.arrowUp);
       await key(LogicalKeyboardKey.arrowUp);
       await key(LogicalKeyboardKey.arrowRight);
-      for (var i = 0; i < 3; i++) {
+      for (var i = 0; i < 2; i++) {
         await key(LogicalKeyboardKey.arrowDown);
       }
       await key(LogicalKeyboardKey.enter);
@@ -1474,42 +1480,100 @@ void main() {
     });
   });
 
-  // Issue #151: 使えない感度の項目は灰色になるだけで、理由が書かれていなかった
-  testWidgets('設定: 使えない感度の項目に理由が出て、操作方法を切り替えると入れ替わる', (tester) async {
-    await _pumpApp(tester, size: const Size(667, 375));
-    await tester.tap(find.text('SETTINGS'));
-    await _frames(tester, 0.5);
-    // 領域方式 (既定): レール感度の下に理由が出る
-    expect(find.text('Used when Controls is "Rail"'), findsOneWidget);
-    expect(find.text('Used when Controls is "Screen halves"'), findsNothing);
-    await tester.tap(find.text('Rail (horizontal)'));
-    await _frames(tester, 0.3);
-    expect(find.text('Used when Controls is "Screen halves"'), findsOneWidget);
-    expect(find.text('Used when Controls is "Rail"'), findsNothing);
-    await tester.tap(find.text('Screen halves'));
-    await _frames(tester, 0.3);
-    expect(find.text('Used when Controls is "Rail"'), findsOneWidget);
-    expect(find.text('Used when Controls is "Screen halves"'), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
+  // Issue #265: 感度は「移動感度」1 つ。いま選んでいる操作方法の値を変える
+  group('設定: 移動感度は操作方法の値を変える', () {
+    Future<ProviderContainer> open(
+      WidgetTester tester, {
+      ControlScheme controls = ControlScheme.zones,
+      String language = 'en',
+    }) async {
+      await _pumpApp(
+        tester,
+        home: const SettingsScreen(),
+        size: const Size(667, 375),
+        prefs: {
+          'settings.v1': jsonEncode(
+            Settings(
+              language: language,
+              controls: controls,
+              sensitivity: 3,
+              railSensitivity: 1.5,
+            ).toJson(),
+          ),
+        },
+      );
+      await _frames(tester, 0.5);
+      return ProviderScope.containerOf(
+        tester.element(find.byType(SettingsScreen)),
+      );
+    }
 
-  testWidgets('設定: 使えない理由は日本語でも出る', (tester) async {
-    await _pumpApp(
-      tester,
-      home: const SettingsScreen(),
-      prefs: {
-        'settings.v1': jsonEncode(
-          const Settings(
-            language: 'ja',
-            controls: ControlScheme.railVertical,
-          ).toJson(),
-        ),
-      },
-    );
-    await _frames(tester, 0.5);
-    expect(find.text('操作方法が「画面の左右」のときに使います'), findsOneWidget);
-    expect(find.text('操作方法が「レール」のときに使います'), findsNothing);
-    expect(tester.takeException(), isNull);
+    testWidgets('「レール感度」の行も、使えない理由の文もない', (tester) async {
+      await open(tester, controls: ControlScheme.railHorizontal);
+      expect(find.text('Move sensitivity'), findsOneWidget);
+      expect(find.text('Rail sensitivity'), findsNothing);
+      expect(find.textContaining('Used when Controls'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    for (final scheme in [
+      ControlScheme.railHorizontal,
+      ControlScheme.railVertical,
+    ]) {
+      testWidgets('${scheme.name}: 移動感度を動かすと railSensitivity が変わる', (
+        tester,
+      ) async {
+        final c = await open(tester, controls: scheme);
+        expect(find.text('×1.5'), findsOneWidget);
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight); // 項目へ
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown); // 移動感度
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await tester.pump();
+        final s = c.read(settingsProvider);
+        expect(s.railSensitivity, closeTo(1.6, 1e-9));
+        expect(s.sensitivity, 3, reason: '領域方式の値は変わらない');
+      });
+    }
+
+    testWidgets('領域方式: 移動感度を動かすと sensitivity が変わる', (tester) async {
+      final c = await open(tester);
+      expect(find.text('×3.0'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      final s = c.read(settingsProvider);
+      expect(s.sensitivity, greaterThan(3));
+      expect(s.railSensitivity, 1.5, reason: 'レールの値は変わらない');
+    });
+
+    testWidgets('操作方法を切り替えると、スライダーの値と範囲がその方式のものになる', (tester) async {
+      final c = await open(tester);
+      expect(find.text('×3.0'), findsOneWidget);
+      await tester.tap(find.text('Rail (horizontal)'));
+      await _frames(tester, 0.3);
+      expect(find.text('×1.5'), findsOneWidget);
+      // レールの範囲は ×0.5〜×2.0: 上限まで上げても ×2.0 で止まる
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      for (var i = 0; i < 20; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await tester.pump();
+      }
+      await tester.pump();
+      expect(c.read(settingsProvider).railSensitivity, 2.0);
+      expect(c.read(settingsProvider).sensitivity, 3);
+      await tester.tap(find.text('Screen halves'));
+      await _frames(tester, 0.3);
+      expect(find.text('×3.0'), findsOneWidget);
+    });
+
+    testWidgets('日本語でも「移動感度」だけが出る', (tester) async {
+      await open(tester, controls: ControlScheme.railVertical, language: 'ja');
+      expect(find.text('移動感度'), findsOneWidget);
+      expect(find.text('レール感度'), findsNothing);
+      expect(find.textContaining('のときに使います'), findsNothing);
+    });
   });
 
   // Issue #13: スコア履歴
