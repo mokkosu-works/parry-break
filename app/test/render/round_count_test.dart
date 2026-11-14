@@ -79,12 +79,12 @@ List<String> _draw(String? id, {int round = 1}) {
 }
 
 void main() {
-  test('2-2 の 1 ラウンド目は HUD に 1/2、帯に ROUND 1/2 が出る', () {
-    expect(_draw('2-2'), containsAll(['1/2', 'ROUND 1/2']));
+  test('2-2 の 1 ラウンド目は HUD に STAGE 2-2 と 1/2、帯に STAGE 2-2  1/2 が出る', () {
+    expect(_draw('2-2'), containsAll(['STAGE 2-2', '1/2', 'STAGE 2-2  1/2']));
   });
 
   test('2-2 の 2 ラウンド目は 2/2 が出る', () {
-    expect(_draw('2-2', round: 2), containsAll(['2/2', 'ROUND 2/2']));
+    expect(_draw('2-2', round: 2), containsAll(['2/2', 'STAGE 2-2  2/2']));
   });
 
   test('3-9 / 6-9 は /3、4-9 / 5-9 は /2 で出る', () {
@@ -96,17 +96,24 @@ void main() {
     ]) {
       expect(
         _draw(id),
-        containsAll(['1/$total', 'ROUND 1/$total']),
+        containsAll(['1/$total', 'STAGE $id  1/$total']),
         reason: id,
       );
     }
   });
 
-  test('1 ラウンドだけの面とエンドレスは今のまま', () {
-    for (final id in ['1-1', null]) {
+  test('1 ラウンドだけの面は、ラウンドではなくステージの番号を出す', () {
+    for (final id in ['1-1', '1-3']) {
       final drawn = _draw(id);
-      expect(drawn, containsAll(['1', 'ROUND 1']), reason: '$id');
-      expect(drawn.where((s) => s.contains('/')), isEmpty, reason: '$id');
+      expect(drawn, containsAll(['STAGE', id, 'STAGE $id']), reason: id);
+      expect(drawn, isNot(contains('ROUND 1')), reason: id);
+      expect(drawn.where((s) => s.contains('/')), isEmpty, reason: id);
     }
+  });
+
+  test('エンドレスは今のまま ROUND を出す', () {
+    final drawn = _draw(null);
+    expect(drawn, containsAll(['ROUND', '1', 'ROUND 1']));
+    expect(drawn.where((s) => s.contains('/')), isEmpty);
   });
 }

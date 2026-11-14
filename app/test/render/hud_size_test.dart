@@ -114,6 +114,7 @@ const _labels = {'SCORE', 'ROUND', 'TIME', 'SURVIVE', 'GOAL', 'CHAIN'};
 bool _isLabel(String s) =>
     _labels.contains(s) ||
     s.startsWith('BOSS ') ||
+    s.startsWith('STAGE') ||
     s.startsWith('FEVER TIME ') ||
     s.startsWith('COMBO LV');
 
