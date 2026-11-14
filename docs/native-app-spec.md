@@ -166,7 +166,7 @@ app/
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
     input/        input_clock.dart(タッチの時刻の換算), touch_controls.dart(領域方式・レール・PARRY)
-    services/     settings.dart, records.dart(記録), history.dart(最近のプレイの履歴), content.dart, leaderboard.dart,
+    services/     settings.dart, records.dart(記録。`endless.plays` はエンドレスを遊び終えた回数。古いデータは 0 として読む), beginner_guard.dart(はじめの防壁を付けるかの判定), history.dart(最近のプレイの履歴), content.dart, leaderboard.dart,
                   ads.dart(インタースティシャル広告と頻度の制限), review.dart(評価の依頼), error_log.dart(予期しない例外の記録)
     ui/           stage_select / help / history / settings / calibration _screen.dart, widgets.dart, stage_text.dart,
                   arcade.dart(タイトル・結果・ポーズで使うドット絵の部品), pixel_icons.dart(ドット絵のアイコン),
@@ -315,7 +315,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
   - パリィ判定の境界: 接触時刻との差が ±12 / 30 / 100ms ちょうどのときの判定。
   - 崩落: 要石の破壊、つながりの切断で、期待どおりのブロックが崩れる。
   - スコア: 崩落・連鎖爆発・跳弾のボーナス計算。
-  - 決定性: 同じシードと同じ入力ログから、同じスコアになる。アイテムの抽選は専用の乱数で行い、ほかの乱数を引く回数を変えない(`test/core/items_test.dart`)。
+  - 決定性: 同じシードと同じ入力ログから、同じスコアになる。アイテムの抽選は専用の乱数で行い、ほかの乱数を引く回数を変えない(`test/core/items_test.dart`)。はじめの防壁(design.md 7.10)は `World.beginnerGuard`(外から渡すフラグ)だけで決まり、乱数を引かない(`test/core/beginner_guard_test.dart`)。
   - バランス: `test/balance/balance_report.dart`(難易度ごとのクリア率)と `test/balance/item_report.dart`(アイテムなし / あり / 全部取るの比較)。どちらも手で流す(`flutter test test/balance/...`。CI では `_test.dart` でないので動かない)。
 - `flutter analyze` で警告がない。
 - iOS シミュレーターと Android エミュレーターで R1〜R10(ボス1)を通しで遊び、ブラウザ版と並べて挙動・数値・演出を比べる。

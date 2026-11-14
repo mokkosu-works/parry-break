@@ -84,10 +84,12 @@ extension _BallSystem on World {
         }
       }
       // GUARD (アイテム) の防壁: メインのボールを 1 回だけ跳ね返して消える (分身弾は素通り)
-      if (main && effects.guard > 0 && b.vy > 0 && b.y + r >= Field.guardY) {
+      if (main && effects.guardUp && b.vy > 0 && b.y + r >= Field.guardY) {
         b.y = Field.guardY - r;
         b.vy = -b.vy.abs();
-        effects.guard = 0;
+        effects
+          ..guard = 0
+          ..guardHold = false;
         emit(GuardBounced(b.x));
       }
       if (b.y - r > Field.height) {

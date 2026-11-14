@@ -53,6 +53,7 @@ class _Reader {
       bestCollapse: int_(j['bestCollapse']),
       bestBlast: int_(j['bestBlast']),
       bestRicochet: int_(j['bestRicochet']),
+      plays: int_(j['plays']),
     );
   }
 
@@ -87,8 +88,13 @@ class EndlessRecord {
     this.bestCollapse = 0,
     this.bestBlast = 0,
     this.bestRicochet = 0,
+    this.plays = 0,
   });
   final int bestScore, bestRound, bestCollapse, bestBlast, bestRicochet;
+
+  /// エンドレスを遊び終えた回数 (はじめの防壁の判定に使う。デイリー・ステージ・練習場は数えない)。
+  /// この項目を足す前のデータにはないので 0 として読む ([endlessPlayCount] が履歴で補う)。
+  final int plays;
 
   Map<String, Object?> toJson() => {
     'bestScore': bestScore,
@@ -96,6 +102,7 @@ class EndlessRecord {
     'bestCollapse': bestCollapse,
     'bestBlast': bestBlast,
     'bestRicochet': bestRicochet,
+    'plays': plays,
   };
 
   /// 型の違う項目は 0 として読む。
@@ -241,6 +248,7 @@ class RecordsNotifier extends Notifier<Records> {
           bestCollapse: math.max(e.bestCollapse, stats.bestCollapse),
           bestBlast: math.max(e.bestBlast, stats.bestBlast),
           bestRicochet: math.max(e.bestRicochet, stats.bestRicochet),
+          plays: e.plays + 1,
         ),
         stages: state.stages,
       ),
