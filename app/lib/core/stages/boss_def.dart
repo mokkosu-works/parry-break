@@ -23,7 +23,7 @@ class PatternSpec {
   final Map<String, Object?> params;
 }
 
-/// ボスの定義。Phase 4 で JSON (assets/bosses/) から読み込む。
+/// ボスの定義。`assets/stages/endless.json` の `bosses` から [BossDef.fromJson] で読み込む ([EndlessContent])。
 class BossDef {
   const BossDef({
     required this.index,
