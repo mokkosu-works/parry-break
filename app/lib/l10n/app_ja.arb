@@ -90,6 +90,58 @@
       }
     }
   },
+  "resultNearBest": "自己ベストまであと{n}点",
+  "@resultNearBest": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearToday": "今日の記録まであと{n}点",
+  "@resultNearToday": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearRankRounds": "{rank} ランクまであと{n}ラウンド",
+  "@resultNearRankRounds": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "resultNearRankScore": "{rank} ランクまであと{score}点",
+  "@resultNearRankScore": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearRankBoth": "{rank} ランクまであと{n}ラウンド・あと{score}点",
+  "@resultNearRankBoth": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
   "unlockBy": "{stage} をクリアすると開く",
   "@unlockBy": {
     "placeholders": {

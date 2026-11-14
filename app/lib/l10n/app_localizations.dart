@@ -368,6 +368,36 @@ abstract class AppLocalizations {
   /// **'ボスの残り HP {n}'**
   String resultGapBoss(String n);
 
+  /// No description provided for @resultNearBest.
+  ///
+  /// In ja, this message translates to:
+  /// **'自己ベストまであと{n}点'**
+  String resultNearBest(String n);
+
+  /// No description provided for @resultNearToday.
+  ///
+  /// In ja, this message translates to:
+  /// **'今日の記録まであと{n}点'**
+  String resultNearToday(String n);
+
+  /// No description provided for @resultNearRankRounds.
+  ///
+  /// In ja, this message translates to:
+  /// **'{rank} ランクまであと{n}ラウンド'**
+  String resultNearRankRounds(String rank, int n);
+
+  /// No description provided for @resultNearRankScore.
+  ///
+  /// In ja, this message translates to:
+  /// **'{rank} ランクまであと{score}点'**
+  String resultNearRankScore(String rank, String score);
+
+  /// No description provided for @resultNearRankBoth.
+  ///
+  /// In ja, this message translates to:
+  /// **'{rank} ランクまであと{n}ラウンド・あと{score}点'**
+  String resultNearRankBoth(String rank, int n, String score);
+
   /// No description provided for @unlockBy.
   ///
   /// In ja, this message translates to:

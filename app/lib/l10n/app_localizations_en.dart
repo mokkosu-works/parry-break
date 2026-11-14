@@ -167,6 +167,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String resultNearBest(String n) {
+    return '$n pts to your best score';
+  }
+
+  @override
+  String resultNearToday(String n) {
+    return '$n pts to today\'s record';
+  }
+
+  @override
+  String resultNearRankRounds(String rank, int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n more rounds',
+      one: '1 more round',
+    );
+    return '$_temp0 to rank $rank';
+  }
+
+  @override
+  String resultNearRankScore(String rank, String score) {
+    return '$score more pts to rank $rank';
+  }
+
+  @override
+  String resultNearRankBoth(String rank, int n, String score) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n more rounds',
+      one: '1 more round',
+    );
+    return '$_temp0 and $score more pts to rank $rank';
+  }
+
+  @override
   String unlockBy(String stage) {
     return 'Clear $stage to unlock';
   }

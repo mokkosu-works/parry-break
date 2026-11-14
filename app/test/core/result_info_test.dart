@@ -210,4 +210,67 @@ void main() {
       expect(hp, greaterThan(0));
     });
   });
+
+  group('エンドレスと DAILY の「あと少し」', () {
+    RunGap gap(
+      int round,
+      int score, {
+      int best = 99999999,
+      bool beat = false,
+    }) => runGap(
+      score: score,
+      round: round,
+      bestScore: best,
+      beatRecord: beat,
+      rank: table.endless(round: round, score: score),
+    );
+
+    test('記録まで: 更新しなかったときだけ、差を出す', () {
+      expect(gap(10, 1000, best: 5000).toBest, 4000);
+      expect(gap(10, 1000, best: 5000, beat: true).toBest, isNull);
+      expect(gap(10, 5000, best: 5000).toBest, isNull); // 並んだだけ
+    });
+
+    test('ランクを出さないとき (rank が null) は、次のランクを出さない', () {
+      final g = runGap(score: 1, round: 1, bestScore: 9, beatRecord: false);
+      expect(g.toRank, isNull);
+      expect(g.toBest, 8);
+    });
+
+    test('次のランクには、足りないほうだけを出す', () {
+      // ラウンドは B (15) に足りているが、スコアが B (4,000,000) に足りない: C -> B
+      var r = gap(16, 3000000).toRank!;
+      expect(r.next, Rank.b);
+      expect(r.rounds, 0);
+      expect(r.score, 1000000);
+      // スコアは足りていて、ラウンドが足りない
+      r = gap(13, 4500000).toRank!;
+      expect(r.next, Rank.b);
+      expect(r.rounds, 2);
+      expect(r.score, 0);
+      // 両方足りない: 例の「A ランクまであと 2 ラウンド・あと 1,200,000 点」
+      r = gap(23, 6800000).toRank!;
+      expect(r.next, Rank.a);
+      expect(r.rounds, 2);
+      expect(r.score, 1200000);
+    });
+
+    test('しきい値は RankTable の値と一致し、D の次は C、S は次なし', () {
+      final r = gap(0, 0).toRank!;
+      expect(r.next, Rank.c);
+      expect(r.rounds, table.endlessRounds[3]);
+      expect(r.score, table.endlessScores[3]);
+      expect(gap(35, 14000000).toRank, isNull);
+    });
+
+    test('次のランクの境目ちょうどに届けば、そのランクになる', () {
+      for (var i = 0; i < 4; i++) {
+        final r = table.endless(
+          round: table.endlessRounds[i],
+          score: table.endlessScores[i],
+        );
+        expect(r, Rank.values[i]);
+      }
+    });
+  });
 }

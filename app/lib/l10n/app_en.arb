@@ -45,6 +45,58 @@
   "resultGapScore": "{n} to the target score",
   "resultGapSurvive": "{n}s left to survive",
   "resultGapBoss": "Boss HP left: {n}",
+  "resultNearBest": "{n} pts to your best score",
+  "@resultNearBest": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearToday": "{n} pts to today's record",
+  "@resultNearToday": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearRankRounds": "{n, plural, =1{1 more round} other{{n} more rounds}} to rank {rank}",
+  "@resultNearRankRounds": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "resultNearRankScore": "{score} more pts to rank {rank}",
+  "@resultNearRankScore": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearRankBoth": "{n, plural, =1{1 more round} other{{n} more rounds}} and {score} more pts to rank {rank}",
+  "@resultNearRankBoth": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
   "unlockBy": "Clear {stage} to unlock",
   "starClear": "Clear",
   "starNoHit": "Clear without getting hit",
