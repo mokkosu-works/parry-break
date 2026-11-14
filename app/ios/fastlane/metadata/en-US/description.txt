@@ -9,16 +9,21 @@ Parries and returned bullets build up your Combo and your multiplier. Max it out
 - COLLAPSE AND CHAIN BLASTS
 Break a white keystone and every block it was holding comes crashing down. Orange explosives take their neighbours with them. Find the chain that flips the whole board.
 
-- TWO MODES
+- FALLING ITEMS
+Broken blocks sometimes drop capsules. Catch one with your paddle to power up, or parry it for an even stronger effect.
+
+- FOUR MODES
 Endless: Survive 60 rounds and the loop beyond, with a boss fortress every 10 rounds.
 Stages: 60 short 1-2 minute stages across 6 chapters, rated with up to three stars. Pick EASY, NORMAL or HARD; HARD turns up the bullet hell. Chapter 1 teaches the basics.
+Daily: A new layout every day, the same for everyone. Your first run of the day is the one that counts, and your streak keeps growing.
+Practice: Drill your parry timing. A dropped ball comes right back.
 
 - ONE BALL, NO CONTINUES
-Drop the ball or let the blocks reach the dead line and it's over.
+Drop the ball or let the blocks reach the dead line and it's over. The results screen gives you an S-D rank, a parry breakdown and what ended your run.
 
 - BUILT TO PLAY WELL
 - Drag on the left half to move, tap the right half to parry, or switch to rail controls
-- Calibrate the timing offset to your device
+- Calibrate the timing offset to your device, and see whether each parry was early or late
 - Reduce flashing and screen shake in Settings
 - Game Center leaderboards
 - Ads never interrupt a run. No in-app purchases
