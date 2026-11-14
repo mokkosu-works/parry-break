@@ -347,7 +347,12 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                                 if (records.endless.bestScore > 0)
                                   Opacity(
                                     opacity: _stage(0.5, 0.9),
-                                    child: _HiScore(record: records.endless),
+                                    // 9 桁でも左の枠からはみ出さないよう、収まらないときだけ縮める
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: _HiScore(record: records.endless),
+                                    ),
                                   ),
                                 if (entries.any((e) => e.side))
                                   Opacity(
