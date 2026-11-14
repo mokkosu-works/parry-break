@@ -45,6 +45,20 @@ void main() {
     }
   });
 
+  test('ステージ名が章名と同じ文字列にならない (ステージ選択で見分けられるように)', () {
+    for (final ch in campaign.chapters) {
+      for (final lang in ['ja', 'en']) {
+        // 「CHAPTER 2  FEVER TIME」「第2章 フィーバータイム」から章の番号を除いた名前
+        final name = ch.title
+            .of(lang)
+            .replaceFirst(RegExp(r'^(CHAPTER\s+\d+|第\d+章)\s+'), '');
+        for (final s in ch.stages) {
+          expect(s.title.of(lang), isNot(name), reason: '${s.id} ($lang)');
+        }
+      }
+    }
+  });
+
   test('新しい攻撃ブロックは、説明付きのステージで初めて登場する', () {
     final seen = <String>{};
     for (final s in campaign.stages) {
