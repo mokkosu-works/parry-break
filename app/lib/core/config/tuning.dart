@@ -76,6 +76,7 @@ class Tuning {
     this.blastInterval = 0.3,
     this.guardTime = 12,
     this.guardTimeParry = 20,
+    this.beginnerGuardPlays = 3,
     this.coolTime = 8,
     this.coolTimeParry = 14,
     this.coolSpeedMul = 0.8,
@@ -166,6 +167,10 @@ class Tuning {
 
   /// GUARD: 防壁が残る時間 (通常取得 / パリィ取得)。
   final double guardTime, guardTimeParry;
+
+  /// はじめの防壁 (design.md 7.10): エンドレスを遊び終えた回数がこれ未満の間、各ラウンドの開始に張る。
+  /// アプリが [World.beginnerGuard] を決めるときに見る (コアは回数を知らない)。
+  final int beginnerGuardPlays;
 
   /// COOL: 続く時間 (通常取得 / パリィ取得) と、ボールの速さの倍率。
   final double coolTime, coolTimeParry, coolSpeedMul;
@@ -291,6 +296,7 @@ class Tuning {
       blastInterval: d('blastInterval', blastInterval),
       guardTime: d('guardTime', guardTime),
       guardTimeParry: d('guardTimeParry', guardTimeParry),
+      beginnerGuardPlays: n('beginnerGuardPlays', beginnerGuardPlays),
       coolTime: d('coolTime', coolTime),
       coolTimeParry: d('coolTimeParry', coolTimeParry),
       coolSpeedMul: d('coolSpeedMul', coolSpeedMul),

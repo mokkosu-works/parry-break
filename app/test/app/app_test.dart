@@ -132,6 +132,8 @@ Future<void> _frames(WidgetTester tester, double seconds) async {
 Future<void> _gameOver(WidgetTester tester) async {
   await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
   await _frames(tester, 0.3);
+  GameScreen.debugLastController!.world.effects.guardHold =
+      false; // はじめの防壁を外す (落とすテスト)
   GameScreen.debugLastController!.world.ball
     ..y = Field.height - 4
     ..vy = 600;
@@ -393,6 +395,7 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.space); // 発射
       await _frames(tester, 0.3);
       expect(w.ball.attached, isFalse);
+      w.effects.guardHold = false; // はじめの防壁を外す (落とすテスト)
       w.ball
         ..y = Field.height - 4
         ..vy = 600;
@@ -486,6 +489,53 @@ void main() {
     expect(w.ball.attached, isFalse);
   });
 
+  testWidgets('はじめの防壁: 最初の 3 回のエンドレスに付き、遊び終えるたびに数え、4 回目からは付かない。記録は今までどおり', (
+    tester,
+  ) async {
+    await _pumpApp(tester, home: const GameScreen());
+    await _frames(tester, 1.2);
+    var ctl = GameScreen.debugLastController!;
+    expect(ctl.world.beginnerGuard, isTrue);
+    expect(ctl.world.effects.guardHold, isTrue);
+    final c = ProviderScope.containerOf(
+      tester.element(find.byType(GameScreen)),
+    );
+    for (var play = 1; play <= 3; play++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await _frames(tester, 0.3);
+      ctl = GameScreen.debugLastController!;
+      final w = ctl.world;
+      w.addScore(100 * play);
+      w.ball
+        ..y = Field.height - 4
+        ..vy = 600;
+      await _frames(tester, 0.3);
+      expect(w.effects.guardUp, isFalse, reason: '$play 回目: 1 回跳ね返して消える');
+      expect(w.phase, WorldPhase.playing);
+      w.ball
+        ..y = Field.height - 4
+        ..vy = 600;
+      await _frames(tester, 3.2);
+      expect(ctl.finished, isTrue);
+      final e = c.read(recordsProvider).endless;
+      expect(e.plays, play);
+      expect(e.bestScore, 100 * play, reason: '防壁つきでも自己ベストを数える');
+      await tester.tap(find.text('RETRY'));
+      await _frames(tester, 1.2);
+      expect(ctl.world.beginnerGuard, play < 3, reason: '$play 回遊んだあと');
+    }
+    expect(ctl.world.effects.guardUp, isFalse);
+  });
+
+  testWidgets('はじめの防壁: DAILY には 0 回でも付かない', (tester) async {
+    await _pumpApp(tester, home: const GameScreen(daily: true));
+    await _frames(tester, 1.2);
+    final w = GameScreen.debugLastController!.world;
+    expect(w.mode, isA<DailyMode>());
+    expect(w.beginnerGuard, isFalse);
+    expect(w.effects.guardUp, isFalse);
+  });
+
   testWidgets('結果画面: エンドレスのゲームオーバー (記録更新)', (tester) async {
     final ads = _FakeAds();
     await _pumpApp(tester, home: const GameScreen(), ads: ads);
@@ -502,6 +552,7 @@ void main() {
       ..bestCollapse = 31
       ..bestBlast = 4
       ..bestRicochet = 12;
+    w.effects.guardHold = false; // はじめの防壁を外す (落とすテスト)
     w.ball
       ..y = Field.height - 4
       ..vy = 600;
@@ -1266,6 +1317,7 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.space);
       await _frames(tester, 0.3);
       final ctl = GameScreen.debugLastController!;
+      ctl.world.effects.guardHold = false; // はじめの防壁を外す (落とすテスト)
       ctl.world.ball
         ..y = Field.height - 4
         ..vy = 600;
@@ -1889,6 +1941,7 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.space);
     await _frames(tester, 0.3);
     w.addScore(5000);
+    w.effects.guardHold = false; // はじめの防壁を外す (落とすテスト)
     w.ball
       ..y = Field.height - 4
       ..vy = 600;
@@ -1914,6 +1967,7 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.space);
     await _frames(tester, 0.3);
     w.addScore(900000);
+    w.effects.guardHold = false; // はじめの防壁を外す (落とすテスト)
     w.ball
       ..y = Field.height - 4
       ..vy = 600;

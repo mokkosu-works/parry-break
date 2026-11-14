@@ -442,6 +442,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
 
   @override
+  String introBeginnerGuard(int n) {
+    return 'はじめの$n回は防壁つき・1回だけボールを跳ね返します';
+  }
+
+  @override
   String get introItem => 'NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる';
 
   @override

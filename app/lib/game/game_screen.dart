@@ -19,6 +19,7 @@ import '../services/achievements.dart';
 import '../services/ads.dart';
 import '../services/content.dart';
 import '../services/daily.dart';
+import '../services/beginner_guard.dart';
 import '../services/history.dart';
 import '../services/leaderboard.dart';
 import '../services/records.dart';
@@ -91,14 +92,15 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final daily = _daily = widget.daily && stage == null
         ? DailyChallenge.of(ref.read(dailyClockProvider)())
         : null;
+    final GameMode mode = widget.practice
+        ? PracticeMode()
+        : daily != null
+        ? DailyMode(content.endless, daily)
+        : stage != null
+        ? StageMode(stage)
+        : EndlessMode(content.endless);
     _ctl = GameController(
-      mode: widget.practice
-          ? PracticeMode()
-          : daily != null
-          ? DailyMode(content.endless, daily)
-          : stage != null
-          ? StageMode(stage)
-          : EndlessMode(content.endless),
+      mode: mode,
       audio: ref.read(audioProvider),
       haptics: ref.read(hapticsProvider),
       inputLag: settings.timingOffsetMs / 1000,
@@ -117,6 +119,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _ctl.addListener(_onControllerChange);
     _ctl.audio.enterGame();
     _applySettings(settings);
+    _armBeginnerGuard();
     _ctl.start();
     _ticker = createTicker((_) {
       _keyboardAxis();
@@ -334,9 +337,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
   /// リトライのたびに増やす (結果画面の演出を最初から出すため)。
   int _runId = 0;
 
+  /// はじめの防壁 (design.md 7.10) を付けるかを、遊び終えた回数から決める (プレイを始めるたびに)。
+  void _armBeginnerGuard() {
+    _ctl.world.beginnerGuard = beginnerGuardFor(
+      mode: _ctl.mode,
+      records: ref.read(recordsProvider),
+      history: ref.read(historyProvider),
+    );
+  }
+
   void _retry() {
     _outcome = null;
     _runId++;
+    _armBeginnerGuard();
     _ctl.start();
     // 結果画面がキーボードのフォーカスを持っていたので、盤面に戻す
     _focus.requestFocus();

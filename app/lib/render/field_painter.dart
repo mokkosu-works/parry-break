@@ -527,9 +527,9 @@ class FieldPainter extends CustomPainter {
 
   /// GUARD の防壁: 画面の下の点線。消える 3 秒前から点滅する。
   void _guard() {
-    final left = world.effects.guard;
-    if (left <= 0 || world.phase != WorldPhase.playing) return;
-    if (left < 3 && !_blink(6)) return;
+    final e = world.effects, left = e.guard;
+    if (!e.guardUp || world.phase != WorldPhase.playing) return;
+    if (!e.guardHold && left < 3 && !_blink(6)) return;
     final col = Palette.items[ItemKind.guard]!;
     _dashedLine(0, Field.guardY, _w, 24, 8, _t * 24, col, h: _d * 2);
     _dashedLine(0, Field.guardY - _d, _w, 24, 8, _t * 24, Dot.light(col));
@@ -543,7 +543,9 @@ class FieldPainter extends CustomPainter {
     var x = 14.0;
     for (final (kind, left) in w.effects.active) {
       drawItemCapsule(_c, text, kind, x + 16, y, w: 32, h: 20);
-      final timed = kind != ItemKind.blast;
+      final timed =
+          kind != ItemKind.blast &&
+          !(kind == ItemKind.guard && w.effects.guardHold);
       final s = timed ? '${left.ceil()}' : '×${left.round()}';
       // 残り 3 秒を切ったら点滅 (控えめのときは色だけ変える)
       final ending = timed && left < 3;
@@ -1096,17 +1098,21 @@ class FieldPainter extends CustomPainter {
       BannerKind.timeOver => ('TIME OVER', l10n.bannerTimeOver, Dot.bulletRed),
     };
     // アイテムが初めて出るラウンドでは、説明を 1 行足す (design.md 7.10)
-    final item = b.kind == BannerKind.round && world.round.itemIntro
-        ? l10n.introItem
-        : null;
+    // はじめの防壁がある最初のラウンドでも、1 行足す (design.md 7.10)
+    final round = b.kind == BannerKind.round;
+    final notes = [
+      if (round && world.round.itemIntro) l10n.introItem,
+      if (round && world.beginnerGuard && world.round.number == 1)
+        l10n.introBeginnerGuard(world.tuning.beginnerGuardPlays),
+    ];
     b.describe(
-      [sub, item].whereType<String>().join(' ').nullIfEmpty,
-      extra: item != null,
+      [sub, ...notes].whereType<String>().join(' ').nullIfEmpty,
+      extra: notes.isNotEmpty,
     );
     final size = bannerSubSize(_scale), lineH = (size * 1.25).ceilToDouble();
     final lines = [
       if (sub != null && sub.isNotEmpty) ...wrapText(sub, size, bannerSubWidth),
-      if (item != null) ...wrapText(item, size, bannerSubWidth),
+      for (final n in notes) ...wrapText(n, size, bannerSubWidth),
     ];
     // 説明が 2 行以上になったら、その分だけ帯を下へ広げる
     final extra = math.max(0, lines.length - 1) * lineH;

@@ -149,16 +149,25 @@ class Item {
 class ItemEffects {
   double wide = 0, shot = 0, guard = 0, cool = 0;
 
+  /// はじめの防壁 (design.md 7.10): 時間では消えず、メインのボールを 1 回跳ね返すまで残る。
+  bool guardHold = false;
+
+  /// 防壁が張られているか (アイテムの GUARD かはじめの防壁)。
+  bool get guardUp => guard > 0 || guardHold;
+
   /// BLAST の残り回数と、次に出せるまでの残り時間。
   int blast = 0;
   double blastLock = 0;
 
-  /// 効いている効果と残り (HUD 用)。時間のものは秒、BLAST は回数。
+  /// 効いている効果と残り (HUD 用)。時間のものは秒、BLAST は回数 (はじめの防壁も 1 回)。
   List<(ItemKind, double)> get active => [
     if (wide > 0) (ItemKind.wide, wide),
     if (shot > 0) (ItemKind.shot, shot),
     if (blast > 0) (ItemKind.blast, blast.toDouble()),
-    if (guard > 0) (ItemKind.guard, guard),
+    if (guardHold)
+      (ItemKind.guard, 1.0)
+    else if (guard > 0)
+      (ItemKind.guard, guard),
     if (cool > 0) (ItemKind.cool, cool),
   ];
 }

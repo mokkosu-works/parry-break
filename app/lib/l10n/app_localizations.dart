@@ -836,6 +836,12 @@ abstract class AppLocalizations {
   /// **'ブロックをデッドラインまで下ろさずに耐え抜け'**
   String get introSurvive;
 
+  /// No description provided for @introBeginnerGuard.
+  ///
+  /// In ja, this message translates to:
+  /// **'はじめの{n}回は防壁つき・1回だけボールを跳ね返します'**
+  String introBeginnerGuard(int n);
+
   /// No description provided for @introItem.
   ///
   /// In ja, this message translates to:

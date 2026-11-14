@@ -13,6 +13,7 @@ extension _RoundSystem on World {
     aux = Mulberry32(spec.seed * 7 + 1);
     itemRng = Mulberry32(spec.itemSeed);
     _clearItems();
+    effects.guardHold = beginnerGuard;
     itemsSpawned = 0;
     breaksSinceItem = 0;
     form
