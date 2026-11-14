@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../app/providers.dart';
 import '../l10n/app_localizations.dart';
@@ -33,6 +34,43 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   _Tab _tab = _Tab.controls;
+
+  /// 見出しの右に出す版番号 (pubspec.yaml の version の X.Y.Z)。読めるまでは空。
+  String _version = '';
+
+  /// 版番号を続けてタップした回数と、最後のタップの時刻 (デバッグモードの切り替え用)。
+  int _verTaps = 0;
+  DateTime _lastVerTap = DateTime(0);
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _version = info.version);
+    });
+  }
+
+  /// 版番号を 3 回続けてタップすると、デバッグモードを切り替える (design.md 9.9)。
+  void _tapVersion() {
+    final now = DateTime.now();
+    _verTaps = now.difference(_lastVerTap) < const Duration(milliseconds: 600)
+        ? _verTaps + 1
+        : 1;
+    _lastVerTap = now;
+    if (_verTaps < 3) return;
+    _verTaps = 0;
+    final on = !ref.read(settingsProvider).debugMode;
+    ref
+        .read(settingsProvider.notifier)
+        .update((s) => s.copyWith(debugMode: on));
+    ref.read(hapticsProvider).selection();
+    final l = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(on ? l.debugModeOn : l.debugModeOff)),
+      );
+  }
 
   /// キーボードで右の項目を選んでいる (false なら左の見出しを選んでいる)。
   bool _inRows = false;
@@ -193,6 +231,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               ),
                             ),
                           ),
+                          if (_version.isNotEmpty)
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: _tapVersion,
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minWidth: 44,
+                                  minHeight: 44,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  child: Center(
+                                    widthFactor: 1,
+                                    child: Text(
+                                      'VER $_version',
+                                      style: pixelFont(
+                                        12,
+                                        color: Palette.pale,
+                                        letterSpacing: 2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 10),

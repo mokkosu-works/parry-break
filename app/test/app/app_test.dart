@@ -753,16 +753,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('デバッグモード: 版番号を 3 回タップで入り、未クリアのステージを遊べ、記録は残さない', (tester) async {
+  testWidgets('デバッグモード: 設定の版番号を 3 回タップで入り、未クリアのステージを遊べ、記録は残さない', (
+    tester,
+  ) async {
     await _pumpApp(tester);
     await _frames(tester, 2.4);
-    // 版番号はアプリの版 (pubspec.yaml の version) を出す
+    // 版番号はタイトルには出さず、設定に出す (アプリの版 = pubspec.yaml の version)
+    expect(find.text('VER 9.8.7'), findsNothing);
+    await tester.tap(find.text('SETTINGS'));
+    await _frames(tester, 0.5);
     for (var i = 0; i < 3; i++) {
       await tester.tap(find.text('VER 9.8.7'));
       await _frames(tester, 0.1);
     }
     expect(find.text('Debug mode ON'), findsOneWidget);
     await _frames(tester, 5); // SnackBar が消えるまで待つ
+    await tester.pageBack();
+    await _frames(tester, 0.5);
     await tester.tap(find.text('STAGES'));
     await _frames(tester, 0.5);
     await tester.tap(find.text('1-6'));
