@@ -178,6 +178,8 @@ class FieldPainter extends CustomPainter {
     _guard();
     _items();
     _bullets();
+    // FEVER TIME 中の大きな文字は、ボールより奥に描く (ボールを隠さない)
+    if (w.od && !attract) _overBallText();
     for (final f in w.phantoms) {
       _ball(f);
     }
@@ -193,7 +195,7 @@ class FieldPainter extends CustomPainter {
       _effects();
       _hud();
       if (w.practice case final p?) _practicePanel(p);
-      _callouts();
+      if (!w.od) _callouts(); // FEVER TIME 中はボールの奥に描く (_overBallText)
       _banner();
       if (w.phase == WorldPhase.clearing) _clearScreen();
     }
@@ -292,7 +294,8 @@ class FieldPainter extends CustomPainter {
     final od = world.od;
     if (highQuality) _floor.draw(_c, od ? Dot.odDither : Dot.dither);
     if (od) {
-      // FEVER TIME: 速く流れる線 (加速している感じ)
+      // FEVER TIME: 速く流れる線 (加速している感じ)。「演出を控えめにする」では描かない
+      if (fx.reduceEffects) return;
       final p = pixelPaint(Dot.odDither);
       final off = (_t * 900) % 240;
       for (var x = 60.0; x < _w; x += 90) {
@@ -558,8 +561,12 @@ class FieldPainter extends CustomPainter {
     final w = world;
     final st = w.stage;
     final pierce = b.pierce > 0 || w.od || b.phantom;
-    final col = w.od || b.phantom
-        ? Dot.rose
+    // FEVER TIME: 本物のボールは白い芯 + ピンクの光 + 回る白い輪。分身弾は小さく暗い (design.md 7.8.1)
+    final feverMain = w.od && !b.phantom;
+    final col = b.phantom
+        ? Dot.dark(Dot.rose)
+        : w.od
+        ? Dot.white
         : b.breaker
         ? Dot.blush
         : pierce
@@ -568,6 +575,7 @@ class FieldPainter extends CustomPainter {
     final tr = fx.trails[b.id] ?? const <Offset>[];
     // 残像: 古いものほど小さく暗い (3 段階)
     for (var i = 0; i < tr.length; i++) {
+      if (w.od && fx.reduceEffects && i.isOdd) continue; // 控えめでは残像を間引く
       final a = (i + 1) / tr.length;
       final s = a > 0.66
           ? 3.0
@@ -575,29 +583,33 @@ class FieldPainter extends CustomPainter {
           ? 2.0
           : 1.0;
       final c = a > 0.66
-          ? col
+          ? (w.od ? Dot.dark(Dot.rose) : col)
           : a > 0.33
           ? Dot.dark(col)
           : Dot.edge;
-      if (w.od && i % 4 == 0) {
-        _ballSprite.drawCentered(
-          _c,
-          tr[i].dx,
-          tr[i].dy,
-          withAlpha(Dot.rose, 0.4),
-        );
-      }
       _c.drawRect(
         Rect.fromCenter(center: tr[i], width: _d * s, height: _d * s),
         pixelPaint(c),
       );
     }
     final x = _lerp(b.prevX, b.x), y = _lerp(b.prevY, b.y);
-    if (pierce) {
+    if (feverMain) {
+      _ballSprite.drawCentered(_c, x, y, withAlpha(Dot.rose, 0.55), scale: 2);
+    } else if (pierce && !b.phantom) {
       _ballSprite.drawCentered(_c, x, y, withAlpha(col, 0.35), scale: 1.75);
     }
-    _ballSprite.drawCentered(_c, x, y, col);
-    _c.drawRect(Rect.fromLTWH(x - _d, y - _d, _d, _d), pixelPaint(Dot.white));
+    _ballSprite.drawCentered(_c, x, y, col, scale: b.phantom ? 0.5 : 1);
+    if (!b.phantom) {
+      _c.drawRect(Rect.fromLTWH(x - _d, y - _d, _d, _d), pixelPaint(Dot.white));
+    }
+    if (feverMain) {
+      final a0 = (_t * 1000 / 150 / (math.pi / 4)).floor() * math.pi / 4;
+      drawDots(
+        _c,
+        ringDots(x, y, 20, 12, from: a0, to: a0 + math.pi * 2),
+        Dot.white,
+      );
+    }
     if (b.breaker) {
       final a0 = (_t * 1000 / 120 / (math.pi / 4)).floor() * math.pi / 4;
       drawDots(
@@ -943,19 +955,53 @@ class FieldPainter extends CustomPainter {
         _c.drawRect(Rect.fromLTWH(x + bw2 * th - 1, y, 2, 8), p);
       }
     }
-    final j = fx.judge;
-    if (j != null && w.phase == WorldPhase.playing) {
-      // 出た瞬間だけ 1 段大きく (なめらかに縮めない)
-      final base = j.big ? 40.0 : 32.0;
-      final size = base + (j.t < 0.08 ? 8 : 0);
-      final y = Field.paddleY - 36 - (j.t * 20 / 4).floor() * 4;
-      _bigTxt(j.text, w.paddle.x, y, size, j.color);
-      // ずれ: 判定の文字の下、パドルの上に小さく (判定の文字が出た瞬間に大きくなっても重ならない位置)
-      final sub = j.sub;
-      if (sub != null) {
-        _txt(sub, w.paddle.x, y + base / 2 + 10, 16, Dot.white);
-      }
+    if (!w.od) _judge();
+  }
+
+  /// 判定の文字とずれの表示。FEVER TIME 中はボールの通り道 (パドルの真上) を空け、
+  /// パドルの横に小さく出す (design.md 7.8.1)。
+  void _judge() {
+    final w = world, j = fx.judge;
+    if (j == null || w.phase != WorldPhase.playing) return;
+    final od = w.od;
+    // 出た瞬間だけ 1 段大きく (なめらかに縮めない)
+    final base = od ? 24.0 : (j.big ? 40.0 : 32.0);
+    final size = base + (j.t < 0.08 ? 8 : 0);
+    final rise = (j.t * 20 / 4).floor() * 4;
+    // 右の端なら左側へ、それ以外は右側へ。端でも画面から出ない
+    final side = w.paddle.x > _w / 2 ? -1.0 : 1.0;
+    final x = od
+        ? (w.paddle.x + side * (w.tuning.paddleWidth / 2 + 110)).clamp(
+            100.0,
+            _w - 100,
+          )
+        : w.paddle.x;
+    final y = od ? Field.paddleY - 4 - rise : Field.paddleY - 36 - rise;
+    // ボールと同じピンクにならないよう、FEVER TIME 中の JUST は黄色にする
+    final color = od && j.color == Dot.rose ? Dot.mustard : j.color;
+    _bigTxt(j.text, x, y, size, color);
+    // ずれ: 判定の文字の下、パドルの上に小さく (判定の文字が出た瞬間に大きくなっても重ならない位置)
+    final sub = j.sub;
+    if (sub != null) {
+      _txt(sub, x, y + base / 2 + 10, 16, Dot.white);
     }
+  }
+
+  /// FEVER TIME 中にボールの奥へ描く文字 (帯・コールアウト・判定)。
+  void _overBallText() {
+    _feverBanner();
+    _callouts();
+    _judge();
+  }
+
+  /// FEVER TIME に入った帯。盤面の中央に帯を広げるとボールが隠れるので、
+  /// 盤面の下 (パドルより下) に、帯なしの小さな文字で出す。
+  void _feverBanner() {
+    final b = fx.banner;
+    if (b == null || b.kind != BannerKind.feverTime) return;
+    if (world.phase == WorldPhase.over || b.open < 0.7) return;
+    b.describe(l10n.bannerFeverTime);
+    _bigTxt('FEVER TIME', _w / 2, 732, 24, Dot.rose, shadow: Dot.edge);
   }
 
   /// 練習場の画面の左端: 直近 [PracticeLog.capacity] 回の判定の内訳と、ずれの平均・ばらつき。
@@ -990,15 +1036,20 @@ class FieldPainter extends CustomPainter {
 
   void _callouts() {
     if (world.phase == WorldPhase.over) return;
-    for (var i = 0; i < fx.callouts.length; i++) {
+    // FEVER TIME 中は、いちばん新しい 1 件だけを、小さく半透明で出す (ボールを隠さない)
+    final od = world.od;
+    final from = od ? math.max(0, fx.callouts.length - 1) : 0;
+    for (var i = from; i < fx.callouts.length; i++) {
       final c = fx.callouts[i];
       final fading = c.t > FxCallout.life - 0.3;
       if (fading && !fx.reduceEffects && (c.t * 20).floor().isEven) continue;
       final pop = c.t < 0.08 ? 8.0 : 0.0;
-      final y = 210.0 + i * 64;
-      _bigTxt(c.text, _w / 2, y, c.size + pop, c.color);
+      final y = 210.0 + (i - from) * 64;
+      final size = od ? math.min(c.size, 32.0) : c.size;
+      final alpha = od ? 0.55 : 1.0;
+      _bigTxt(c.text, _w / 2, y, size + pop, withAlpha(c.color, alpha));
       if (c.sub.isNotEmpty) {
-        _txt(c.sub, _w / 2, y + c.size * 0.8, 16, Dot.white);
+        _txt(c.sub, _w / 2, y + size * 0.8, 16, withAlpha(Dot.white, alpha));
       }
     }
   }
@@ -1007,6 +1058,7 @@ class FieldPainter extends CustomPainter {
   void _banner() {
     final b = fx.banner;
     if (b == null || world.phase == WorldPhase.over) return;
+    if (b.kind == BannerKind.feverTime) return; // FEVER TIME の帯は _feverBanner
     final (title, sub, color) = switch (b.kind) {
       BannerKind.round => (
         'ROUND ${_roundNo(b.value)}',
@@ -1018,7 +1070,7 @@ class FieldPainter extends CustomPainter {
         'BOSS ${b.value}  —  ${l10n.bannerBoss}',
         Dot.bulletRed,
       ),
-      BannerKind.feverTime => ('FEVER TIME', l10n.bannerFeverTime, Dot.rose),
+      BannerKind.feverTime => ('', null, Dot.rose),
       BannerKind.bossPhase => (
         'PHASE ${b.value}',
         b.value == 2 ? l10n.bannerPhase2 : l10n.bannerPhase3,
