@@ -858,11 +858,21 @@ class FieldPainter extends CustomPainter {
     );
     final boss = w.boss;
     final practice = w.practice;
+    // ステージモードはラウンドではなくステージを出す。連戦の面は、ラベルにステージ・値に いま/全体
+    final stage = switch (w.mode) {
+      StageMode(:final stage) => stage,
+      _ => null,
+    };
+    final multi = stage != null && stage.rounds.length > 1;
     _txt(
       practice != null
           ? 'PRACTICE'
           : boss != null
           ? 'BOSS ${boss.index + 1}'
+          : multi
+          ? 'STAGE ${stage.id}'
+          : stage != null
+          ? 'STAGE'
           : 'ROUND',
       400,
       _labelY,
@@ -872,6 +882,8 @@ class FieldPainter extends CustomPainter {
     _txt(
       practice != null
           ? practiceSpeedLabel(practice.speed)
+          : stage != null && !multi && boss == null
+          ? stage.id
           : '${_roundNo(w.round.number)}${w.round.loop > 0 ? ' L${w.round.loop + 1}' : ''}',
       400,
       38,
@@ -1061,7 +1073,12 @@ class FieldPainter extends CustomPainter {
     if (b.kind == BannerKind.feverTime) return; // FEVER TIME の帯は _feverBanner
     final (title, sub, color) = switch (b.kind) {
       BannerKind.round => (
-        'ROUND ${_roundNo(b.value)}',
+        switch (world.mode) {
+          StageMode(:final stage) when stage.rounds.length > 1 =>
+            'STAGE ${stage.id}  ${_roundNo(b.value)}',
+          StageMode(:final stage) => 'STAGE ${stage.id}',
+          _ => 'ROUND ${_roundNo(b.value)}',
+        },
         _introText(b.introKey) ?? _goalText(),
         Dot.white,
       ),
@@ -1198,6 +1215,8 @@ class FieldPainter extends CustomPainter {
         ? 'DAILY CLEAR'
         : w.boss != null
         ? 'BOSS DESTROYED'
+        : w.mode is StageMode
+        ? '${_roundNo(w.round.number)} CLEAR'
         : 'ROUND ${w.round.number} CLEAR';
     _bigTxt(
       title,
