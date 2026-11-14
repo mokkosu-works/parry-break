@@ -46,16 +46,28 @@ class ResultData {
   /// ミスの原因と、ステージで失敗したときの残り。
   final OverInfo? over;
 
-  /// デイリーチャレンジなら、その日の記録に数えたかと連続日数。[bestScore] はデイリーの自己ベスト。
+  /// デイリーチャレンジなら、その日の記録をどうしたかと連続日数。[bestScore] はその日の最高得点。
   final DailyResult? daily;
+}
+
+/// デイリーの 1 回のプレイが、その日の記録 (その日の最高得点) をどうしたか。
+enum DailyOutcome {
+  /// その日の最初の 1 回。
+  first,
+
+  /// 同じ日のそれまでの記録を超えた。
+  updated,
+
+  /// 記録を超えなかった。
+  kept,
 }
 
 /// 結果画面に出す、デイリーチャレンジの記録。
 class DailyResult {
-  const DailyResult({required this.counted, required this.streak});
+  const DailyResult({required this.outcome, required this.streak});
 
-  /// その日の最初の 1 回として、記録・ランキングに数えたか (2 回目以降は練習)。
-  final bool counted;
+  /// 今回のプレイがその日の記録をどうしたか。
+  final DailyOutcome outcome;
 
   /// 連続日数。
   final int streak;
@@ -760,13 +772,15 @@ class _ResultOverlayState extends State<ResultOverlay>
   Widget _score(ResultData d, {bool compact = false}) {
     final big = compact ? 44.0 : 84.0;
     // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える。
-    // デイリーは、その日の記録に数えたか (2 回目以降は練習) と連続日数を添える
+    // デイリーは、その日の記録 (その日の最高得点) をどうしたかと連続日数を添える
     final l = AppLocalizations.of(context);
     final daily = d.daily;
     final note = daily != null
-        ? (daily.counted
-              ? l.dailyCounted(daily.streak)
-              : l.dailyPractice(daily.streak))
+        ? switch (daily.outcome) {
+            DailyOutcome.first => l.dailyFirst(daily.streak),
+            DailyOutcome.updated => l.dailyUpdated(daily.streak),
+            DailyOutcome.kept => l.dailyKept(daily.streak),
+          }
         : d.stage != null && !d.cleared
         ? l.bestScoreClearOnly
         : null;
@@ -816,7 +830,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                   ),
                   SizedBox(width: compact ? 8 : 10),
                   Text(
-                    daily != null ? 'DAILY BEST' : 'HI-SCORE',
+                    daily != null ? 'TODAY BEST' : 'HI-SCORE',
                     style: pixelFont(
                       compact ? 12 : 14,
                       color: Palette.main,
@@ -866,9 +880,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                   note,
                   style: pixelFont(
                     compact ? 12 : 14,
-                    color: daily != null && !daily.counted
-                        ? Palette.main
-                        : Palette.pale,
+                    color: Palette.pale,
                     weight: 400,
                   ),
                 ),

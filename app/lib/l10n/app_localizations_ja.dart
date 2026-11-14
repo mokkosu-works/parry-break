@@ -500,12 +500,17 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String dailyCounted(int n) {
-    return '今日の記録・連続$n日';
+  String dailyFirst(int n) {
+    return '今日の記録として残しました・$n日連続プレイ中';
   }
 
   @override
-  String dailyPractice(int n) {
-    return '2回目以降は記録に数えない・連続$n日';
+  String dailyUpdated(int n) {
+    return '今日の記録を更新しました・$n日連続プレイ中';
+  }
+
+  @override
+  String dailyKept(int n) {
+    return '今日の記録は更新ならず・$n日連続プレイ中';
   }
 }

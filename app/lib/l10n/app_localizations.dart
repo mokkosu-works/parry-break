@@ -944,17 +944,23 @@ abstract class AppLocalizations {
   /// **'{id}、未解放'**
   String stageTileLocked(String id);
 
-  /// No description provided for @dailyCounted.
+  /// No description provided for @dailyFirst.
   ///
   /// In ja, this message translates to:
-  /// **'今日の記録・連続{n}日'**
-  String dailyCounted(int n);
+  /// **'今日の記録として残しました・{n}日連続プレイ中'**
+  String dailyFirst(int n);
 
-  /// No description provided for @dailyPractice.
+  /// No description provided for @dailyUpdated.
   ///
   /// In ja, this message translates to:
-  /// **'2回目以降は記録に数えない・連続{n}日'**
-  String dailyPractice(int n);
+  /// **'今日の記録を更新しました・{n}日連続プレイ中'**
+  String dailyUpdated(int n);
+
+  /// No description provided for @dailyKept.
+  ///
+  /// In ja, this message translates to:
+  /// **'今日の記録は更新ならず・{n}日連続プレイ中'**
+  String dailyKept(int n);
 }
 
 class _AppLocalizationsDelegate

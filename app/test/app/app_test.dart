@@ -1863,9 +1863,7 @@ void main() {
     }
   }
 
-  testWidgets('デイリー: タイトルから遊び、その日の 1 回目だけ記録・ランキングに数え、2 回目は練習になる', (
-    tester,
-  ) async {
+  testWidgets('デイリー: タイトルから遊び、何回遊んでもその日の最高得点を記録にし、ランキングには毎回送る', (tester) async {
     final ads = _CountingAds();
     final lb = _RecordingLeaderboard();
     final now = DateTime.utc(2026, 11, 13, 9);
@@ -1896,13 +1894,13 @@ void main() {
     expect(c.read(dailyProvider).bestScore, first);
     expect(c.read(dailyProvider).streak, 1);
     expect(lb.submitted, [(Board.dailyScore, first)]);
-    expect(find.text("Today's run · 1-day streak"), findsOneWidget);
+    expect(find.text("Saved as today's record · 1-day streak"), findsOneWidget);
     expect(_latestPlay(tester).daily, isTrue);
     expect(ads.results, 1);
     // エンドレスの記録は変えない
     expect(c.read(recordsProvider).endless.bestScore, 0);
 
-    // 2 回目は練習: 記録・ランキングに数えない (履歴と広告の回数には数える)
+    // 2 回目も数える: 超えればその日の記録を更新し、ランキングにも送る (連続日数は増えない)
     await tester.tap(find.text('RETRY'));
     await _frames(tester, 1.2);
     expect(w.round.number, day.startRound);
@@ -1913,12 +1911,16 @@ void main() {
       ..y = Field.height - 4
       ..vy = 600;
     await _frames(tester, 3.2);
-    expect(c.read(dailyProvider).bestScore, first);
-    expect(lb.submitted, hasLength(1));
-    expect(
-      find.text("Practice (only each day's first run counts) · 1-day streak"),
-      findsOneWidget,
-    );
+    final second = w.score;
+    expect(second, greaterThan(first));
+    expect(c.read(dailyProvider).lastScore, second);
+    expect(c.read(dailyProvider).streak, 1);
+    expect(lb.submitted, [
+      (Board.dailyScore, first),
+      (Board.dailyScore, second),
+    ]);
+    expect(find.text('New record for today · 1-day streak'), findsOneWidget);
+    expect(find.text('TODAY BEST'), findsOneWidget);
     expect(c.read(historyProvider).entries.where((e) => e.daily), hasLength(2));
     expect(ads.results, 2);
 
