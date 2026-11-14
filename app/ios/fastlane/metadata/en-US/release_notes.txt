@@ -1,7 +1,6 @@
-・New "HISTORY" screen on the title lets you look back at your past scores
-・Locked stages now show which stage you need to clear to unlock them
-・Multi-round and score-goal stages show the round count and target score in the HUD and intro banner
-・Pause, result, stage select, settings and more can now be controlled with a keyboard
-・"Reduce effects" now also tones down flashing and shaking on the field
-・Improved screen reader support, and enlarged small buttons and text in landscape on phones
-・Fixed many issues with parry timing, boss and block behavior, and saved records
+・New falling items: catch a capsule to power up, or parry it for a stronger effect
+・New modes: DAILY, a fresh layout every day, and PRACTICE for drilling your parry timing
+・The results screen now shows an S-D rank, a parry breakdown and what ended your run
+・Parries can now show whether you were EARLY or LATE, and by how much
+・The real ball is easier to spot during FEVER TIME, and Move sensitivity now works with rail controls
+・Eased 6-9 on HARD and fixed screens overflowing with large text sizes
