@@ -73,6 +73,7 @@ Future<void> _pumpApp(
   Map<String, Object> prefs = const {},
   Size size = const Size(1600, 740),
   double dpr = 1,
+  double textScale = 1,
   AdsService? ads,
   AudioService? audio,
   LeaderboardService? leaderboard,
@@ -82,6 +83,10 @@ Future<void> _pumpApp(
     ..physicalSize = size * dpr
     ..devicePixelRatio = dpr;
   addTearDown(tester.view.reset);
+  if (textScale != 1) {
+    tester.platformDispatcher.textScaleFactorTestValue = textScale;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  }
   PackageInfo.setMockInitialValues(
     appName: 'PARRY BREAK',
     packageName: 'parry_break',
@@ -1999,4 +2004,119 @@ void main() {
       expect(GameScreen.debugLastController!.fx.reduceEffects, isTrue);
     });
   });
+
+  // Issue #142: 端末の文字サイズを大きくしても、盤面の外の画面がはみ出さない
+  for (final scale in const [1.3, 2.0]) {
+    group('文字サイズ $scale・667x375', () {
+      const size = Size(667, 375);
+      Future<void> open(
+        WidgetTester tester, {
+        Widget? home,
+        Map<String, Object> prefs = const {},
+      }) async {
+        await _pumpApp(
+          tester,
+          size: size,
+          dpr: 2,
+          textScale: scale,
+          home: home,
+          prefs: prefs,
+        );
+        await _frames(tester, home == null ? 2.4 : 1.2);
+      }
+
+      testWidgets('タイトル', (tester) async {
+        await open(
+          tester,
+          prefs: {
+            'records': jsonEncode(
+              const Records(stages: {'1-1': StageRecord(cleared: true)})
+                  .toJson(),
+            ),
+          },
+        );
+        expect(find.text('ENDLESS'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('ステージ選択 (タイルと右の窓)', (tester) async {
+        await open(
+          tester,
+          prefs: {
+            'records': jsonEncode(
+              const Records(
+                stages: {
+                  '1-1': StageRecord(
+                    cleared: true,
+                    bestScore: 50000,
+                    stars: [true, true, false],
+                  ),
+                },
+              ).toJson(),
+            ),
+          },
+        );
+        await tester.tap(find.text('STAGES'));
+        await _frames(tester, 0.5);
+        expect(find.byType(StageSelectScreen), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.text('1-2'));
+        await _frames(tester, 0.5);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('設定', (tester) async {
+        await open(tester);
+        await tester.tap(find.text('SETTINGS'));
+        await _frames(tester, 0.5);
+        expect(find.byType(SettingsScreen), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('遊び方', (tester) async {
+        await open(tester);
+        await tester.tap(find.text('HOW TO PLAY'));
+        await _frames(tester, 0.5);
+        expect(find.byType(HelpScreen), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('ポーズ', (tester) async {
+        await open(tester, home: const GameScreen());
+        await tester.tap(
+          find.byWidgetPredicate(
+            (w) => w is PixelIcon && w.glyph == PixelIcons.pause,
+          ),
+        );
+        await _frames(tester, 0.2);
+        expect(find.text('RESUME'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('結果画面: エンドレス', (tester) async {
+        await open(tester, home: const GameScreen());
+        await _gameOver(tester);
+        expect(find.text('RETRY'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('結果画面: ステージ (クリア)', (tester) async {
+        await open(tester, home: GameScreen(stage: _campaign.stage('1-4')));
+        final w = GameScreen.debugLastController!.world;
+        for (final b in w.blocks.where((b) => b.behavior.clearable).toList()) {
+          w.destroyBlock(b, DestroyCause.pierce);
+        }
+        await _frames(tester, 6.5);
+        expect(find.text('NEXT STAGE'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('結果画面: ステージ (失敗)', (tester) async {
+        await open(tester, home: GameScreen(stage: _campaign.stage('1-4')));
+        await _gameOver(tester);
+        expect(find.text('RETRY'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    });
+  }
 }

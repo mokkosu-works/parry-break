@@ -603,41 +603,60 @@ class _StageDetail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                'STAGE ${stage.id}',
-                style: pixelFont(14, color: Palette.sub, letterSpacing: 2),
-              ),
-              const Spacer(),
-              Text(
-                difficulty.label,
-                style: pixelFont(
-                  14,
-                  color: difficultyColor(difficulty),
-                  letterSpacing: 2,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: pixelFont(
-              22,
-              color: Palette.white,
-            ).copyWith(shadows: hardShadow(22), height: 1.2),
-          ),
-          const SizedBox(height: 10),
-          Container(height: 2, color: Dot.edge),
-          const SizedBox(height: 10),
+          // 文字が大きいと縦に収まらないので、START 以外は一緒にスクロールさせる (#142)
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 端末の文字サイズが大きいと並べきれないので、縮めて収める (#142)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'STAGE ${stage.id}',
+                            style: pixelFont(
+                              14,
+                              color: Palette.sub,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            difficulty.label,
+                            style: pixelFont(
+                              14,
+                              color: difficultyColor(difficulty),
+                              letterSpacing: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: pixelFont(
+                      22,
+                      color: Palette.white,
+                    ).copyWith(shadows: hardShadow(22), height: 1.2),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(height: 2, color: Dot.edge),
+                  const SizedBox(height: 10),
                   Text(
                     goalText(l, stage),
                     style: const TextStyle(fontSize: 15, color: Palette.main),

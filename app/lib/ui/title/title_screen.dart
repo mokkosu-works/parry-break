@@ -577,22 +577,29 @@ class _MenuItem extends StatelessWidget {
                       ],
                       if (entry.meta.isNotEmpty) ...[
                         const SizedBox(width: 12),
-                        Text(
-                          entry.meta,
-                          style:
-                              pixelFont(
-                                10,
-                                color: firing
-                                    ? Dot.ink
-                                    : selected
-                                    ? Palette.yellow
-                                    : Palette.gray,
-                                letterSpacing: 2,
-                              ).copyWith(
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
+                        // 端末の文字サイズが大きいときは、名前と同じく縮めて収める (#142)
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              entry.meta,
+                              style:
+                                  pixelFont(
+                                    10,
+                                    color: firing
+                                        ? Dot.ink
+                                        : selected
+                                        ? Palette.yellow
+                                        : Palette.gray,
+                                    letterSpacing: 2,
+                                  ).copyWith(
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                            ),
+                          ),
                         ),
                       ],
                     ],
