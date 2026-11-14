@@ -164,6 +164,31 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String resultNearBest(String n) {
+    return '自己ベストまであと$n点';
+  }
+
+  @override
+  String resultNearToday(String n) {
+    return '今日の記録まであと$n点';
+  }
+
+  @override
+  String resultNearRankRounds(String rank, int n) {
+    return '$rank ランクまであと$nラウンド';
+  }
+
+  @override
+  String resultNearRankScore(String rank, String score) {
+    return '$rank ランクまであと$score点';
+  }
+
+  @override
+  String resultNearRankBoth(String rank, int n, String score) {
+    return '$rank ランクまであと$nラウンド・あと$score点';
+  }
+
+  @override
   String unlockBy(String stage) {
     return '$stage をクリアすると開く';
   }

@@ -451,4 +451,103 @@ void main() {
       );
     }
   }
+
+  // エンドレスと DAILY の「あと少し」(記録までと次のランクまで)
+  ResultData nearMiss({
+    DailyOutcome? daily,
+    bool newBest = false,
+    Rank rank = Rank.b,
+  }) {
+    final e = endless();
+    return ResultData(
+      score: 6800000,
+      round: 23,
+      maxChain: e.maxChain,
+      stats: e.stats,
+      reason: e.reason,
+      newBest: newBest,
+      bestScore: 123456789,
+      bestRound: 40,
+      rank: rank,
+      over: e.over,
+      daily: daily == null ? null : DailyResult(outcome: daily, streak: 365),
+    );
+  }
+
+  for (final (size, safe) in [
+    ...phones.values,
+    (const Size(1280, 800), EdgeInsets.zero),
+  ]) {
+    for (final lang in ['en', 'ja']) {
+      testWidgets(
+        '${size.width.toInt()}×${size.height.toInt()} ($lang): エンドレスと DAILY の「あと少し」がはみ出さずに出る',
+        (t) async {
+          final ja = lang == 'ja';
+          final rank = ja
+              ? 'A ランクまであと2ラウンド・あと1,200,000点'
+              : '2 more rounds and 1,200,000 more pts to rank A';
+          final cases = <(ResultData, String?, String?)>[
+            (
+              nearMiss(),
+              ja
+                  ? '自己ベストまであと116,656,789点'
+                  : '116,656,789 pts to your best score',
+              rank,
+            ),
+            (nearMiss(newBest: true), null, rank), // 新記録の回は、ランクの行だけ
+            (
+              nearMiss(daily: DailyOutcome.kept),
+              ja
+                  ? '今日の記録まであと116,656,789点'
+                  : "116,656,789 pts to today's record",
+              rank,
+            ),
+            (nearMiss(daily: DailyOutcome.updated), null, rank),
+            // S ランクで記録も更新したなら、何も出さない
+            (nearMiss(newBest: true, rank: Rank.s), null, null),
+          ];
+          for (final (i, (data, best, rankLine)) in cases.indexed) {
+            await t.pumpWidget(const SizedBox()); // 前の画面の状態を持ち越さない
+            await pump(t, data, size: size, safe: safe, lang: lang);
+            final why = 'case $i';
+            expect(t.takeException(), isNull, reason: why);
+            final m = measure(t);
+            expect(m.button, greaterThanOrEqualTo(44), reason: why);
+            expect(m.text, greaterThanOrEqualTo(11), reason: why);
+            expect(
+              find.textContaining(ja ? 'あと少し' : 'SO CLOSE'),
+              best == null && rankLine == null ? findsNothing : findsOneWidget,
+              reason: why,
+            );
+            expect(
+              find.textContaining(ja ? '自己ベスト' : 'best score'),
+              best != null && data.daily == null
+                  ? findsOneWidget
+                  : findsNothing,
+              reason: why,
+            );
+            for (final line in [best, rankLine].nonNulls) {
+              final f = find.textContaining(line);
+              expect(f, findsOneWidget, reason: '$why $line');
+              final r = t.getRect(f);
+              expect(r.left, greaterThanOrEqualTo(0), reason: why);
+              expect(r.right, lessThanOrEqualTo(size.width), reason: why);
+              expect(r.bottom, lessThanOrEqualTo(size.height), reason: why);
+            }
+            if (best == null) {
+              expect(
+                find.textContaining(ja ? '記録まであと' : 'to today'),
+                findsNothing,
+                reason: why,
+              );
+              expect(
+                find.textContaining(ja ? '自己ベスト' : 'best score'),
+                findsNothing,
+              );
+            }
+          }
+        },
+      );
+    }
+  }
 }

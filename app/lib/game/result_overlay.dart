@@ -436,6 +436,62 @@ class _ResultOverlayState extends State<ResultOverlay>
     OverCause.timeOver => l.resultCauseTime,
   };
 
+  bool _runGapShown(ResultData d) => _runGapOf(d) != null;
+
+  RunGap? _runGapOf(ResultData d) {
+    final daily = d.daily;
+    if (d.stage != null || d.cleared || d.over == null) return null;
+    final g = runGap(
+      score: d.score,
+      round: d.round,
+      bestScore: d.bestScore,
+      beatRecord: daily != null
+          ? daily.outcome != DailyOutcome.kept
+          : d.newBest,
+      rank: d.rank,
+    );
+    return g.isEmpty ? null : g;
+  }
+
+  /// エンドレスと DAILY のゲームオーバーで、記録と次のランクまでの残りを 1〜2 行。出すものがなければ null。
+  /// 記録を更新したとき (新記録の表示に任せる) と、DAILY をクリアしたときは出さない。
+  Widget? _runGap(AppLocalizations l, ResultData d, {required bool compact}) {
+    final daily = d.daily;
+    final g = _runGapOf(d);
+    if (g == null) return null;
+    final lines = [
+      if (g.toBest case final n?)
+        daily != null
+            ? l.resultNearToday(formatScore(n))
+            : l.resultNearBest(formatScore(n)),
+      if (g.toRank case final r?) _rankGapText(l, r),
+    ];
+    return Padding(
+      padding: EdgeInsets.only(top: compact ? 4 : 10),
+      child: _in(
+        0.6,
+        0.72,
+        _GapBox(
+          title: l.resultGapTitle,
+          text: lines.join('\n'),
+          compact: compact,
+          maxWidth: compact ? 360 : 520,
+          slim: true,
+        ),
+      ),
+    );
+  }
+
+  static String _rankGapText(AppLocalizations l, RankGap r) {
+    final rank = r.next.label, score = formatScore(r.score);
+    if (r.rounds > 0 && r.score > 0) {
+      return l.resultNearRankBoth(rank, r.rounds, score);
+    }
+    return r.rounds > 0
+        ? l.resultNearRankRounds(rank, r.rounds)
+        : l.resultNearRankScore(rank, score);
+  }
+
   /// 見出しの右端: ランク、またはステージで失敗したときの「あと少し」。
   Widget? _trail(AppLocalizations l, ResultData d, {required bool compact}) {
     if (d.rank case final rank?) {
@@ -559,16 +615,19 @@ class _ResultOverlayState extends State<ResultOverlay>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _header(l, d, title, color, win, compact: true),
-        const SizedBox(height: 12),
+        SizedBox(height: _runGapShown(d) ? 8 : 12),
         _pager(
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 9, child: _score(d, compact: true)),
+              Expanded(
+                flex: _runGapShown(d) ? 12 : 9,
+                child: _score(d, compact: true),
+              ),
               const SizedBox(width: 14),
               // 区切りの線は右の欄の左の縁に引く (欄の高さが中身で決まるので)
               Expanded(
-                flex: 12,
+                flex: _runGapShown(d) ? 9 : 12,
                 child: Container(
                   padding: const EdgeInsets.only(left: 14),
                   decoration: BoxDecoration(
@@ -589,7 +648,7 @@ class _ResultOverlayState extends State<ResultOverlay>
           _details(l, d, compact: true),
           compact: true,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: _runGapShown(d) ? 8 : 12),
         _buttonRow(fontSize: 14, spacing: 8, dense: true),
       ],
     );
@@ -770,7 +829,10 @@ class _ResultOverlayState extends State<ResultOverlay>
 
   /// スコア (数え上げ) と記録更新のハンコ。
   Widget _score(ResultData d, {bool compact = false}) {
-    final big = compact ? 44.0 : 84.0;
+    // 狭い画面で「あと少し」が並ぶときは、欄の高さを抑えるためにスコアを少し小さくする
+    final big = _runGapShown(d)
+        ? (compact ? 38.0 : (d.daily != null ? 64.0 : 72.0))
+        : (compact ? 44.0 : 84.0);
     // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える。
     // デイリーは、その日の記録 (その日の最高得点) をどうしたかと連続日数を添える
     final l = AppLocalizations.of(context);
@@ -786,6 +848,7 @@ class _ResultOverlayState extends State<ResultOverlay>
         : null;
     // デイリーの添え書きは長いので、HI-SCORE の横ではなく下に出す
     final noteBelow = compact || daily != null;
+    final runGapBox = _runGap(l, d, compact: compact);
     final t = _p(0.12, 0.55, Curves.easeOutQuart);
     final shown = (d.score * t).round();
     final stampT = _p(0.56, 0.66, Curves.easeOutBack);
@@ -820,7 +883,11 @@ class _ResultOverlayState extends State<ResultOverlay>
                   ),
                 ),
               ),
-              SizedBox(height: compact ? 10 : 14),
+              SizedBox(
+                height: _runGapShown(d)
+                    ? (compact ? 6 : 10)
+                    : (compact ? 10 : 14),
+              ),
               Row(
                 children: [
                   Container(
@@ -885,8 +952,14 @@ class _ResultOverlayState extends State<ResultOverlay>
                   ),
                 ),
               ],
+              ?runGapBox,
               if (d.newBest) ...[
-                SizedBox(height: compact ? 14 : 22),
+                // 「あと少し」と並ぶときは、欄の高さを抑えるために詰める
+                SizedBox(
+                  height: compact
+                      ? (runGapBox == null ? 14 : 8)
+                      : (runGapBox == null ? 22 : 12),
+                ),
                 Opacity(
                   opacity: stampT.clamp(0.0, 1.0),
                   // 大きく出て 1 段ずつ縮む (ドット絵らしく、なめらかには縮めない)
@@ -1120,44 +1193,78 @@ class _GapBox extends StatelessWidget {
     required this.title,
     required this.text,
     required this.compact,
+    this.maxWidth,
+    this.slim = false,
   });
   final String title, text;
   final bool compact;
+  final double? maxWidth;
+
+  /// 結果の左の欄に置くときの、余白を詰めた形 (欄の高さを増やさないため)。
+  final bool slim;
 
   @override
   Widget build(BuildContext context) => ConstrainedBox(
-    constraints: BoxConstraints(maxWidth: compact ? 200 : 300),
+    constraints: BoxConstraints(maxWidth: maxWidth ?? (compact ? 200 : 300)),
     child: Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 10 : 16,
-        vertical: compact ? 6 : 12,
+        horizontal: slim ? 10 : (compact ? 10 : 16),
+        vertical: slim ? (compact ? 2 : 6) : (compact ? 6 : 12),
       ),
       decoration: BoxDecoration(
         color: withAlpha(Palette.main, 0.12),
-        border: Border.all(color: Palette.main, width: 3),
+        // 詰めた形は、高さを稼ぐために左の縁だけにする
+        border: slim && compact
+            ? const Border(left: BorderSide(color: Palette.main, width: 3))
+            : Border.all(color: Palette.main, width: 3),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: pixelFont(
-              compact ? 14 : 20,
-              color: Palette.main,
-              weight: 900,
-              letterSpacing: 2,
+          if (slim)
+            // 縦に積むと欄の高さが足りないので、見出しは 1 行目の頭に並べる
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$title  ',
+                    style: pixelFont(
+                      compact ? 12 : 16,
+                      color: Palette.main,
+                      weight: 900,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  TextSpan(text: text),
+                ],
+                style: TextStyle(
+                  fontSize: compact ? 11.5 : 14,
+                  color: Palette.white,
+                  height: compact ? 1.15 : 1.25,
+                ),
+              ),
+            )
+          else ...[
+            Text(
+              title,
+              style: pixelFont(
+                compact ? 14 : 20,
+                color: Palette.main,
+                weight: 900,
+                letterSpacing: 2,
+              ),
             ),
-          ),
-          SizedBox(height: compact ? 2 : 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: compact ? 13 : 18,
-              color: Palette.white,
-              height: 1.25,
+            SizedBox(height: compact ? 1 : 4),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: compact ? 13 : 18,
+                color: Palette.white,
+                height: 1.25,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     ),
