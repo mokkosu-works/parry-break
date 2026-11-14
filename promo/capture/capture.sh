@@ -6,6 +6,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 die() { echo "capture.sh: $*" >&2; exit 1; }
+# 要るもの: adb、scrcpy 2.6 以上、timeout (macOS は coreutils の gtimeout)。promo/README.md の「要るもの」
+for c in adb scrcpy; do command -v "$c" >/dev/null 2>&1 || die "$c がない (promo/README.md の「要るもの」)"; done
+if command -v timeout >/dev/null 2>&1; then timeout_cmd=timeout
+elif command -v gtimeout >/dev/null 2>&1; then timeout_cmd=gtimeout
+else die "timeout がない。macOS は brew install coreutils で gtimeout を入れる"; fi
 [ $# -ge 3 ] || die "使い方: promo/capture/capture.sh <ステージ 例 2-7> <腕前ラベル> <テイク番号> [録画秒数=45]"
 stage=$1; label=$2; take=$3; secs=${4:-45}
 ch=${stage%-*}; n=${stage#*-}
@@ -42,7 +47,7 @@ adb shell input keyevent $keys; sleep 1
 for _ in $(seq 2 "$ch"); do adb shell input tap 1368 222; sleep 1.2; done   # 次の章へ
 adb shell input tap $x $y; sleep 1
 
-timeout "$secs" scrcpy --no-playback --no-control --audio-source=playback --video-bit-rate=16M \
+"$timeout_cmd" "$secs" scrcpy --no-playback --no-control --audio-source=playback --video-bit-rate=16M \
   --max-fps=60 --record="$out" --record-format=mp4 >"$log" 2>&1 &
 pid=$!
 sleep 3
@@ -55,7 +60,7 @@ fi
 adb shell input tap 1990 925                   # START
 status=0
 wait "$pid" || status=$?
-# timeout が秒数で scrcpy を止めたときは 124 (scrcpy は止められても録画を閉じてから終わる)
+# timeout (gtimeout) が秒数で scrcpy を止めたときは 124 (scrcpy は止められても録画を閉じてから終わる)
 if [ "$status" -ne 0 ] && [ "$status" -ne 124 ]; then
   tail -n 20 "$log" >&2
   die "scrcpy が失敗した (終了コード $status、ログ: promo/capture/$log)"
