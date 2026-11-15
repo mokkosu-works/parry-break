@@ -7,7 +7,9 @@ import '../render/cosmetics.dart';
 import '../render/palette.dart';
 import '../render/pixel.dart';
 import '../services/progress.dart';
+import '../services/quests.dart';
 import '../ui/arcade.dart';
+import '../ui/quest_text.dart';
 import '../ui/stage_text.dart';
 import '../ui/widgets.dart';
 import '../ui/pixel_icons.dart';
@@ -31,6 +33,7 @@ class ResultData {
     this.over,
     this.daily,
     this.gain,
+    this.quest,
   });
 
   final int score, round, maxChain, bestScore, bestRound;
@@ -54,6 +57,9 @@ class ResultData {
 
   /// 今回入った XP とレベルの変化 (デバッグモードのプレイでは null で、何も出さない)。
   final LevelGain? gain;
+
+  /// 今回新しく達成した今日のお題 (その XP は [gain] に含まれる)。なければ null か空。
+  final QuestResult? quest;
 }
 
 /// デイリーの 1 回のプレイが、その日の記録 (その日の最高得点) をどうしたか。
@@ -290,7 +296,8 @@ class _ResultOverlayState extends State<ResultOverlay>
                     final boxHeight =
                         470.0 +
                         (d.gain == null ? 0 : _levelExtra) +
-                        (_newUnlock(l, d) == null ? 0 : _unlockExtra);
+                        (_newUnlock(l, d) == null ? 0 : _unlockExtra) +
+                        (_questLine(l, d) == null ? 0 : _questExtra);
                     final compact =
                         c.maxWidth < _wideSize.width * _minWideScale ||
                         c.maxHeight <
@@ -348,6 +355,9 @@ class _ResultOverlayState extends State<ResultOverlay>
 
   /// 大きい画面で、見た目の解放の行 (NEW: …) が入るぶん高くする。
   static const _unlockExtra = 26.0;
+
+  /// 大きい画面で、今日のお題の達成の行 (QUEST CLEAR: …) が入るぶん高くする。
+  static const _questExtra = 26.0;
 
   /// 大きい画面の箱をこれより縮めると、ボタン (高さ 48) が 44pt を下回る。
   static const _minWideScale = 44 / 48;
@@ -714,7 +724,16 @@ class _ResultOverlayState extends State<ResultOverlay>
         : '$text ${l.cosmeticNewMore(list.length - 1)}';
   }
 
-  /// レベルの行と、その下の見た目の解放の知らせ (あれば)。知らせは LEVEL UP! が出てから見せる
+  /// 今回達成した今日のお題の知らせ (なければ null)。
+  /// 「QUEST CLEAR: PERFECT ×20 +100 XP」。複数なら最初の 1 つのあとに「ほか N」、
+  /// 3 つ全部が終わった回は「ALL QUESTS CLEAR! +XP」 (design.md 9.10)。
+  String? _questLine(AppLocalizations l, ResultData d) {
+    final q = d.quest;
+    if (d.gain == null || q == null || q.isEmpty) return null;
+    return questClearLine(l, q);
+  }
+
+  /// レベルの行と、その下の知らせ (見た目の解放・今日のお題の達成。あれば)。知らせは LEVEL UP! が出てから見せる
   /// (場所は先に取っておく。「演出を控えめにする」では、はじめから出す)。
   Widget _levelAndUnlock(
     AppLocalizations l,
@@ -722,33 +741,39 @@ class _ResultOverlayState extends State<ResultOverlay>
     required bool compact,
   }) {
     final level = _level(l, d, compact: compact);
-    final text = _newUnlock(l, d);
-    if (text == null) return level;
+    final notes = [
+      (text: _newUnlock(l, d), color: Palette.main),
+      (text: _questLine(l, d), color: Dot.mint),
+    ];
+    if (notes.every((n) => n.text == null)) return level;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         level,
-        SizedBox(height: compact ? 2 : 4),
-        MediaQuery.withClampedTextScaling(
-          maxScaleFactor: 1.2,
-          child: Opacity(
-            opacity: _p(_levelUpAt, _levelUpAt + 0.06),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                text,
-                maxLines: 1,
-                style: pixelFont(
-                  compact ? 12 : 16,
-                  color: Palette.main,
-                  letterSpacing: 1,
+        for (final n in notes)
+          if (n.text case final text?) ...[
+            SizedBox(height: compact ? 2 : 4),
+            MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.2,
+              child: Opacity(
+                opacity: _p(_levelUpAt, _levelUpAt + 0.06),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    text,
+                    maxLines: 1,
+                    style: pixelFont(
+                      compact ? 12 : 16,
+                      color: n.color,
+                      letterSpacing: 1,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
+          ],
       ],
     );
   }

@@ -99,6 +99,8 @@ Oct 4, 2026 · @watsuwo
 
 プレイヤーレベル(design.md 9.9)の累計 XP は、`lib/services/progress.dart` の `Progress` を `progress.v1`(`{"version":1,"xp":N}`)に保存する(`records`・`daily.v1`・`settings.v1`・`history.v1` は変えない)。レベルは累計 XP から計算し、壊れたデータは 0 として読んで `progress.broken` に退避する。エンドレス・DAILY・ステージの結果画面が出た回に `game_screen.dart` の `_onFinished` が加える(練習場・デバッグモードでは加えない)。見た目の解放(パドルの色・軌跡の色。`lib/render/cosmetics.dart`)は、このレベルだけで決め、解放した状態は保存しない(選んだ色の id だけ `settings.v1` に持つ)。
 
+今日のお題(design.md 9.10)は、`lib/services/quests.dart` の `QuestBoard`(その日の日付 = DAILY と同じ UTC の日数・3 つのお題の種類と難しさ・進み・達成済みか)を `quests.v1`(`{"version":1,"day":N,"quests":[{"kind":"perfect","tier":0,"progress":7,"done":false}, …]}`)に保存する(`records`・`daily.v1`・`settings.v1`・`history.v1`・`progress.v1` は変えない)。目標の値は表(`QuestKind`)から引き、保存しない。日付が今日と違うデータ・壊れたデータは今日の新しいお題にして、壊れたものは `quests.broken` に退避する。エンドレス・DAILY・ステージの結果画面が出た回に `game_screen.dart` の `_onFinished` が数え(練習場・デバッグモードでは数えない)、達成の XP はプレイの XP と合わせて `ProgressNotifier.award` に 1 回で渡す。
+
 ### 4.2 ランキング
 
 | ボード | 値 |

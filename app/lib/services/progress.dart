@@ -23,6 +23,7 @@ enum PlayKind {
 }
 
 /// XP の決め方の数値。ここ以外に直書きしない。
+/// 今日のお題 (9.10) の報酬は別枠で、`QuestRules` (`quests.dart`) にある。
 class XpRules {
   const XpRules({
     this.base = 50,

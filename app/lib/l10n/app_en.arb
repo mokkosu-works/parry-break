@@ -257,5 +257,98 @@
         "type": "int"
       }
     }
+  },
+  "questPlays": "Play {n} times in total",
+  "questDaily": "Play DAILY once",
+  "questPerfect": "Land {n} PERFECT or better parries in total",
+  "questJust": "Land {n} JUST parries in total",
+  "questFever": "Enter FEVER TIME {n} times in total",
+  "questRound": "Reach round {n} in one ENDLESS run",
+  "questStage": "Clear {n} stages in total",
+  "questReturn": "Destroy {n} blocks with returned shots in total",
+  "questScore": "Score {n} in one ENDLESS run",
+  "questAllBonus": "All 3 done: +{xp} XP",
+  "questDone": "DONE",
+  "questMore": "+{n} more",
+  "questTagSemantics": "Today's quests, {done} of {total} done",
+  "@questPlays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questPerfect": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questJust": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questFever": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questRound": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questStage": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questReturn": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questScore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questMore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questAllBonus": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "@questTagSemantics": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

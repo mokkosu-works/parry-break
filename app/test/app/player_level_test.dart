@@ -12,6 +12,7 @@ import 'package:parry_break/services/content.dart';
 import 'package:parry_break/services/daily.dart';
 import 'package:parry_break/services/leaderboard.dart';
 import 'package:parry_break/services/progress.dart';
+import 'package:parry_break/services/quests.dart';
 import 'package:parry_break/services/settings.dart';
 import 'package:parry_break/app/providers.dart';
 import 'package:parry_break/ui/title/title_screen.dart';
@@ -48,6 +49,9 @@ void main() {
     Size size = const Size(1600, 740),
     DateTime? now,
   }) async {
+    // 今日のお題 (9.10) の XP が混ざらないよう、既定は、このテストの遊び方では何も達成しない日にする
+    // (2026-11-14: 合計 3 回遊ぶ・FEVER 2 回・エンドレスで 400 万点)
+    now ??= DateTime.utc(2026, 11, 14, 9);
     tester.view
       ..physicalSize = size
       ..devicePixelRatio = 1;
@@ -69,7 +73,7 @@ void main() {
             () => binding.clock.now().microsecondsSinceEpoch / 1e6,
           ),
           leaderboardProvider.overrideWithValue(DisabledLeaderboard()),
-          if (now != null) dailyClockProvider.overrideWithValue(() => now),
+          dailyClockProvider.overrideWithValue(() => now!),
         ],
         child: ParryBreakApp(home: home),
       ),
@@ -174,8 +178,7 @@ void main() {
   });
 
   testWidgets('DAILY: 遊び終えると XP が入る', (tester) async {
-    final now = DateTime.utc(2026, 11, 13, 9);
-    final sp = await pump(tester, const GameScreen(daily: true), now: now);
+    final sp = await pump(tester, const GameScreen(daily: true));
     await gameOver(tester);
     final w = GameScreen.debugLastController!.world;
     expect(w.mode, isA<DailyMode>());
@@ -231,6 +234,7 @@ void main() {
     ctl.onFinished?.call(ctl.world);
     await frames(tester, 0.5);
     expect(sp.containsKey('progress.v1'), isFalse);
+    expect(sp.containsKey('quests.v1'), isFalse, reason: '今日のお題にも数えない');
     expect(find.textContaining(' XP'), findsNothing);
     expect(container(tester).read(progressProvider).totalXp, 0);
   });
@@ -250,11 +254,96 @@ void main() {
       expect(find.text('RETRY'), findsOneWidget, reason: '結果画面は出る');
       expect(sp.containsKey('progress.v1'), isFalse);
       expect(sp.containsKey('progress.broken'), isFalse);
+      expect(sp.containsKey('quests.v1'), isFalse, reason: '今日のお題にも数えない');
+      expect(find.textContaining('QUEST'), findsNothing);
       expect(container(tester).read(progressProvider).totalXp, 0);
       expect(find.textContaining(' XP'), findsNothing);
       expect(find.textContaining('LV '), findsNothing);
     });
   }
+
+  testWidgets('今日のお題 (DAILY を遊ぶ): 達成の XP がプレイの XP と合わさって 1 つの棒に入り、2 回は払わない', (
+    tester,
+  ) async {
+    // 2026-11-12 のお題: DAILY を 1 回遊ぶ / FEVER TIME 2 回 / エンドレスで 400 万点
+    final sp = await pump(
+      tester,
+      const GameScreen(daily: true),
+      now: DateTime.utc(2026, 11, 12, 9),
+    );
+    final board = container(tester).read(questsProvider);
+    expect(board.quests.first.kind, QuestKind.dailyPlay);
+    await gameOver(tester);
+    final w = GameScreen.debugLastController!.world;
+    final play = XpRules.standard.xpFor(
+      kind: PlayKind.daily,
+      stats: w.stats,
+      round: w.round.number,
+    );
+    // プレイの XP (1 回の上限あり) に、お題の 100 を別枠で足す
+    expect(savedXp(sp), play + 100);
+    expect(find.text('+${play + 100} XP'), findsOneWidget);
+    expect(find.text('QUEST CLEAR: DAILY +100 XP'), findsOneWidget);
+    final saved =
+        jsonDecode(sp.getString('quests.v1')!) as Map<String, Object?>;
+    expect(((saved['quests']! as List).first as Map)['done'], isTrue);
+    expect(container(tester).read(questsProvider).doneCount, 1);
+
+    // もう 1 回 DAILY を遊んでも、同じお題は払わない
+    await tester.tap(find.text('RETRY'));
+    await gameOver(tester);
+    final w2 = GameScreen.debugLastController!.world;
+    final play2 = XpRules.standard.xpFor(
+      kind: PlayKind.daily,
+      stats: w2.stats,
+      round: w2.round.number,
+    );
+    expect(savedXp(sp), play + 100 + play2);
+    expect(find.textContaining('QUEST'), findsNothing);
+    expect(find.text('+$play2 XP'), findsOneWidget);
+  });
+
+  testWidgets('今日のお題 (エンドレス): 達成がなければ知らせは出ず、XP はプレイの分だけ', (tester) async {
+    final sp = await pump(tester, const GameScreen());
+    await gameOver(tester);
+    final w = GameScreen.debugLastController!.world;
+    final play = XpRules.standard.xpFor(
+      kind: PlayKind.endless,
+      stats: w.stats,
+      round: w.round.number,
+    );
+    expect(savedXp(sp), play);
+    expect(find.textContaining('QUEST'), findsNothing);
+    // 遊んだ回数は進む (合計 3 回遊ぶ)
+    final q = container(tester).read(questsProvider).quests.first;
+    expect(q.kind, QuestKind.plays);
+    expect(q.progress, 1);
+    expect(sp.containsKey('quests.v1'), isTrue);
+  });
+
+  testWidgets('今日のお題 (ステージ): クリアしたステージの数が進む', (tester) async {
+    await pump(
+      tester,
+      GameScreen(stage: campaign.stage('1-4')),
+      now: DateTime.utc(2026, 11, 10, 9), // ステージを 1 つクリア / JUST 5 / PERFECT 40
+    );
+    expect(
+      container(tester).read(questsProvider).quests.first.kind,
+      QuestKind.stageClear,
+    );
+    await frames(tester, 1.2);
+    final w = GameScreen.debugLastController!.world;
+    for (final b in w.blocks.where((b) => b.behavior.clearable).toList()) {
+      w.destroyBlock(b, DestroyCause.pierce);
+    }
+    await frames(tester, 6.5);
+    expect(find.text('NEXT STAGE'), findsOneWidget);
+    expect(
+      find.textContaining('QUEST CLEAR: STAGE ×1 +100 XP'),
+      findsOneWidget,
+    );
+    expect(container(tester).read(questsProvider).quests.first.done, isTrue);
+  });
 
   group('タイトルの LV', () {
     Future<void> title(
