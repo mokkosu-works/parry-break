@@ -346,6 +346,9 @@ class _ResultOverlayState extends State<ResultOverlay>
         PixelTag('STAGE ${stage.id}', color: Palette.sub),
         PixelTag(d.difficulty.label, color: difficultyColor(d.difficulty)),
       ],
+      // エンドレスは EASY のときだけ札を出す (NORMAL は札なし。ステージの難易度の札と同じ形)
+      if (stage == null && d.daily == null && d.difficulty != Difficulty.normal)
+        PixelTag(d.difficulty.label, color: difficultyColor(d.difficulty)),
       if (d.daily != null) const PixelTag('DAILY', color: Palette.accent),
       if (!win) PixelTag(cause, color: Palette.sub),
     ];

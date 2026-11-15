@@ -187,6 +187,7 @@
   "bannerTimeOver": "FORTRESS DIVING",
   "endingSub": "NEXT LOOP — SPEED KEEPS RISING",
   "difficulty": "Difficulty",
+  "endlessDifficulty": "Endless difficulty",
   "difficultyEasy": "Fewer, slower bullets. Wider parry timing and more time for bosses",
   "difficultyNormal": "Standard difficulty",
   "difficultyHard": "Bullet hell. More bullets, and broken blocks shoot back",

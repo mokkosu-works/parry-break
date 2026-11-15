@@ -1,7 +1,42 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:parry_break/core/core.dart';
 import 'package:parry_break/services/settings.dart';
 
 void main() {
+  group('エンドレスの難易度 (endlessDifficulty)', () {
+    test('初期値は NORMAL。項目のない古い保存データも NORMAL として読む', () {
+      expect(const Settings().endlessDifficulty, Difficulty.normal);
+      final old = Settings.fromJson(const {'difficulty': 'hard'});
+      expect(old.endlessDifficulty, Difficulty.normal);
+      expect(old.difficulty, Difficulty.hard);
+    });
+
+    test('EASY を選ぶと保存され、ステージの難易度とは別に読み戻される', () {
+      final s = const Settings().copyWith(
+        endlessDifficulty: Difficulty.easy,
+        difficulty: Difficulty.hard,
+      );
+      final j = s.toJson();
+      expect(j['endlessDifficulty'], 'easy');
+      expect(j['difficulty'], 'hard');
+      final back = Settings.fromJson(j);
+      expect(back.endlessDifficulty, Difficulty.easy);
+      expect(back.difficulty, Difficulty.hard);
+    });
+
+    test('HARD や知らない値は NORMAL として読む (エンドレスに HARD は出さない)', () {
+      expect(
+        Settings.fromJson(const {'endlessDifficulty': 'hard'})
+            .endlessDifficulty,
+        Difficulty.normal,
+      );
+      expect(
+        Settings.fromJson(const {'endlessDifficulty': 3}).endlessDifficulty,
+        Difficulty.normal,
+      );
+    });
+  });
+
   group('Settings.fromJson のレール感度', () {
     test('railSensitivity がない古い保存データは 1.0 になる', () {
       final s = Settings.fromJson(const {'sensitivity': 2.5});

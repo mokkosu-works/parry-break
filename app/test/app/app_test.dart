@@ -527,6 +527,84 @@ void main() {
     expect(ctl.world.effects.guardUp, isFalse);
   });
 
+  // (難易度, GameScreen の引数, 渡るはずの難易度)
+  for (final (name, screen, expected) in <(String, GameScreen, Difficulty)>[
+    (
+      'エンドレスで EASY を選ぶと',
+      const GameScreen(difficulty: Difficulty.easy),
+      Difficulty.easy,
+    ),
+    ('エンドレスの既定は', const GameScreen(), Difficulty.normal),
+    (
+      'エンドレスに HARD を渡しても',
+      const GameScreen(difficulty: Difficulty.hard),
+      Difficulty.normal,
+    ),
+    (
+      'DAILY は EASY を渡しても',
+      const GameScreen(daily: true, difficulty: Difficulty.easy),
+      Difficulty.normal,
+    ),
+    (
+      '練習場は EASY を渡しても',
+      const GameScreen(practice: true, difficulty: Difficulty.easy),
+      Difficulty.normal,
+    ),
+  ]) {
+    testWidgets('World に渡る難易度: $name ${expected.label}', (tester) async {
+      await _pumpApp(tester, home: screen);
+      await _frames(tester, 0.5);
+      expect(GameScreen.debugLastController!.world.difficulty, expected);
+    });
+  }
+
+  testWidgets('EASY のエンドレス: ランキングに送らず、EASY の記録・履歴に残し、結果に EASY を出す', (
+    tester,
+  ) async {
+    final lb = _RecordingLeaderboard();
+    await _pumpApp(
+      tester,
+      home: const GameScreen(difficulty: Difficulty.easy),
+      leaderboard: lb,
+    );
+    await _frames(tester, 1.2);
+    final w = GameScreen.debugLastController!.world;
+    expect(w.beginnerGuard, isTrue, reason: 'EASY でもはじめの防壁は付く');
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await _frames(tester, 0.3);
+    w.addScore(4321);
+    w.effects.guardHold = false;
+    w.ball
+      ..y = Field.height - 4
+      ..vy = 600;
+    await _frames(tester, 3.2);
+    expect(find.text('RETRY'), findsOneWidget);
+    expect(find.text('EASY'), findsOneWidget, reason: '結果画面の札');
+    final c = ProviderScope.containerOf(
+      tester.element(find.byType(GameScreen)),
+    );
+    final r = c.read(recordsProvider);
+    expect(r.endlessEasy.bestScore, 4321);
+    expect(r.endlessEasy.plays, 1);
+    expect(r.endless.bestScore, 0, reason: 'NORMAL の記録は触らない');
+    expect(r.endless.plays, 0);
+    expect(lb.submitted, isEmpty);
+    expect(c.read(historyProvider).entries.first.difficulty, Difficulty.easy);
+  });
+
+  testWidgets('NORMAL のエンドレスは今までどおりランキングに送り、EASY の札は出ない', (tester) async {
+    final lb = _RecordingLeaderboard();
+    await _pumpApp(tester, home: const GameScreen(), leaderboard: lb);
+    await _frames(tester, 1.2);
+    GameScreen.debugLastController!.world.addScore(777);
+    await _gameOver(tester);
+    expect(find.text('EASY'), findsNothing);
+    expect(lb.submitted.map((e) => e.$1), [
+      Board.endlessScore,
+      Board.endlessRound,
+    ]);
+  });
+
   testWidgets('はじめの防壁: DAILY には 0 回でも付かない', (tester) async {
     await _pumpApp(tester, home: const GameScreen(daily: true));
     await _frames(tester, 1.2);

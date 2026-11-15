@@ -476,6 +476,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get difficulty => '難易度';
 
   @override
+  String get endlessDifficulty => 'エンドレスの難易度';
+
+  @override
   String get difficultyEasy => '弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い';
 
   @override

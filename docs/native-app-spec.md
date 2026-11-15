@@ -76,7 +76,8 @@ Oct 4, 2026 · @watsuwo
 | 演出を控えめにする | OFF | ON / OFF(フラッシュ・点滅・揺れ・メニューの動き) |
 | タイミングの表示 | ON | ON / OFF(パリィの判定の下に、接触とのずれ。項目のない古い保存データはオン) |
 | 言語 | 端末の言語 | 日本語 / English |
-| 難易度 | NORMAL | EASY / NORMAL / HARD。設定の画面ではなく、ステージ選択の右上で選ぶ。最後に選んだものを保存する。エンドレスは常に NORMAL |
+| 難易度(ステージ) | NORMAL | EASY / NORMAL / HARD。設定の画面ではなく、ステージ選択の右上で選ぶ。最後に選んだものを保存する(`difficulty`) |
+| 難易度(エンドレス) | NORMAL | EASY / NORMAL(`endlessDifficulty`)。タイトルの左の列で選ぶ。項目のない古い保存データと HARD は NORMAL として読む。DAILY・練習場は常に NORMAL |
 
 設定は `SharedPreferences` の `settings.v1` に JSON で保存する(`lib/services/settings.dart`)。範囲の外の値は読み込むときに範囲へ丸める。ほかに、開発者向けのデバッグモード(タイトルの版番号を 3 回続けてタップで切り替え。全ステージを開け、結果を記録・ランキングに残さない)も同じところに保存する。
 
@@ -166,7 +167,7 @@ app/
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
     input/        input_clock.dart(タッチの時刻の換算), touch_controls.dart(領域方式・レール・PARRY)
-    services/     settings.dart, records.dart(記録。`endless.plays` はエンドレスを遊び終えた回数。古いデータは 0 として読む), beginner_guard.dart(はじめの防壁を付けるかの判定), history.dart(最近のプレイの履歴), content.dart, leaderboard.dart,
+    services/     settings.dart, records.dart(記録。`endless` は NORMAL、`endlessEasy` は EASY のエンドレスの記録。`plays` はエンドレスを遊び終えた回数で、古いデータは 0 として読む), beginner_guard.dart(はじめの防壁を付けるかの判定), history.dart(最近のプレイの履歴), content.dart, leaderboard.dart,
                   ads.dart(インタースティシャル広告と頻度の制限), review.dart(評価の依頼), error_log.dart(予期しない例外の記録)
     ui/           stage_select / help / history / settings / calibration _screen.dart, widgets.dart, stage_text.dart,
                   arcade.dart(タイトル・結果・ポーズで使うドット絵の部品), pixel_icons.dart(ドット絵のアイコン),

@@ -46,6 +46,18 @@ void main() {
     }
   });
 
+  test('EASY で遊んだ回数も、エンドレスを遊んだ回数に数える', () {
+    const r = Records(
+      endless: EndlessRecord(plays: 1, bestScore: 100),
+      endlessEasy: EndlessRecord(plays: 2, bestScore: 50),
+    );
+    expect(endlessPlayCount(r, _history(0)), 3);
+    expect(_guard(endlessMode, r, _history(0)), isFalse);
+    // EASY しか遊んでいない人も、最高スコアがあれば 1 回以上
+    const onlyEasy = Records(endlessEasy: EndlessRecord(bestScore: 50));
+    expect(endlessPlayCount(onlyEasy, _history(0)), 1);
+  });
+
   test('DAILY・ステージ・練習場には、0 回でも付けない', () {
     final r = _records(0), h = _history(0);
     expect(
