@@ -330,6 +330,14 @@
   "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
   "introFeverTime": "PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ",
   "introSurvive": "ブロックをデッドラインまで下ろさずに耐え抜け",
+  "introBeginnerGuard": "はじめの{n}回は防壁つき・1回だけボールを跳ね返します",
+  "@introBeginnerGuard": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "introItem": "NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる",
   "introScore": "スコア {value} に到達すればクリア",
   "@introScore": {

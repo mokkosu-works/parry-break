@@ -465,6 +465,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
 
   @override
+  String introBeginnerGuard(int n) {
+    return 'FIRST $n RUNS HAVE A BARRIER AT THE BOTTOM. IT BOUNCES THE BALL BACK ONCE';
+  }
+
+  @override
   String get introItem =>
       'NEW: ITEMS — CATCH FALLING CAPSULES WITH THE PADDLE. PARRY THEM FOR A STRONGER EFFECT';
 

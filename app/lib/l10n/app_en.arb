@@ -170,6 +170,14 @@
   "introPierce": "A PERFECT PARRY MAKES A PIERCING SHOT",
   "introFeverTime": "CHAIN PERFECTS TO FILL COMBO — FEVER TIME PIERCES EVERYTHING",
   "introSurvive": "HOLD THE BLOCKS ABOVE THE DEAD LINE",
+  "introBeginnerGuard": "FIRST {n} RUNS HAVE A BARRIER AT THE BOTTOM. IT BOUNCES THE BALL BACK ONCE",
+  "@introBeginnerGuard": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "introItem": "NEW: ITEMS — CATCH FALLING CAPSULES WITH THE PADDLE. PARRY THEM FOR A STRONGER EFFECT",
   "introScore": "REACH SCORE {value}",
   "bannerBoss": "HIT CORES WITH PARRIED RED BULLETS AND PIERCING SHOTS",
