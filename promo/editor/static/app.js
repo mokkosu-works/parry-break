@@ -139,7 +139,9 @@ function scheduleValidate() {
 
 // 台詞の並び。プロジェクトに voice がなければ、既定 (v12 と同じ) を見せる
 const voiceLines = () => (state.project.voice && state.project.voice.lines) || state.info.voice.lines;
-const voiceUrl = (text) => `/api/voice?text=${encodeURIComponent(text)}`;
+const voiceProfile = () => state.project.voice?.profile || "mitsuba";
+const voiceKey = () => JSON.stringify({ profile: voiceProfile(), lines: voiceLines() });
+const voiceUrl = (text) => `/api/voice?text=${encodeURIComponent(text)}&profile=${voiceProfile()}`;
 
 // 書き換える前に、既定の台詞をプロジェクトへ写す
 function ownVoiceLines() {
@@ -154,12 +156,12 @@ function sceneAt(t) {
 
 let voiceTimer = null;
 function scheduleVoiceCheck() {
-  const key = JSON.stringify(voiceLines());
+  const key = voiceKey();
   if (state.voiceCheck && state.voiceCheck.key === key) return;
   clearTimeout(voiceTimer);
   voiceTimer = setTimeout(async () => {
-    const r = await api('POST', '/api/voice/check', { lines: JSON.parse(key) });
-    if (key !== JSON.stringify(voiceLines())) return; // 待つ間に書き換わった
+    const r = await api('POST', '/api/voice/check', JSON.parse(key));
+    if (key !== voiceKey()) return; // 待つ間に書き換わった
     state.voiceCheck = r.ok
       ? { key, lines: r.data.lines, problems: r.data.problems, message: r.data.message }
       : { key, lines: [], problems: [r.data.error + (r.data.hint ? ` (${r.data.hint})` : '')] };
@@ -172,7 +174,7 @@ function renderVoiceStatus() {
   const box = $('#voiceStatus');
   if (!box) return;
   const vc = state.voiceCheck;
-  const fresh = vc && vc.key === JSON.stringify(voiceLines());
+  const fresh = vc && vc.key === voiceKey();
   document.querySelectorAll('[data-voice-len]').forEach((el) => {
     const t = fresh && vc.lines[Number(el.dataset.voiceLen)];
     el.textContent = t ? `長さ ${t.duration.toFixed(2)} 秒 (${t.end.toFixed(2)} 秒まで)` : '';
@@ -197,10 +199,24 @@ function listen(text, button) {
 }
 
 function renderVoiceEditor(panel) {
-  const v = state.info.voice;
+  const v = { ...state.info.voice, ...state.info.voiceProfiles[voiceProfile()] };
   const lines = voiceLines();
   const total = state.project.scenes.reduce((n, s) => n + s.duration, 0);
   panel.append(h('h3', {}, '台詞 (動画全体)'));
+  const profiles = {mitsuba:'ミツバ',akane:'アカネ',shizuku:'シズク',momoka:'モモカ',wakana:'ワカナ'};
+  const voiceForm = h('div', {class:'form'});
+  voiceForm.append(...selectField('声・演技', { profile: voiceProfile() }, 'profile', Object.entries(profiles), {
+    set: (value) => {
+      ownVoiceLines();
+      state.project.voice.profile = value;
+      for (const sc of state.project.scenes) {
+        for (const layer of sc.layers) {
+          if (layer.id === 'credit') layer.text = 'VOICEVOX:' + state.info.voiceProfiles[value].speakerName;
+        }
+      }
+    },
+  }));
+  panel.append(voiceForm);
   const box = h('div', { class: 'voice' });
   lines.forEach((line, i) => {
     const start = h('input', { type: 'number', step: 0.1, min: 0, max: total, value: line.start, title: '話し始め (動画の頭からの秒)' });
@@ -232,11 +248,11 @@ function renderVoiceEditor(panel) {
     own.push({ start: sc.start, text: '新しい台詞' });
     own.sort((a, b) => a.start - b.start);
   }) }, 'このシーンの頭に台詞を足す');
-  const reset = h('button', { type: 'button', disabled: !state.project.voice, onclick: () => change(() => { delete state.project.voice; }) }, '元の台詞に戻す');
+  const reset = h('button', { type: 'button', disabled: !state.project.voice, onclick: () => change(() => { ownVoiceLines(); state.project.voice.lines = clone(state.info.voice.lines); }) }, '既定の台詞に戻す');
   panel.append(h('div', { class: 'voice-actions' }, add, reset));
   panel.append(h('div', { id: 'voiceStatus', class: 'muted small' }));
   panel.append(h('div', { class: 'muted small' },
-    `声は VOICEVOX: ${v.speakerName} (話者 ${v.speaker})、速さ ${v.speedScale}、抑揚 ${v.intonationScale} で固定です。` +
+    `声は VOICEVOX: ${v.speakerName} (話者 ${v.speaker})、速さ ${v.speedScale}、抑揚 ${v.intonationScale} の演技設定です。` +
     `左の数は話し始めの時刻 (秒)。画面の字幕は別のレイヤーなので、台詞を変えたら字幕も合わせてください。` +
     `ゲームの音は音量 ${state.info.gameVolume}。`));
   renderVoiceStatus();
@@ -628,16 +644,26 @@ function renderProps(onlyIfIdle = false) {
   } else if (layer.type === 'character') {
     form.append(h('h3', { class: 'full' }, 'キャラクター'));
     form.append(...selectField('素材', layer, 'src', state.assets.image.filter((a) => a.width >= 362 * 6).map((a) => [a.src, a.label])));
-    form.append(...selectField('ポーズ', layer, 'pose', POSE_LABEL.map((t, i) => [i, t])));
+    form.append(...selectField('ポーズ', layer, 'pose', (layer.src.endsWith('_sheet.png') ? ['通常','集中','予想外','失敗','成功','固有'] : POSE_LABEL).map((t, i) => [i, t])));
+    const isolate = h('input', { type: 'checkbox', checked: layer.isolate === true });
+    bindInput(isolate, (v) => { layer.isolate = v; return true; });
+    form.append(h('label', {}, '輪郭で分離'), isolate);
     const bob = h('input', { type: 'checkbox', checked: layer.bob !== false });
     bindInput(bob, (v) => { layer.bob = v; return true; });
     form.append(h('label', {}, '揺れ'), bob);
     form.append(...numberField('揺れの振幅', layer, 'bobAmplitude', { min: 0, max: 200 }));
     form.append(h('div', { class: 'note' }, `揺れは縦に 振幅×sin(2π×${state.info.bobHz}×t) px。再生で確かめられます。揺れはシーンごとに切り替えます。`));
   } else if (layer.type === 'rect') {
-    form.append(h('h3', { class: 'full' }, '枠'));
+    form.append(h('h3', { class: 'full' }, '枠・吹き出し'));
+    form.append(...selectField('形', {shape:layer.shape || 'rect'}, 'shape', [['rect','四角'],['speech','吹き出し'],['burst','ギザギザ'],['cloud','雲形'],['oval','楕円'],['heart','ハート'],['leaf','葉'],['slash','斜線'],['dot','丸'],['spark','きらめき']], {set:(v)=> {layer.shape=v;}}));
+    form.append(...selectField('しっぽ', {tail:layer.tail || 'left'}, 'tail', [['left','左'],['right','右']], {set:(v)=> {layer.tail=v;}}));
     form.append(...colorField('色', layer, 'color'));
     form.append(...numberField('太さ', layer, 'strokeWidth', { min: 1, max: 200 }));
+    form.append(...numberField('角の丸み', layer, 'radius', { min: 0, max: 500 }));
+    const fill = h('input', {type:'checkbox', checked:!!layer.fill});
+    bindInput(fill, (v) => { if(v) layer.fill = '#ffffff'; else delete layer.fill; return true; });
+    form.append(h('label', {}, '塗りつぶし'), fill);
+    if(layer.fill) form.append(...colorField('塗り色', layer, 'fill'));
   }
   panel.append(form);
   panel.append(h('div', { class: 'actions' },
@@ -670,9 +696,13 @@ function renderSceneProps(panel) {
   form.append(h('label', {}, '開始'), h('input', { type: 'text', readonly: true, value: `${sc.start} 秒` }));
   form.append(h('label', {}, '長さ'), h('input', { type: 'text', readonly: true, value: `${sc.duration} 秒` }));
   form.append(h('div', { class: 'note' }, '初版では、シーンの順序と長さは変えられません (24 秒の構成のまま)。'));
-  form.append(h('h3', { class: 'full' }, '背景 (ゲームのフレームをぼかして暗くしたもの)'));
+  form.append(h('h3', { class: 'full' }, '背景'));
   form.append(...selectField('素材動画', sc.background, 'src', state.assets.video.map((a) => [a.src, a.label.split('/').pop()])));
   form.append(...numberField('時刻', sc.background, 'time', { min: 0, step: 0.1 }));
+  const solid = h('input', {type:'checkbox', checked:!!sc.background.color});
+  bindInput(solid, (value) => { if (value) sc.background.color = '#FFF6D8'; else delete sc.background.color; return true; });
+  form.append(h('label', {}, '単色背景'), solid);
+  if (sc.background.color) form.append(...colorField('背景色', sc.background, 'color'));
   panel.append(form);
   panel.append(h('p', { class: 'muted small' }, 'レイヤーをクリックすると、その設定をここで変えられます。'));
   renderVoiceEditor(panel);

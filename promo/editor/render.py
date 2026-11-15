@@ -27,6 +27,8 @@ import urllib.request
 import wave
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+from sprites import isolate_sheet
+from shapes import pixels as shape_pixels, SHAPES
 
 EDITOR = pathlib.Path(__file__).resolve().parent
 ROOT = EDITOR.parents[1]
@@ -34,7 +36,7 @@ PROJECTS = EDITOR / "projects"
 OUT_DIR = ROOT / "promo/build/out"
 
 ENGINE = "http://127.0.0.1:50021"
-# 話者と話し方は固定 (クレジットが「VOICEVOX:春歌ナナ」なので)。台詞と話し始めの時刻は、
+# 既定は春歌ナナ。採用済みのキャラ別 voice.profile で声と演技を選べる。台詞は、
 # プロジェクトの voice.lines で変えられる。ないときは、下の v12 (character_promo.py) と同じ台詞を使う。
 VOICE = {
     "speaker": 54,  # 春歌ナナ・ノーマル
@@ -47,6 +49,23 @@ VOICE = {
               (16.0, 19, "まとめて、どーん！"),
               (19.3, 24, "パリィブレイク。ストアで検索！")],
 }
+VOICE_PROFILES = {
+    "mitsuba": {"speaker": 54, "speakerName": "春歌ナナ", "speedScale": 1.12, "intonationScale": 1.18, "pitchScale": 0.0},
+    "akane": {"speaker": 70, "speakerName": "満別花丸", "speedScale": 1.15, "intonationScale": 1.25, "pitchScale": 0.0},
+    "shizuku": {"speaker": 14, "speakerName": "冥鳴ひまり", "speedScale": 1.0, "intonationScale": 0.65, "pitchScale": -0.03},
+    "momoka": {"speaker": 72, "speakerName": "満別花丸", "speedScale": 1.06, "intonationScale": 1.2, "pitchScale": 0.0},
+    "wakana": {"speaker": 14, "speakerName": "冥鳴ひまり", "speedScale": 0.96, "intonationScale": 1.0, "pitchScale": 0.01},
+}
+
+
+def voice_profile(project):
+    return project.get("voice", {}).get("profile", "mitsuba")
+
+
+def credit_text(project):
+    return "VOICEVOX:" + VOICE_PROFILES[voice_profile(project)]["speakerName"]
+
+
 MAX_VOICE_LINES = 12
 MAX_VOICE_TEXT = 80
 CREDIT_TEXT = "VOICEVOX:春歌ナナ"
@@ -60,7 +79,7 @@ POSES = 6
 BOB_HZ = 1.8
 
 LAYER_TYPES = {"text": "テキスト", "image": "画像", "video": "ゲーム映像", "rect": "枠", "character": "キャラクター"}
-EXT = {"image": {".png", ".jpg", ".jpeg"}, "video": {".mp4", ".mov", ".webm", ".mkv"}, "font": {".ttf", ".otf"}}
+EXT = {"image": {".png", ".jpg", ".jpeg"}, "video": {".mp4", ".mov", ".webm", ".mkv"}, "font": {".ttf", ".otf", ".ttc"}}
 COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
 NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
@@ -211,6 +230,8 @@ def validate(project, check_files=True):
         if not isinstance(bg, dict):
             bad(where, "背景 (background) がありません")
         else:
+            if "color" in bg and (not isinstance(bg["color"], str) or not COLOR.fullmatch(bg["color"])):
+                bad(where, "背景色は #rrggbb の形にしてください")
             _check_video_time(bad, f"{where}の背景", bg.get("src"), bg.get("time"), 0, check_files)
         layers = scene.get("layers")
         if not isinstance(layers, list):
@@ -309,6 +330,15 @@ def _validate_layer(bad, where, layer, seconds, check_files):
             bad(where, "枠の太さは 1〜200 にしてください")
         if not isinstance(layer.get("color"), str) or not COLOR.match(layer["color"]):
             bad(where, "色は #rrggbb の形にしてください")
+        if "fill" in layer and (not isinstance(layer["fill"], str) or not COLOR.fullmatch(layer["fill"])):
+            bad(where, "塗り色は #rrggbb の形にしてください")
+        if layer.get("shape", "rect") not in SHAPES:
+            bad(where, "使える形を選んでください")
+        if layer.get("tail", "left") not in ("left", "right"):
+            bad(where, "吹き出しの向きは left / right にしてください")
+        radius = layer.get("radius", 0)
+        if not _num(radius) or radius < 0 or radius > 500:
+            bad(where, "角の丸みは 0〜500 にしてください")
     elif kind == "character":
         h = layer.get("height")
         if not _num(h) or h < 20 or h > 4000:
@@ -316,6 +346,8 @@ def _validate_layer(bad, where, layer, seconds, check_files):
         pose = layer.get("pose")
         if not isinstance(pose, int) or isinstance(pose, bool) or pose not in range(POSES):
             bad(where, f"ポーズは 0〜{POSES - 1} にしてください")
+        if not isinstance(layer.get("isolate", False), bool):
+            bad(where, "輪郭で分離は true か false にしてください")
         if not isinstance(layer.get("bob", True), bool):
             bad(where, "揺れは true か false にしてください")
         amp = layer.get("bobAmplitude", 4)
@@ -361,6 +393,8 @@ def _validate_voice(bad, voice, total=None):
     if not isinstance(voice, dict) or not isinstance(voice.get("lines"), list):
         bad(where, "voice は {\"lines\": [...]} の形にしてください")
         return
+    if not isinstance(voice.get("profile", "mitsuba"), str) or voice.get("profile", "mitsuba") not in VOICE_PROFILES:
+        bad(where, "採用済みの音声プロフィールを選んでください")
     lines = voice["lines"]
     if len(lines) > MAX_VOICE_LINES:
         bad(where, f"台詞は {MAX_VOICE_LINES} 個までにしてください")
@@ -445,10 +479,14 @@ def image_pixels(layer):
 
 
 def character_pixels(layer):
-    """v12 と同じ切り出しと縮小 (高さ h、幅 h // 2)。"""
+    """輪郭で分離したポーズ、または旧シートの等幅ポーズを高さhへ縮小。"""
     pose, height = layer["pose"], round(layer["height"])
-    with Image.open(resolve(layer["src"], "image")) as sheet:
-        sprite = sheet.convert("RGBA").crop((SHEET_CELL[0] * pose, 0, SHEET_CELL[0] * (pose + 1), SHEET_CELL[1]))
+    path = resolve(layer["src"], "image")
+    if layer.get("isolate", False):
+        sprite = isolate_sheet(str(path), path.stat().st_mtime_ns)[pose]
+    else:
+        with Image.open(path) as sheet:
+            sprite = sheet.convert("RGBA").crop((SHEET_CELL[0] * pose, 0, SHEET_CELL[0] * (pose + 1), SHEET_CELL[1]))
     return sprite.resize((height // 2, height), Image.Resampling.LANCZOS)
 
 
@@ -467,8 +505,11 @@ def draw_static(im, layer):
     kind = layer["type"]
     if kind == "text":
         ImageDraw.Draw(im).text((x, y), layer["text"], **_text_args(layer))
+    elif kind == "rect" and layer.get("shape", "rect") != "rect":
+        _paste(im, shape_pixels(layer), x, y)
     elif kind == "rect":
-        ImageDraw.Draw(im).rectangle((x, y, x + round(layer["width"]), y + round(layer["height"])),
+        ImageDraw.Draw(im).rounded_rectangle((x, y, x + round(layer["width"]), y + round(layer["height"])),
+                                     radius=round(layer.get("radius", 0)), fill=layer.get("fill"),
                                      outline=layer["color"], width=round(layer["strokeWidth"]))
     elif kind == "image":
         _paste(im, image_pixels(layer), x, y)
@@ -493,10 +534,13 @@ def layer_preview(layer):
         im = Image.new("RGBA", (max(1, right - left), max(1, bottom - top)), (0, 0, 0, 0))
         ImageDraw.Draw(im).text((-left, -top), layer["text"], **args)
         dx, dy = left, top
+    elif kind == "rect" and layer.get("shape", "rect") != "rect":
+        im, dx, dy = shape_pixels(layer), 0, 0
     elif kind == "rect":
         w, h = round(layer["width"]), round(layer["height"])
         im = Image.new("RGBA", (w + 1, h + 1), (0, 0, 0, 0))
-        ImageDraw.Draw(im).rectangle((0, 0, w, h), outline=layer["color"], width=round(layer["strokeWidth"]))
+        ImageDraw.Draw(im).rounded_rectangle((0, 0, w, h), radius=round(layer.get("radius", 0)),
+                                             fill=layer.get("fill"), outline=layer["color"], width=round(layer["strokeWidth"]))
         dx = dy = 0
     elif kind == "image":
         im, dx, dy = image_pixels(layer), 0, 0
@@ -530,7 +574,7 @@ def background_preview(bg):
     with tempfile.TemporaryDirectory() as t:
         frame = pathlib.Path(t) / "frame.png"
         frame_at(src, bg["time"], frame)
-        im = background(frame)
+        im = Image.new("RGB", CANVAS, bg["color"]) if "color" in bg else background(frame)
     buf = io.BytesIO()
     im.save(buf, "JPEG", quality=90)
     return buf.getvalue()
@@ -611,7 +655,7 @@ def _scene_video(tmp, index, scene, progress):
     progress(f"シーン「{SCENES[index][1]}」の背景を描いています")
     frame = tmp / f"{sid}-frame.png"
     frame_at(resolve(scene["background"]["src"], "video"), scene["background"]["time"], frame)
-    base = background(frame)
+    base = Image.new("RGB", CANVAS, scene["background"]["color"]) if "color" in scene["background"] else background(frame)
     groups = _groups(scene["layers"])
     inputs, filters, still = ["-loop", "1", "-i", tmp / f"{sid}.png"], [], base.convert("RGBA")
     current, n, audio, dynamic_boxes = "0:v", 1, None, []
@@ -676,30 +720,32 @@ _voice_cache = {}
 _voice_lock = threading.Lock()
 
 
-def synthesize(text):
+def synthesize(text, profile="mitsuba"):
     """台詞 1 つを VOICEVOX で作る。(wav のバイト列, 秒)。同じ台詞は作り直さない。"""
+    settings = VOICE_PROFILES[profile]
+    key = (profile, text)
     with _voice_lock:
-        if text in _voice_cache:
-            return _voice_cache[text]
+        if key in _voice_cache:
+            return _voice_cache[key]
     try:
-        params = urllib.parse.urlencode({"text": text, "speaker": VOICE["speaker"]})
+        params = urllib.parse.urlencode({"text": text, "speaker": settings["speaker"]})
         query = json.loads(_engine(f"/audio_query?{params}", b""))
-        query["speedScale"] = VOICE["speedScale"]
-        query["intonationScale"] = VOICE["intonationScale"]
-        wav = _engine(f"/synthesis?speaker={VOICE['speaker']}", json.dumps(query).encode(), "application/json")
+        for field in ("speedScale", "intonationScale", "pitchScale"):
+            query[field] = settings[field]
+        wav = _engine(f"/synthesis?speaker={settings['speaker']}", json.dumps(query).encode(), "application/json")
         with wave.open(io.BytesIO(wav)) as w:
             seconds = w.getnframes() / w.getframerate()
     except (urllib.error.URLError, OSError, ValueError, wave.Error, EOFError) as e:
         raise ExportError(f"VOICEVOX で音声を作れませんでした: {getattr(e, 'reason', e)}",
-                          "VOICEVOX が起動しているか、話者「春歌ナナ」(54) が使えるかを確かめてください")
+                          "VOICEVOX が起動しているか、選択した話者が使えるかを確かめてください")
     with _voice_lock:
         if len(_voice_cache) > 200:
             _voice_cache.clear()
-        _voice_cache[text] = (wav, seconds)
+        _voice_cache[key] = (wav, seconds)
     return wav, seconds
 
 
-def voice_timing(lines, total, progress=lambda message: None):
+def voice_timing(lines, total, progress=lambda message: None, profile="mitsuba"):
     """台詞ごとの長さと終わりの時刻、重なりや尺からのはみ出し。VOICEVOX が要る。
 
     返すのは ([{"start", "text", "duration", "end"}], [問題の文])。
@@ -707,7 +753,7 @@ def voice_timing(lines, total, progress=lambda message: None):
     timed, problems = [], []
     for i, line in enumerate(lines):
         progress(f"VOICEVOX で台詞 {i + 1}/{len(lines)} を作っています")
-        _wav, seconds = synthesize(line["text"])
+        _wav, seconds = synthesize(line["text"], profile)
         timed.append({"start": line["start"], "text": line["text"], "duration": seconds, "end": line["start"] + seconds})
     for i, line in enumerate(timed):
         if i + 1 < len(timed) and line["end"] > timed[i + 1]["start"]:
@@ -720,15 +766,15 @@ def voice_timing(lines, total, progress=lambda message: None):
     return timed, problems
 
 
-def _voices(tmp, lines, total, progress):
-    timed, problems = voice_timing(lines, total, progress)
+def _voices(tmp, lines, total, progress, profile="mitsuba"):
+    timed, problems = voice_timing(lines, total, progress, profile)
     if problems:
         raise ExportError("台詞が重なるか、尺からはみ出します: " + " / ".join(problems),
                           "台詞を短くするか、話し始めの時刻をずらしてください")
     voices = []
     for i, line in enumerate(timed):
         voice = tmp / f"voice{i}.wav"
-        voice.write_bytes(synthesize(line["text"])[0])
+        voice.write_bytes(synthesize(line["text"], profile)[0])
         voices.append(voice)
     return voices
 
@@ -748,11 +794,12 @@ def verify(path, project, outro_still=None, outro_boxes=()):
     size = (video.get("width"), video.get("height"))
     checks.append({"name": "解像度", "ok": size == CANVAS, "detail": f"{size[0]}×{size[1]}"})
     outro = project["scenes"][-1]
-    credits = [l for l in outro["layers"] if l.get("type") == "text" and CREDIT_TEXT in l.get("text", "")
+    expected_credit = credit_text(project)
+    credits = [l for l in outro["layers"] if l.get("type") == "text" and expected_credit in l.get("text", "")
                and l.get("visible", True)]
     if not credits:
         checks.append({"name": "クレジット", "ok": False,
-                       "detail": f"アウトロに「{CREDIT_TEXT}」の見えるテキストがありません"})
+                       "detail": f"アウトロに「{expected_credit}」の見えるテキストがありません"})
     else:
         box = [round(v) for v in _box(credits[0])]
         inside = box[0] >= 0 and box[1] >= 0 and box[2] <= CANVAS[0] and box[3] <= CANVAS[1]
@@ -816,7 +863,7 @@ def export(project, progress=lambda message, fraction=None: None):
         def voice_step(message):
             step(message)
             advance()
-        voices = _voices(tmp, lines, total, voice_step)
+        voices = _voices(tmp, lines, total, voice_step, voice_profile(project))
         step("音声を重ねて仕上げています")
         inputs = ["-i", joined]
         filters, mix = [], ["[0:a]"]

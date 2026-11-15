@@ -29,7 +29,7 @@ import render  # noqa: E402
 STATIC = render.EDITOR / "static"
 MEDIA_TYPES = {".mp4": "video/mp4", ".mov": "video/quicktime", ".webm": "video/webm", ".mkv": "video/x-matroska",
                ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-               ".ttf": "font/ttf", ".otf": "font/otf"}
+               ".ttf": "font/ttf", ".otf": "font/otf", ".ttc": "font/collection"}
 MAX_BODY = 5 * 1024 * 1024
 
 
@@ -242,7 +242,8 @@ class Handler(BaseHTTPRequestHandler):
         self._json({
             "canvas": {"width": render.CANVAS[0], "height": render.CANVAS[1]},
             "scenes": [{"id": i, "label": l, "duration": d} for i, l, d in render.SCENES],
-            "safeArea": {"top": 130, "bottom": 480},
+            "safeArea": {"top": 130, "bottom": 480, "left": 100, "right": 100},
+            "voiceProfiles": render.VOICE_PROFILES,
             "voice": {**render.VOICE, "lines": render.default_voice_lines(),
                       "maxLines": render.MAX_VOICE_LINES, "maxText": render.MAX_VOICE_TEXT},
             "gameVolume": render.GAME_VOLUME, "bobHz": render.BOB_HZ, "credit": render.CREDIT_TEXT,
@@ -268,7 +269,9 @@ class Handler(BaseHTTPRequestHandler):
         if not isinstance(bg, dict) or not render._num(bg.get("time")) or bg["time"] < 0:
             raise ValueError("背景の時刻は 0 以上の数にしてください")
         path = render.resolve(bg.get("src"), "video")
-        key = (str(path), path.stat().st_mtime_ns, float(bg["time"]))
+        if "color" in bg and (not isinstance(bg["color"], str) or not render.COLOR.fullmatch(bg["color"])):
+            raise ValueError("背景色は #rrggbb の形にしてください")
+        key = (str(path), path.stat().st_mtime_ns, float(bg["time"]), bg.get("color"))
         try:
             jpg = previews.get(("bg",) + key, lambda: render.background_preview(bg))
         except render.ExportError as e:
@@ -337,7 +340,7 @@ class Handler(BaseHTTPRequestHandler):
     def voice_check(self, q):
         """台詞ごとの読み上げの長さと、重なり。VOICEVOX が動いていなければ、その旨を返す。"""
         body = self._body()
-        voice = {"lines": body.get("lines") if isinstance(body, dict) else None}
+        voice = body if isinstance(body, dict) else {"lines": None}
         total, problems = self._voice_lines(voice)
         if problems:
             return self._json({"ok": False, "problems": problems, "lines": []})
@@ -345,16 +348,16 @@ class Handler(BaseHTTPRequestHandler):
         if not status["ok"]:
             return self._json({"ok": False, "offline": True, "problems": [], "lines": [],
                                "message": "VOICEVOX が動いていないので、台詞の長さを確かめられません"})
-        timed, problems = render.voice_timing(voice["lines"], total)
+        timed, problems = render.voice_timing(voice["lines"], total, profile=voice.get("profile", "mitsuba"))
         self._json({"ok": not problems, "problems": problems, "total": total,
                     "lines": [{"duration": round(t["duration"], 3), "end": round(t["end"], 3)} for t in timed]})
 
     def voice_wav(self, q):
         """台詞 1 つの読み上げ (試し聞きとプレビューの再生に使う)。"""
-        _total, problems = self._voice_lines({"lines": [{"start": 0, "text": q.get("text")}]})
+        _total, problems = self._voice_lines({"profile": q.get("profile", "mitsuba"), "lines": [{"start": 0, "text": q.get("text")}]})
         if problems:
             return self._error(400, " / ".join(problems))
-        wav, _seconds = render.synthesize(q["text"])
+        wav, _seconds = render.synthesize(q["text"], q.get("profile", "mitsuba"))
         self._send(200, wav, "audio/wav")
 
     def start_export(self, q):
