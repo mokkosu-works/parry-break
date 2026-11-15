@@ -11,6 +11,7 @@ import '../core/core.dart';
 import '../input/touch_controls.dart';
 import '../l10n/app_localizations.dart';
 import '../render/block_painters.dart';
+import '../render/cosmetics.dart';
 import '../render/field_painter.dart';
 import '../render/palette.dart';
 import '../render/pixel.dart';
@@ -522,6 +523,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
       repaint: _ctl.frame,
     );
     _painter!.parryButton = settings.controls != ControlScheme.zones;
+    // 選んだ見た目 (まだ解放されていない色は既定)。描くだけで、遊びには関わらない
+    final level = ref.watch(progressProvider.select((p) => p.level));
+    _painter!.paddleColor = Cosmetics.resolve(
+      CosmeticKind.paddle,
+      settings.paddleColor,
+      level,
+    ).color;
+    final trail = Cosmetics.resolve(
+      CosmeticKind.trail,
+      settings.trailColor,
+      level,
+    );
+    _painter!.trailColor = trail.id == Cosmetics.trailDefault.id
+        ? null
+        : trail.color;
     return PopScope(
       // 戻るボタン (Android) で画面を閉じず、ポーズや結果画面のボタンと同じ処理にする (_onBack)
       canPop: false,

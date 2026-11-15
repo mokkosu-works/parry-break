@@ -76,6 +76,7 @@ Oct 4, 2026 · @watsuwo
 | 演出を控えめにする | OFF | ON / OFF(フラッシュ・点滅・揺れ・メニューの動き) |
 | タイミングの表示 | ON | ON / OFF(パリィの判定の下に、接触とのずれ。項目のない古い保存データはオン) |
 | 言語 | 端末の言語 | 日本語 / English |
+| パドルの色 / ボールの軌跡の色 | SKY / STANDARD(今までの色) | 6 種ずつ。プレイヤーレベルで解放される(design.md 9.9)。`paddleColor` / `trailColor`(色の id)。項目のない古い保存データ・表にない値・まだ解放されていない値は既定の色。設定の「表示」の分類で選ぶ |
 | 難易度(ステージ) | NORMAL | EASY / NORMAL / HARD。設定の画面ではなく、ステージ選択の右上で選ぶ。最後に選んだものを保存する(`difficulty`) |
 | 難易度(エンドレス) | NORMAL | EASY / NORMAL(`endlessDifficulty`)。タイトルの左の列で選ぶ。項目のない古い保存データと HARD は NORMAL として読む。DAILY・練習場は常に NORMAL |
 
@@ -96,7 +97,7 @@ Oct 4, 2026 · @watsuwo
 
 デイリーチャレンジ(`DailyMode`、タイトルの DAILY)は、`DailyChallenge`(UTC の日付 → 1970-01-01 からの日数 → 種 → 始まりのラウンド)が決めたエンドレスの 5 ラウンドを遊ぶ(`GameMode.firstRound` から始め、`roundAt` は範囲の外で null)。難易度は NORMAL 固定。記録は `lib/services/daily.dart` の `DailyRecord` を `daily.v1` に保存し(`records`・`history.v1`・`settings.v1` は変えない)、何回遊んでもその日の最高得点を記録にし、ランキングには毎回送る。履歴の行には `"daily": true` を足す(古い版のアプリはエンドレスとして読む)。広告の回数はエンドレス・ステージと同じく結果画面の数に数える。
 
-プレイヤーレベル(design.md 9.9)の累計 XP は、`lib/services/progress.dart` の `Progress` を `progress.v1`(`{"version":1,"xp":N}`)に保存する(`records`・`daily.v1`・`settings.v1`・`history.v1` は変えない)。レベルは累計 XP から計算し、壊れたデータは 0 として読んで `progress.broken` に退避する。エンドレス・DAILY・ステージの結果画面が出た回に `game_screen.dart` の `_onFinished` が加える(練習場・デバッグモードでは加えない)。
+プレイヤーレベル(design.md 9.9)の累計 XP は、`lib/services/progress.dart` の `Progress` を `progress.v1`(`{"version":1,"xp":N}`)に保存する(`records`・`daily.v1`・`settings.v1`・`history.v1` は変えない)。レベルは累計 XP から計算し、壊れたデータは 0 として読んで `progress.broken` に退避する。エンドレス・DAILY・ステージの結果画面が出た回に `game_screen.dart` の `_onFinished` が加える(練習場・デバッグモードでは加えない)。見た目の解放(パドルの色・軌跡の色。`lib/render/cosmetics.dart`)は、このレベルだけで決め、解放した状態は保存しない(選んだ色の id だけ `settings.v1` に持つ)。
 
 ### 4.2 ランキング
 
@@ -164,12 +165,12 @@ app/
     app/          providers.dart(音・振動・デバッグモードなど、画面をまたいで使う Provider)
     game/         game_controller.dart(実時間で進め、イベントを演出・音・振動へ配る), game_screen.dart,
                   result_overlay.dart(結果画面), autoplay_bot.dart(撮影用ビルドだけの自動プレイ。promo/ で使う)
-    render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿), item_painter.dart(アイテムのカプセル),
+    render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿), item_painter.dart(アイテムのカプセル), cosmetics.dart(パドル・軌跡の色の表と解放のレベル),
                   fx.dart(パーティクル・ポップアップ・コールアウトなど), pixel.dart(ドット絵の部品), text_cache.dart, palette.dart(16 色のパレットと画面の 3 色)
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
     input/        input_clock.dart(タッチの時刻の換算), touch_controls.dart(領域方式・レール・PARRY)
-    services/     settings.dart, records.dart(記録。`endless` は NORMAL、`endlessEasy` は EASY のエンドレスの記録。`plays` はエンドレスを遊び終えた回数で、古いデータは 0 として読む), beginner_guard.dart(はじめの防壁を付けるかの判定), history.dart(最近のプレイの履歴), progress.dart(プレイヤーレベル。XP の計算 `XpRules`・レベルの曲線 `LevelCurve`・累計 XP の保存), content.dart, leaderboard.dart,
+    services/     settings.dart(`paddleColor` / `trailColor` を含む), records.dart(記録。`endless` は NORMAL、`endlessEasy` は EASY のエンドレスの記録。`plays` はエンドレスを遊び終えた回数で、古いデータは 0 として読む), beginner_guard.dart(はじめの防壁を付けるかの判定), history.dart(最近のプレイの履歴), progress.dart(プレイヤーレベル。XP の計算 `XpRules`・レベルの曲線 `LevelCurve`・累計 XP の保存), content.dart, leaderboard.dart,
                   ads.dart(インタースティシャル広告と頻度の制限), review.dart(評価の依頼), error_log.dart(予期しない例外の記録)
     ui/           stage_select / help / history / settings / calibration _screen.dart, widgets.dart, stage_text.dart,
                   arcade.dart(タイトル・結果・ポーズで使うドット絵の部品), pixel_icons.dart(ドット絵のアイコン),

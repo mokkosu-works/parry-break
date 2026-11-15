@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/core.dart';
+import '../render/cosmetics.dart';
 import 'settings.dart';
 
 // プレイヤーレベル (design.md 9.9)。遊び終えるたびに経験値 (XP) が貯まり、累計 XP からレベルが決まる。
@@ -207,6 +208,10 @@ class LevelGain {
   int get fromLevel => before.level;
   int get toLevel => after.level;
   bool get leveledUp => toLevel > fromLevel;
+
+  /// 今回の上がりで新しく解放された見た目 (パドルの色・軌跡の色。解放の表は [Cosmetics])。
+  List<CosmeticUnlock> get unlocked =>
+      Cosmetics.unlockedBetween(fromLevel, toLevel);
 
   /// 今回新しく届いたレベル (一度に何段か上がったときは全部)。
   Iterable<int> get reached sync* {

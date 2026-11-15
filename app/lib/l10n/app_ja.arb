@@ -450,5 +450,39 @@
         "type": "int"
       }
     }
+  },
+  "settingsPaddleColor": "パドルの色",
+  "settingsTrailColor": "ボールの軌跡の色",
+  "cosmeticLocked": "LV {level} で解放",
+  "cosmeticNewPaddle": "NEW: パドルの色 {name}",
+  "cosmeticNewTrail": "NEW: ボールの軌跡の色 {name}",
+  "cosmeticNewMore": "ほか {n}",
+  "@cosmeticLocked": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "@cosmeticNewPaddle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@cosmeticNewTrail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@cosmeticNewMore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

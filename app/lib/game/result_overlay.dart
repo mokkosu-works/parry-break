@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../core/core.dart';
 import '../l10n/app_localizations.dart';
+import '../render/cosmetics.dart';
 import '../render/palette.dart';
 import '../render/pixel.dart';
 import '../services/progress.dart';
@@ -287,7 +288,9 @@ class _ResultOverlayState extends State<ResultOverlay>
                     // 縮めずに (または少しだけ縮めて) 出す。
                     // レベルの行を出す回は、その行のぶん箱を高くする (なければ今までどおり 1000×470)。
                     final boxHeight =
-                        470.0 + (d.gain == null ? 0 : _levelExtra);
+                        470.0 +
+                        (d.gain == null ? 0 : _levelExtra) +
+                        (_newUnlock(l, d) == null ? 0 : _unlockExtra);
                     final compact =
                         c.maxWidth < _wideSize.width * _minWideScale ||
                         c.maxHeight <
@@ -342,6 +345,9 @@ class _ResultOverlayState extends State<ResultOverlay>
 
   /// 大きい画面で、レベルの行 (上の余白 4 + 行 + 下の余白 10) が入るぶん、見出しとの間を 10 詰めた残りだけ箱を高くする。
   static const _levelExtra = 4 + LevelStrip.rowHeight + 10 - 10;
+
+  /// 大きい画面で、見た目の解放の行 (NEW: …) が入るぶん高くする。
+  static const _unlockExtra = 26.0;
 
   /// 大きい画面の箱をこれより縮めると、ボタン (高さ 48) が 44pt を下回る。
   static const _minWideScale = 44 / 48;
@@ -626,7 +632,7 @@ class _ResultOverlayState extends State<ResultOverlay>
         if (d.gain != null)
           Padding(
             padding: const EdgeInsets.only(top: 4, bottom: 10),
-            child: _level(l, d, compact: false),
+            child: _levelAndUnlock(l, d, compact: false),
           ),
         _buttonRow(),
       ],
@@ -679,7 +685,7 @@ class _ResultOverlayState extends State<ResultOverlay>
           ),
           _details(l, d, compact: true),
           compact: true,
-          footer: d.gain == null ? null : _level(l, d, compact: true),
+          footer: d.gain == null ? null : _levelAndUnlock(l, d, compact: true),
         ),
         SizedBox(height: _runGapShown(d) ? 8 : 12),
         _buttonRow(fontSize: 14, spacing: 8, dense: true),
@@ -692,6 +698,60 @@ class _ResultOverlayState extends State<ResultOverlay>
 
   /// 棒が伸びきって LEVEL UP! を出す時点 (上がるときは、棒が満タンになって次のレベルに替わった直後)。
   static const _levelUpAt = (_levelFrom + _levelTo) / 2;
+
+  /// 今回のレベルアップで解放された見た目の知らせ (なければ null)。
+  /// 「NEW: パドルの色 CYAN」。複数なら、最初の 1 つのあとに「ほか N」を付ける (design.md 9.9)。
+  String? _newUnlock(AppLocalizations l, ResultData d) {
+    final list = d.gain?.unlocked ?? const <CosmeticUnlock>[];
+    if (list.isEmpty) return null;
+    final first = list.first;
+    final text = switch (first.kind) {
+      CosmeticKind.paddle => l.cosmeticNewPaddle(first.item.name),
+      CosmeticKind.trail => l.cosmeticNewTrail(first.item.name),
+    };
+    return list.length == 1
+        ? text
+        : '$text ${l.cosmeticNewMore(list.length - 1)}';
+  }
+
+  /// レベルの行と、その下の見た目の解放の知らせ (あれば)。知らせは LEVEL UP! が出てから見せる
+  /// (場所は先に取っておく。「演出を控えめにする」では、はじめから出す)。
+  Widget _levelAndUnlock(
+    AppLocalizations l,
+    ResultData d, {
+    required bool compact,
+  }) {
+    final level = _level(l, d, compact: compact);
+    final text = _newUnlock(l, d);
+    if (text == null) return level;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        level,
+        SizedBox(height: compact ? 2 : 4),
+        MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.2,
+          child: Opacity(
+            opacity: _p(_levelUpAt, _levelUpAt + 0.06),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                text,
+                maxLines: 1,
+                style: pixelFont(
+                  compact ? 12 : 16,
+                  color: Palette.main,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   /// プレイヤーレベル: 「LV 12  ▮▮▮▯▯  +180 XP」の 1 行。どちらのページでも出す。
   /// 大きい画面ではボタンの上に、スマホの横画面などの詰めた配置では、縦に場所を取らないよう
