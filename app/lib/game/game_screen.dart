@@ -24,6 +24,7 @@ import '../services/beginner_guard.dart';
 import '../services/history.dart';
 import '../services/leaderboard.dart';
 import '../services/progress.dart';
+import '../services/quests.dart';
 import '../services/records.dart';
 import '../services/review.dart';
 import '../services/settings.dart';
@@ -87,12 +88,16 @@ class _Outcome {
     this.cleared = false,
     this.daily,
     this.gain,
+    this.quest,
   });
   final bool newBest, cleared;
   final List<bool>? stars;
 
   /// 今回入った XP とレベルの変化 (デバッグモードのプレイでは null)。
   final LevelGain? gain;
+
+  /// 今回新しく達成した今日のお題 (その XP は [gain] に含まれる)。
+  final QuestResult? quest;
 
   /// デイリーで、今回のプレイがその日の記録をどうしたか。
   final DailyOutcome? daily;
@@ -224,10 +229,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
           .read(historyProvider.notifier)
           .addDaily(score: w.score, round: w.round.number);
       if (counted) lb.submit(Board.dailyScore, w.score);
+      final award = _award(w, PlayKind.daily);
       _outcome = _Outcome(
         newBest: newBest,
         cleared: w.phase == WorldPhase.completed,
-        gain: _awardXp(w, PlayKind.daily),
+        gain: award.gain,
+        quest: award.quest,
         daily: !counted
             ? DailyOutcome.kept
             : first
@@ -255,9 +262,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
         lb.submit(Board.endlessScore, w.score);
         lb.submit(Board.endlessRound, w.round.number);
       }
+      final award = _award(w, PlayKind.endless);
       _outcome = _Outcome(
         newBest: newBest,
-        gain: _awardXp(w, PlayKind.endless),
+        gain: award.gain,
+        quest: award.quest,
       );
     } else {
       final cleared = w.phase == WorldPhase.completed;
@@ -291,33 +300,48 @@ class _GameScreenState extends ConsumerState<GameScreen>
           _unlock(a);
         }
       }
+      final award = _award(w, PlayKind.stage, cleared: cleared, stars: stars);
       _outcome = _Outcome(
         newBest: newBest,
         stars: stars,
         cleared: cleared,
-        gain: _awardXp(w, PlayKind.stage, cleared: cleared, stars: stars),
+        gain: award.gain,
+        quest: award.quest,
       );
     }
   }
 
-  /// 遊び終えた結果から XP を計算して加え、レベルの変化を返す (練習場・デバッグモードでは呼ばない)。
-  LevelGain _awardXp(
+  /// 遊び終えた結果から XP を計算して加え、レベルの変化と、新しく達成した今日のお題を返す
+  /// (練習場・デバッグモードでは呼ばない)。お題の XP は、プレイの XP (1 回の上限あり) とは別枠で
+  /// 足して、レベルの変化を 1 つにまとめる (結果画面の棒には合わせた XP が出る)。
+  ({LevelGain gain, QuestResult quest}) _award(
     World w,
     PlayKind kind, {
     bool cleared = false,
     List<bool>? stars,
-  }) => ref
-      .read(progressProvider.notifier)
-      .award(
-        XpRules.standard.xpFor(
-          kind: kind,
-          stats: w.stats,
-          round: w.round.number,
-          cleared: cleared,
-          stars: stars?.where((s) => s).length ?? 0,
-          difficulty: widget.playDifficulty,
-        ),
-      );
+  }) {
+    final quest = ref
+        .read(questsProvider.notifier)
+        .record(
+          QuestPlay(
+            kind: kind,
+            stats: w.stats,
+            round: w.round.number,
+            score: w.score,
+            cleared: cleared,
+          ),
+        );
+    final play = XpRules.standard.xpFor(
+      kind: kind,
+      stats: w.stats,
+      round: w.round.number,
+      cleared: cleared,
+      stars: stars?.where((s) => s).length ?? 0,
+      difficulty: widget.playDifficulty,
+    );
+    final gain = ref.read(progressProvider.notifier).award(play + quest.xp);
+    return (gain: gain, quest: quest);
+  }
 
   // ---- 操作 ---------------------------------------------------------------
 
@@ -765,6 +789,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
             : null,
         over: w.overInfo,
         gain: o?.gain,
+        quest: o?.quest,
         daily: daily == null
             ? null
             : DailyResult(

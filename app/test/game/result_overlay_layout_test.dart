@@ -9,6 +9,7 @@ import 'package:parry_break/core/core.dart';
 import 'package:parry_break/game/result_overlay.dart';
 import 'package:parry_break/l10n/app_localizations.dart';
 import 'package:parry_break/services/progress.dart';
+import 'package:parry_break/services/quests.dart';
 import 'package:parry_break/ui/widgets.dart';
 
 import '../core/helpers.dart';
@@ -90,8 +91,9 @@ void main() {
     );
   }
 
-  ResultData endless({LevelGain? gain}) => ResultData(
+  ResultData endless({LevelGain? gain, QuestResult? quest}) => ResultData(
     gain: gain ?? levelUp(),
+    quest: quest,
     score: 123456789,
     round: 27,
     maxChain: 117,
@@ -116,8 +118,13 @@ void main() {
     over: const OverInfo(cause: OverCause.ballLost, tier: 5, sinceParry: 12.3),
   );
 
-  ResultData stageResult(StageDef s, {required bool cleared}) => ResultData(
+  ResultData stageResult(
+    StageDef s, {
+    required bool cleared,
+    QuestResult? quest,
+  }) => ResultData(
     gain: cleared ? levelUp() : steady(),
+    quest: quest,
     score: 9876543,
     round: 1,
     maxChain: 117,
@@ -523,6 +530,163 @@ void main() {
             expect(measure(t).text, greaterThanOrEqualTo(11));
           }
         });
+      }
+    }
+  });
+
+  /// 今日のお題を 1 つ達成した回 (易しい: PERFECT ×20 のつもりで、表の値の目標)。
+  QuestResult questOne() => const QuestResult(
+    cleared: [
+      Quest(
+        kind: QuestKind.perfect,
+        tier: QuestTier.normal,
+        progress: 20,
+        done: true,
+      ),
+    ],
+  );
+
+  /// 3 つ達成する回 (ふつう 150 + 易しい 100 + 少し難しい 250 + 全部 200)。
+  QuestResult questMany() => const QuestResult(
+    cleared: [
+      Quest(
+        kind: QuestKind.plays,
+        tier: QuestTier.easy,
+        progress: 3,
+        done: true,
+      ),
+      Quest(
+        kind: QuestKind.perfect,
+        tier: QuestTier.normal,
+        progress: 20,
+        done: true,
+      ),
+    ],
+  );
+
+  QuestResult questAll() => const QuestResult(
+    cleared: [
+      Quest(
+        kind: QuestKind.endlessScore,
+        tier: QuestTier.hard,
+        progress: 4000000,
+        done: true,
+      ),
+    ],
+    allClear: true,
+  );
+
+  group('今日のお題の達成の知らせ (design.md 9.10)', () {
+    for (final lang in ['en', 'ja']) {
+      final more = lang == 'ja' ? 'ほか 1' : '+1 more';
+      testWidgets(
+        '達成したら 1 行出す ($lang)。複数なら最初の 1 つ +「ほか N」、全部なら ALL QUESTS CLEAR',
+        (t) async {
+          const size = Size(1280, 800);
+          await pump(
+            t,
+            endless(quest: questOne()),
+            size: size,
+            lang: lang,
+          );
+          expect(find.text('QUEST CLEAR: PERFECT ×20 +150 XP'), findsOneWidget);
+          await pump(
+            t,
+            endless(quest: questMany()),
+            size: size,
+            lang: lang,
+          );
+          expect(
+            find.text('QUEST CLEAR: PLAY ×3 +100 XP $more'),
+            findsOneWidget,
+          );
+          await pump(
+            t,
+            endless(quest: questAll()),
+            size: size,
+            lang: lang,
+          );
+          expect(find.text('ALL QUESTS CLEAR! +450 XP'), findsOneWidget);
+        },
+      );
+    }
+
+    testWidgets('達成がない回は何も出さず、箱の高さも変わらない', (t) async {
+      for (final q in [null, const QuestResult()]) {
+        await pump(t, endless(quest: q), size: const Size(1280, 800));
+        expect(find.textContaining('QUEST'), findsNothing);
+        expect(
+          find.byWidgetPredicate(
+            (w) => w is SizedBox && w.width == 1000 && w.height == 506,
+          ),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets('1280×800: 達成の行のぶん箱が 26 高くなり、ほぼ縮めずに出す', (t) async {
+      await pump(t, endless(quest: questOne()), size: const Size(1280, 800));
+      expect(t.takeException(), isNull);
+      final box = find.byWidgetPredicate(
+        (w) => w is SizedBox && w.width == 1000 && w.height == 532,
+      );
+      expect(box, findsOneWidget);
+      expect(t.getRect(box).width, closeTo(1000, 0.5));
+      expect(measure(t).button, greaterThanOrEqualTo(48));
+      // 見た目の解放と重なっても、さらに 26 高くなるだけ
+      await pump(
+        t,
+        endless(gain: unlockMany(), quest: questAll()),
+        size: const Size(1280, 800),
+      );
+      expect(t.takeException(), isNull);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is SizedBox && w.width == 1000 && w.height == 558,
+        ),
+        findsOneWidget,
+      );
+      expect(measure(t).button, greaterThanOrEqualTo(44));
+    });
+
+    for (final MapEntry(key: name, value: (size, safe)) in phones.entries) {
+      for (final lang in ['en', 'ja']) {
+        testWidgets(
+          '$name ($lang): 達成の行 (解放と重なる回も) があっても、はみ出さず、ボタンは 44pt 以上、文字は 11pt 以上',
+          (t) async {
+            final more = lang == 'ja' ? 'ほか 1' : '+1 more';
+            final text = 'QUEST CLEAR: PLAY ×3 +100 XP $more';
+            for (final data in [
+              endless(quest: questMany()),
+              endless(gain: unlockMany(), quest: questMany()),
+              stageResult(
+                campaign.stages.first,
+                cleared: true,
+                quest: questMany(),
+              ),
+            ]) {
+              final isStage = data.stage != null;
+              await pump(
+                t,
+                data,
+                size: size,
+                safe: safe,
+                lang: lang,
+                stage: isStage,
+              );
+              expect(t.takeException(), isNull, reason: '$isStage');
+              expect(find.text(text), findsOneWidget);
+              final m = measure(t);
+              expect(m.button, greaterThanOrEqualTo(minButton(size)));
+              expect(m.text, greaterThanOrEqualTo(11));
+              // 2 ページ目でも同じ場所に出る
+              await page2(t);
+              expect(t.takeException(), isNull);
+              expect(find.text(text), findsOneWidget);
+              expect(measure(t).text, greaterThanOrEqualTo(11));
+            }
+          },
+        );
       }
     }
   });

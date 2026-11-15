@@ -484,5 +484,98 @@
         "type": "int"
       }
     }
+  },
+  "questPlays": "合計 {n} 回遊ぶ",
+  "questDaily": "DAILY を 1 回遊ぶ",
+  "questPerfect": "PERFECT 以上のパリィを合計 {n} 回",
+  "questJust": "JUST を合計 {n} 回",
+  "questFever": "FEVER TIME に合計 {n} 回入る",
+  "questRound": "エンドレス 1 回でラウンド {n} に届く",
+  "questStage": "ステージを合計 {n} 個クリア",
+  "questReturn": "撃ち返した弾でブロックを合計 {n} 個壊す",
+  "questScore": "エンドレス 1 回で {n} 点を取る",
+  "questAllBonus": "3 つ全部で +{xp} XP",
+  "questDone": "達成",
+  "questMore": "ほか {n}",
+  "questTagSemantics": "今日のお題、{done} / {total} 達成",
+  "@questPlays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questPerfect": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questJust": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questFever": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questRound": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questStage": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questReturn": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questScore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questMore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questAllBonus": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "@questTagSemantics": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -582,4 +582,65 @@ class AppLocalizationsJa extends AppLocalizations {
   String cosmeticNewMore(int n) {
     return 'ほか $n';
   }
+
+  @override
+  String questPlays(String n) {
+    return '合計 $n 回遊ぶ';
+  }
+
+  @override
+  String get questDaily => 'DAILY を 1 回遊ぶ';
+
+  @override
+  String questPerfect(String n) {
+    return 'PERFECT 以上のパリィを合計 $n 回';
+  }
+
+  @override
+  String questJust(String n) {
+    return 'JUST を合計 $n 回';
+  }
+
+  @override
+  String questFever(String n) {
+    return 'FEVER TIME に合計 $n 回入る';
+  }
+
+  @override
+  String questRound(String n) {
+    return 'エンドレス 1 回でラウンド $n に届く';
+  }
+
+  @override
+  String questStage(String n) {
+    return 'ステージを合計 $n 個クリア';
+  }
+
+  @override
+  String questReturn(String n) {
+    return '撃ち返した弾でブロックを合計 $n 個壊す';
+  }
+
+  @override
+  String questScore(String n) {
+    return 'エンドレス 1 回で $n 点を取る';
+  }
+
+  @override
+  String questAllBonus(int xp) {
+    return '3 つ全部で +$xp XP';
+  }
+
+  @override
+  String get questDone => '達成';
+
+  @override
+  String questMore(String n) {
+    return 'ほか $n';
+  }
+
+  @override
+  String questTagSemantics(int done, int total) {
+    return '今日のお題、$done / $total 達成';
+  }
 }

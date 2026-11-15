@@ -609,4 +609,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String cosmeticNewMore(int n) {
     return '+$n more';
   }
+
+  @override
+  String questPlays(String n) {
+    return 'Play $n times in total';
+  }
+
+  @override
+  String get questDaily => 'Play DAILY once';
+
+  @override
+  String questPerfect(String n) {
+    return 'Land $n PERFECT or better parries in total';
+  }
+
+  @override
+  String questJust(String n) {
+    return 'Land $n JUST parries in total';
+  }
+
+  @override
+  String questFever(String n) {
+    return 'Enter FEVER TIME $n times in total';
+  }
+
+  @override
+  String questRound(String n) {
+    return 'Reach round $n in one ENDLESS run';
+  }
+
+  @override
+  String questStage(String n) {
+    return 'Clear $n stages in total';
+  }
+
+  @override
+  String questReturn(String n) {
+    return 'Destroy $n blocks with returned shots in total';
+  }
+
+  @override
+  String questScore(String n) {
+    return 'Score $n in one ENDLESS run';
+  }
+
+  @override
+  String questAllBonus(int xp) {
+    return 'All 3 done: +$xp XP';
+  }
+
+  @override
+  String get questDone => 'DONE';
+
+  @override
+  String questMore(String n) {
+    return '+$n more';
+  }
+
+  @override
+  String questTagSemantics(int done, int total) {
+    return 'Today\'s quests, $done of $total done';
+  }
 }

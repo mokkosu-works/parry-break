@@ -1051,6 +1051,84 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'ほか {n}'**
   String cosmeticNewMore(int n);
+
+  /// No description provided for @questPlays.
+  ///
+  /// In ja, this message translates to:
+  /// **'合計 {n} 回遊ぶ'**
+  String questPlays(String n);
+
+  /// No description provided for @questDaily.
+  ///
+  /// In ja, this message translates to:
+  /// **'DAILY を 1 回遊ぶ'**
+  String get questDaily;
+
+  /// No description provided for @questPerfect.
+  ///
+  /// In ja, this message translates to:
+  /// **'PERFECT 以上のパリィを合計 {n} 回'**
+  String questPerfect(String n);
+
+  /// No description provided for @questJust.
+  ///
+  /// In ja, this message translates to:
+  /// **'JUST を合計 {n} 回'**
+  String questJust(String n);
+
+  /// No description provided for @questFever.
+  ///
+  /// In ja, this message translates to:
+  /// **'FEVER TIME に合計 {n} 回入る'**
+  String questFever(String n);
+
+  /// No description provided for @questRound.
+  ///
+  /// In ja, this message translates to:
+  /// **'エンドレス 1 回でラウンド {n} に届く'**
+  String questRound(String n);
+
+  /// No description provided for @questStage.
+  ///
+  /// In ja, this message translates to:
+  /// **'ステージを合計 {n} 個クリア'**
+  String questStage(String n);
+
+  /// No description provided for @questReturn.
+  ///
+  /// In ja, this message translates to:
+  /// **'撃ち返した弾でブロックを合計 {n} 個壊す'**
+  String questReturn(String n);
+
+  /// No description provided for @questScore.
+  ///
+  /// In ja, this message translates to:
+  /// **'エンドレス 1 回で {n} 点を取る'**
+  String questScore(String n);
+
+  /// No description provided for @questAllBonus.
+  ///
+  /// In ja, this message translates to:
+  /// **'3 つ全部で +{xp} XP'**
+  String questAllBonus(int xp);
+
+  /// No description provided for @questDone.
+  ///
+  /// In ja, this message translates to:
+  /// **'達成'**
+  String get questDone;
+
+  /// No description provided for @questMore.
+  ///
+  /// In ja, this message translates to:
+  /// **'ほか {n}'**
+  String questMore(String n);
+
+  /// No description provided for @questTagSemantics.
+  ///
+  /// In ja, this message translates to:
+  /// **'今日のお題、{done} / {total} 達成'**
+  String questTagSemantics(int done, int total);
 }
 
 class _AppLocalizationsDelegate

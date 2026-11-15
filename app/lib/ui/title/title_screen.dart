@@ -15,9 +15,11 @@ import '../../services/content.dart';
 import '../../services/daily.dart';
 import '../../services/leaderboard.dart';
 import '../../services/progress.dart';
+import '../../services/quests.dart';
 import '../../services/records.dart';
 import '../../services/settings.dart';
 import '../help_screen.dart';
+import '../quest_panel.dart';
 import '../history_screen.dart';
 import '../settings_screen.dart';
 import '../difficulty_picker.dart';
@@ -283,6 +285,10 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
     );
     final endlessRecord = records.endlessOf(endlessDiff);
     final level = ref.watch(progressProvider.select((p) => p.level));
+    // 今日のお題 (保存してあるのが別の日なら、その日の新しいお題)
+    final quests = ref
+        .watch(questsProvider)
+        .on(DailyChallenge.of(ref.read(dailyClockProvider)()).day);
     final still = _still;
     return Scaffold(
       backgroundColor: Palette.bg,
@@ -351,7 +357,8 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                                       -60 * (1 - _stage(0, 0.45)),
                                       0,
                                     ),
-                                    // ロゴの右の空きに、プレイヤーレベルを小さく出す (高さは増えない)
+                                    // ロゴの右の空きに、プレイヤーレベルと今日のお題の札を小さく出す
+                                    // (縦に並べても、ロゴの高さより低いので左の列の高さは増えない)
                                     child: Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.end,
@@ -367,7 +374,23 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                                           ),
                                         ),
                                         const SizedBox(width: 14),
-                                        _PlayerLevel(level: level),
+                                        Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _PlayerLevel(level: level),
+                                            _QuestTag(
+                                              board: quests,
+                                              onTap: () {
+                                                ref
+                                                    .read(audioProvider)
+                                                    .play('count');
+                                                showQuestPanel(context, quests);
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -651,6 +674,51 @@ class _PlayerLevel extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// ロゴの右下の、今日のお題の札 (`TODAY 1/3`)。タップするとお題のパネルを開く。
+/// 見た目は小さい札だが、押せる範囲は高さ 44 を確保する。
+class _QuestTag extends StatelessWidget {
+  const _QuestTag({required this.board, required this.onTap});
+  final QuestBoard board;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final done = board.allDone;
+    final color = done ? Dot.mint : Palette.main;
+    return Semantics(
+      button: true,
+      label: AppLocalizations.of(context)
+          .questTagSemantics(board.doneCount, board.quests.length),
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            widthFactor: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                border: Border.all(color: color, width: 2),
+              ),
+              child: Text(
+                'TODAY ${board.doneCount}/${board.quests.length}',
+                style: pixelFont(
+                  11,
+                  color: color,
+                  letterSpacing: 2,
+                ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// 左下のハイスコア表示 (アーケードの計器風)。
