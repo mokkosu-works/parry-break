@@ -12,6 +12,7 @@ import '../render/palette.dart';
 import '../services/content.dart';
 import '../services/records.dart';
 import '../services/settings.dart';
+import 'difficulty_picker.dart';
 import 'pixel_icons.dart';
 import 'stage_text.dart';
 import 'widgets.dart';
@@ -151,7 +152,7 @@ class _StageSelectScreenState extends ConsumerState<StageSelectScreen> {
       child: ScreenFrame(
         title: l.menuStages,
         actions: [
-          _DifficultyPicker(
+          DifficultyPicker(
             value: diff,
             label: l.difficulty,
             onChanged: (d) {
@@ -768,67 +769,4 @@ class _StageDetail extends StatelessWidget {
       ),
     );
   }
-}
-
-/// 難易度の切り替え (EASY / NORMAL / HARD)。選んでいるものは難易度の色で塗る。
-class _DifficultyPicker extends StatelessWidget {
-  const _DifficultyPicker({
-    required this.value,
-    required this.label,
-    required this.onChanged,
-  });
-  final Difficulty value;
-  final String label;
-  final ValueChanged<Difficulty> onChanged;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: label,
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (final d in Difficulty.values)
-          Padding(
-            padding: const EdgeInsets.only(left: 6),
-            child: Semantics(
-              button: true,
-              selected: d == value,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onChanged(d),
-                // 見た目の枠はそのままで、押せる範囲を上下に広げて高さ 44pt 以上にする
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 44),
-                  child: Align(
-                    widthFactor: 1,
-                    heightFactor: 1,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: d == value ? difficultyColor(d) : Dot.night,
-                        border: Border.all(
-                          color: d == value ? difficultyColor(d) : Dot.edge,
-                          width: 3,
-                        ),
-                      ),
-                      child: Text(
-                        d.label,
-                        style: pixelFont(
-                          13,
-                          color: d == value ? Dot.ink : Palette.gray,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    ),
-  );
 }

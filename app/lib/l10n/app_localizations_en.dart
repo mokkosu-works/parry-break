@@ -501,6 +501,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get difficulty => 'Difficulty';
 
   @override
+  String get endlessDifficulty => 'Endless difficulty';
+
+  @override
   String get difficultyEasy =>
       'Fewer, slower bullets. Wider parry timing and more time for bosses';
 

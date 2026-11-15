@@ -4,16 +4,19 @@ import 'records.dart';
 
 /// エンドレスを遊び終えた回数。
 ///
-/// 記録の `endless.plays` を主にし、この項目を足す前から遊んでいた人のために、履歴 (デイリーを除く
+/// 記録の `endless.plays` と `endlessEasy.plays` の合計 (EASY も数える) を主にし、この項目を足す前から遊んでいた人のために、履歴 (デイリーを除く
 /// エンドレスの件数) と、最高スコアがあれば 1 回以上、で下から支える。どれも減らないので、
 /// 一番大きいものを取る。
 int endlessPlayCount(Records records, PlayHistory history) {
   final fromHistory = history.entries
       .where((e) => e.endless && !e.daily)
       .length;
-  final fromBest = records.endless.bestScore > 0 ? 1 : 0;
+  final fromBest =
+      records.endless.bestScore > 0 || records.endlessEasy.bestScore > 0
+      ? 1
+      : 0;
   return [
-    records.endless.plays,
+    records.endlessPlays,
     fromHistory,
     fromBest,
   ].reduce((a, b) => a > b ? a : b);

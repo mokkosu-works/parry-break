@@ -19,7 +19,9 @@ import '../../services/settings.dart';
 import '../help_screen.dart';
 import '../history_screen.dart';
 import '../settings_screen.dart';
+import '../difficulty_picker.dart';
 import '../stage_select_screen.dart';
+import '../stage_text.dart';
 import '../widgets.dart';
 import 'attract_demo.dart';
 import 'title_logo.dart';
@@ -102,7 +104,13 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
     final content = ref.read(contentProvider);
     final lb = ref.read(leaderboardProvider);
     final nav = Navigator.of(context);
-    final firstTime = records.endless.bestScore == 0 && records.stages.isEmpty;
+    final endlessDiff = ref.watch(
+      settingsProvider.select((s) => s.endlessDifficulty),
+    );
+    final firstTime =
+        records.endless.bestScore == 0 &&
+        records.endlessEasy.bestScore == 0 &&
+        records.stages.isEmpty;
     final next = firstTime ? null : records.nextStage(content.campaign);
     final stars = content.campaign.stages.fold(
       0,
@@ -133,7 +141,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
         ),
       _MenuEntry(
         'ENDLESS',
-        () => push(const GameScreen()),
+        () => push(GameScreen(difficulty: endlessDiff)),
         meta: 'SCORE ATTACK',
         primary: !firstTime && next == null,
       ),
@@ -229,6 +237,34 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
     return KeyEventResult.handled;
   }
 
+  /// ENDLESS の下の難易度の切り替えの高さ (ボタンの 44 と、上下の余白)。
+  static const _endlessPickerHeight = 44.0 + 4;
+
+  Widget _endlessPicker(Difficulty value) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      // 端末の文字を大きくしても、ボタンが 44pt より高くなって左の列からはみ出さないよう、文字の拡大は 1.2 倍まで
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.2,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: DifficultyPicker(
+            value: value,
+            values: Settings.endlessDifficulties,
+            label: AppLocalizations.of(context).endlessDifficulty,
+            onChanged: (d) {
+              ref.read(audioProvider).play('count');
+              ref
+                  .read(settingsProvider.notifier)
+                  .update((s) => s.copyWith(endlessDifficulty: d));
+            },
+          ),
+        ),
+      ),
+    ),
+  );
+
   /// [from]〜[to] (0〜1) の間に 0 → 1 になる、登場アニメーションの進み具合。
   double _stage(double from, double to) => _still
       ? 1
@@ -241,6 +277,10 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
     final entries = _entries();
     if (_selected >= entries.length) _selected = 0;
     final records = ref.watch(recordsProvider);
+    final endlessDiff = ref.watch(
+      settingsProvider.select((s) => s.endlessDifficulty),
+    );
+    final endlessRecord = records.endlessOf(endlessDiff);
     final still = _still;
     return Scaffold(
       backgroundColor: Palette.bg,
@@ -257,9 +297,17 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
             SafeArea(
               child: LayoutBuilder(
                 builder: (context, c) {
+                  // 背の低い画面では、左の列 (ロゴ・難易度の切り替え・最高記録・DAILY と PRACTICE の窓) が
+                  // 収まるよう、ロゴを縮める (ロゴの高さはおよそ size の 3 倍)
+                  final sides = entries.where((e) => e.side).length;
+                  final leftFixed =
+                      28 +
+                      _endlessPickerHeight +
+                      44 +
+                      (sides == 0 ? 0 : 14 + sides * _MenuItem.minHeight);
                   final logoSize = math.min(
-                    c.maxWidth * 0.085,
-                    c.maxHeight * 0.17,
+                    math.min(c.maxWidth * 0.085, c.maxHeight * 0.17),
+                    math.max(24.0, (c.maxHeight - leftFixed) / 3.5),
                   );
                   // 背の低い画面では、メニューが収まるよう項目の高さを詰める (押せる範囲の 44 は割らない)。
                   // 上下の余白 28 と、窓の枠と内側の余白 38 を引いた高さに収める。それでも入らなければ送れる
@@ -312,14 +360,22 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                                   ),
                                 ),
                                 const Spacer(flex: 4),
-                                if (records.endless.bestScore > 0)
+                                // ENDLESS を始める前に、NORMAL / EASY を選ぶ (DAILY・練習場は常に NORMAL)
+                                Opacity(
+                                  opacity: _stage(0.5, 0.9),
+                                  child: _endlessPicker(endlessDiff),
+                                ),
+                                if (endlessRecord.bestScore > 0)
                                   Opacity(
                                     opacity: _stage(0.5, 0.9),
                                     // 9 桁でも左の枠からはみ出さないよう、収まらないときだけ縮める
                                     child: FittedBox(
                                       fit: BoxFit.scaleDown,
                                       alignment: Alignment.centerLeft,
-                                      child: _HiScore(record: records.endless),
+                                      child: _HiScore(
+                                        record: endlessRecord,
+                                        difficulty: endlessDiff,
+                                      ),
                                     ),
                                   ),
                                 if (entries.any((e) => e.side))
@@ -563,8 +619,9 @@ class _MenuItem extends StatelessWidget {
 
 /// 左下のハイスコア表示 (アーケードの計器風)。
 class _HiScore extends StatelessWidget {
-  const _HiScore({required this.record});
+  const _HiScore({required this.record, required this.difficulty});
   final EndlessRecord record;
+  final Difficulty difficulty;
 
   @override
   Widget build(BuildContext context) {
@@ -583,8 +640,18 @@ class _HiScore extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'HI-SCORE',
+            Text.rich(
+              TextSpan(
+                text: 'HI-SCORE',
+                children: [
+                  // EASY の記録を見ているときだけ、難易度を添える
+                  if (difficulty != Difficulty.normal)
+                    TextSpan(
+                      text: '  ${difficulty.label}',
+                      style: TextStyle(color: difficultyColor(difficulty)),
+                    ),
+                ],
+              ),
               style: pixelFont(12, color: Palette.main, letterSpacing: 3),
             ),
             const SizedBox(height: 2),

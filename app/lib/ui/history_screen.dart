@@ -74,7 +74,9 @@ class HistoryRow extends StatelessWidget {
     final mode = e.daily
         ? 'DAILY'
         : e.endless
-        ? 'ENDLESS'
+        ? (e.difficulty == Difficulty.normal
+              ? 'ENDLESS'
+              : 'ENDLESS  ${e.difficulty.label}')
         : 'STAGE ${e.stageId}  ${e.difficulty.label}';
     final (detail, detailColor) = e.endless
         ? ('ROUND ${e.round.toString().padLeft(2, '0')}', Palette.pale)

@@ -146,8 +146,17 @@ class PlayHistoryNotifier extends Notifier<PlayHistory> {
   }
 
   /// エンドレスのゲームオーバーを残す。
-  void addEndless({required int score, required int round}) => _add(
-    PlayEntry(at: ref.read(historyClockProvider)(), score: score, round: round),
+  void addEndless({
+    required int score,
+    required int round,
+    Difficulty difficulty = Difficulty.normal,
+  }) => _add(
+    PlayEntry(
+      at: ref.read(historyClockProvider)(),
+      score: score,
+      round: round,
+      difficulty: difficulty,
+    ),
   );
 
   /// デイリーチャレンジの結果を残す (練習として遊んだ 2 回目以降も)。

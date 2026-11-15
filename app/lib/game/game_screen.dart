@@ -32,7 +32,7 @@ import 'game_controller.dart';
 import 'result_overlay.dart';
 import '../ui/pixel_icons.dart';
 
-/// プレイ画面。[stage] があればステージモード、なければエンドレス (エンドレスは常に NORMAL)。
+/// プレイ画面。[stage] があればステージモード、なければエンドレス (エンドレスは NORMAL か EASY。[difficulty] で渡す)。
 /// [practice] なら練習場 (記録・ランキング・履歴・広告の回数・評価の依頼に数えない)。
 /// [daily] ならデイリーチャレンジ (NORMAL 固定。その日の最高得点を記録にし、ランキングには毎回送る)。
 class GameScreen extends ConsumerStatefulWidget {
@@ -44,8 +44,30 @@ class GameScreen extends ConsumerStatefulWidget {
     this.daily = false,
   });
   final StageDef? stage;
+
+  /// ステージモードとエンドレスの難易度 (エンドレスで HARD は NORMAL として扱う)。DAILY・練習場は常に NORMAL。
   final Difficulty difficulty;
   final bool practice, daily;
+
+  /// このプレイで実際に使う難易度。ステージはそのまま、エンドレスは NORMAL / EASY、DAILY・練習場は NORMAL。
+  static Difficulty effectiveDifficulty({
+    StageDef? stage,
+    bool practice = false,
+    bool daily = false,
+    Difficulty difficulty = Difficulty.normal,
+  }) {
+    if (stage != null) return difficulty;
+    if (practice || daily) return Difficulty.normal;
+    return difficulty == Difficulty.easy ? Difficulty.easy : Difficulty.normal;
+  }
+
+  /// [effectiveDifficulty] をこの画面の引数から決める。
+  Difficulty get playDifficulty => effectiveDifficulty(
+    stage: stage,
+    practice: practice,
+    daily: daily,
+    difficulty: difficulty,
+  );
 
   /// 最後に作られたプレイの進行役 (テストから状態を確かめるため)。
   @visibleForTesting
@@ -104,7 +126,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       audio: ref.read(audioProvider),
       haptics: ref.read(hapticsProvider),
       inputLag: settings.timingOffsetMs / 1000,
-      difficulty: stage != null ? widget.difficulty : Difficulty.normal,
+      difficulty: widget.playDifficulty,
       reduceEffects: settings.reduceEffects,
       showTiming: settings.showTiming,
       timeSource: ref.read(timeSourceProvider),
@@ -212,12 +234,20 @@ class _GameScreenState extends ConsumerState<GameScreen>
         score: w.score,
         round: w.round.number,
         stats: w.stats,
+        difficulty: widget.playDifficulty,
       );
       ref
           .read(historyProvider.notifier)
-          .addEndless(score: w.score, round: w.round.number);
-      lb.submit(Board.endlessScore, w.score);
-      lb.submit(Board.endlessRound, w.round.number);
+          .addEndless(
+            score: w.score,
+            round: w.round.number,
+            difficulty: widget.playDifficulty,
+          );
+      // EASY はランキングに送らない (NORMAL と同じ条件で競うボードなので)
+      if (widget.playDifficulty == Difficulty.normal) {
+        lb.submit(Board.endlessScore, w.score);
+        lb.submit(Board.endlessRound, w.round.number);
+      }
       _outcome = _Outcome(newBest: newBest);
     } else {
       final cleared = w.phase == WorldPhase.completed;
@@ -668,11 +698,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
         bestScore: daily != null
             ? daily.dailyRecord.lastScore
             : stage == null
-            ? records.endless.bestScore
+            ? records.endlessOf(widget.playDifficulty).bestScore
             : records.stage(stage.id, widget.difficulty).bestScore,
-        bestRound: records.endless.bestRound,
+        bestRound: records.endlessOf(widget.playDifficulty).bestRound,
         stage: stage,
-        difficulty: widget.difficulty,
+        difficulty: widget.playDifficulty,
         cleared: cleared,
         achieved: o?.stars,
         rank: stage == null

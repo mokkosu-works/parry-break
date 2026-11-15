@@ -896,6 +896,12 @@ abstract class AppLocalizations {
   /// **'難易度'**
   String get difficulty;
 
+  /// No description provided for @endlessDifficulty.
+  ///
+  /// In ja, this message translates to:
+  /// **'エンドレスの難易度'**
+  String get endlessDifficulty;
+
   /// No description provided for @difficultyEasy.
   ///
   /// In ja, this message translates to:
