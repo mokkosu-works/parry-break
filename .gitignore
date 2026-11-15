@@ -11,6 +11,9 @@ promo/capture/raw/
 promo/build/out/
 promo/build/fonts/
 promo/build/assets/
+# Codex の画像生成の元画像と参考画像 (大きい。動画に使う画像は promo/characters/text/ に入れる。指示文の .txt は入れる)
+promo/design/codex/*/out/
+promo/design/codex/*/ref/*.png
 
 # Python のキャッシュ
 __pycache__/

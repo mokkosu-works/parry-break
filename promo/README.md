@@ -67,7 +67,9 @@ records/    videos.csv、youtube_uploads.csv
   python3 promo/editor/server.py      # http://127.0.0.1:8765/ を開く (127.0.0.1 だけで待ち受ける)
   ```
   配置は `promo/editor/projects/*.json` に保存する (既定の `character-promo.json` は v12 と同じ配置)。「動画を書き出す」で、保存した配置から `promo/build/out/{名前}-e001.mp4` のような新しい名前の動画を作る (既存のファイルは上書きしない。VOICEVOX の起動が要る)。画面なしなら `python3 promo/editor/render.py promo/editor/projects/character-promo.json`。台詞と話し始めの時刻は、レイヤーを選んでいないときの右パネルで変えられる (JSON の `voice.lines`。ないときは v12 と同じ台詞)。声 (春歌ナナ) と 24 秒の構成は変えられない。
-- 字幕とバッジは、TikTok などの表示領域 (上 約 130px、下 約 480px) を避けて置く。
+- 字幕とバッジは、TikTok などの表示領域 (上 約 130px、下 約 480px) を避けて置く。左右 100px と、ショートの右のボタン列 (x>930、y>1220。実機で測った値) も避ける。書き出す前に `python3 promo/editor/check_layout.py <プロジェクト名>` で確かめる (キャラと吹き出し・タイトルなどの重なりも見る)。
+- キャラ別動画 (5 人) は、画面構成案 `promo/design/character-layout-comparison-v01.png` に揃えた v05 (プレイ紹介) と mode01 (ゲームモード紹介) が最新。作り方と決めごとは `promo/design/character-series-v05.md` と `promo/design/character-mode01.md`。見出し・吹き出しの文字は画像 (`promo/characters/text/`) で、文言を変えるときは作り直す。
+- モード紹介の録画は、1.5.0 以降の撮影用アプリ (ストア版と並べて入れる別アプリ) で `promo/capture/capture_mode.sh` を使って撮る。作り方は `promo/design/character-mode01.md`。
 - 映像は、ボットの自動プレイ。人の腕前に見える言い切り (「神業」など) は避ける。
 
 ## YouTube への自動投稿 (`upload_youtube.py`)

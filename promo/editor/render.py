@@ -134,7 +134,8 @@ def to_rel(path):
 def list_assets():
     """画面の素材選びに出す、リポジトリ内の既存ファイル。"""
     groups = {
-        "image": [ROOT / "promo/characters", ROOT / "app/branding/icons", ROOT / "promo/build/assets/badges"],
+        "image": [ROOT / "promo/characters", ROOT / "app/branding/icons", ROOT / "promo/build/assets/badges",
+                  ROOT / "promo/characters/text"],
         "video": [ROOT / "promo/capture/raw"],
         "font": [ROOT / "promo/build/fonts", ROOT / "app/assets/fonts"],
     }
@@ -531,6 +532,8 @@ def layer_preview(layer):
         probe_draw = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
         left, top, right, bottom = probe_draw.textbbox((0, 0), layer["text"], font=args["font"],
                                                         stroke_width=args["stroke_width"], align=args["align"])
+        # フォントによっては範囲が小数で返る (Mochiy Pop One など)
+        left, top, right, bottom = math.floor(left), math.floor(top), math.ceil(right), math.ceil(bottom)
         im = Image.new("RGBA", (max(1, right - left), max(1, bottom - top)), (0, 0, 0, 0))
         ImageDraw.Draw(im).text((-left, -top), layer["text"], **args)
         dx, dy = left, top
