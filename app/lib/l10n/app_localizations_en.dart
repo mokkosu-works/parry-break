@@ -573,4 +573,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String dailyKept(int n) {
     return 'Today\'s record stands · $n-day streak';
   }
+
+  @override
+  String resultLevelSemantics(int level, int xp) {
+    return 'Gained $xp XP, level $level';
+  }
+
+  @override
+  String titleLevelSemantics(int level) {
+    return 'Player level $level';
+  }
 }

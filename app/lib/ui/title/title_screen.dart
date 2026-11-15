@@ -14,6 +14,7 @@ import '../../services/achievements.dart';
 import '../../services/content.dart';
 import '../../services/daily.dart';
 import '../../services/leaderboard.dart';
+import '../../services/progress.dart';
 import '../../services/records.dart';
 import '../../services/settings.dart';
 import '../help_screen.dart';
@@ -281,6 +282,7 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
       settingsProvider.select((s) => s.endlessDifficulty),
     );
     final endlessRecord = records.endlessOf(endlessDiff);
+    final level = ref.watch(progressProvider.select((p) => p.level));
     final still = _still;
     return Scaffold(
       backgroundColor: Palette.bg,
@@ -349,13 +351,24 @@ class _TitleScreenState extends ConsumerState<TitleScreen>
                                       -60 * (1 - _stage(0, 0.45)),
                                       0,
                                     ),
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: TitleLogo(
-                                        size: logoSize,
-                                        animate: !still,
-                                      ),
+                                    // ロゴの右の空きに、プレイヤーレベルを小さく出す (高さは増えない)
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Flexible(
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            alignment: Alignment.centerLeft,
+                                            child: TitleLogo(
+                                              size: logoSize,
+                                              animate: !still,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        _PlayerLevel(level: level),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -615,6 +628,29 @@ class _MenuItem extends StatelessWidget {
       ),
     );
   }
+}
+
+/// ロゴの右下の、プレイヤーレベル (`LV 12`)。
+class _PlayerLevel extends StatelessWidget {
+  const _PlayerLevel({required this.level});
+  final int level;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: AppLocalizations.of(context).titleLevelSemantics(level),
+    excludeSemantics: true,
+    child: Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Text(
+        'LV $level',
+        style: pixelFont(
+          12,
+          color: withAlpha(Palette.pale, 0.85),
+          letterSpacing: 3,
+        ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+      ),
+    ),
+  );
 }
 
 /// 左下のハイスコア表示 (アーケードの計器風)。
