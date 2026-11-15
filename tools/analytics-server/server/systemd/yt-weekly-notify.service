@@ -1,0 +1,11 @@
+[Unit]
+Description=Send the weekly report summary to Discord
+
+[Service]
+Type=oneshot
+User=@OPS_USER@
+ExecStart=@OPS_HOME@/analytics/notify.py weekly
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only

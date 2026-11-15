@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Claude morning server report daily
+
+[Timer]
+OnCalendar=*-*-* 07:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

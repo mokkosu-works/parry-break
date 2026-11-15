@@ -1,0 +1,14 @@
+[Unit]
+Description=Fetch YouTube analytics weekly (read-only)
+After=network-online.target
+OnFailure=notify-failure@%N.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=@OPS_USER@
+ExecStart=@OPS_HOME@/analytics/run_weekly.sh
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=@OPS_HOME@/analytics /srv/analytics

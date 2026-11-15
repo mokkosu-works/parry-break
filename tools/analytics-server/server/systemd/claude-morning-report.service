@@ -1,0 +1,19 @@
+[Unit]
+Description=Claude morning server report
+After=network-online.target
+OnSuccess=morning-notify.service
+OnFailure=notify-failure@%N.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=@BOT_USER@
+RuntimeDirectory=claude-report
+RuntimeDirectoryMode=0755
+ExecStartPre=+/bin/sh -c "/usr/local/bin/backup-facts.sh > /run/claude-report/backup-facts.txt"
+ExecStart=/usr/local/bin/claude-morning-report.sh
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/srv/analytics/reports @BOT_HOME@/reports @BOT_HOME@/.claude @BOT_HOME@/.local @BOT_HOME@/work
+PrivateTmp=true
