@@ -583,4 +583,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String titleLevelSemantics(int level) {
     return 'Player level $level';
   }
+
+  @override
+  String get settingsPaddleColor => 'Paddle color';
+
+  @override
+  String get settingsTrailColor => 'Ball trail color';
+
+  @override
+  String cosmeticLocked(int level) {
+    return 'Unlocks at LV $level';
+  }
+
+  @override
+  String cosmeticNewPaddle(String name) {
+    return 'NEW: Paddle color $name';
+  }
+
+  @override
+  String cosmeticNewTrail(String name) {
+    return 'NEW: Trail color $name';
+  }
+
+  @override
+  String cosmeticNewMore(int n) {
+    return '+$n more';
+  }
 }

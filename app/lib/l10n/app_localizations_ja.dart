@@ -556,4 +556,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String titleLevelSemantics(int level) {
     return 'プレイヤーレベル $level';
   }
+
+  @override
+  String get settingsPaddleColor => 'パドルの色';
+
+  @override
+  String get settingsTrailColor => 'ボールの軌跡の色';
+
+  @override
+  String cosmeticLocked(int level) {
+    return 'LV $level で解放';
+  }
+
+  @override
+  String cosmeticNewPaddle(String name) {
+    return 'NEW: パドルの色 $name';
+  }
+
+  @override
+  String cosmeticNewTrail(String name) {
+    return 'NEW: ボールの軌跡の色 $name';
+  }
+
+  @override
+  String cosmeticNewMore(int n) {
+    return 'ほか $n';
+  }
 }

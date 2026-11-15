@@ -7,6 +7,7 @@ import '../core/blocks/turret.dart';
 import '../core/core.dart';
 import '../l10n/app_localizations.dart';
 import 'block_painters.dart';
+import 'cosmetics.dart';
 import 'fx.dart';
 import 'item_painter.dart';
 import 'palette.dart';
@@ -87,6 +88,12 @@ class FieldPainter extends CustomPainter {
   /// 発射とパリィを PARRY ボタンでする操作方式 (レール方式) か。
   /// 案内を「TAP」ではなく PARRY ボタンを指す文にする。設定の変更に合わせて書き換える。
   bool parryButton;
+
+  /// 選んだパドルの色と、ボールの軌跡の色 (design.md 9.9。null は今までのボールの色)。描くだけで、判定には関わらない。
+  /// パリィ中・クールダウン・スタン・被弾後の点滅の色と、FEVER TIME・貫通・ブレイカーの軌跡の色は入れ替えない。
+  /// 設定の変更に合わせて書き換える。
+  Color paddleColor = Cosmetics.paddleDefault.color;
+  Color? trailColor;
 
   static const _w = Field.width, _h = Field.height, _d = Dot.px;
 
@@ -575,6 +582,9 @@ class FieldPainter extends CustomPainter {
         ? Dot.mustard
         : const [Dot.white, Dot.white, Dot.peach, Dot.peach][st];
     final tr = fx.trails[b.id] ?? const <Offset>[];
+    // 選んだ軌跡の色は、ふだんのボールの軌跡だけに使う (状態を伝える色は残す)
+    final tint = b.phantom || w.od || b.breaker || pierce ? null : trailColor;
+    final trailCol = tint ?? col;
     // 残像: 古いものほど小さく暗い (3 段階)
     for (var i = 0; i < tr.length; i++) {
       if (w.od && fx.reduceEffects && i.isOdd) continue; // 控えめでは残像を間引く
@@ -585,9 +595,9 @@ class FieldPainter extends CustomPainter {
           ? 2.0
           : 1.0;
       final c = a > 0.66
-          ? (w.od ? Dot.dark(Dot.rose) : col)
+          ? (w.od ? Dot.dark(Dot.rose) : trailCol)
           : a > 0.33
-          ? Dot.dark(col)
+          ? Dot.dark(trailCol)
           : Dot.edge;
       _c.drawRect(
         Rect.fromCenter(center: tr[i], width: _d * s, height: _d * s),
@@ -662,7 +672,7 @@ class FieldPainter extends CustomPainter {
     const y = Field.paddleY;
     final stunned = p.stun > 0;
     final cooling = w.t < pr.cooldownUntil;
-    var col = Dot.sky;
+    var col = paddleColor;
     if (stunned) {
       col = _blink(20, calm: true) ? Dot.brick : Dot.edge;
     } else if (p.invuln > 0 && _blink(15)) {

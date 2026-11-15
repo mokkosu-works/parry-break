@@ -1015,6 +1015,42 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'プレイヤーレベル {level}'**
   String titleLevelSemantics(int level);
+
+  /// No description provided for @settingsPaddleColor.
+  ///
+  /// In ja, this message translates to:
+  /// **'パドルの色'**
+  String get settingsPaddleColor;
+
+  /// No description provided for @settingsTrailColor.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボールの軌跡の色'**
+  String get settingsTrailColor;
+
+  /// No description provided for @cosmeticLocked.
+  ///
+  /// In ja, this message translates to:
+  /// **'LV {level} で解放'**
+  String cosmeticLocked(int level);
+
+  /// No description provided for @cosmeticNewPaddle.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: パドルの色 {name}'**
+  String cosmeticNewPaddle(String name);
+
+  /// No description provided for @cosmeticNewTrail.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: ボールの軌跡の色 {name}'**
+  String cosmeticNewTrail(String name);
+
+  /// No description provided for @cosmeticNewMore.
+  ///
+  /// In ja, this message translates to:
+  /// **'ほか {n}'**
+  String cosmeticNewMore(int n);
 }
 
 class _AppLocalizationsDelegate

@@ -223,5 +223,39 @@
         "type": "int"
       }
     }
+  },
+  "settingsPaddleColor": "Paddle color",
+  "settingsTrailColor": "Ball trail color",
+  "cosmeticLocked": "Unlocks at LV {level}",
+  "cosmeticNewPaddle": "NEW: Paddle color {name}",
+  "cosmeticNewTrail": "NEW: Trail color {name}",
+  "cosmeticNewMore": "+{n} more",
+  "@cosmeticLocked": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "@cosmeticNewPaddle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@cosmeticNewTrail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@cosmeticNewMore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

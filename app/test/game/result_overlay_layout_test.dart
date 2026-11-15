@@ -387,6 +387,146 @@ void main() {
     });
   }
 
+  /// 見た目が解放される回 (Lv1 → Lv2: パドル CYAN 1 つ)。
+  LevelGain unlockOne() {
+    const c = LevelCurve.standard;
+    return LevelGain(
+      xp: 120,
+      before: c.of(c.xpAt(1) + 10),
+      after: c.of(c.xpAt(2) + 10),
+    );
+  }
+
+  /// 一度に何段か上がって、3 つ解放される回 (Lv1 → Lv6)。
+  LevelGain unlockMany() {
+    const c = LevelCurve.standard;
+    return LevelGain(
+      xp: 1500,
+      before: c.of(c.xpAt(1)),
+      after: c.of(c.xpAt(6) + 3),
+    );
+  }
+
+  group('見た目の解放の知らせ (design.md 9.9)', () {
+    for (final lang in ['en', 'ja']) {
+      final one = lang == 'ja' ? 'NEW: パドルの色 CYAN' : 'NEW: Paddle color CYAN';
+      final many = lang == 'ja'
+          ? 'NEW: パドルの色 CYAN ほか 2'
+          : 'NEW: Paddle color CYAN +2 more';
+      testWidgets('レベルが上がって解放されたら 1 行出す ($lang)。複数なら最初の 1 つ +「ほか N」', (
+        t,
+      ) async {
+        await pump(
+          t,
+          endless(gain: unlockOne()),
+          size: const Size(1280, 800),
+          lang: lang,
+        );
+        expect(find.text(one), findsOneWidget);
+        await pump(
+          t,
+          endless(gain: unlockMany()),
+          size: const Size(1280, 800),
+          lang: lang,
+        );
+        expect(find.text(many), findsOneWidget);
+      });
+    }
+
+    testWidgets('軌跡の色なら「NEW: Trail color …」', (t) async {
+      const c = LevelCurve.standard;
+      await pump(
+        t,
+        endless(
+          gain: LevelGain(
+            xp: 100,
+            before: c.of(c.xpAt(3)),
+            after: c.of(c.xpAt(4)),
+          ),
+        ),
+        size: const Size(1280, 800),
+      );
+      expect(find.text('NEW: Trail color CYAN'), findsOneWidget);
+    });
+
+    testWidgets('解放がない回 (上がらない・解放のないレベル) は何も出さず、箱の高さも変わらない', (t) async {
+      for (final g in [steady(), levelUp()]) {
+        await pump(t, endless(gain: g), size: const Size(1280, 800));
+        expect(find.textContaining('NEW:'), findsNothing);
+        expect(
+          find.byWidgetPredicate(
+            (w) => w is SizedBox && w.width == 1000 && w.height == 506,
+          ),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets('1280×800: 解放の行のぶん箱が 26 高くなり、ほぼ縮めずに出す', (t) async {
+      await pump(t, endless(gain: unlockMany()), size: const Size(1280, 800));
+      expect(t.takeException(), isNull);
+      final box = find.byWidgetPredicate(
+        (w) => w is SizedBox && w.width == 1000 && w.height == 532,
+      );
+      expect(box, findsOneWidget);
+      expect(t.getRect(box).width, closeTo(1000, 0.5));
+      expect(measure(t).button, greaterThanOrEqualTo(48));
+    });
+
+    for (final MapEntry(key: name, value: (size, safe)) in phones.entries) {
+      for (final lang in ['en', 'ja']) {
+        testWidgets('$name ($lang): 解放の行があっても、はみ出さず、ボタンは 44pt 以上、文字は 11pt 以上', (
+          t,
+        ) async {
+          final text = lang == 'ja'
+              ? 'NEW: パドルの色 CYAN ほか 2'
+              : 'NEW: Paddle color CYAN +2 more';
+          for (final data in [
+            endless(gain: unlockMany()),
+            stageResult(campaign.stages.first, cleared: true),
+          ]) {
+            final isStage = data.stage != null;
+            await pump(
+              t,
+              isStage
+                  ? ResultData(
+                      gain: unlockMany(),
+                      score: data.score,
+                      round: data.round,
+                      maxChain: data.maxChain,
+                      stats: data.stats,
+                      reason: data.reason,
+                      newBest: data.newBest,
+                      bestScore: data.bestScore,
+                      bestRound: data.bestRound,
+                      stage: data.stage,
+                      cleared: true,
+                      achieved: data.achieved,
+                      rank: data.rank,
+                      over: data.over,
+                    )
+                  : data,
+              size: size,
+              safe: safe,
+              lang: lang,
+              stage: isStage,
+            );
+            expect(t.takeException(), isNull, reason: '$isStage');
+            expect(find.text(text), findsOneWidget);
+            final m = measure(t);
+            expect(m.button, greaterThanOrEqualTo(minButton(size)));
+            expect(m.text, greaterThanOrEqualTo(11));
+            // 2 ページ目でも同じ場所に出る
+            await page2(t);
+            expect(t.takeException(), isNull);
+            expect(find.text(text), findsOneWidget);
+            expect(measure(t).text, greaterThanOrEqualTo(11));
+          }
+        });
+      }
+    }
+  });
+
   testWidgets('2 ページ目は、Tab・PageUp / PageDown とタップで行き来できる', (t) async {
     await pump(t, endless(), size: const Size(844, 390));
     expect(find.text('JUST RATE'), findsNothing);
