@@ -1003,6 +1003,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'今日の記録は更新ならず・{n}日連続プレイ中'**
   String dailyKept(int n);
+
+  /// No description provided for @resultLevelSemantics.
+  ///
+  /// In ja, this message translates to:
+  /// **'XP が {xp} 入り、レベル {level}'**
+  String resultLevelSemantics(int level, int xp);
+
+  /// No description provided for @titleLevelSemantics.
+  ///
+  /// In ja, this message translates to:
+  /// **'プレイヤーレベル {level}'**
+  String titleLevelSemantics(int level);
 }
 
 class _AppLocalizationsDelegate

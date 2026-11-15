@@ -22,6 +22,7 @@ import '../services/daily.dart';
 import '../services/beginner_guard.dart';
 import '../services/history.dart';
 import '../services/leaderboard.dart';
+import '../services/progress.dart';
 import '../services/records.dart';
 import '../services/review.dart';
 import '../services/settings.dart';
@@ -84,9 +85,13 @@ class _Outcome {
     this.stars,
     this.cleared = false,
     this.daily,
+    this.gain,
   });
   final bool newBest, cleared;
   final List<bool>? stars;
+
+  /// 今回入った XP とレベルの変化 (デバッグモードのプレイでは null)。
+  final LevelGain? gain;
 
   /// デイリーで、今回のプレイがその日の記録をどうしたか。
   final DailyOutcome? daily;
@@ -221,6 +226,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       _outcome = _Outcome(
         newBest: newBest,
         cleared: w.phase == WorldPhase.completed,
+        gain: _awardXp(w, PlayKind.daily),
         daily: !counted
             ? DailyOutcome.kept
             : first
@@ -248,7 +254,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
         lb.submit(Board.endlessScore, w.score);
         lb.submit(Board.endlessRound, w.round.number);
       }
-      _outcome = _Outcome(newBest: newBest);
+      _outcome = _Outcome(
+        newBest: newBest,
+        gain: _awardXp(w, PlayKind.endless),
+      );
     } else {
       final cleared = w.phase == WorldPhase.completed;
       final result = StageResult(
@@ -281,9 +290,33 @@ class _GameScreenState extends ConsumerState<GameScreen>
           _unlock(a);
         }
       }
-      _outcome = _Outcome(newBest: newBest, stars: stars, cleared: cleared);
+      _outcome = _Outcome(
+        newBest: newBest,
+        stars: stars,
+        cleared: cleared,
+        gain: _awardXp(w, PlayKind.stage, cleared: cleared, stars: stars),
+      );
     }
   }
+
+  /// 遊び終えた結果から XP を計算して加え、レベルの変化を返す (練習場・デバッグモードでは呼ばない)。
+  LevelGain _awardXp(
+    World w,
+    PlayKind kind, {
+    bool cleared = false,
+    List<bool>? stars,
+  }) => ref
+      .read(progressProvider.notifier)
+      .award(
+        XpRules.standard.xpFor(
+          kind: kind,
+          stats: w.stats,
+          round: w.round.number,
+          cleared: cleared,
+          stars: stars?.where((s) => s).length ?? 0,
+          difficulty: widget.playDifficulty,
+        ),
+      );
 
   // ---- 操作 ---------------------------------------------------------------
 
@@ -715,6 +748,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
               )
             : null,
         over: w.overInfo,
+        gain: o?.gain,
         daily: daily == null
             ? null
             : DailyResult(
@@ -726,6 +760,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           ref.read(settingsProvider).reduceEffects ||
           MediaQuery.disableAnimationsOf(context),
       onNewRecord: () => _ctl.audio.play('ricochet'),
+      onLevelUp: () => _ctl.audio.play('clear'),
       onRetry: _retry,
       onTitle: () => _leaveResult(_toTitle),
       onNext: next == null

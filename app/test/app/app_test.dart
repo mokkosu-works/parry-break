@@ -458,6 +458,7 @@ void main() {
         (k) =>
             k.startsWith('records') ||
             k.startsWith('history') ||
+            k.startsWith('progress') ||
             k.startsWith('leaderboard') ||
             k.startsWith('ads.') ||
             k.startsWith('review.'),

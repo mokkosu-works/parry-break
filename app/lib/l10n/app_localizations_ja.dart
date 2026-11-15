@@ -546,4 +546,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String dailyKept(int n) {
     return '今日の記録は更新ならず・$n日連続プレイ中';
   }
+
+  @override
+  String resultLevelSemantics(int level, int xp) {
+    return 'XP が $xp 入り、レベル $level';
+  }
+
+  @override
+  String titleLevelSemantics(int level) {
+    return 'プレイヤーレベル $level';
+  }
 }

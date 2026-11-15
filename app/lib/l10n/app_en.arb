@@ -204,5 +204,24 @@
   "stageTileLocked": "{id}, locked",
   "dailyFirst": "Saved as today's record · {n}-day streak",
   "dailyUpdated": "New record for today · {n}-day streak",
-  "dailyKept": "Today's record stands · {n}-day streak"
+  "dailyKept": "Today's record stands · {n}-day streak",
+  "resultLevelSemantics": "Gained {xp} XP, level {level}",
+  "titleLevelSemantics": "Player level {level}",
+  "@resultLevelSemantics": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "@titleLevelSemantics": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -96,6 +96,8 @@ Oct 4, 2026 · @watsuwo
 
 デイリーチャレンジ(`DailyMode`、タイトルの DAILY)は、`DailyChallenge`(UTC の日付 → 1970-01-01 からの日数 → 種 → 始まりのラウンド)が決めたエンドレスの 5 ラウンドを遊ぶ(`GameMode.firstRound` から始め、`roundAt` は範囲の外で null)。難易度は NORMAL 固定。記録は `lib/services/daily.dart` の `DailyRecord` を `daily.v1` に保存し(`records`・`history.v1`・`settings.v1` は変えない)、何回遊んでもその日の最高得点を記録にし、ランキングには毎回送る。履歴の行には `"daily": true` を足す(古い版のアプリはエンドレスとして読む)。広告の回数はエンドレス・ステージと同じく結果画面の数に数える。
 
+プレイヤーレベル(design.md 9.9)の累計 XP は、`lib/services/progress.dart` の `Progress` を `progress.v1`(`{"version":1,"xp":N}`)に保存する(`records`・`daily.v1`・`settings.v1`・`history.v1` は変えない)。レベルは累計 XP から計算し、壊れたデータは 0 として読んで `progress.broken` に退避する。エンドレス・DAILY・ステージの結果画面が出た回に `game_screen.dart` の `_onFinished` が加える(練習場・デバッグモードでは加えない)。
+
 ### 4.2 ランキング
 
 | ボード | 値 |
@@ -167,7 +169,7 @@ app/
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
     input/        input_clock.dart(タッチの時刻の換算), touch_controls.dart(領域方式・レール・PARRY)
-    services/     settings.dart, records.dart(記録。`endless` は NORMAL、`endlessEasy` は EASY のエンドレスの記録。`plays` はエンドレスを遊び終えた回数で、古いデータは 0 として読む), beginner_guard.dart(はじめの防壁を付けるかの判定), history.dart(最近のプレイの履歴), content.dart, leaderboard.dart,
+    services/     settings.dart, records.dart(記録。`endless` は NORMAL、`endlessEasy` は EASY のエンドレスの記録。`plays` はエンドレスを遊び終えた回数で、古いデータは 0 として読む), beginner_guard.dart(はじめの防壁を付けるかの判定), history.dart(最近のプレイの履歴), progress.dart(プレイヤーレベル。XP の計算 `XpRules`・レベルの曲線 `LevelCurve`・累計 XP の保存), content.dart, leaderboard.dart,
                   ads.dart(インタースティシャル広告と頻度の制限), review.dart(評価の依頼), error_log.dart(予期しない例外の記録)
     ui/           stage_select / help / history / settings / calibration _screen.dart, widgets.dart, stage_text.dart,
                   arcade.dart(タイトル・結果・ポーズで使うドット絵の部品), pixel_icons.dart(ドット絵のアイコン),

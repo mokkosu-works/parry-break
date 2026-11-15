@@ -431,5 +431,24 @@
         "type": "int"
       }
     }
+  },
+  "resultLevelSemantics": "XP が {xp} 入り、レベル {level}",
+  "titleLevelSemantics": "プレイヤーレベル {level}",
+  "@resultLevelSemantics": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "@titleLevelSemantics": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
   }
 }
