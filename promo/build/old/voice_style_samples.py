@@ -6,7 +6,7 @@ import pathlib
 import urllib.parse
 import urllib.request
 
-OUT = pathlib.Path(__file__).resolve().parent / "out"
+OUT = pathlib.Path(__file__).resolve().parents[1] / "out"  # promo/build/out
 ENGINE = "http://127.0.0.1:50021"
 TEXT = "この弾、返せる？"
 STYLES = {

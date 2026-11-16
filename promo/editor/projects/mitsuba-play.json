@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "name": "character-mitsuba-v05",
+  "name": "mitsuba-play",
   "canvas": {
     "width": 1080,
     "height": 1920
@@ -992,6 +992,19 @@
             "width": 1800,
             "height": 1080
           }
+        },
+        {
+          "id": "tag",
+          "type": "image",
+          "name": "モードのタグ",
+          "visible": true,
+          "x": 708,
+          "y": 825,
+          "width": 219,
+          "height": 60,
+          "src": "../../characters/text/mitsuba_tag_stage.png",
+          "opacity": 1,
+          "resample": "lanczos"
         },
         {
           "id": "character",
@@ -2023,6 +2036,19 @@
           }
         },
         {
+          "id": "tag",
+          "type": "image",
+          "name": "モードのタグ",
+          "visible": true,
+          "x": 708,
+          "y": 825,
+          "width": 219,
+          "height": 60,
+          "src": "../../characters/text/mitsuba_tag_stage.png",
+          "opacity": 1,
+          "resample": "lanczos"
+        },
+        {
           "id": "character",
           "type": "character",
           "name": "ミツバ",
@@ -3050,6 +3076,19 @@
             "width": 1800,
             "height": 1080
           }
+        },
+        {
+          "id": "tag",
+          "type": "image",
+          "name": "モードのタグ",
+          "visible": true,
+          "x": 708,
+          "y": 825,
+          "width": 219,
+          "height": 60,
+          "src": "../../characters/text/mitsuba_tag_stage.png",
+          "opacity": 1,
+          "resample": "lanczos"
         },
         {
           "id": "character",

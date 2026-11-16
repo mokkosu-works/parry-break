@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """編集ツールのプロジェクトの配置を、書き出す前に確かめる。
 
-    python3 promo/editor/check_layout.py character-akane-v05 [character-akane-mode01 ...]
+    python3 promo/editor/check_layout.py akane-play [akane-modes ...]
 
 確かめること (1080×1920):
 - 文字・画像・ゲーム映像の枠・キャラの絵が、上 130px・下 480px (y>1440)・左右 100px の帯に入っていない。

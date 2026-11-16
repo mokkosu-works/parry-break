@@ -4,7 +4,7 @@ import copy
 import json
 import sys
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2]
+ROOT=Path(__file__).resolve().parents[3]  # promo/build/old/ から
 sys.path.insert(0,str(ROOT/'promo/editor'))
 import render
 from create_character_series import CAST
@@ -62,7 +62,7 @@ def decorations(name,c):
 
 def main():
  for name,c in CAST.items():
-  p=render.load_project('character-'+name+'-v01');p['name']='character-'+name+'-v02'
+  p=json.loads((render.PROJECTS/'old'/f'character-{name}-v01.json').read_text());p['name']='character-'+name+'-v02'
   for i,sc in enumerate(p['scenes']):
    old={l['id']:copy.deepcopy(l) for l in sc['layers']}
    layers=decorations(name,c)
@@ -102,7 +102,7 @@ def main():
     credit=old['credit'];fit_text(credit,(150,1370,780,45),font=BOLD,size=29,color=c['ink']);layers.append(credit)
    sc['layers']=layers
   render.check(p)
-  dest=render.PROJECTS/(p['name']+'.json')
+  dest=render.PROJECTS/'old'/(p['name']+'.json')
   if dest.exists():raise SystemExit(f'既存ファイルを保護しました: {dest}')
   dest.write_text(json.dumps(p,ensure_ascii=False,indent=2)+'\n');print(dest.name)
 if __name__=='__main__':main()

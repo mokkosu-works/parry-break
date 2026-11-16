@@ -1,4 +1,6 @@
-# ゲームモード紹介(character-<名前>-mode01、2026-11-16)
+# ゲームモード紹介(<名前>-modes、2026-11-16)
+
+プロジェクト名は `<名前>-modes`(2026-11-16 に `character-<名前>-mode01` から改名)。文字の画像のファイル名は `<名前>_mode01_*.png` のまま。
 
 1.5.0 のモード(ステージ、エンドレス、デイリー、練習)を 5 人に割り振った。台詞と吹き出しは、v05 とも他のキャラとも言い回しが重ならないように書いた。
 
@@ -12,8 +14,8 @@
 
 - ポーズは場面ごとに変えた(`create_mode_videos.py` の `VIDEOS`)。最後の画面は v05 の配置(本人が調整したミツバの型)のまま。
 - 録画は 1.5.0 の撮影用アプリで撮った。メニューや結果の画面は画面全体、プレイ中は盤面(x=360〜2160)を切り出す。
-- 文字の素材の指示文は `codex/mode01/ref/`(元の生成画像は `codex/mode01/out/`、git 外)。Codex は推論 low で 1 人ずつ頼んだ。シズクとモモカの吹き出しは中のしみを塗り直した(手順は `character-series-v05.md` の「文字の画像の作り方」)。
-- 作り方: `python3 promo/build/create_mode_videos.py` → 編集ツールで `character-<名前>-mode01` を開く。確認画像は `checks/character-mode01-frames.jpg`、`checks/character-mode01-bigger-game.jpg`。
+- 文字の素材の指示文は `codex/mode01/ref/`(元の生成画像は `codex/mode01/out/`、git 外)。Codex は推論 low で 1 人ずつ頼んだ。シズクとモモカの吹き出しは中のしみを塗り直した(手順は `shorts-play.md` の「文字の画像の作り方」)。
+- 作り方: `python3 promo/build/create_mode_videos.py` → 編集ツールで `<名前>-modes` を開く。確認画像は `checks/character-mode01-frames.jpg`、`checks/character-mode01-bigger-game.jpg`。
 
 ## 撮影(1.5.0)
 

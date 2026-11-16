@@ -11,7 +11,7 @@ v02 のプロジェクトから録画・ポーズ・背景の飾りを引き継�
 
     python3 promo/build/create_character_layout.py akane shizuku momoka wakana
 
-既にあるプロジェクトは上書きせず飛ばす。微調整は編集ツールで行う。経緯は promo/design/character-series-v05.md。
+既にあるプロジェクトは上書きせず飛ばす。微調整は編集ツールで行う。経緯は promo/design/shorts-play.md。
 """
 import copy
 import json
@@ -26,7 +26,7 @@ ASSETS = ROOT / "promo/characters/text"
 REL = "../../characters/text/"
 SILKSCREEN = "../../../app/assets/fonts/Silkscreen-Bold.ttf"
 VERSION = "v05"
-OUTRO_TEMPLATE = "character-mitsuba-v05"
+OUTRO_TEMPLATE = "mitsuba-play"
 
 # 1080×1920 の配置。左右 100px の内側、上 130px と下 480px (y>1440) は編集ツールのセーフエリアに合わせて空ける。
 SAFE_L, SAFE_R, SAFE_B = 100, 980, 1440
@@ -69,7 +69,7 @@ CHARACTERS = {
                   (FINAL_LINE, "パリィブレイク。ストアで検索！"), (CLOSING_LINE, "あなたも、遊んでみて！")],
     },
     "wakana": {
-        "background": "#EFF5E8", "tag": "wakana_v05_tag_stage.png",
+        "background": "#EFF5E8",
         "voice": [(0.1, "今日は、一面ずつ。"), (3.3, "まずは、目の前の一面から。"), (11.3, "うん、クリアできたね。"),
                   (16, "次も、あなたのペースで。"),
                   (FINAL_LINE, "パリィブレイク。ストアで検索。"), (CLOSING_LINE + 0.3, "ゆっくりで、大丈夫。")],  # 声がゆっくりなので後ろへ
@@ -78,6 +78,7 @@ CHARACTERS = {
 for _name, _style in CHARACTERS.items():
     _style.setdefault("headlines", [f"{_name}_v05_headline_{i}.png" for i in (1, 2, 3)])
     _style.setdefault("bubbles", [f"{_name}_v05_bubble_{i}.png" for i in (1, 2, 3, 4)])
+    _style.setdefault("tag", f"{_name}_tag_stage.png")  # プレイ紹介はステージの録画なので、全員「ステージ」
     _style.setdefault("store_search", f"{_name}_v05_store_search.png")
 
 NOT_DECOR = ("frame", "speech-panel", "headline-swoosh", "spark-", "dot-")
@@ -191,8 +192,8 @@ def play_layers(old, style, i):
     speech["y"] += max(0, (300 - speech["height"]) // 3)
     layers = [headline(style["headlines"][i]), frame, game]
     if style.get("tag"):  # ゲーム画面の右下に重ねるモードのタグ
-        tag = image_layer("tag", "モードのタグ", style["tag"], 0, 0, height=64)
-        tag.update({"x": GAME["x"] + GAME["width"] - tag["width"] + 10, "y": GAME["y"] + GAME["height"] - 22})
+        tag = image_layer("tag", "モードのタグ", style["tag"], 0, 0, height=60)  # 大きさと位置はモード紹介と同じ
+        tag.update({"x": frame["x"] + frame["width"] - tag["width"] - 12, "y": frame["y"] + frame["height"] - 32})
         layers.append(tag)
     return layers + [character, speech, *title(old, title_x)]
 
@@ -258,11 +259,11 @@ def outro_layers(old, style, template):
 
 
 def build(chara):
-    src = json.loads((PROJECTS / f"character-{chara}-v02.json").read_text())
+    src = json.loads((PROJECTS / "old" / f"character-{chara}-v02.json").read_text())
     template = json.loads((PROJECTS / f"{OUTRO_TEMPLATE}.json").read_text())["scenes"][-1]
     style = CHARACTERS[chara]
     project = copy.deepcopy(src)
-    project["name"] = f"character-{chara}-{VERSION}"
+    project["name"] = f"{chara}-play"
     project["voice"]["lines"] = [{"start": s, "text": t} for s, t in style["voice"]]
     for i, scene in enumerate(project["scenes"]):
         old = {l["id"]: l for l in scene["layers"]}
@@ -278,7 +279,7 @@ def build(chara):
 def main():
     names = sys.argv[1:] or [n for n in CHARACTERS if n != "mitsuba"]
     for chara in names:
-        dest = PROJECTS / f"character-{chara}-{VERSION}.json"
+        dest = PROJECTS / f"{chara}-play.json"
         if dest.exists():
             print(f"{dest.relative_to(ROOT)} は既にあります。上書きしません。")
             continue

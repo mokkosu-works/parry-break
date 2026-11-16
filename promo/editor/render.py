@@ -2,11 +2,11 @@
 """動画レイアウト編集ツールの描画と書き出し。
 
 プロジェクト JSON (promo/editor/projects/*.json) を受け取り、
-promo/build/character_promo.py (v12) と同じ手順で 24 秒の縦動画を作る。
+promo/build/old/character_promo.py (v12) と同じ手順で 24 秒の縦動画を作る。
 character_promo.py は v12 を再現する記録として残し、ここでは書き換えずに処理を流用している。
 
 使い方 (画面を使わずに書き出す):
-    python3 promo/editor/render.py promo/editor/projects/character-promo.json
+    python3 promo/editor/render.py promo/editor/projects/mitsuba-modes.json
 """
 
 import hashlib

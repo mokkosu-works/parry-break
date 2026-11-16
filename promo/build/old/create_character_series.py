@@ -4,7 +4,7 @@ import copy
 import json
 import pathlib
 import sys
-ROOT = pathlib.Path(__file__).resolve().parents[2]
+ROOT = pathlib.Path(__file__).resolve().parents[3]  # promo/build/old/ から
 sys.path.insert(0, str(ROOT / 'promo/editor'))
 import render
 
@@ -53,7 +53,7 @@ def polish(p, name):
 
 
 def main():
- base=json.loads((render.PROJECTS/'character-promo-b.json').read_text())
+ base=json.loads((render.PROJECTS/'old'/'character-promo-b.json').read_text())
  brands={l['id']:l for l in base['scenes'][1]['layers']}
  for name,c in CAST.items():
   p={'version':1,'name':f'character-{name}-v01','canvas':{'width':1080,'height':1920},'scenes':[], 'voice':{'profile':name,'lines':[{'start':t,'text':line} for t,line in c['lines']]}}
@@ -97,7 +97,7 @@ def main():
    p['scenes'].append(sc)
   polish(p, name)
   render.check(p)
-  dest=render.PROJECTS/(p['name']+'.json')
+  dest=render.PROJECTS/'old'/(p['name']+'.json')
   if dest.exists():raise SystemExit(f'既存プロジェクトを保護しました: {dest}')
   dest.write_text(json.dumps(p,ensure_ascii=False,indent=2)+'\n')
   print(dest.relative_to(ROOT))

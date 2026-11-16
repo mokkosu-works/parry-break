@@ -26,6 +26,6 @@
 
 編集ツールの4シーン（3秒・8秒・8秒・5秒）に合わせ、企画台本を素材に即して調整。アカネは同じステージの失敗を先に見せ、再挑戦として前の成功場面へ切り替える。モモカは「少し前から」と明示して先見せの後に戻る。録画は自動プレイ。
 
-初稿プロジェクトの生成元は `promo/build/create_character_series.py`。既存プロジェクトがあれば上書きせず終了する。全5本の書き出しは `promo/build/render_character_series.py`。通常の微調整は編集ツールを使う。
+初稿プロジェクトの生成元は `promo/build/old/create_character_series.py`。既存プロジェクトがあれば上書きせず終了する。全5本の書き出しは `promo/build/old/render_character_series.py`。通常の微調整は編集ツールを使う。
 
 音声のライセンス表記は各動画末尾に表示。投稿時も `promo/characters/voice-licenses.md` の対応する表記を概要欄へ記載する。

@@ -27,9 +27,9 @@
 5本の一括書き出し:
 
 ```sh
-python3 promo/build/render_character_series.py --version v02
+python3 promo/build/old/render_character_series.py --version v02
 ```
 
-新規v02プロジェクトを生成するコードは `promo/build/restyle_character_series.py`。既にv02がある場合は上書きせず停止する。通常の微調整は編集ツールで行う。
+新規v02プロジェクトを生成するコードは `promo/build/old/restyle_character_series.py`。既にv02がある場合は上書きせず停止する。通常の微調整は編集ツールで行う。
 
 各動画は24秒・1080×1920。台詞と録画のカットはv01を引き継いでいる。

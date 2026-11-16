@@ -1,4 +1,4 @@
-"""ゲームモード紹介の動画 (キャラごとに 1 本、character-<名前>-mode01) を作る。
+"""ゲームモード紹介の動画 (キャラごとに 1 本、<名前>-modes) を作る。
 
 各キャラの v05 (create_character_layout.py) を土台に、色・飾り・アウトロの配置 (本人が調整したもの) はそのまま、
 録画・見出し・吹き出し・台詞・ポーズを差し替える。録画は 1.5.0 の撮影用アプリで撮ったもの
@@ -6,7 +6,7 @@
 
     python3 promo/build/create_mode_videos.py [名前 ...]
 
-既にあるプロジェクトは上書きせず飛ばす。文字の画像 (作り方は promo/design/character-series-v05.md) を
+既にあるプロジェクトは上書きせず飛ばす。文字の画像 (作り方は promo/design/shorts-play.md) を
 promo/characters/text/<名前>_mode01_*.png に置いてから実行する。
 """
 import copy
@@ -23,7 +23,8 @@ PROJECTS = base.PROJECTS
 base.HEADLINE_TOP, base.HEADLINE_H = 140, 140
 base.GAME = {"x": 109, "y": 300, "width": 862, "height": 517}
 base.BUBBLE = {"x": 470, "y": 860, "width": 470}
-NAME = "mode01"
+NAME = "mode01"  # 文字の画像のファイル名に使う (<名前>_mode01_*.png)
+PROJECT = "modes"  # プロジェクト名は <名前>-modes
 RAW = "../../capture/raw/"
 # 1.5.0 の録画 (2400x1080)。プレイ中は盤面 (x=360〜2160) だけ、メニューや結果は画面全体を見せる
 PLAY = {"x": 360, "y": 0, "width": 1800, "height": 1080}
@@ -74,7 +75,7 @@ VIDEOS = {
 }
 
 
-# ゲーム画面の右下に重ねるモードのタグ (シーンごと。None はタグなし)。画像は <名前>_mode01_tag_<モード>.png
+# ゲーム画面の右下に重ねるモードのタグ (シーンごと。None はタグなし)。画像は <名前>_tag_<モード>.png
 TAGS = {
     "mitsuba": [None, "stage", "daily"],
     "wakana": ["stage"] * 3,
@@ -85,7 +86,7 @@ TAGS = {
 
 
 def tag_layer(chara, mode, frame):
-    tag = base.image_layer("tag", "モードのタグ", f"{chara}_{NAME}_tag_{mode}.png", 0, 0, height=60)
+    tag = base.image_layer("tag", "モードのタグ", f"{chara}_tag_{mode}.png", 0, 0, height=60)
     tag["x"] = frame["x"] + frame["width"] - tag["width"] - 12
     tag["y"] = frame["y"] + frame["height"] - 32  # 枠の下の線にかけて置く (構成案と同じ)
     return tag
@@ -109,10 +110,10 @@ def game_layers(video, start, crop):
 
 
 def build(chara):
-    src = json.loads((PROJECTS / f"character-{chara}-v05.json").read_text())
+    src = json.loads((PROJECTS / f"{chara}-play.json").read_text())
     spec = VIDEOS[chara]
     project = copy.deepcopy(src)
-    project["name"] = f"character-{chara}-{NAME}"
+    project["name"] = f"{chara}-{PROJECT}"
     project["voice"]["lines"] = [{"start": s, "text": t} for s, t in spec["voice"]]
     for i, scene in enumerate(project["scenes"]):
         layers = {l["id"]: l for l in scene["layers"]}
@@ -192,7 +193,7 @@ def build(chara):
 
 def main():
     for chara in sys.argv[1:] or list(VIDEOS):
-        dest = PROJECTS / f"character-{chara}-{NAME}.json"
+        dest = PROJECTS / f"{chara}-{PROJECT}.json"
         if dest.exists():
             print(f"{dest.relative_to(base.ROOT)} は既にあります。上書きしません。")
             continue

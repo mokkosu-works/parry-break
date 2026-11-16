@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "name": "character-mitsuba-mode01",
+  "name": "mitsuba-modes",
   "canvas": {
     "width": 1080,
     "height": 1920
@@ -2031,7 +2031,7 @@
           "y": 729,
           "width": 219,
           "height": 60,
-          "src": "../../characters/text/mitsuba_mode01_tag_stage.png",
+          "src": "../../characters/text/mitsuba_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -3073,7 +3073,7 @@
           "y": 794,
           "width": 220,
           "height": 60,
-          "src": "../../characters/text/mitsuba_mode01_tag_daily.png",
+          "src": "../../characters/text/mitsuba_tag_daily.png",
           "opacity": 1,
           "resample": "lanczos"
         },

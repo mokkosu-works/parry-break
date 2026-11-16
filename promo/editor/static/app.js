@@ -1136,7 +1136,7 @@ async function init() {
   state.assets = assets.data;
   const names = projects.data.projects;
   const wanted = new URLSearchParams(location.search).get('project');
-  const name = names.includes(wanted) ? wanted : (names.includes('character-promo') ? 'character-promo' : names[0]);
+  const name = names.includes(wanted) ? wanted : (names.includes('mitsuba-modes') ? 'mitsuba-modes' : names[0]);
   $('#projectSelect').replaceChildren(...names.map((n) => h('option', { value: n, selected: n === name }, n)));
   bindGlobal();
   fitStage();

@@ -4,7 +4,7 @@ import argparse
 import json
 import pathlib
 import sys
-ROOT=pathlib.Path(__file__).resolve().parents[2]
+ROOT=pathlib.Path(__file__).resolve().parents[3]  # promo/build/old/ から
 sys.path.insert(0,str(ROOT/'promo/editor'))
 import render
 NAMES=['mitsuba','akane','shizuku','momoka','wakana']
@@ -13,7 +13,7 @@ def main():
  parser=argparse.ArgumentParser(description=__doc__)
  parser.add_argument('--version',choices=['v01','v02'],default='v01')
  version=parser.parse_args().version
- projects=[render.load_project('character-'+n+'-'+version) for n in NAMES]
+ projects=[json.loads((render.PROJECTS/'old'/f'character-{n}-{version}.json').read_text()) for n in NAMES]  # 旧版は projects/old/
  for p in projects:
   render.check(p)
   timing,problems=render.voice_timing(render.voice_lines(p),24,profile=render.voice_profile(p))

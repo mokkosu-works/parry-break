@@ -2,10 +2,14 @@
 
 ゲームの機能とは分けて、動画まわりはこの `promo/` の中だけで進める。
 
+**配信の方針** (投稿先・ペース・担当キャラ・ゲスト・通常尺・作る順番) は [design/distribution-plan.md](design/distribution-plan.md) にまとめてある。まずそちらを読む。
+
 ```
-capture/    実機の画面録画 (capture.sh、raw/、apk/)
-characters/ 採用した色別一覧、5人の表情差分、プロフィール
-build/      動画の組み立て (build.py、specs/、fonts/、assets/、out/)
+capture/    実機の画面録画 (capture.sh、capture_mode.sh、raw/、apk/)
+characters/ 5人の表情差分、プロフィール、声の割り当て、文字の画像 (text/)
+editor/     キャラ動画の編集ツール (server.py、render.py、check_layout.py)。projects/ に現役のプロジェクト、projects/old/ に過去の版
+build/      動画の組み立て (create_*.py、build.py、specs/、fonts/、assets/、out/)。old/ に使わなくなったスクリプト
+design/     企画・決めごと・確認画像。old/ に過去の版の記録
 upload/     YouTube へのアップロード
 analytics/  アナリティクスの CSV (exports/) と集計
 posts/      動画の ID ごとの投稿文、一覧.md
@@ -14,63 +18,27 @@ records/    videos.csv、youtube_uploads.csv
 
 キャラクター素材は [characters/README.md](characters/README.md)、性格・口調・表情の使い分けは [characters/profiles.md](characters/profiles.md) を参照する。
 
-実機の画面録画から、SNS 向けの縦動画 (9:16、15〜30秒) を作る道具。冒頭 3 秒だけ違う A / B / C の 3 本を、同じ映像から作る。
+## 現役: キャラ動画 (ショート、縦長 24 秒)
 
-| 冒頭 | 内容 |
-| --- | --- |
-| A | 惜しい失敗 |
-| B | 見栄えのする場面 |
-| C | 結果の瞬間 |
-
-冒頭以外 (本編と最後の 2 秒) は 3 本で同じ。最後の 2 秒に、アプリ名・「ストアで検索」・公式のストアバッジを出す。
-
-## 流れ
-
-1. **撮る**: 撮影用ビルド (自動プレイ入り) を実機に入れて録画する。
-   ```sh
-   cd app
-   flutter build apk --release --dart-define=PROMO_AUTOPLAY=true            # 下手なプレイ (既定)
-   flutter build apk --release --dart-define=PROMO_AUTOPLAY=true \
-     --dart-define=PROMO_SIGMA=0.006 --dart-define=PROMO_SPEED=1500 \
-     --dart-define=PROMO_BIAS=0 --dart-define=PROMO_LAG_COMP=true          # JUST を狙うプレイ
-   adb install -r build/app/outputs/flutter-apk/app-release.apk
-   ```
-   実機でタイトルの `VER` を 3 回タップしてデバッグモードにすると、全ステージを選べる (撮影用ビルドでは、DEBUG の帯は出ない)。
-   `promo/capture/capture.sh <ステージ 例 2-7> <ラベル 例 just> <テイク 例 01>` で、ステージを選んで録画する (scrcpy と adb が要る)。ボスのステージは撮らない。
-2. **作る**: `promo/build/specs/spec.example.json` を写して、録画の切り出し位置と字幕を書き、実行する。
-   ```sh
-   promo/build/fetch_assets.sh                # 初回だけ: フォントとストアの公式バッジを取る (git に入れない素材)
-   python3 promo/build/build.py promo/build/specs/spec.x.json   # promo/build/out/{パターン名}_{A|B|C}.mp4 と、promo/records と promo/posts への追記
-   ```
-   `--dry-run` で長さの確認だけ、`--no-record` で記録なしの試験出力、`--posts-only` で投稿文だけを作る。既存のファイルは上書きしない。
-3. **投稿する**: `promo/posts/{ID}.txt` の YouTube 用・TikTok 用の文を使う。ID は YouTube のタグ欄にも入れる。`python3 promo/posts/make_index.py` で、`promo/posts/一覧.md` (ID・投稿日・長さ・字幕の一覧) を作り直せる。長さは `build.py` が `promo/records/videos.csv` の「長さ(秒)」に書いたものを使うので、`promo/build/out/` のない環境で作り直しても同じ表になる。
-4. **記録する**: 再生数と視聴率 (視聴 vs スワイプ) は `promo/records/videos.csv` に手で書く (YouTube Studio の CSV は `promo/analytics/exports/` に置く。`promo/analytics/README.md`)。
-
-## 録画の前に (`capture.sh`)
-
-`capture.sh` は画面の決まった位置をタップして進めるので、端末を次の状態にしておく。合わないときは、録画を始める前にエラーで止まる (解像度・章の数・ボスのステージ)。
-
-- **解像度**: 2400x1080 (`adb shell wm size` が `2400x1080` か `1080x2400`)。タップの座標はこの解像度の値。ほかの解像度の端末では止まるので、同じ縦横比なら `adb shell wm size 1080x2400` で合わせる (戻すときは `adb shell wm size reset`)。
-- **向き**: アプリは横画面で開く。端末を横に置いて、画面が横向きになっていることを確かめる。
-- **デバッグモード**: タイトルの `VER` を 3 回タップしておく (全ステージを選べる)。オフだと、まだ開いていないステージを押しても始まらない。
-- **章**: ステージ選択は「まだクリアしていない最初のステージ」の章で開くので、`capture.sh` は ← キー (`KEYCODE_DPAD_LEFT`) で第1章へ戻してから、「次の章へ」で目的の章へ進める。普段遊んでいる端末でもそのまま撮れる。
-- **端末は 1 台だけ** つなぐ (`adb devices`)。
-- 録画に失敗すると (scrcpy が始まらない・終わり方がおかしい・ファイルが空)、scrcpy のログの末尾を出して 0 以外で終わる。ログは `promo/capture/raw/<録画と同じ名前>.log` に残る。
-
-## 決めごと
-
-- 字幕は、気取らない話し言葉で 11 文字以内。最初のフレームから出す。パターンごとに言い回しを変える。
-- 音は、ゲーム内の BGM と効果音 (自作の合成音) だけを使う。外部の音源は使わない。
-- キャラクター主体の試作は例外。`python3 promo/build/character_promo.py` は起動中のローカル VOICEVOX エンジンと `Pillow`、`ffmpeg` を使い、24秒の `promo/build/out/character-promo-v12.mp4` を出力する。既存動画と投稿記録は変更せず、出力は上書きしない。音声は「VOICEVOX:春歌ナナ」で、動画の締めに控えめなクレジットを表示する。プレイ中は全カットで同じ小さな縦揺れ、アウトロは静止。プレイ中にもアプリアイコン、「ストアで検索」、ストアバッジを出し、PARRY BREAKのロゴを大きく表示する。用語は「白いブロック」に統一。投稿文は `promo/posts/character-promo-v12.txt` にあり、概要欄・キャプションにも同じクレジットを含む。
-- キャラクター主体の動画の配置は、ブラウザーの編集ツールでも試せる (標準ライブラリ + Pillow + ffmpeg。npm などは不要)。
+- 採用版は 2 種類で、どちらも 5 人分ある。
+  - **モード紹介** `promo/editor/projects/<名前>-modes.json`: 担当のモードを紹介する (ミツバはゲーム全体の案内)。作り方と決めごとは [design/shorts-modes.md](design/shorts-modes.md)。
+  - **プレイ紹介** `promo/editor/projects/<名前>-play.json`: 打ち返し・崩れの楽しさを見せる。作り方と決めごとは [design/shorts-play.md](design/shorts-play.md)。
+  - 以前の名前は、モード紹介が mode01、プレイ紹介が v05。途中の版 v01/v02 と、投稿済みのミツバの動画 (`character-promo*`、v009〜v012) は `projects/old/` にあり、編集ツールの一覧には出ない。
+- 見出し・吹き出し・タグの文字は画像 (`promo/characters/text/`) で、文言を変えるときは Codex で作り直す。モードのタグは `<名前>_tag_<stage|endless|daily|practice>.png` (5 人 × 4 モード)。
+- 編集ツール (標準ライブラリ + Pillow + ffmpeg。npm などは不要):
   ```sh
   python3 promo/editor/server.py      # http://127.0.0.1:8765/ を開く (127.0.0.1 だけで待ち受ける)
   ```
-  配置は `promo/editor/projects/*.json` に保存する (既定の `character-promo.json` は v12 と同じ配置)。「動画を書き出す」で、保存した配置から `promo/build/out/{名前}-e001.mp4` のような新しい名前の動画を作る (既存のファイルは上書きしない。VOICEVOX の起動が要る)。画面なしなら `python3 promo/editor/render.py promo/editor/projects/character-promo.json`。台詞と話し始めの時刻は、レイヤーを選んでいないときの右パネルで変えられる (JSON の `voice.lines`。ないときは v12 と同じ台詞)。声は AivisSpeech (キャラごとに `voice-licenses.md` の割り当て、起動は `~/.aivisspeech/engine/Linux-x64/run --host 127.0.0.1 --port 10101`)。24 秒の構成は変えられない。
-- 字幕とバッジは、TikTok などの表示領域 (上 約 130px、下 約 480px) を避けて置く。左右 100px と、ショートの右のボタン列 (x>930、y>1220。実機で測った値) も避ける。書き出す前に `python3 promo/editor/check_layout.py <プロジェクト名>` で確かめる (キャラと吹き出し・タイトルなどの重なりも見る)。
-- キャラ別動画 (5 人) は、画面構成案 `promo/design/character-layout-comparison-v01.png` に揃えた v05 (プレイ紹介) と mode01 (ゲームモード紹介) が最新。作り方と決めごとは `promo/design/character-series-v05.md` と `promo/design/character-mode01.md`。見出し・吹き出しの文字は画像 (`promo/characters/text/`) で、文言を変えるときは作り直す。
-- モード紹介の録画は、1.5.0 以降の撮影用アプリ (ストア版と並べて入れる別アプリ) で `promo/capture/capture_mode.sh` を使って撮る。作り方は `promo/design/character-mode01.md`。
+  「動画を書き出す」で、保存した配置から `promo/build/out/{名前}-e001.mp4` のような新しい名前の動画を作る (既存のファイルは上書きしない)。画面なしなら `python3 promo/editor/render.py promo/editor/projects/mitsuba-modes.json`。台詞と話し始めの時刻は、レイヤーを選んでいないときの右パネルで変えられる (JSON の `voice.lines`)。声は AivisSpeech (キャラごとに `characters/voice-licenses.md` の割り当て、起動は `~/.aivisspeech/engine/Linux-x64/run --host 127.0.0.1 --port 10101`)。24 秒の構成は変えられない。
+- 文字とバッジは、ショートの表示領域 (上 約 130px、下 約 480px) を避けて置く。左右 100px と、右のボタン列 (x>930、y>1220。実機で測った値) も避ける。書き出す前に `python3 promo/editor/check_layout.py <プロジェクト名>` で確かめる (キャラと吹き出し・タイトルなどの重なりも見る)。
+- 録画は、1.5.0 以降の撮影用アプリ (ストア版と並べて入れる別アプリ) で撮る。モードは `promo/capture/capture_mode.sh`、ステージは `promo/capture/capture.sh` (下の「録画の前に」)。手順は [design/shorts-modes.md](design/shorts-modes.md)。
 - 映像は、ボットの自動プレイ。人の腕前に見える言い切り (「神業」など) は避ける。
+
+## 投稿と記録
+
+- 投稿先は **YouTube だけ** (TikTok はやめた。過去の `posts/` にある TikTok 用の文はそのまま残す)。
+- 投稿文は `promo/posts/{ID}.txt` (YouTube 用)。ID は YouTube のタグ欄にも入れる。`python3 promo/posts/make_index.py` で、`promo/posts/一覧.md` (ID・投稿日・長さ・字幕の一覧) を作り直せる。
+- 再生数と視聴率 (視聴 vs スワイプ) は `promo/records/videos.csv` に手で書く (YouTube Studio の CSV は `promo/analytics/exports/` に置く。`promo/analytics/README.md`)。
 
 ## YouTube への自動投稿 (`upload_youtube.py`)
 
@@ -79,6 +47,48 @@ records/    videos.csv、youtube_uploads.csv
 - 投稿できるのは、チャンネルの**オーナー**の許可だけ。「チャンネルの権限」で共有された管理者は、YouTube API を使えない。オーナーが遠い場合は `auth-start` と `auth-finish` で、リンクを開いてもらうだけで許可できる。
 - 鍵 (`client_secret.json`、`token.json`) は `~/.config/parry-break/youtube/` に置く。リポジトリには入れない。
 - `--yes` を付けない限り、何も送らない (予行)。公開の範囲の既定は限定公開。
+
+## 撮影用アプリと録画の前に (`capture.sh`)
+
+撮影用ビルド (自動プレイ入り) を実機に入れて録画する。
+```sh
+cd app
+flutter build apk --release --dart-define=PROMO_AUTOPLAY=true            # 下手なプレイ (既定)
+flutter build apk --release --dart-define=PROMO_AUTOPLAY=true \
+  --dart-define=PROMO_SIGMA=0.006 --dart-define=PROMO_SPEED=1500 \
+  --dart-define=PROMO_BIAS=0 --dart-define=PROMO_LAG_COMP=true          # JUST を狙うプレイ
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+```
+ストア版と並べて入れる別アプリ (`.promo`、広告オフ) にする手順は [design/shorts-modes.md](design/shorts-modes.md)。実機で設定画面の `VER` を 3 回タップしてデバッグモードにすると、全ステージを選べる (撮影用ビルドでは、DEBUG の帯は出ない)。
+`promo/capture/capture.sh <ステージ 例 2-7> <ラベル 例 just> <テイク 例 01>` で、ステージを選んで録画する (scrcpy と adb が要る。撮影用アプリは `PROMO_PKG=com.watsuwo.parrybreak.promo`)。ボスのステージは撮らない。
+
+`capture.sh` は画面の決まった位置をタップして進めるので、端末を次の状態にしておく。合わないときは、録画を始める前にエラーで止まる (解像度・章の数・ボスのステージ)。
+
+- **解像度**: 2400x1080 (`adb shell wm size` が `2400x1080` か `1080x2400`)。タップの座標はこの解像度の値。ほかの解像度の端末では止まるので、同じ縦横比なら `adb shell wm size 1080x2400` で合わせる (戻すときは `adb shell wm size reset`)。
+- **向き**: アプリは横画面で開く。端末を横に置いて、画面が横向きになっていることを確かめる。
+- **デバッグモード**: 設定画面の `VER` を 3 回タップしておく (全ステージを選べる)。オフだと、まだ開いていないステージを押しても始まらない。
+- **章**: ステージ選択は「まだクリアしていない最初のステージ」の章で開くので、`capture.sh` は ← キー (`KEYCODE_DPAD_LEFT`) で第1章へ戻してから、「次の章へ」で目的の章へ進める。普段遊んでいる端末でもそのまま撮れる。
+- **端末は 1 台だけ** つなぐ (`adb devices`)。
+- 録画に失敗すると (scrcpy が始まらない・終わり方がおかしい・ファイルが空)、scrcpy のログの末尾を出して 0 以外で終わる。ログは `promo/capture/raw/<録画と同じ名前>.log` に残る。
+
+## 過去の形式
+
+### ボット動画 (v005〜v008、`build.py`)
+
+実機の画面録画から、縦動画 (9:16、15〜30秒) を作る。冒頭 3 秒だけ違う A / B / C の 3 本を、同じ映像から作る (A=惜しい失敗、B=見栄えのする場面、C=結果の瞬間)。冒頭以外 (本編と最後の 2 秒) は 3 本で同じ。最後の 2 秒に、アプリ名・「ストアで検索」・公式のストアバッジを出す。
+```sh
+promo/build/fetch_assets.sh                # 初回だけ: フォントとストアの公式バッジを取る (git に入れない素材)
+python3 promo/build/build.py promo/build/specs/spec.x.json   # promo/build/out/{パターン名}_{A|B|C}.mp4 と、promo/records と promo/posts への追記
+```
+`--dry-run` で長さの確認だけ、`--no-record` で記録なしの試験出力、`--posts-only` で投稿文だけを作る。既存のファイルは上書きしない。字幕は、気取らない話し言葉で 11 文字以内。最初のフレームから出す。音は、ゲーム内の BGM と効果音 (自作の合成音) だけ。長さは `build.py` が `promo/records/videos.csv` の「長さ(秒)」に書く。
+
+### ミツバの動画 (v009〜v012)
+
+`promo/build/old/character_promo.py` が v12 (VOICEVOX:春歌ナナ) を再現する記録。編集ツールの元になった。プロジェクトは `promo/editor/projects/old/character-promo*.json`、投稿文は `promo/posts/v009.txt`〜`v012.txt` と `character-promo-v12.txt`。
+
+### キャラ動画の途中の版 (v01/v02)
+
+記録は `promo/design/old/`、生成スクリプトは `promo/build/old/`、プロジェクトは `promo/editor/projects/old/`。
 
 ## 入れていないもの (`.gitignore`)
 
