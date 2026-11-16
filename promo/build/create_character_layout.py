@@ -136,18 +136,21 @@ def text_width(word, size, stroke):
     return ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox((0, 0), word, font=font, stroke_width=stroke)[2]
 
 
+LOGO_FILE = ROOT / "promo/build/assets/layout/title-logo.png"  # create_title_logo.py が作る、ゲームの実物のロゴ
+LOGO_RATIO = 355 / 84  # 幅 / size。既存の動画の大きさに合わせる
+
+
+def title_width(old=None, size=84):
+    return round(size * LOGO_RATIO)
+
+
 def title(old, x, y=1245, size=84):
-    """ゲームの PARRY / BREAK (v02 と同じ字体・色)。2 行の左端を x に揃える。"""
-    out = []
-    for lid, dy in (("logo-parry", 0), ("logo-break", round(size * 1.05))):
-        layer = copy.deepcopy(old[lid])
-        layer.update({"x": round(x), "y": y + dy, "fontSize": size})
-        out.append(layer)
-    return out
-
-
-def title_width(old, size=84):
-    return max(text_width(w, size, old[lid]["strokeWidth"]) for lid, w in (("logo-parry", "PARRY"), ("logo-break", "BREAK")))
+    """ゲームの PARRY BREAK のロゴ (画像 1 枚)。左端を x に揃える。"""
+    w, h = Image.open(LOGO_FILE).size
+    width = title_width(size=size)
+    return [{"id": "logo", "type": "image", "name": "ロゴ", "visible": True, "x": round(x), "y": y,
+             "width": width, "height": round(width * h / w), "src": "../../build/assets/layout/title-logo.png",
+             "opacity": 1, "resample": "bicubic"}]
 
 
 def visible_box(character):
@@ -245,7 +248,7 @@ def outro_layers(old, style, template):
             layer = image_layer(lid, "ストアで検索", style["store_search"], 0, box["y"], height=box["height"])
             layer["x"] = round(box["x"] + box["width"] / 2 - layer["width"] / 2)
             avoid_character(layer, out[0], {"y": box["y"], "height": box["height"]})  # 差し出した手にかからないように
-        elif lid in ("logo-parry", "logo-break", "credit"):
+        elif lid in ("logo", "credit"):
             layer = copy.deepcopy(old[lid])  # 色は v02 のキャラごとの色のまま
             layer.update({k: t[lid][k] for k in ("x", "y", "fontSize")})
         else:  # app-icon, badge-*

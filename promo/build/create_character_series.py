@@ -87,8 +87,7 @@ def main():
    tx=115 if c['right'] else 445
    if i<3: layers.append(text('caption',c['caps'][i],tx,935,48 if len(c['caps'][i])<9 else 42))
    # 既存のタイトルのフォント・配色・縁取りをそのまま採用。
-   for k,y in [('logo-parry',1070),('logo-break',1145)]:
-    l=copy.deepcopy(brands[k]);l.update(x=tx,y=y if i<3 else y-260,fontSize=71);layers.append(l)
+   l=copy.deepcopy(brands['logo']);l.update(x=tx,y=1070 if i<3 else 810,width=300,height=150);layers.append(l)
    search=text('store-search','ストアで検索',tx,1230 if i<3 else 1040,36);layers.append(search)
    for k,dx in [('badge-appstore',0),('badge-googleplay',225)]:
     l=copy.deepcopy(brands[k]);l.update(x=tx+dx,y=1290 if i<3 else 1110,width=210,height=77 if k=='badge-appstore' else 81);layers.append(l)
