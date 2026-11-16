@@ -194,7 +194,7 @@ function listen(text, button) {
   const done = () => { button.disabled = false; };
   audio.addEventListener('ended', done);
   audio.addEventListener('pause', done);
-  audio.addEventListener('error', () => { done(); toast('読み上げを作れません。VOICEVOX が起動しているか確かめてください', true); });
+  audio.addEventListener('error', () => { done(); toast('読み上げを作れません。AivisSpeech が起動しているか確かめてください', true); });
   audio.play().catch(() => {});
 }
 
@@ -211,7 +211,7 @@ function renderVoiceEditor(panel) {
       state.project.voice.profile = value;
       for (const sc of state.project.scenes) {
         for (const layer of sc.layers) {
-          if (layer.id === 'credit') layer.text = 'VOICEVOX:' + state.info.voiceProfiles[value].speakerName;
+          if (layer.id === 'credit') layer.text = 'AivisSpeech:' + state.info.voiceProfiles[value].speakerName;
         }
       }
     },
@@ -252,7 +252,7 @@ function renderVoiceEditor(panel) {
   panel.append(h('div', { class: 'voice-actions' }, add, reset));
   panel.append(h('div', { id: 'voiceStatus', class: 'muted small' }));
   panel.append(h('div', { class: 'muted small' },
-    `声は VOICEVOX: ${v.speakerName} (話者 ${v.speaker})、速さ ${v.speedScale}、抑揚 ${v.intonationScale} の演技設定です。` +
+    `声は AivisSpeech: ${v.speakerName} (話者 ${v.speaker})、速さ ${v.speedScale}、抑揚 ${v.intonationScale}、高さ ${v.pitchScale}、緩急 ${v.tempoDynamicsScale} の演技設定です。` +
     `左の数は話し始めの時刻 (秒)。画面の字幕は別のレイヤーなので、台詞を変えたら字幕も合わせてください。` +
     `ゲームの音は音量 ${state.info.gameVolume}。`));
   renderVoiceStatus();
@@ -1026,7 +1026,7 @@ async function startExport() {
   }
   const vv = await api('GET', '/api/voicevox');
   if (!vv.ok || !vv.data.ok) {
-    showExport(h('p', { class: 'err' }, (vv.data && vv.data.message) || 'VOICEVOX を確かめられません'),
+    showExport(h('p', { class: 'err' }, (vv.data && vv.data.message) || 'AivisSpeech を確かめられません'),
       h('p', {}, (vv.data && vv.data.hint) || ''), h('p', { class: 'muted small' }, '書き出しは始めていません。編集内容はそのままです。'));
     return;
   }

@@ -35,26 +35,28 @@ ROOT = EDITOR.parents[1]
 PROJECTS = EDITOR / "projects"
 OUT_DIR = ROOT / "promo/build/out"
 
-ENGINE = "http://127.0.0.1:50021"
+ENGINE = "http://127.0.0.1:10101"  # AivisSpeech Engine (VOICEVOX は 50021)
 # 既定は春歌ナナ。採用済みのキャラ別 voice.profile で声と演技を選べる。台詞は、
 # プロジェクトの voice.lines で変えられる。ないときは、下の v12 (character_promo.py) と同じ台詞を使う。
 VOICE = {
-    "speaker": 54,  # 春歌ナナ・ノーマル
-    "speakerName": "春歌ナナ",
-    "speedScale": 1.12,
-    "intonationScale": 1.18,
+    "speaker": 1325133120,  # 花音・ノーマル (ミツバ)
+    "speakerName": "花音",
+    "speedScale": 1.0,
+    "intonationScale": 1.0,
     "lines": [(0.15, 3, "この弾、返せる？"),
               (3.2, 8, "当たる瞬間に、タップ！"),
               (11.2, 16, "白いブロックを壊すと……"),
               (16.0, 19, "まとめて、どーん！"),
               (19.3, 24, "パリィブレイク。ストアで検索！")],
 }
+# 声は AivisSpeech Engine (ポート 10101)。確定した割り当てと調整値は promo/characters/voice-licenses.md を参照。
+# speaker は AivisSpeech のスタイル ID。tempoDynamicsScale は緩急。
 VOICE_PROFILES = {
-    "mitsuba": {"speaker": 54, "speakerName": "春歌ナナ", "speedScale": 1.12, "intonationScale": 1.18, "pitchScale": 0.0},
-    "akane": {"speaker": 70, "speakerName": "満別花丸", "speedScale": 1.15, "intonationScale": 1.25, "pitchScale": 0.0},
-    "shizuku": {"speaker": 14, "speakerName": "冥鳴ひまり", "speedScale": 1.0, "intonationScale": 0.65, "pitchScale": -0.03},
-    "momoka": {"speaker": 72, "speakerName": "満別花丸", "speedScale": 1.06, "intonationScale": 1.2, "pitchScale": 0.0},
-    "wakana": {"speaker": 14, "speakerName": "冥鳴ひまり", "speedScale": 0.96, "intonationScale": 1.0, "pitchScale": 0.01},
+    "mitsuba": {"speaker": 1325133120, "speakerName": "花音", "speedScale": 1.0, "intonationScale": 1.0, "pitchScale": 0.0, "tempoDynamicsScale": 1.0},
+    "akane": {"speaker": 604166016, "speakerName": "中2", "speedScale": 1.2, "intonationScale": 1.5, "pitchScale": 0.1, "tempoDynamicsScale": 1.4},
+    "shizuku": {"speaker": 1599412416, "speakerName": "zonoko", "speedScale": 0.95, "intonationScale": 0.8, "pitchScale": 0.0, "tempoDynamicsScale": 1.0},
+    "momoka": {"speaker": 345585728, "speakerName": "るな", "speedScale": 1.0, "intonationScale": 1.15, "pitchScale": 0.0, "tempoDynamicsScale": 1.0},
+    "wakana": {"speaker": 1431611904, "speakerName": "まい", "speedScale": 0.92, "intonationScale": 0.95, "pitchScale": 0.0, "tempoDynamicsScale": 1.0},
 }
 
 
@@ -63,12 +65,12 @@ def voice_profile(project):
 
 
 def credit_text(project):
-    return "VOICEVOX:" + VOICE_PROFILES[voice_profile(project)]["speakerName"]
+    return "AivisSpeech:" + VOICE_PROFILES[voice_profile(project)]["speakerName"]
 
 
 MAX_VOICE_LINES = 12
 MAX_VOICE_TEXT = 80
-CREDIT_TEXT = "VOICEVOX:春歌ナナ"
+CREDIT_TEXT = "AivisSpeech:花音"
 GAME_VOLUME = 0.52
 FPS = 30
 CANVAS = (1080, 1920)
@@ -388,7 +390,7 @@ def voice_lines(project):
 
 
 def _validate_voice(bad, voice, total=None):
-    """台詞の形だけを確かめる。読み上げの長さ (重なり) は VOICEVOX が要るので voice_timing で見る。"""
+    """台詞の形だけを確かめる。読み上げの長さ (重なり) は AivisSpeech が要るので voice_timing で見る。"""
     total = sum(s[2] for s in SCENES) if total is None else total
     where = "音声"
     if not isinstance(voice, dict) or not isinstance(voice.get("lines"), list):
@@ -604,13 +606,13 @@ def _engine(path, data=None, content_type=None, timeout=120):
 
 
 def voicevox_status():
-    """VOICEVOX が動いていれば {"ok": True, "version"}、なければ理由と直し方。"""
+    """音声エンジン (AivisSpeech) が動いていれば {"ok": True, "version"}、なければ理由と直し方。"""
     try:
         version = json.loads(_engine("/version", timeout=3))
         return {"ok": True, "version": version}
     except (urllib.error.URLError, OSError, ValueError) as e:
-        return {"ok": False, "message": f"VOICEVOX ({ENGINE}) に接続できません: {getattr(e, 'reason', e)}",
-                "hint": "VOICEVOX を起動して、エンジンが立ち上がってから、もう一度書き出してください"}
+        return {"ok": False, "message": f"AivisSpeech ({ENGINE}) に接続できません: {getattr(e, 'reason', e)}",
+                "hint": "AivisSpeech Engine を起動 (~/.aivisspeech/engine/Linux-x64/run --host 127.0.0.1 --port 10101) して、立ち上がってから、もう一度書き出してください"}
 
 
 def next_output(name):
@@ -724,7 +726,7 @@ _voice_lock = threading.Lock()
 
 
 def synthesize(text, profile="mitsuba"):
-    """台詞 1 つを VOICEVOX で作る。(wav のバイト列, 秒)。同じ台詞は作り直さない。"""
+    """台詞 1 つを AivisSpeech で作る。(wav のバイト列, 秒)。同じ台詞は作り直さない。"""
     settings = VOICE_PROFILES[profile]
     key = (profile, text)
     with _voice_lock:
@@ -733,14 +735,14 @@ def synthesize(text, profile="mitsuba"):
     try:
         params = urllib.parse.urlencode({"text": text, "speaker": settings["speaker"]})
         query = json.loads(_engine(f"/audio_query?{params}", b""))
-        for field in ("speedScale", "intonationScale", "pitchScale"):
+        for field in ("speedScale", "intonationScale", "pitchScale", "tempoDynamicsScale"):
             query[field] = settings[field]
         wav = _engine(f"/synthesis?speaker={settings['speaker']}", json.dumps(query).encode(), "application/json")
         with wave.open(io.BytesIO(wav)) as w:
             seconds = w.getnframes() / w.getframerate()
     except (urllib.error.URLError, OSError, ValueError, wave.Error, EOFError) as e:
-        raise ExportError(f"VOICEVOX で音声を作れませんでした: {getattr(e, 'reason', e)}",
-                          "VOICEVOX が起動しているか、選択した話者が使えるかを確かめてください")
+        raise ExportError(f"AivisSpeech で音声を作れませんでした: {getattr(e, 'reason', e)}",
+                          "AivisSpeech が起動しているか、選択した話者が使えるかを確かめてください")
     with _voice_lock:
         if len(_voice_cache) > 200:
             _voice_cache.clear()
@@ -749,13 +751,13 @@ def synthesize(text, profile="mitsuba"):
 
 
 def voice_timing(lines, total, progress=lambda message: None, profile="mitsuba"):
-    """台詞ごとの長さと終わりの時刻、重なりや尺からのはみ出し。VOICEVOX が要る。
+    """台詞ごとの長さと終わりの時刻、重なりや尺からのはみ出し。AivisSpeech が要る。
 
     返すのは ([{"start", "text", "duration", "end"}], [問題の文])。
     """
     timed, problems = [], []
     for i, line in enumerate(lines):
-        progress(f"VOICEVOX で台詞 {i + 1}/{len(lines)} を作っています")
+        progress(f"AivisSpeech で台詞 {i + 1}/{len(lines)} を作っています")
         _wav, seconds = synthesize(line["text"], profile)
         timed.append({"start": line["start"], "text": line["text"], "duration": seconds, "end": line["start"] + seconds})
     for i, line in enumerate(timed):

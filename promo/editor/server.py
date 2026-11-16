@@ -4,7 +4,7 @@
     python3 promo/editor/server.py            # http://127.0.0.1:8765/ を開く
     python3 promo/editor/server.py --port 9000
 
-127.0.0.1 だけで待ち受ける。外へ送るものはない (通信先はローカルの VOICEVOX だけ)。
+127.0.0.1 だけで待ち受ける。外へ送るものはない (通信先はローカルの AivisSpeech Engine だけ)。
 """
 
 import argparse
@@ -338,7 +338,7 @@ class Handler(BaseHTTPRequestHandler):
         return total, problems
 
     def voice_check(self, q):
-        """台詞ごとの読み上げの長さと、重なり。VOICEVOX が動いていなければ、その旨を返す。"""
+        """台詞ごとの読み上げの長さと、重なり。AivisSpeech が動いていなければ、その旨を返す。"""
         body = self._body()
         voice = body if isinstance(body, dict) else {"lines": None}
         total, problems = self._voice_lines(voice)
@@ -347,7 +347,7 @@ class Handler(BaseHTTPRequestHandler):
         status = render.voicevox_status()
         if not status["ok"]:
             return self._json({"ok": False, "offline": True, "problems": [], "lines": [],
-                               "message": "VOICEVOX が動いていないので、台詞の長さを確かめられません"})
+                               "message": "AivisSpeech が動いていないので、台詞の長さを確かめられません"})
         timed, problems = render.voice_timing(voice["lines"], total, profile=voice.get("profile", "mitsuba"))
         self._json({"ok": not problems, "problems": problems, "total": total,
                     "lines": [{"duration": round(t["duration"], 3), "end": round(t["end"], 3)} for t in timed]})

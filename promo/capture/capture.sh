@@ -28,18 +28,18 @@ case $size in
 esac
 
 # ステージ選択の画面 (2400x1080 の横画面) のタイルの位置。1〜5 は上の段を左から、6〜10 は下の段を右から
-if [ "$n" -le 5 ]; then x=$((178 + 277 * (n - 1))); y=537; else x=$((1288 - 277 * (n - 6))); y=778; fi
-pkg=com.watsuwo.parrybreak
+if [ "$n" -le 5 ]; then x=$((291 + 277 * (n - 1))); y=537; else x=$((1401 - 277 * (n - 6))); y=780; fi
+pkg=${PROMO_PKG:-com.watsuwo.parrybreak}
 adb shell am force-stop $pkg
 adb shell monkey -p $pkg -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 sleep 5
-adb shell input tap 1650 560; sleep 2          # STAGES
+adb shell input tap 1720 506; sleep 2.5        # STAGES (1.5.0 以降のメニュー)
 # ステージ選択は「まだクリアしていない最初のステージ」の章で開くので、まず第1章へ戻す。
 # ← キーは、段の左端から前の章へ移る (1 章につき最大 5 回)。第1章の左端では何も起きない。
 keys=$(printf 'KEYCODE_DPAD_LEFT %.0s' $(seq 1 $((chapters * 5))))
 # shellcheck disable=SC2086
 adb shell input keyevent $keys; sleep 1
-for _ in $(seq 2 "$ch"); do adb shell input tap 1368 222; sleep 1.2; done   # 次の章へ
+for _ in $(seq 2 "$ch"); do adb shell input tap 1479 225; sleep 1.2; done   # 次の章へ
 adb shell input tap $x $y; sleep 1
 
 timeout "$secs" scrcpy --no-playback --no-control --audio-source=playback --video-bit-rate=16M \
@@ -52,7 +52,7 @@ if ! kill -0 "$pid" 2>/dev/null; then
   tail -n 20 "$log" >&2
   die "scrcpy が録画を始められなかった (ログ: promo/capture/$log)"
 fi
-adb shell input tap 1990 925                   # START
+adb shell input tap 2106 930                   # START
 status=0
 wait "$pid" || status=$?
 # timeout が秒数で scrcpy を止めたときは 124 (scrcpy は止められても録画を閉じてから終わる)

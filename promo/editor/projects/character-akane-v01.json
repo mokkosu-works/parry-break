@@ -11,7 +11,7 @@
       "start": 0,
       "duration": 3,
       "background": {
-        "src": "../../capture/raw/s2-7_just_01.mp4",
+        "src": "../../capture/raw/s2-7_just_v151.mp4",
         "time": 23,
         "color": "#28181C"
       },
@@ -112,7 +112,7 @@
           "y": 330,
           "width": 880,
           "height": 528,
-          "src": "../../capture/raw/s2-7_just_01.mp4",
+          "src": "../../capture/raw/s2-7_just_v151.mp4",
           "start": 23,
           "crop": {
             "x": 245,
@@ -179,34 +179,17 @@
           "align": "left"
         },
         {
-          "id": "logo-parry",
-          "type": "text",
-          "name": "ロゴ PARRY",
+          "id": "logo",
+          "type": "image",
+          "name": "ロゴ",
           "visible": true,
           "x": 115,
           "y": 1070,
-          "text": "PARRY",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 71,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
-        },
-        {
-          "id": "logo-break",
-          "type": "text",
-          "name": "ロゴ BREAK",
-          "visible": true,
-          "x": 115,
-          "y": 1145,
-          "text": "BREAK",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 71,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
+          "width": 333,
+          "height": 167,
+          "src": "../../build/assets/layout/title-logo.png",
+          "opacity": 1,
+          "resample": "bicubic"
         },
         {
           "id": "store-search",
@@ -256,7 +239,7 @@
       "start": 3,
       "duration": 8,
       "background": {
-        "src": "../../capture/raw/s2-7_just_01.mp4",
+        "src": "../../capture/raw/s2-7_just_v151.mp4",
         "time": 3,
         "color": "#28181C"
       },
@@ -357,7 +340,7 @@
           "y": 330,
           "width": 880,
           "height": 528,
-          "src": "../../capture/raw/s2-7_just_01.mp4",
+          "src": "../../capture/raw/s2-7_just_v151.mp4",
           "start": 3,
           "crop": {
             "x": 245,
@@ -424,34 +407,17 @@
           "align": "left"
         },
         {
-          "id": "logo-parry",
-          "type": "text",
-          "name": "ロゴ PARRY",
+          "id": "logo",
+          "type": "image",
+          "name": "ロゴ",
           "visible": true,
           "x": 115,
           "y": 1070,
-          "text": "PARRY",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 71,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
-        },
-        {
-          "id": "logo-break",
-          "type": "text",
-          "name": "ロゴ BREAK",
-          "visible": true,
-          "x": 115,
-          "y": 1145,
-          "text": "BREAK",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 71,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
+          "width": 333,
+          "height": 167,
+          "src": "../../build/assets/layout/title-logo.png",
+          "opacity": 1,
+          "resample": "bicubic"
         },
         {
           "id": "store-search",
@@ -501,7 +467,7 @@
       "start": 11,
       "duration": 8,
       "background": {
-        "src": "../../capture/raw/s2-7_just_01.mp4",
+        "src": "../../capture/raw/s2-7_just_v151.mp4",
         "time": 11,
         "color": "#28181C"
       },
@@ -602,7 +568,7 @@
           "y": 330,
           "width": 880,
           "height": 528,
-          "src": "../../capture/raw/s2-7_just_01.mp4",
+          "src": "../../capture/raw/s2-7_just_v151.mp4",
           "start": 11,
           "crop": {
             "x": 245,
@@ -669,34 +635,17 @@
           "align": "left"
         },
         {
-          "id": "logo-parry",
-          "type": "text",
-          "name": "ロゴ PARRY",
+          "id": "logo",
+          "type": "image",
+          "name": "ロゴ",
           "visible": true,
           "x": 115,
           "y": 1070,
-          "text": "PARRY",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 71,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
-        },
-        {
-          "id": "logo-break",
-          "type": "text",
-          "name": "ロゴ BREAK",
-          "visible": true,
-          "x": 115,
-          "y": 1145,
-          "text": "BREAK",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 71,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
+          "width": 333,
+          "height": 167,
+          "src": "../../build/assets/layout/title-logo.png",
+          "opacity": 1,
+          "resample": "bicubic"
         },
         {
           "id": "store-search",
@@ -746,7 +695,7 @@
       "start": 19,
       "duration": 5,
       "background": {
-        "src": "../../capture/raw/s2-7_just_01.mp4",
+        "src": "../../capture/raw/s2-7_just_v151.mp4",
         "time": 11,
         "color": "#28181C"
       },
@@ -855,34 +804,17 @@
           "bobAmplitude": 4
         },
         {
-          "id": "logo-parry",
-          "type": "text",
-          "name": "ロゴ PARRY",
+          "id": "logo",
+          "type": "image",
+          "name": "ロゴ",
           "visible": true,
           "x": 115,
           "y": 810,
-          "text": "PARRY",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 71,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
-        },
-        {
-          "id": "logo-break",
-          "type": "text",
-          "name": "ロゴ BREAK",
-          "visible": true,
-          "x": 115,
-          "y": 885,
-          "text": "BREAK",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 71,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
+          "width": 333,
+          "height": 167,
+          "src": "../../build/assets/layout/title-logo.png",
+          "opacity": 1,
+          "resample": "bicubic"
         },
         {
           "id": "store-search",
@@ -945,7 +877,7 @@
           "visible": true,
           "x": 180,
           "y": 1370,
-          "text": "VOICEVOX:満別花丸",
+          "text": "AivisSpeech:中2",
           "font": "../../build/fonts/DotGothic16-Regular.ttf",
           "fontSize": 30,
           "color": "#FFF5EE",

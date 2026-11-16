@@ -94,7 +94,7 @@ def main():
     l=copy.deepcopy(brands[k]);l.update(x=tx+dx,y=1290 if i<3 else 1110,width=210,height=77 if k=='badge-appstore' else 81);layers.append(l)
    if i==3:
     l=copy.deepcopy(brands['app-icon']);l.update(x=470,y=600,width=125,height=125);layers.append(l)
-    layers.append(text('credit','VOICEVOX:'+render.VOICE_PROFILES[name]['speakerName'],180,1370,30))
+    layers.append(text('credit','AivisSpeech:'+render.VOICE_PROFILES[name]['speakerName'],180,1370,30))
    p['scenes'].append(sc)
   polish(p, name)
   render.check(p)

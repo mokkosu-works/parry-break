@@ -11,7 +11,7 @@
       "start": 0,
       "duration": 3,
       "background": {
-        "src": "../../capture/raw/mendless_01.mp4",
+        "src": "../../capture/raw/mendless_v151.mp4",
         "time": 22,
         "color": "#28181C"
       },
@@ -144,7 +144,7 @@
           "y": 300,
           "width": 862,
           "height": 517,
-          "src": "../../capture/raw/mendless_01.mp4",
+          "src": "../../capture/raw/mendless_v151.mp4",
           "start": 22,
           "crop": {
             "x": 360,
@@ -194,34 +194,17 @@
           "resample": "lanczos"
         },
         {
-          "id": "logo-parry",
-          "type": "text",
-          "name": "ロゴ PARRY",
+          "id": "logo",
+          "type": "image",
+          "name": "ロゴ",
           "visible": true,
           "x": 552,
           "y": 1245,
-          "text": "PARRY",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 76,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
-        },
-        {
-          "id": "logo-break",
-          "type": "text",
-          "name": "ロゴ BREAK",
-          "visible": true,
-          "x": 552,
-          "y": 1325,
-          "text": "BREAK",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 76,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
+          "width": 355,
+          "height": 178,
+          "src": "../../build/assets/layout/title-logo.png",
+          "opacity": 1,
+          "resample": "bicubic"
         }
       ]
     },
@@ -230,7 +213,7 @@
       "start": 3,
       "duration": 8,
       "background": {
-        "src": "../../capture/raw/mendless_01.mp4",
+        "src": "../../capture/raw/mendless_v151.mp4",
         "time": 44,
         "color": "#28181C"
       },
@@ -363,7 +346,7 @@
           "y": 300,
           "width": 862,
           "height": 517,
-          "src": "../../capture/raw/mendless_01.mp4",
+          "src": "../../capture/raw/mendless_v151.mp4",
           "start": 44,
           "crop": {
             "x": 360,
@@ -413,34 +396,17 @@
           "resample": "lanczos"
         },
         {
-          "id": "logo-parry",
-          "type": "text",
-          "name": "ロゴ PARRY",
+          "id": "logo",
+          "type": "image",
+          "name": "ロゴ",
           "visible": true,
           "x": 552,
           "y": 1245,
-          "text": "PARRY",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 76,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
-        },
-        {
-          "id": "logo-break",
-          "type": "text",
-          "name": "ロゴ BREAK",
-          "visible": true,
-          "x": 552,
-          "y": 1325,
-          "text": "BREAK",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 76,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
+          "width": 355,
+          "height": 178,
+          "src": "../../build/assets/layout/title-logo.png",
+          "opacity": 1,
+          "resample": "bicubic"
         }
       ]
     },
@@ -449,7 +415,7 @@
       "start": 11,
       "duration": 8,
       "background": {
-        "src": "../../capture/raw/mendless_01.mp4",
+        "src": "../../capture/raw/mendless_v151.mp4",
         "time": 62,
         "color": "#28181C"
       },
@@ -582,7 +548,7 @@
           "y": 300,
           "width": 862,
           "height": 517,
-          "src": "../../capture/raw/mendless_01.mp4",
+          "src": "../../capture/raw/mendless_v151.mp4",
           "start": 62,
           "crop": {
             "x": 360,
@@ -626,40 +592,23 @@
           "x": 470,
           "y": 861,
           "width": 470,
-          "height": 297,
+          "height": 300,
           "src": "../../characters/text/akane_mode01_bubble_3.png",
           "opacity": 1,
           "resample": "lanczos"
         },
         {
-          "id": "logo-parry",
-          "type": "text",
-          "name": "ロゴ PARRY",
+          "id": "logo",
+          "type": "image",
+          "name": "ロゴ",
           "visible": true,
           "x": 552,
           "y": 1245,
-          "text": "PARRY",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 76,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
-        },
-        {
-          "id": "logo-break",
-          "type": "text",
-          "name": "ロゴ BREAK",
-          "visible": true,
-          "x": 552,
-          "y": 1325,
-          "text": "BREAK",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 76,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
+          "width": 355,
+          "height": 178,
+          "src": "../../build/assets/layout/title-logo.png",
+          "opacity": 1,
+          "resample": "bicubic"
         }
       ]
     },
@@ -668,7 +617,7 @@
       "start": 19,
       "duration": 5,
       "background": {
-        "src": "../../capture/raw/mendless_01.mp4",
+        "src": "../../capture/raw/mendless_v151.mp4",
         "time": 62,
         "color": "#28181C"
       },
@@ -791,34 +740,17 @@
           "resample": "lanczos"
         },
         {
-          "id": "logo-parry",
-          "type": "text",
-          "name": "ロゴ PARRY",
+          "id": "logo",
+          "type": "image",
+          "name": "ロゴ",
           "visible": true,
           "x": 372,
           "y": 227,
-          "text": "PARRY",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 126,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
-        },
-        {
-          "id": "logo-break",
-          "type": "text",
-          "name": "ロゴ BREAK",
-          "visible": true,
-          "x": 372,
-          "y": 348,
-          "text": "BREAK",
-          "font": "../../../app/assets/fonts/Silkscreen-Bold.ttf",
-          "fontSize": 126,
-          "color": "#ffc61a",
-          "strokeWidth": 6,
-          "strokeColor": "#8a1c00",
-          "align": "left"
+          "width": 584,
+          "height": 293,
+          "src": "../../build/assets/layout/title-logo.png",
+          "opacity": 1,
+          "resample": "bicubic"
         },
         {
           "id": "store-search",
@@ -866,7 +798,7 @@
           "visible": true,
           "x": 645,
           "y": 1176,
-          "text": "VOICEVOX:満別花丸",
+          "text": "AivisSpeech:中2",
           "font": "../../build/fonts/NotoSansCJK-Bold.ttc",
           "fontSize": 26,
           "color": "#FFF5EE",

@@ -16,7 +16,7 @@ import render
 
 TOP, BOTTOM, LEFT, RIGHT = 130, 1440, 100, 980
 BUTTONS = (930, 1220)  # この x より右、この y より下はショートのボタン列
-AVOID = ("bubble", "store-search", "game", "logo-parry", "logo-break", "tag")
+AVOID = ("bubble", "store-search", "game", "logo", "logo-parry", "logo-break", "tag")
 
 
 def visible(layer):
