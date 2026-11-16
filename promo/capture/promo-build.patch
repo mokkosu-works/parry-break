@@ -1,0 +1,51 @@
+--- a/app/lib/game/game_controller.dart
++++ b/app/lib/game/game_controller.dart
+@@ -1,3 +1,5 @@
++import 'dart:convert';
++
+ import 'package:flutter/foundation.dart';
+ 
+ import '../audio/audio_service.dart';
+@@ -87,7 +89,42 @@
+     fx.step(dt);
+   }
+ 
++  // 撮影ビルドだけで出来事を記録する。通常のゲームには当てない。
++  final String _promoSession = DateTime.now().microsecondsSinceEpoch.toString();
++  int _promoSequence = 0;
++
++  void _logPromoEvent(GameEvent e) {
++    final fields = switch (e) {
++      RoundStarted() => <String, Object?>{'type': 'round_started', 'number': e.number, 'loop': e.loop, 'boss': e.bossIndex},
++      CountdownFinished() => <String, Object?>{'type': 'countdown_finished'},
++      RoundCleared() => <String, Object?>{'type': 'round_cleared', 'ending': e.ending},
++      GameOver() => <String, Object?>{'type': 'game_over', 'reason': e.reason, 'final_score': e.score},
++      StageCompleted() => <String, Object?>{'type': 'stage_completed', 'final_score': e.score},
++      ParrySucceeded() => <String, Object?>{'type': 'parry', 'grade': e.grade.name, 'target': e.target.name, 'streak': e.streak},
++      ParryMissed() => <String, Object?>{'type': 'miss'},
++      PlayerHurt() => <String, Object?>{'type': 'hurt'},
++      KeystoneBroken() => <String, Object?>{'type': 'keystone'},
++      CollapseStarted() => <String, Object?>{'type': 'collapse', 'count': e.count},
++      Callout() => <String, Object?>{'type': 'callout', 'channel': e.channel.name, 'text': e.text, 'sub': e.sub, 'level': e.level},
++      Banner() => <String, Object?>{'type': 'banner', 'kind': e.kind.name, 'value': e.value},
++      FeverTimeStarted() => <String, Object?>{'type': 'fever_start'},
++      FeverTimeEnded() => <String, Object?>{'type': 'fever_end', 'by_hit': e.byHit},
++      _ => <String, Object?>{'type': e.runtimeType.toString()},
++    };
++    // InputClockは停止時計基準。実時刻とシミュレーション時刻も別に残す。
++    // ignore: avoid_print
++    print('PARRY_PROMO_EVENT ${jsonEncode({
++      'schema': 1, 'session': _promoSession, 'seq': _promoSequence++,
++      'wall_us': DateTime.now().microsecondsSinceEpoch,
++      'clock_s': clock.now, 'sim_s': world.t, 'mode': mode.recordKey,
++      'round': world.round.number, 'score': world.score, ...fields,
++    })}');
++  }
++
+   void _dispatch(GameEvent e) {
++    if (kPromoAutoplay && const bool.fromEnvironment('PROMO_EVENT_LOG')) {
++      _logPromoEvent(e);
++    }
+     fx.handle(e);
+     audio.handle(e);
+     haptics.handle(e);

@@ -39,3 +39,19 @@
 | fired | (ふざけ)目に炎 | (ふざけ)ぐるぐる目 | (ふざけ)真顔で小さくガッツ | (ふざけ)ほっぺぷくっ | (ふざけ)静かな圧 |
 
 - 10〜12 列目(steam・shock・fired)は名前を共通にしているだけで、中身はキャラごとに違う(上の表)。ふざけた表情は、大きな出来事(MEGA COLLAPSE、ゲームオーバー)に絞って使う。
+
+## 通常尺用の全身(`full/`、アカネは2026-11-17に本人が採用)
+
+- `full/akane_full_sheet.png`: 横3列×縦2段。左から `greet`(あいさつ)、`guide`(案内)、`close`(締め)。上段が閉じた口、下段が開いた口。
+- `full/akane_full_blink.png`: あいさつポーズで両目を閉じた元の絵。
+- `full/akane/{greet,guide,close}_{closed,open}.png` と `greet_blink.png`: 320×504pxの透過画像7枚。同じ座標・同じ倍率で切り替える。閉じた口の絵を土台に、口と目のまわりだけを位置合わせして合成する。
+- 合成は `python3 promo/longform/full.py akane`。顔・口・目の範囲は全身用に調整済み。`regions.json` に範囲と位置合わせの結果を残す。既存素材は上書きしないので、再生成するときは同じ場所の `old/` へ退避する。
+- 指示文は `promo/design/codex/longform-full/ref/prompt-akane-{sheet,blink}.txt`。今回は内蔵画像生成ツールで生成した。下書きは同じ回の `out/` に残す。
+- 試し動画は次の2コマンドで作る。最初だけ AivisSpeech(10101)が必要。`--out` は未使用の出力先を指定する。全身と顔の拡大を並べた確認用で、本番の画面構成や台本ではない。目パチはあいさつの発話後に1回。発声中の口パクは音量に合わせた簡易の開閉。
+
+```sh
+python3 promo/longform/full_preview.py akane --voice-only --out promo/build/out/akane-full-preview-e001
+python3 promo/longform/full_preview.py akane --out promo/build/out/akane-full-preview-e001
+```
+
+音声は既存の `render.synthesize` と採用済みのアカネの設定を使う。出力先には `preview.mp4`、台詞ごとの WAV、`voice.json`、合成音声 `preview.wav`、時刻と各状態のフレーム数の `timing.json`、各ポーズの静止画が入る。アカネのe001は2026-11-17に本人が「いいと思う」と確認済み。残り4人はアカネの通常尺の試作後に展開する。

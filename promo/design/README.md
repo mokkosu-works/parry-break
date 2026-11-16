@@ -5,12 +5,16 @@
 ## 現役
 
 - `handoff.md`: 引き継ぎ資料(いまの状態・次にやること・作業の決まり・本人との進め方)
+- `audio-source-check-20261117.md`: 最初の本編録画の音声混入の調査と不採用の記録、録り直しの対策
 - `distribution-plan.md`: 配信の方針 (投稿先・ペース・担当キャラ・ゲスト・通常尺・作る順番) と、4 モードの仕様。**最初に読む**
 - `shorts-modes.md`: ショートのモード紹介 (プロジェクトは `<名前>-modes`、以前の名前は mode01) と、1.5.0 の撮影の手順
 - `shorts-play.md`: ショートのプレイ紹介 (プロジェクトは `<名前>-play`、以前の名前は v05)。文字の画像の作り方もここ
 - `character-layout-comparison-v01.png`: 画面構成案 (5 人の見た目の基準)
 - `longform-layout.png`: 通常尺の画面構成案 (案 B。録画を全幅、下の帯にキャラと字幕)
+- `longform-akane-outline-v01.md`: アカネのエンドレス紹介の骨組み(約3分45秒、紹介順は本人が確認済み。個々の台詞は候補)
+- `akane-longform-{opening,chapter,ending}-v01.png`: 冒頭・区切り・締めの構成案(本人の確認待ち)。`checks/akane-longform-scenes-v01.jpg` は3場面の一覧
 - `checks/`: 書き出しのコマやセーフエリアを確かめた画像
+  - `akane-endless-pilot-v01.jpg`: 実際の出来事へ反応を合わせた本編45秒の確認画像。動画と手順は `../longform/README.md`
   - `character-series-v01-final-frames.jpg`, `-v02-final-frames.jpg`: 途中の版 v01/v02 のコマ
   - `character-series-v03-mitsuba-compare.jpg`: 構成案と v03 の比べ
   - `character-series-v05-*.jpg`: プレイ紹介(v05)のコマ・セーフエリア・全員左に揃えた版・アウトロの直し
@@ -21,6 +25,8 @@
   - `mode01/`: モード紹介の文字の画像とタグ(`prompt-play-tags*.txt` はプレイ紹介のタグ)
   - `longform-akane/`: 通常尺のアカネのバストアップ
   - `longform-bust/`: 通常尺のほかの 4 人のバストアップ(`run.sh` で 1 枚ずつ順に作る)
+  - `longform-full/`: アカネの全身3ポーズと目パチの指示文(本人が採用済み)
+  - `longform-scenes/`: アカネの場面構成案に使う見出し3種類の指示文。構成案は `longform/scene_proposals.py` で合成する
   - `old-layout/out/`: 以前 `build/assets/layout/` にあった作業用の写し(どこからも参照しない)
 
 ## 過去の版

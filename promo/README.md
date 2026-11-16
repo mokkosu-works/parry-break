@@ -8,7 +8,7 @@
 capture/    実機の画面録画 (capture.sh、capture_mode.sh、raw/、apk/)
 characters/ キャラの絵 (sheets/、bust/)、プロフィール、反応集、声の割り当て
 assets/     動画に載せるキャラ以外の画像 (文字・吹き出し・タグ・ロゴ)
-longform/   通常尺の道具 (bust.py: バストアップの口パク素材を作る)
+longform/   通常尺の道具と台本 (README.md: 撮影ログとの時刻合わせ・反応の割り当て・本編の書き出し。bust.py・full.py: 口パク素材)
 editor/     キャラ動画の編集ツール (server.py、render.py、check_layout.py)。projects/ に現役のプロジェクト、projects/old/ に過去の版
 build/      動画の組み立て (create_*.py、build.py、specs/、fonts/、assets/、out/)。old/ に使わなくなったスクリプト
 design/     企画・決めごと・確認画像。old/ に過去の版の記録
@@ -26,11 +26,14 @@ records/    videos.csv、youtube_uploads.csv
 |---|---|---|---|
 | `characters/sheets/` | 全身の 6 枠シート `<名前>_sheet.png`(ショートで使う)、色の一覧 `color_roster.png`。`old/character_sheet_v2.png` は旧ミツバ | 入る | Codex(指示文は残っていない、初期の素材) |
 | `characters/bust/` | 通常尺のバストアップ。元のシート `<名前>_bust_sheet{1,2,3}.png`・`<名前>_bust_blink.png` と、合成した `<名前>/<表情>_{closed,open}.png`・`normal_blink.png` | 入る | Codex(`design/codex/longform-akane/`・`longform-bust/`)→ `longform/bust.py` |
+| `characters/full/` | 通常尺の全身3ポーズ。元の `<名前>_full_sheet.png`・`<名前>_full_blink.png` と、合成した `<名前>/{greet,guide,close}_{closed,open}.png`・`greet_blink.png`、合成範囲の `regions.json` | 入る | 画像生成(`design/codex/longform-full/ref/` に指示文) → `longform/full.py` |
 | `assets/text/shorts-play/` | プレイ紹介の見出し・吹き出し・「ストアで検索」(`<名前>_v05_*.png` など) | 入る | Codex(`design/codex/v05/`) |
 | `assets/text/shorts-modes/` | モード紹介の見出し・吹き出し(`<名前>_mode01_*.png`) | 入る | Codex(`design/codex/mode01/`) |
+| `assets/text/longform/` | 通常尺の見出し画像。アカネの構成案v01は `akane-{opening,chapter,ending}-v01.png`(本人の確認待ち) | 入る | 内蔵画像生成(`design/codex/longform-scenes/ref/` に指示文)から切り出し |
 | `assets/tags/` | モードのタグ `<名前>_tag_<stage\|endless\|daily\|practice>.png`(5 人 × 4) | 入る | Codex の 5 枚を土台に色を塗り替え |
 | `assets/logo/title-logo.png` | ゲームの実物のタイトルロゴ | 入る | `build/create_title_logo.py` |
 | `design/longform-layout.png`、`design/character-layout-comparison-v01.png` | 画面構成案(通常尺・ショート) | 入る | 手で作った見本 |
+| `design/akane-longform-{opening,chapter,ending}-v01.png` | アカネの通常尺の場面構成案(本人の確認待ち) | 入る | `longform/scene_proposals.py` で既存のロゴ・キャラ・録画と見出しを合成 |
 | `design/checks/` | 書き出しのコマなどの確認画像 | 入る | 確認のたびに |
 | `design/codex/<回>/` | Codex の指示文(`ref/*.txt`)。参考画像(`ref/*.png`)と生成の下書き(`out/`) | 指示文だけ | Codex。`old-layout/out/` は以前の作業用の写し(どこからも参照しない) |
 | `build/assets/badges/`、`build/fonts/` | ストアの公式バッジ、フォント | 入らない | `build/fetch_assets.sh` |

@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "profile": "akane",
+  "events": "promo/capture/raw/long-endless-akane-pilot05-clean/events.json",
+  "source_clock_start": 2.0,
+  "duration": 45,
+  "note": "本編の仕組みと声の間を確認するための45秒。完成版の冒頭45秒ではない。声・字幕・反応の台詞は本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.5,
+      "kind": "explanation",
+      "text": "エンドレスは、ボールひとつ。落としたら、そこでおしまい！",
+      "expression": "explain"
+    },
+    {
+      "start": 12.5,
+      "kind": "explanation",
+      "text": "パリィを重ねると、フィーバーへ。ブロックをどんどん貫いていくよ！",
+      "expression": "explain"
+    },
+    {
+      "start": 22.5,
+      "kind": "explanation",
+      "text": "白い支えを壊すと、その上もまとめて崩れるんだ。",
+      "expression": "explain"
+    },
+    {
+      "start": 30.0,
+      "kind": "chat",
+      "text": "さっきまでぎっしりだったのに、もう空いてる。片付けの勝負なら、あたしも負けるかも。",
+      "expression": "shy"
+    },
+    {
+      "start": 39.0,
+      "kind": "explanation",
+      "text": "派手なところも見たいけど、戻ってくるボールも見失わないようにね！",
+      "expression": "focus"
+    }
+  ],
+  "reactions": [
+    {
+      "type": "parry",
+      "grade": "just",
+      "after": 6.5,
+      "before": 7.4
+    },
+    {
+      "type": "fever_start",
+      "after": 10,
+      "before": 10.8
+    },
+    {
+      "type": "collapse",
+      "after": 19,
+      "before": 20
+    }
+  ]
+}
