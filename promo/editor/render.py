@@ -53,7 +53,7 @@ VOICE = {
 # speaker は AivisSpeech のスタイル ID。tempoDynamicsScale は緩急。
 VOICE_PROFILES = {
     "mitsuba": {"speaker": 1325133120, "speakerName": "花音", "speedScale": 1.0, "intonationScale": 1.0, "pitchScale": 0.0, "tempoDynamicsScale": 1.0},
-    "akane": {"speaker": 604166016, "speakerName": "中2", "speedScale": 1.2, "intonationScale": 1.5, "pitchScale": 0.1, "tempoDynamicsScale": 1.4},
+    "akane": {"speaker": 604166016, "speakerName": "中2", "speedScale": 1.0, "intonationScale": 1.1, "pitchScale": -0.1, "tempoDynamicsScale": 1.0},
     "shizuku": {"speaker": 1599412416, "speakerName": "zonoko", "speedScale": 0.95, "intonationScale": 0.8, "pitchScale": 0.0, "tempoDynamicsScale": 1.0},
     "momoka": {"speaker": 345585728, "speakerName": "るな", "speedScale": 1.0, "intonationScale": 1.15, "pitchScale": 0.0, "tempoDynamicsScale": 1.0},
     "wakana": {"speaker": 1431611904, "speakerName": "まい", "speedScale": 0.92, "intonationScale": 0.95, "pitchScale": 0.0, "tempoDynamicsScale": 1.0},
