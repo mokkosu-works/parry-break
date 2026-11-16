@@ -148,6 +148,7 @@ extension _ItemSystem on World {
           e.blast + (parried ? tun.blastCountParry : tun.blastCount),
         );
       case ItemKind.guard:
+        // はじめの防壁が残っていれば、それは時間では消えないのでそのまま (取得の得点・演出は同じ)
         e.guard = parried ? tun.guardTimeParry : tun.guardTime;
       case ItemKind.cool:
         e.cool = parried ? tun.coolTimeParry : tun.coolTime;

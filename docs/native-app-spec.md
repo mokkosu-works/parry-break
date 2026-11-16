@@ -76,7 +76,9 @@ Oct 4, 2026 · @watsuwo
 | 演出を控えめにする | OFF | ON / OFF(フラッシュ・点滅・揺れ・メニューの動き) |
 | タイミングの表示 | ON | ON / OFF(パリィの判定の下に、接触とのずれ。項目のない古い保存データはオン) |
 | 言語 | 端末の言語 | 日本語 / English |
-| 難易度 | NORMAL | EASY / NORMAL / HARD。設定の画面ではなく、ステージ選択の右上で選ぶ。最後に選んだものを保存する。エンドレスは常に NORMAL |
+| パドルの色 / ボールの軌跡の色 | SKY / STANDARD(今までの色) | 6 種ずつ。プレイヤーレベルで解放される(design.md 9.9)。`paddleColor` / `trailColor`(色の id)。項目のない古い保存データ・表にない値・まだ解放されていない値は既定の色。設定の「表示」の分類で選ぶ |
+| 難易度(ステージ) | NORMAL | EASY / NORMAL / HARD。設定の画面ではなく、ステージ選択の右上で選ぶ。最後に選んだものを保存する(`difficulty`) |
+| 難易度(エンドレス) | NORMAL | EASY / NORMAL(`endlessDifficulty`)。タイトルの左の列で選ぶ。項目のない古い保存データと HARD は NORMAL として読む。DAILY・練習場は常に NORMAL |
 
 設定は `SharedPreferences` の `settings.v1` に JSON で保存する(`lib/services/settings.dart`)。範囲の外の値は読み込むときに範囲へ丸める。ほかに、開発者向けのデバッグモード(タイトルの版番号を 3 回続けてタップで切り替え。全ステージを開け、結果を記録・ランキングに残さない)も同じところに保存する。
 
@@ -94,6 +96,10 @@ Oct 4, 2026 · @watsuwo
 練習場(`PracticeMode`、タイトルの PRACTICE)はブロックのない 1 ラウンドを終わりなく続けるモードで、ボールを落としても出直す。記録・ランキング・履歴・広告の回数・評価の依頼には数えない(`game_screen.dart` の `_onFinished` で何もしない。ゲームオーバーにもならない)。直近 20 回の判定は `PracticeLog` に持ち、保存しない。
 
 デイリーチャレンジ(`DailyMode`、タイトルの DAILY)は、`DailyChallenge`(UTC の日付 → 1970-01-01 からの日数 → 種 → 始まりのラウンド)が決めたエンドレスの 5 ラウンドを遊ぶ(`GameMode.firstRound` から始め、`roundAt` は範囲の外で null)。難易度は NORMAL 固定。記録は `lib/services/daily.dart` の `DailyRecord` を `daily.v1` に保存し(`records`・`history.v1`・`settings.v1` は変えない)、何回遊んでもその日の最高得点を記録にし、ランキングには毎回送る。履歴の行には `"daily": true` を足す(古い版のアプリはエンドレスとして読む)。広告の回数はエンドレス・ステージと同じく結果画面の数に数える。
+
+プレイヤーレベル(design.md 9.9)の累計 XP は、`lib/services/progress.dart` の `Progress` を `progress.v1`(`{"version":1,"xp":N}`)に保存する(`records`・`daily.v1`・`settings.v1`・`history.v1` は変えない)。レベルは累計 XP から計算し、壊れたデータは 0 として読んで `progress.broken` に退避する。エンドレス・DAILY・ステージの結果画面が出た回に `game_screen.dart` の `_onFinished` が加える(練習場・デバッグモードでは加えない)。見た目の解放(パドルの色・軌跡の色。`lib/render/cosmetics.dart`)は、このレベルだけで決め、解放した状態は保存しない(選んだ色の id だけ `settings.v1` に持つ)。
+
+今日のお題(design.md 9.10)は、`lib/services/quests.dart` の `QuestBoard`(その日の日付 = DAILY と同じ UTC の日数・3 つのお題の種類と難しさ・進み・達成済みか)を `quests.v1`(`{"version":1,"day":N,"quests":[{"kind":"perfect","tier":0,"progress":7,"done":false}, …]}`)に保存する(`records`・`daily.v1`・`settings.v1`・`history.v1`・`progress.v1` は変えない)。目標の値は表(`QuestKind`)から引き、保存しない。日付が今日と違うデータ・壊れたデータは今日の新しいお題にして、壊れたものは `quests.broken` に退避する。エンドレス・DAILY・ステージの結果画面が出た回に `game_screen.dart` の `_onFinished` が数え(練習場・デバッグモードでは数えない)、達成の XP はプレイの XP と合わせて `ProgressNotifier.award` に 1 回で渡す。
 
 ### 4.2 ランキング
 
@@ -161,12 +167,12 @@ app/
     app/          providers.dart(音・振動・デバッグモードなど、画面をまたいで使う Provider)
     game/         game_controller.dart(実時間で進め、イベントを演出・音・振動へ配る), game_screen.dart,
                   result_overlay.dart(結果画面), autoplay_bot.dart(撮影用ビルドだけの自動プレイ。promo/ で使う)
-    render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿), item_painter.dart(アイテムのカプセル),
+    render/       field_painter.dart(盤面・HUD), block_painters.dart(種類ごとの描き方の登録簿), item_painter.dart(アイテムのカプセル), cosmetics.dart(パドル・軌跡の色の表と解放のレベル),
                   fx.dart(パーティクル・ポップアップ・コールアウトなど), pixel.dart(ドット絵の部品), text_cache.dart, palette.dart(16 色のパレットと画面の 3 色)
     audio/        synth.dart(WebAudio 合成の移植), sound_bank.dart(効果音・BGM の定義), audio_service.dart
     haptics/      haptics_service.dart
     input/        input_clock.dart(タッチの時刻の換算), touch_controls.dart(領域方式・レール・PARRY)
-    services/     settings.dart, records.dart(記録), history.dart(最近のプレイの履歴), content.dart, leaderboard.dart,
+    services/     settings.dart(`paddleColor` / `trailColor` を含む), records.dart(記録。`endless` は NORMAL、`endlessEasy` は EASY のエンドレスの記録。`plays` はエンドレスを遊び終えた回数で、古いデータは 0 として読む), beginner_guard.dart(はじめの防壁を付けるかの判定), history.dart(最近のプレイの履歴), progress.dart(プレイヤーレベル。XP の計算 `XpRules`・レベルの曲線 `LevelCurve`・累計 XP の保存), content.dart, leaderboard.dart,
                   ads.dart(インタースティシャル広告と頻度の制限), review.dart(評価の依頼), error_log.dart(予期しない例外の記録)
     ui/           stage_select / help / history / settings / calibration _screen.dart, widgets.dart, stage_text.dart,
                   arcade.dart(タイトル・結果・ポーズで使うドット絵の部品), pixel_icons.dart(ドット絵のアイコン),
@@ -315,7 +321,7 @@ System は `World` が決まった順に呼ぶ(入力 → パドル → パリ�
   - パリィ判定の境界: 接触時刻との差が ±12 / 30 / 100ms ちょうどのときの判定。
   - 崩落: 要石の破壊、つながりの切断で、期待どおりのブロックが崩れる。
   - スコア: 崩落・連鎖爆発・跳弾のボーナス計算。
-  - 決定性: 同じシードと同じ入力ログから、同じスコアになる。アイテムの抽選は専用の乱数で行い、ほかの乱数を引く回数を変えない(`test/core/items_test.dart`)。
+  - 決定性: 同じシードと同じ入力ログから、同じスコアになる。アイテムの抽選は専用の乱数で行い、ほかの乱数を引く回数を変えない(`test/core/items_test.dart`)。はじめの防壁(design.md 7.10)は `World.beginnerGuard`(外から渡すフラグ)だけで決まり、乱数を引かない(`test/core/beginner_guard_test.dart`)。
   - バランス: `test/balance/balance_report.dart`(難易度ごとのクリア率)と `test/balance/item_report.dart`(アイテムなし / あり / 全部取るの比較)。どちらも手で流す(`flutter test test/balance/...`。CI では `_test.dart` でないので動かない)。
 - `flutter analyze` で警告がない。
 - iOS シミュレーターと Android エミュレーターで R1〜R10(ボス1)を通しで遊び、ブラウザ版と並べて挙動・数値・演出を比べる。

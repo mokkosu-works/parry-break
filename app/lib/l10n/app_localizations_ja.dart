@@ -164,6 +164,31 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String resultNearBest(String n) {
+    return '自己ベストまであと$n点';
+  }
+
+  @override
+  String resultNearToday(String n) {
+    return '今日の記録まであと$n点';
+  }
+
+  @override
+  String resultNearRankRounds(String rank, int n) {
+    return '$rank ランクまであと$nラウンド';
+  }
+
+  @override
+  String resultNearRankScore(String rank, String score) {
+    return '$rank ランクまであと$score点';
+  }
+
+  @override
+  String resultNearRankBoth(String rank, int n, String score) {
+    return '$rank ランクまであと$nラウンド・あと$score点';
+  }
+
+  @override
   String unlockBy(String stage) {
     return '$stage をクリアすると開く';
   }
@@ -417,6 +442,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get introSurvive => 'ブロックをデッドラインまで下ろさずに耐え抜け';
 
   @override
+  String introBeginnerGuard(int n) {
+    return 'はじめの$n回は防壁つき・1回だけボールを跳ね返します';
+  }
+
+  @override
   String get introItem => 'NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる';
 
   @override
@@ -444,6 +474,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get difficulty => '難易度';
+
+  @override
+  String get endlessDifficulty => 'エンドレスの難易度';
 
   @override
   String get difficultyEasy => '弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い';
@@ -512,5 +545,102 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String dailyKept(int n) {
     return '今日の記録は更新ならず・$n日連続プレイ中';
+  }
+
+  @override
+  String resultLevelSemantics(int level, int xp) {
+    return 'XP が $xp 入り、レベル $level';
+  }
+
+  @override
+  String titleLevelSemantics(int level) {
+    return 'プレイヤーレベル $level';
+  }
+
+  @override
+  String get settingsPaddleColor => 'パドルの色';
+
+  @override
+  String get settingsTrailColor => 'ボールの軌跡の色';
+
+  @override
+  String cosmeticLocked(int level) {
+    return 'LV $level で解放';
+  }
+
+  @override
+  String cosmeticNewPaddle(String name) {
+    return 'NEW: パドルの色 $name';
+  }
+
+  @override
+  String cosmeticNewTrail(String name) {
+    return 'NEW: ボールの軌跡の色 $name';
+  }
+
+  @override
+  String cosmeticNewMore(int n) {
+    return 'ほか $n';
+  }
+
+  @override
+  String questPlays(String n) {
+    return '合計 $n 回遊ぶ';
+  }
+
+  @override
+  String get questDaily => 'DAILY を 1 回遊ぶ';
+
+  @override
+  String questPerfect(String n) {
+    return 'PERFECT 以上のパリィを合計 $n 回';
+  }
+
+  @override
+  String questJust(String n) {
+    return 'JUST を合計 $n 回';
+  }
+
+  @override
+  String questFever(String n) {
+    return 'FEVER TIME に合計 $n 回入る';
+  }
+
+  @override
+  String questRound(String n) {
+    return 'エンドレス 1 回でラウンド $n に届く';
+  }
+
+  @override
+  String questStage(String n) {
+    return 'ステージを合計 $n 個クリア';
+  }
+
+  @override
+  String questReturn(String n) {
+    return '撃ち返した弾でブロックを合計 $n 個壊す';
+  }
+
+  @override
+  String questScore(String n) {
+    return 'エンドレス 1 回で $n 点を取る';
+  }
+
+  @override
+  String questAllBonus(int xp) {
+    return '3 つ全部で +$xp XP';
+  }
+
+  @override
+  String get questDone => '達成';
+
+  @override
+  String questMore(String n) {
+    return 'ほか $n';
+  }
+
+  @override
+  String questTagSemantics(int done, int total) {
+    return '今日のお題、$done / $total 達成';
   }
 }

@@ -51,6 +51,22 @@ class RankTable {
     return a.index > b.index ? a : b;
   }
 
+  /// エンドレス (と DAILY) で、いまのランク [current] の 1 つ上に足りないもの。S なら null。
+  /// 到達ラウンドとスコアの両方が要るので、足りないほうだけが 0 より大きい (両方足りなければ両方)。
+  RankGap? gapToNext({
+    required Rank current,
+    required int round,
+    required int score,
+  }) {
+    if (current.index == 0) return null;
+    final next = Rank.values[current.index - 1];
+    return RankGap(
+      next,
+      rounds: (endlessRounds[next.index] - round).clamp(0, 1 << 31),
+      score: (endlessScores[next.index] - score).clamp(0, 1 << 31),
+    );
+  }
+
   /// クリアしたステージのランク。[achieved] は [StageDef.evaluate] の結果。
   Rank stage(StageDef s, StageResult r, List<bool> achieved) {
     var pts = 0, max = 0;
@@ -78,6 +94,42 @@ class RankTable {
     return _pick(max == 0 ? 1.0 : pts / max, stageRatios);
   }
 }
+
+/// 次のランクまでに足りないラウンド数とスコア (足りているほうは 0)。
+class RankGap {
+  const RankGap(this.next, {required this.rounds, required this.score});
+  final Rank next;
+  final int rounds, score;
+}
+
+/// エンドレスと DAILY のゲームオーバーで出す「あと少し」: 記録までと、次のランクまで。
+class RunGap {
+  const RunGap({this.toBest, this.toRank});
+
+  /// 記録 (自己ベスト / その日の記録) までの点。記録を更新した (またはまだ記録がない) ときは null。
+  final int? toBest;
+
+  /// 次のランクまで。ランクを出さないとき・S のときは null。
+  final RankGap? toRank;
+
+  bool get isEmpty => toBest == null && toRank == null;
+}
+
+/// [beatRecord] は今回、記録を更新した (その日の最初の 1 回を含む) か。[rank] はいま出しているランク
+/// (出さないなら null)。[bestScore] は今回を含めた記録。
+RunGap runGap({
+  required int score,
+  required int round,
+  required int bestScore,
+  required bool beatRecord,
+  Rank? rank,
+  RankTable table = RankTable.standard,
+}) => RunGap(
+  toBest: !beatRecord && bestScore > score ? bestScore - score : null,
+  toRank: rank == null
+      ? null
+      : table.gapToNext(current: rank, round: round, score: score),
+);
 
 /// ゲームオーバーの原因。
 enum OverCause {

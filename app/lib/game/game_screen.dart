@@ -11,6 +11,7 @@ import '../core/core.dart';
 import '../input/touch_controls.dart';
 import '../l10n/app_localizations.dart';
 import '../render/block_painters.dart';
+import '../render/cosmetics.dart';
 import '../render/field_painter.dart';
 import '../render/palette.dart';
 import '../render/pixel.dart';
@@ -19,8 +20,11 @@ import '../services/achievements.dart';
 import '../services/ads.dart';
 import '../services/content.dart';
 import '../services/daily.dart';
+import '../services/beginner_guard.dart';
 import '../services/history.dart';
 import '../services/leaderboard.dart';
+import '../services/progress.dart';
+import '../services/quests.dart';
 import '../services/records.dart';
 import '../services/review.dart';
 import '../services/settings.dart';
@@ -31,7 +35,7 @@ import 'game_controller.dart';
 import 'result_overlay.dart';
 import '../ui/pixel_icons.dart';
 
-/// プレイ画面。[stage] があればステージモード、なければエンドレス (エンドレスは常に NORMAL)。
+/// プレイ画面。[stage] があればステージモード、なければエンドレス (エンドレスは NORMAL か EASY。[difficulty] で渡す)。
 /// [practice] なら練習場 (記録・ランキング・履歴・広告の回数・評価の依頼に数えない)。
 /// [daily] ならデイリーチャレンジ (NORMAL 固定。その日の最高得点を記録にし、ランキングには毎回送る)。
 class GameScreen extends ConsumerStatefulWidget {
@@ -43,8 +47,30 @@ class GameScreen extends ConsumerStatefulWidget {
     this.daily = false,
   });
   final StageDef? stage;
+
+  /// ステージモードとエンドレスの難易度 (エンドレスで HARD は NORMAL として扱う)。DAILY・練習場は常に NORMAL。
   final Difficulty difficulty;
   final bool practice, daily;
+
+  /// このプレイで実際に使う難易度。ステージはそのまま、エンドレスは NORMAL / EASY、DAILY・練習場は NORMAL。
+  static Difficulty effectiveDifficulty({
+    StageDef? stage,
+    bool practice = false,
+    bool daily = false,
+    Difficulty difficulty = Difficulty.normal,
+  }) {
+    if (stage != null) return difficulty;
+    if (practice || daily) return Difficulty.normal;
+    return difficulty == Difficulty.easy ? Difficulty.easy : Difficulty.normal;
+  }
+
+  /// [effectiveDifficulty] をこの画面の引数から決める。
+  Difficulty get playDifficulty => effectiveDifficulty(
+    stage: stage,
+    practice: practice,
+    daily: daily,
+    difficulty: difficulty,
+  );
 
   /// 最後に作られたプレイの進行役 (テストから状態を確かめるため)。
   @visibleForTesting
@@ -61,9 +87,17 @@ class _Outcome {
     this.stars,
     this.cleared = false,
     this.daily,
+    this.gain,
+    this.quest,
   });
   final bool newBest, cleared;
   final List<bool>? stars;
+
+  /// 今回入った XP とレベルの変化 (デバッグモードのプレイでは null)。
+  final LevelGain? gain;
+
+  /// 今回新しく達成した今日のお題 (その XP は [gain] に含まれる)。
+  final QuestResult? quest;
 
   /// デイリーで、今回のプレイがその日の記録をどうしたか。
   final DailyOutcome? daily;
@@ -91,18 +125,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final daily = _daily = widget.daily && stage == null
         ? DailyChallenge.of(ref.read(dailyClockProvider)())
         : null;
+    final GameMode mode = widget.practice
+        ? PracticeMode()
+        : daily != null
+        ? DailyMode(content.endless, daily)
+        : stage != null
+        ? StageMode(stage)
+        : EndlessMode(content.endless);
     _ctl = GameController(
-      mode: widget.practice
-          ? PracticeMode()
-          : daily != null
-          ? DailyMode(content.endless, daily)
-          : stage != null
-          ? StageMode(stage)
-          : EndlessMode(content.endless),
+      mode: mode,
       audio: ref.read(audioProvider),
       haptics: ref.read(hapticsProvider),
       inputLag: settings.timingOffsetMs / 1000,
-      difficulty: stage != null ? widget.difficulty : Difficulty.normal,
+      difficulty: widget.playDifficulty,
       reduceEffects: settings.reduceEffects,
       showTiming: settings.showTiming,
       timeSource: ref.read(timeSourceProvider),
@@ -117,6 +152,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _ctl.addListener(_onControllerChange);
     _ctl.audio.enterGame();
     _applySettings(settings);
+    _armBeginnerGuard();
     _ctl.start();
     _ticker = createTicker((_) {
       _keyboardAxis();
@@ -193,9 +229,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
           .read(historyProvider.notifier)
           .addDaily(score: w.score, round: w.round.number);
       if (counted) lb.submit(Board.dailyScore, w.score);
+      final award = _award(w, PlayKind.daily);
       _outcome = _Outcome(
         newBest: newBest,
         cleared: w.phase == WorldPhase.completed,
+        gain: award.gain,
+        quest: award.quest,
         daily: !counted
             ? DailyOutcome.kept
             : first
@@ -209,13 +248,26 @@ class _GameScreenState extends ConsumerState<GameScreen>
         score: w.score,
         round: w.round.number,
         stats: w.stats,
+        difficulty: widget.playDifficulty,
       );
       ref
           .read(historyProvider.notifier)
-          .addEndless(score: w.score, round: w.round.number);
-      lb.submit(Board.endlessScore, w.score);
-      lb.submit(Board.endlessRound, w.round.number);
-      _outcome = _Outcome(newBest: newBest);
+          .addEndless(
+            score: w.score,
+            round: w.round.number,
+            difficulty: widget.playDifficulty,
+          );
+      // EASY はランキングに送らない (NORMAL と同じ条件で競うボードなので)
+      if (widget.playDifficulty == Difficulty.normal) {
+        lb.submit(Board.endlessScore, w.score);
+        lb.submit(Board.endlessRound, w.round.number);
+      }
+      final award = _award(w, PlayKind.endless);
+      _outcome = _Outcome(
+        newBest: newBest,
+        gain: award.gain,
+        quest: award.quest,
+      );
     } else {
       final cleared = w.phase == WorldPhase.completed;
       final result = StageResult(
@@ -248,8 +300,47 @@ class _GameScreenState extends ConsumerState<GameScreen>
           _unlock(a);
         }
       }
-      _outcome = _Outcome(newBest: newBest, stars: stars, cleared: cleared);
+      final award = _award(w, PlayKind.stage, cleared: cleared, stars: stars);
+      _outcome = _Outcome(
+        newBest: newBest,
+        stars: stars,
+        cleared: cleared,
+        gain: award.gain,
+        quest: award.quest,
+      );
     }
+  }
+
+  /// 遊び終えた結果から XP を計算して加え、レベルの変化と、新しく達成した今日のお題を返す
+  /// (練習場・デバッグモードでは呼ばない)。お題の XP は、プレイの XP (1 回の上限あり) とは別枠で
+  /// 足して、レベルの変化を 1 つにまとめる (結果画面の棒には合わせた XP が出る)。
+  ({LevelGain gain, QuestResult quest}) _award(
+    World w,
+    PlayKind kind, {
+    bool cleared = false,
+    List<bool>? stars,
+  }) {
+    final quest = ref
+        .read(questsProvider.notifier)
+        .record(
+          QuestPlay(
+            kind: kind,
+            stats: w.stats,
+            round: w.round.number,
+            score: w.score,
+            cleared: cleared,
+          ),
+        );
+    final play = XpRules.standard.xpFor(
+      kind: kind,
+      stats: w.stats,
+      round: w.round.number,
+      cleared: cleared,
+      stars: stars?.where((s) => s).length ?? 0,
+      difficulty: widget.playDifficulty,
+    );
+    final gain = ref.read(progressProvider.notifier).award(play + quest.xp);
+    return (gain: gain, quest: quest);
   }
 
   // ---- 操作 ---------------------------------------------------------------
@@ -334,9 +425,19 @@ class _GameScreenState extends ConsumerState<GameScreen>
   /// リトライのたびに増やす (結果画面の演出を最初から出すため)。
   int _runId = 0;
 
+  /// はじめの防壁 (design.md 7.10) を付けるかを、遊び終えた回数から決める (プレイを始めるたびに)。
+  void _armBeginnerGuard() {
+    _ctl.world.beginnerGuard = beginnerGuardFor(
+      mode: _ctl.mode,
+      records: ref.read(recordsProvider),
+      history: ref.read(historyProvider),
+    );
+  }
+
   void _retry() {
     _outcome = null;
     _runId++;
+    _armBeginnerGuard();
     _ctl.start();
     // 結果画面がキーボードのフォーカスを持っていたので、盤面に戻す
     _focus.requestFocus();
@@ -446,6 +547,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
       repaint: _ctl.frame,
     );
     _painter!.parryButton = settings.controls != ControlScheme.zones;
+    // 選んだ見た目 (まだ解放されていない色は既定)。描くだけで、遊びには関わらない
+    final level = ref.watch(progressProvider.select((p) => p.level));
+    _painter!.paddleColor = Cosmetics.resolve(
+      CosmeticKind.paddle,
+      settings.paddleColor,
+      level,
+    ).color;
+    final trail = Cosmetics.resolve(
+      CosmeticKind.trail,
+      settings.trailColor,
+      level,
+    );
+    _painter!.trailColor = trail.id == Cosmetics.trailDefault.id
+        ? null
+        : trail.color;
     return PopScope(
       // 戻るボタン (Android) で画面を閉じず、ポーズや結果画面のボタンと同じ処理にする (_onBack)
       canPop: false,
@@ -655,11 +771,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
         bestScore: daily != null
             ? daily.dailyRecord.lastScore
             : stage == null
-            ? records.endless.bestScore
+            ? records.endlessOf(widget.playDifficulty).bestScore
             : records.stage(stage.id, widget.difficulty).bestScore,
-        bestRound: records.endless.bestRound,
+        bestRound: records.endlessOf(widget.playDifficulty).bestRound,
         stage: stage,
-        difficulty: widget.difficulty,
+        difficulty: widget.playDifficulty,
         cleared: cleared,
         achieved: o?.stars,
         rank: stage == null
@@ -672,6 +788,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
               )
             : null,
         over: w.overInfo,
+        gain: o?.gain,
+        quest: o?.quest,
         daily: daily == null
             ? null
             : DailyResult(
@@ -683,6 +801,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           ref.read(settingsProvider).reduceEffects ||
           MediaQuery.disableAnimationsOf(context),
       onNewRecord: () => _ctl.audio.play('ricochet'),
+      onLevelUp: () => _ctl.audio.play('clear'),
       onRetry: _retry,
       onTitle: () => _leaveResult(_toTitle),
       onNext: next == null

@@ -68,6 +68,7 @@ class World {
     Tuning tuning = const Tuning(),
     this.difficulty = Difficulty.normal,
     this.inputLag = 0.016,
+    this.beginnerGuard = false,
   }) : registry = blocks ?? standardBlocks(),
        bossPatterns = bossPatterns ?? BossPatternRegistry.standard,
        baseTuning = _withDifficulty(tuning, difficulty),
@@ -88,6 +89,11 @@ class World {
 
   /// 現在のラウンドで有効なバランス値 (ラウンドごとの上書きを反映したもの)。
   Tuning tuning;
+
+  /// はじめの防壁 (design.md 7.10): true なら、各ラウンドの開始に防壁を張る。時間では消えず、
+  /// メインのボールを 1 回跳ね返したら消える。外から渡す設定で、コアは保存データや時刻を見ない
+  /// (乱数も引かないので、false なら今までと同じ展開になる)。次の [start] から効く。
+  bool beginnerGuard;
 
   /// 判定タイミング補正 (秒)。入力時刻をこの値だけ早めて扱う。
   double inputLag;

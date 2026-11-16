@@ -53,6 +53,7 @@ class _Reader {
       bestCollapse: int_(j['bestCollapse']),
       bestBlast: int_(j['bestBlast']),
       bestRicochet: int_(j['bestRicochet']),
+      plays: int_(j['plays']),
     );
   }
 
@@ -76,7 +77,11 @@ class _Reader {
         lossy = true; // 形の違うこの 1 件だけを捨てる
       }
     }
-    return Records(endless: endless(j['endless']), stages: stages);
+    return Records(
+      endless: endless(j['endless']),
+      endlessEasy: endless(j['endlessEasy']),
+      stages: stages,
+    );
   }
 }
 
@@ -87,8 +92,13 @@ class EndlessRecord {
     this.bestCollapse = 0,
     this.bestBlast = 0,
     this.bestRicochet = 0,
+    this.plays = 0,
   });
   final int bestScore, bestRound, bestCollapse, bestBlast, bestRicochet;
+
+  /// エンドレスを遊び終えた回数 (はじめの防壁の判定に使う。デイリー・ステージ・練習場は数えない。EASY の回数は `endlessEasy` 側に持つ)。
+  /// この項目を足す前のデータにはないので 0 として読む ([endlessPlayCount] が履歴で補う)。
+  final int plays;
 
   Map<String, Object?> toJson() => {
     'bestScore': bestScore,
@@ -96,6 +106,7 @@ class EndlessRecord {
     'bestCollapse': bestCollapse,
     'bestBlast': bestBlast,
     'bestRicochet': bestRicochet,
+    'plays': plays,
   };
 
   /// 型の違う項目は 0 として読む。
@@ -132,11 +143,27 @@ class StageRecord {
 
 /// 記録 (スキーマのバージョン付き JSON で保存する)。
 class Records {
-  const Records({this.endless = const EndlessRecord(), this.stages = const {}});
+  const Records({
+    this.endless = const EndlessRecord(),
+    this.endlessEasy = const EndlessRecord(),
+    this.stages = const {},
+  });
+
+  /// エンドレス NORMAL の記録 (キーは以前のまま `endless`)。
   final EndlessRecord endless;
+
+  /// エンドレス EASY の記録 (`endlessEasy`)。この項目を足す前のデータにはないので、空として読む。
+  final EndlessRecord endlessEasy;
   final Map<String, StageRecord> stages;
 
   static const version = 1;
+
+  /// エンドレスの記録。難易度ごとに別に持つ (EASY 以外は NORMAL の記録)。
+  EndlessRecord endlessOf(Difficulty difficulty) =>
+      difficulty == Difficulty.easy ? endlessEasy : endless;
+
+  /// エンドレスを遊び終えた回数 (難易度を問わない)。
+  int get endlessPlays => endless.plays + endlessEasy.plays;
 
   /// ステージの記録。難易度ごとに別に持つ (NORMAL のキーはステージ ID のまま)。
   StageRecord stage(String id, [Difficulty difficulty = Difficulty.normal]) =>
@@ -179,6 +206,7 @@ class Records {
   Map<String, Object?> toJson() => {
     'version': version,
     'endless': endless.toJson(),
+    'endlessEasy': endlessEasy.toJson(),
     'stages': {for (final e in stages.entries) e.key: e.value.toJson()},
   };
 
@@ -230,18 +258,23 @@ class RecordsNotifier extends Notifier<Records> {
     required int score,
     required int round,
     required RunStats stats,
+    Difficulty difficulty = Difficulty.normal,
   }) {
-    final e = state.endless;
+    final e = state.endlessOf(difficulty);
     final newBest = score > e.bestScore;
+    final updated = EndlessRecord(
+      bestScore: math.max(e.bestScore, score),
+      bestRound: math.max(e.bestRound, round),
+      bestCollapse: math.max(e.bestCollapse, stats.bestCollapse),
+      bestBlast: math.max(e.bestBlast, stats.bestBlast),
+      bestRicochet: math.max(e.bestRicochet, stats.bestRicochet),
+      plays: e.plays + 1,
+    );
+    final easy = difficulty == Difficulty.easy;
     _save(
       Records(
-        endless: EndlessRecord(
-          bestScore: math.max(e.bestScore, score),
-          bestRound: math.max(e.bestRound, round),
-          bestCollapse: math.max(e.bestCollapse, stats.bestCollapse),
-          bestBlast: math.max(e.bestBlast, stats.bestBlast),
-          bestRicochet: math.max(e.bestRicochet, stats.bestRicochet),
-        ),
+        endless: easy ? state.endless : updated,
+        endlessEasy: easy ? updated : state.endlessEasy,
         stages: state.stages,
       ),
     );
@@ -263,6 +296,7 @@ class RecordsNotifier extends Notifier<Records> {
     _save(
       Records(
         endless: state.endless,
+        endlessEasy: state.endlessEasy,
         stages: {
           ...state.stages,
           Records.stageKey(id, difficulty): StageRecord(

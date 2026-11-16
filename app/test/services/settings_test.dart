@@ -1,7 +1,43 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:parry_break/core/core.dart';
+import 'package:parry_break/render/cosmetics.dart';
 import 'package:parry_break/services/settings.dart';
 
 void main() {
+  group('エンドレスの難易度 (endlessDifficulty)', () {
+    test('初期値は NORMAL。項目のない古い保存データも NORMAL として読む', () {
+      expect(const Settings().endlessDifficulty, Difficulty.normal);
+      final old = Settings.fromJson(const {'difficulty': 'hard'});
+      expect(old.endlessDifficulty, Difficulty.normal);
+      expect(old.difficulty, Difficulty.hard);
+    });
+
+    test('EASY を選ぶと保存され、ステージの難易度とは別に読み戻される', () {
+      final s = const Settings().copyWith(
+        endlessDifficulty: Difficulty.easy,
+        difficulty: Difficulty.hard,
+      );
+      final j = s.toJson();
+      expect(j['endlessDifficulty'], 'easy');
+      expect(j['difficulty'], 'hard');
+      final back = Settings.fromJson(j);
+      expect(back.endlessDifficulty, Difficulty.easy);
+      expect(back.difficulty, Difficulty.hard);
+    });
+
+    test('HARD や知らない値は NORMAL として読む (エンドレスに HARD は出さない)', () {
+      expect(
+        Settings.fromJson(const {'endlessDifficulty': 'hard'})
+            .endlessDifficulty,
+        Difficulty.normal,
+      );
+      expect(
+        Settings.fromJson(const {'endlessDifficulty': 3}).endlessDifficulty,
+        Difficulty.normal,
+      );
+    });
+  });
+
   group('Settings.fromJson のレール感度', () {
     test('railSensitivity がない古い保存データは 1.0 になる', () {
       final s = Settings.fromJson(const {'sensitivity': 2.5});
@@ -80,6 +116,65 @@ void main() {
       final s = const Settings().copyWith(showTiming: false);
       expect(s.toJson()['showTiming'], isFalse);
       expect(Settings.fromJson(s.toJson()).showTiming, isFalse);
+    });
+  });
+  group('見た目の色 (paddleColor / trailColor)', () {
+    test('初期値は今までの色。項目のない古い保存データも既定として読む', () {
+      const d = Settings();
+      expect((d.paddleColor, d.trailColor), ('sky', 'standard'));
+      final old = Settings.fromJson(const {'reduceEffects': true});
+      expect((old.paddleColor, old.trailColor), ('sky', 'standard'));
+      expect(old.reduceEffects, isTrue);
+    });
+
+    test('選んだ色は保存され、読み戻される (キーは追加だけで、ほかの項目はそのまま)', () {
+      final s = const Settings().copyWith(
+        paddleColor: 'cyan',
+        trailColor: 'lime',
+        showTiming: false,
+      );
+      final j = s.toJson();
+      expect(j['paddleColor'], 'cyan');
+      expect(j['trailColor'], 'lime');
+      expect(j['showTiming'], isFalse);
+      final back = Settings.fromJson(j);
+      expect((back.paddleColor, back.trailColor), ('cyan', 'lime'));
+    });
+
+    test('表にない値・型の違う値は既定の色として読む', () {
+      for (final bad in <Object?>['nope', 3, true, null, '', 'CYAN']) {
+        final s = Settings.fromJson({'paddleColor': bad, 'trailColor': bad});
+        expect(
+          (s.paddleColor, s.trailColor),
+          ('sky', 'standard'),
+          reason: '$bad',
+        );
+      }
+      // 種類をまたいだ id は読まない (軌跡に標準はあるが、パドルにはない)
+      expect(
+        Settings.fromJson(const {'paddleColor': 'standard'}).paddleColor,
+        'sky',
+      );
+    });
+
+    test('まだ解放されていない色を指していても、使う色は既定 (レベルで毎回決める)', () {
+      final s = Settings.fromJson(const {
+        'paddleColor': 'lavender',
+        'trailColor': 'leaf',
+      });
+      expect(s.paddleColor, 'lavender');
+      expect(
+        Cosmetics.resolve(CosmeticKind.paddle, s.paddleColor, 24).id,
+        'sky',
+      );
+      expect(
+        Cosmetics.resolve(CosmeticKind.paddle, s.paddleColor, 25).id,
+        'lavender',
+      );
+      expect(
+        Cosmetics.resolve(CosmeticKind.trail, s.trailColor, 10).id,
+        'standard',
+      );
     });
   });
 }

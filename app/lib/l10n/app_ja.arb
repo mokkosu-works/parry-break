@@ -90,6 +90,58 @@
       }
     }
   },
+  "resultNearBest": "自己ベストまであと{n}点",
+  "@resultNearBest": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearToday": "今日の記録まであと{n}点",
+  "@resultNearToday": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearRankRounds": "{rank} ランクまであと{n}ラウンド",
+  "@resultNearRankRounds": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "resultNearRankScore": "{rank} ランクまであと{score}点",
+  "@resultNearRankScore": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "resultNearRankBoth": "{rank} ランクまであと{n}ラウンド・あと{score}点",
+  "@resultNearRankBoth": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
   "unlockBy": "{stage} をクリアすると開く",
   "@unlockBy": {
     "placeholders": {
@@ -278,6 +330,14 @@
   "introPierce": "PERFECT でパリィすると貫通弾。まとめて撃ち抜け",
   "introFeverTime": "PERFECT を重ねてコンボを貯めると FEVER TIME。全弾貫通で一気に崩せ",
   "introSurvive": "ブロックをデッドラインまで下ろさずに耐え抜け",
+  "introBeginnerGuard": "はじめの{n}回は防壁つき・1回だけボールを跳ね返します",
+  "@introBeginnerGuard": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "introItem": "NEW: アイテム — 落ちてくるカプセルをパドルで取れ。パリィで取ると効果が強くなる",
   "introScore": "スコア {value} に到達すればクリア",
   "@introScore": {
@@ -294,6 +354,7 @@
   "bannerTimeOver": "要塞が急降下してくる",
   "endingSub": "次の周回へ — さらに加速する",
   "difficulty": "難易度",
+  "endlessDifficulty": "エンドレスの難易度",
   "difficultyEasy": "弾が少なく遅い。パリィの判定が広く、ボス戦の時間も長い",
   "difficultyNormal": "標準の難しさ",
   "difficultyHard": "弾幕モード。弾が増え、壊したブロックが撃ち返してくる",
@@ -367,6 +428,152 @@
   "@dailyKept": {
     "placeholders": {
       "n": {
+        "type": "int"
+      }
+    }
+  },
+  "resultLevelSemantics": "XP が {xp} 入り、レベル {level}",
+  "titleLevelSemantics": "プレイヤーレベル {level}",
+  "@resultLevelSemantics": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "@titleLevelSemantics": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPaddleColor": "パドルの色",
+  "settingsTrailColor": "ボールの軌跡の色",
+  "cosmeticLocked": "LV {level} で解放",
+  "cosmeticNewPaddle": "NEW: パドルの色 {name}",
+  "cosmeticNewTrail": "NEW: ボールの軌跡の色 {name}",
+  "cosmeticNewMore": "ほか {n}",
+  "@cosmeticLocked": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "@cosmeticNewPaddle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@cosmeticNewTrail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@cosmeticNewMore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "questPlays": "合計 {n} 回遊ぶ",
+  "questDaily": "DAILY を 1 回遊ぶ",
+  "questPerfect": "PERFECT 以上のパリィを合計 {n} 回",
+  "questJust": "JUST を合計 {n} 回",
+  "questFever": "FEVER TIME に合計 {n} 回入る",
+  "questRound": "エンドレス 1 回でラウンド {n} に届く",
+  "questStage": "ステージを合計 {n} 個クリア",
+  "questReturn": "撃ち返した弾でブロックを合計 {n} 個壊す",
+  "questScore": "エンドレス 1 回で {n} 点を取る",
+  "questAllBonus": "3 つ全部で +{xp} XP",
+  "questDone": "達成",
+  "questMore": "ほか {n}",
+  "questTagSemantics": "今日のお題、{done} / {total} 達成",
+  "@questPlays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questPerfect": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questJust": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questFever": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questRound": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questStage": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questReturn": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questScore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questMore": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@questAllBonus": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "@questTagSemantics": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
         "type": "int"
       }
     }

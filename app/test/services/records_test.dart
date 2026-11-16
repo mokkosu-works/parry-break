@@ -261,4 +261,73 @@ void main() {
       expect(sp.getString('records.broken'), isNull);
     });
   });
+
+  group('エンドレス EASY の記録 (endlessEasy)', () {
+    Future<(ProviderContainer, SharedPreferences)> load([String? raw]) async {
+      SharedPreferences.setMockInitialValues({'records': ?raw});
+      final sp = await SharedPreferences.getInstance();
+      final c = ProviderContainer(
+        overrides: [sharedPrefsProvider.overrideWithValue(sp)],
+      );
+      addTearDown(c.dispose);
+      return (c, sp);
+    }
+
+    test('endlessEasy のない古いデータは、EASY を空として読む (endless はそのまま)', () async {
+      final (c, _) = await load(
+        '{"version":1,"endless":{"bestScore":5000,"plays":2},"stages":{}}',
+      );
+      final r = c.read(recordsProvider);
+      expect(r.endless.bestScore, 5000);
+      expect(r.endlessEasy.bestScore, 0);
+      expect(r.endlessEasy.plays, 0);
+      expect(r.endlessOf(Difficulty.easy).bestScore, 0);
+      expect(r.endlessOf(Difficulty.normal).bestScore, 5000);
+    });
+
+    test('EASY の記録は NORMAL と混ざらない', () async {
+      final (c, sp) = await load();
+      final n = c.read(recordsProvider.notifier);
+      expect(n.submitEndless(score: 900, round: 5, stats: RunStats()), isTrue);
+      expect(
+        n.submitEndless(
+          score: 5000,
+          round: 9,
+          stats: RunStats(),
+          difficulty: Difficulty.easy,
+        ),
+        isTrue,
+        reason: 'EASY の自己ベストは EASY の記録と比べる',
+      );
+      expect(
+        n.submitEndless(score: 700, round: 2, stats: RunStats()),
+        isFalse,
+        reason: 'NORMAL の自己ベスト 900 は EASY の 5000 に影響されない',
+      );
+      final r = c.read(recordsProvider);
+      expect(r.endless.bestScore, 900);
+      expect(r.endless.bestRound, 5);
+      expect(r.endlessEasy.bestScore, 5000);
+      expect(r.endlessEasy.bestRound, 9);
+      // 回数は難易度を問わず合計 (はじめの防壁の判定)
+      expect(r.endless.plays, 2);
+      expect(r.endlessEasy.plays, 1);
+      expect(r.endlessPlays, 3);
+      // ステージの結果を記録しても EASY の記録を失わない
+      n.submitStage(
+        '1-1',
+        StageResult(cleared: true, score: 100, stats: RunStats()),
+        const [true],
+      );
+      expect(c.read(recordsProvider).endlessEasy.bestScore, 5000);
+      // 保存は `records` キーのまま、後ろ互換の項目が足されるだけ
+      final json = jsonDecode(sp.getString('records')!) as Map<String, Object?>;
+      expect((json['endless'] as Map)['bestScore'], 900);
+      expect((json['endlessEasy'] as Map)['bestScore'], 5000);
+      expect(json['version'], 1);
+      final back = Records.fromJson(json);
+      expect(back.endlessEasy.bestScore, 5000);
+      expect(back.endless.bestScore, 900);
+    });
+  });
 }

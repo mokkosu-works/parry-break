@@ -167,6 +167,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String resultNearBest(String n) {
+    return '$n pts to your best score';
+  }
+
+  @override
+  String resultNearToday(String n) {
+    return '$n pts to today\'s record';
+  }
+
+  @override
+  String resultNearRankRounds(String rank, int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n more rounds',
+      one: '1 more round',
+    );
+    return '$_temp0 to rank $rank';
+  }
+
+  @override
+  String resultNearRankScore(String rank, String score) {
+    return '$score more pts to rank $rank';
+  }
+
+  @override
+  String resultNearRankBoth(String rank, int n, String score) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n more rounds',
+      one: '1 more round',
+    );
+    return '$_temp0 and $score more pts to rank $rank';
+  }
+
+  @override
   String unlockBy(String stage) {
     return 'Clear $stage to unlock';
   }
@@ -428,6 +465,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get introSurvive => 'HOLD THE BLOCKS ABOVE THE DEAD LINE';
 
   @override
+  String introBeginnerGuard(int n) {
+    return 'FIRST $n RUNS HAVE A BARRIER AT THE BOTTOM. IT BOUNCES THE BALL BACK ONCE';
+  }
+
+  @override
   String get introItem =>
       'NEW: ITEMS — CATCH FALLING CAPSULES WITH THE PADDLE. PARRY THEM FOR A STRONGER EFFECT';
 
@@ -457,6 +499,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get difficulty => 'Difficulty';
+
+  @override
+  String get endlessDifficulty => 'Endless difficulty';
 
   @override
   String get difficultyEasy =>
@@ -527,5 +572,102 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dailyKept(int n) {
     return 'Today\'s record stands · $n-day streak';
+  }
+
+  @override
+  String resultLevelSemantics(int level, int xp) {
+    return 'Gained $xp XP, level $level';
+  }
+
+  @override
+  String titleLevelSemantics(int level) {
+    return 'Player level $level';
+  }
+
+  @override
+  String get settingsPaddleColor => 'Paddle color';
+
+  @override
+  String get settingsTrailColor => 'Ball trail color';
+
+  @override
+  String cosmeticLocked(int level) {
+    return 'Unlocks at LV $level';
+  }
+
+  @override
+  String cosmeticNewPaddle(String name) {
+    return 'NEW: Paddle color $name';
+  }
+
+  @override
+  String cosmeticNewTrail(String name) {
+    return 'NEW: Trail color $name';
+  }
+
+  @override
+  String cosmeticNewMore(int n) {
+    return '+$n more';
+  }
+
+  @override
+  String questPlays(String n) {
+    return 'Play $n times in total';
+  }
+
+  @override
+  String get questDaily => 'Play DAILY once';
+
+  @override
+  String questPerfect(String n) {
+    return 'Land $n PERFECT or better parries in total';
+  }
+
+  @override
+  String questJust(String n) {
+    return 'Land $n JUST parries in total';
+  }
+
+  @override
+  String questFever(String n) {
+    return 'Enter FEVER TIME $n times in total';
+  }
+
+  @override
+  String questRound(String n) {
+    return 'Reach round $n in one ENDLESS run';
+  }
+
+  @override
+  String questStage(String n) {
+    return 'Clear $n stages in total';
+  }
+
+  @override
+  String questReturn(String n) {
+    return 'Destroy $n blocks with returned shots in total';
+  }
+
+  @override
+  String questScore(String n) {
+    return 'Score $n in one ENDLESS run';
+  }
+
+  @override
+  String questAllBonus(int xp) {
+    return 'All 3 done: +$xp XP';
+  }
+
+  @override
+  String get questDone => 'DONE';
+
+  @override
+  String questMore(String n) {
+    return '+$n more';
+  }
+
+  @override
+  String questTagSemantics(int done, int total) {
+    return 'Today\'s quests, $done of $total done';
   }
 }

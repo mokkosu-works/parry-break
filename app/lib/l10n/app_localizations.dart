@@ -368,6 +368,36 @@ abstract class AppLocalizations {
   /// **'ボスの残り HP {n}'**
   String resultGapBoss(String n);
 
+  /// No description provided for @resultNearBest.
+  ///
+  /// In ja, this message translates to:
+  /// **'自己ベストまであと{n}点'**
+  String resultNearBest(String n);
+
+  /// No description provided for @resultNearToday.
+  ///
+  /// In ja, this message translates to:
+  /// **'今日の記録まであと{n}点'**
+  String resultNearToday(String n);
+
+  /// No description provided for @resultNearRankRounds.
+  ///
+  /// In ja, this message translates to:
+  /// **'{rank} ランクまであと{n}ラウンド'**
+  String resultNearRankRounds(String rank, int n);
+
+  /// No description provided for @resultNearRankScore.
+  ///
+  /// In ja, this message translates to:
+  /// **'{rank} ランクまであと{score}点'**
+  String resultNearRankScore(String rank, String score);
+
+  /// No description provided for @resultNearRankBoth.
+  ///
+  /// In ja, this message translates to:
+  /// **'{rank} ランクまであと{n}ラウンド・あと{score}点'**
+  String resultNearRankBoth(String rank, int n, String score);
+
   /// No description provided for @unlockBy.
   ///
   /// In ja, this message translates to:
@@ -806,6 +836,12 @@ abstract class AppLocalizations {
   /// **'ブロックをデッドラインまで下ろさずに耐え抜け'**
   String get introSurvive;
 
+  /// No description provided for @introBeginnerGuard.
+  ///
+  /// In ja, this message translates to:
+  /// **'はじめの{n}回は防壁つき・1回だけボールを跳ね返します'**
+  String introBeginnerGuard(int n);
+
   /// No description provided for @introItem.
   ///
   /// In ja, this message translates to:
@@ -859,6 +895,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'難易度'**
   String get difficulty;
+
+  /// No description provided for @endlessDifficulty.
+  ///
+  /// In ja, this message translates to:
+  /// **'エンドレスの難易度'**
+  String get endlessDifficulty;
 
   /// No description provided for @difficultyEasy.
   ///
@@ -961,6 +1003,132 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'今日の記録は更新ならず・{n}日連続プレイ中'**
   String dailyKept(int n);
+
+  /// No description provided for @resultLevelSemantics.
+  ///
+  /// In ja, this message translates to:
+  /// **'XP が {xp} 入り、レベル {level}'**
+  String resultLevelSemantics(int level, int xp);
+
+  /// No description provided for @titleLevelSemantics.
+  ///
+  /// In ja, this message translates to:
+  /// **'プレイヤーレベル {level}'**
+  String titleLevelSemantics(int level);
+
+  /// No description provided for @settingsPaddleColor.
+  ///
+  /// In ja, this message translates to:
+  /// **'パドルの色'**
+  String get settingsPaddleColor;
+
+  /// No description provided for @settingsTrailColor.
+  ///
+  /// In ja, this message translates to:
+  /// **'ボールの軌跡の色'**
+  String get settingsTrailColor;
+
+  /// No description provided for @cosmeticLocked.
+  ///
+  /// In ja, this message translates to:
+  /// **'LV {level} で解放'**
+  String cosmeticLocked(int level);
+
+  /// No description provided for @cosmeticNewPaddle.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: パドルの色 {name}'**
+  String cosmeticNewPaddle(String name);
+
+  /// No description provided for @cosmeticNewTrail.
+  ///
+  /// In ja, this message translates to:
+  /// **'NEW: ボールの軌跡の色 {name}'**
+  String cosmeticNewTrail(String name);
+
+  /// No description provided for @cosmeticNewMore.
+  ///
+  /// In ja, this message translates to:
+  /// **'ほか {n}'**
+  String cosmeticNewMore(int n);
+
+  /// No description provided for @questPlays.
+  ///
+  /// In ja, this message translates to:
+  /// **'合計 {n} 回遊ぶ'**
+  String questPlays(String n);
+
+  /// No description provided for @questDaily.
+  ///
+  /// In ja, this message translates to:
+  /// **'DAILY を 1 回遊ぶ'**
+  String get questDaily;
+
+  /// No description provided for @questPerfect.
+  ///
+  /// In ja, this message translates to:
+  /// **'PERFECT 以上のパリィを合計 {n} 回'**
+  String questPerfect(String n);
+
+  /// No description provided for @questJust.
+  ///
+  /// In ja, this message translates to:
+  /// **'JUST を合計 {n} 回'**
+  String questJust(String n);
+
+  /// No description provided for @questFever.
+  ///
+  /// In ja, this message translates to:
+  /// **'FEVER TIME に合計 {n} 回入る'**
+  String questFever(String n);
+
+  /// No description provided for @questRound.
+  ///
+  /// In ja, this message translates to:
+  /// **'エンドレス 1 回でラウンド {n} に届く'**
+  String questRound(String n);
+
+  /// No description provided for @questStage.
+  ///
+  /// In ja, this message translates to:
+  /// **'ステージを合計 {n} 個クリア'**
+  String questStage(String n);
+
+  /// No description provided for @questReturn.
+  ///
+  /// In ja, this message translates to:
+  /// **'撃ち返した弾でブロックを合計 {n} 個壊す'**
+  String questReturn(String n);
+
+  /// No description provided for @questScore.
+  ///
+  /// In ja, this message translates to:
+  /// **'エンドレス 1 回で {n} 点を取る'**
+  String questScore(String n);
+
+  /// No description provided for @questAllBonus.
+  ///
+  /// In ja, this message translates to:
+  /// **'3 つ全部で +{xp} XP'**
+  String questAllBonus(int xp);
+
+  /// No description provided for @questDone.
+  ///
+  /// In ja, this message translates to:
+  /// **'達成'**
+  String get questDone;
+
+  /// No description provided for @questMore.
+  ///
+  /// In ja, this message translates to:
+  /// **'ほか {n}'**
+  String questMore(String n);
+
+  /// No description provided for @questTagSemantics.
+  ///
+  /// In ja, this message translates to:
+  /// **'今日のお題、{done} / {total} 達成'**
+  String questTagSemantics(int done, int total);
 }
 
 class _AppLocalizationsDelegate

@@ -7,8 +7,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../app/providers.dart';
 import '../l10n/app_localizations.dart';
+import '../render/cosmetics.dart';
 import '../render/palette.dart';
 import '../services/ads.dart';
+import '../services/progress.dart';
 import '../services/settings.dart';
 import 'arcade.dart';
 import 'calibration_screen.dart';
@@ -184,7 +186,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final tab = tabs.contains(_tab) ? _tab : _Tab.controls;
     // 選んでいるもの・いまの値はメインカラー (黄)
     const color = Palette.main;
-    final rows = _rows(context, tab, s, color);
+    final level = ref.watch(progressProvider.select((p) => p.level));
+    final rows = _rows(context, tab, s, color, level);
     if (_row >= rows.length) _row = math.max(0, rows.length - 1);
     final names = {
       _Tab.controls: l.settingsTabControls,
@@ -354,7 +357,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  List<_Row> _rows(BuildContext context, _Tab tab, Settings s, Color color) {
+  List<_Row> _rows(
+    BuildContext context,
+    _Tab tab,
+    Settings s,
+    Color color,
+    int level,
+  ) {
     final l = AppLocalizations.of(context);
     final n = ref.read(settingsProvider.notifier);
     void volumes(Settings v) =>
@@ -511,6 +520,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onChanged: (v) => n.update(
               (x) => x.copyWith(language: () => v.isEmpty ? null : v),
             ),
+          ),
+        ),
+        // 見た目 (design.md 9.9): レベルで増える色。まだのものは鍵と解放のレベルを出して選べない
+        _Row(
+          label: l.settingsPaddleColor,
+          child: _Swatches(
+            kind: CosmeticKind.paddle,
+            value: Cosmetics.resolve(CosmeticKind.paddle, s.paddleColor, level),
+            level: level,
+            color: color,
+            onChanged: (c) => n.update((x) => x.copyWith(paddleColor: c.id)),
+          ),
+        ),
+        _Row(
+          label: l.settingsTrailColor,
+          child: _Swatches(
+            kind: CosmeticKind.trail,
+            value: Cosmetics.resolve(CosmeticKind.trail, s.trailColor, level),
+            level: level,
+            color: color,
+            onChanged: (c) => n.update((x) => x.copyWith(trailColor: c.id)),
           ),
         ),
       ],
@@ -1084,4 +1114,163 @@ class _SmallButton extends StatelessWidget implements _KeyControl {
       ),
     ),
   );
+}
+
+/// 見た目の色を選ぶ。解放済みの色は色見本と名前、まだの色は鍵と「LV n で解放」を出して選べない。
+/// キーボードでは ←→ で、解放済みの隣の色へ動かす。
+class _Swatches extends StatelessWidget implements _KeyControl {
+  const _Swatches({
+    required this.kind,
+    required this.value,
+    required this.level,
+    required this.onChanged,
+    required this.color,
+  });
+  final CosmeticKind kind;
+
+  /// いま使っている色 (未解放を選んでいたときは既定)。
+  final CosmeticColor value;
+  final int level;
+  final ValueChanged<CosmeticColor> onChanged;
+  final Color color;
+
+  /// 1 つの大きさ。押せる範囲は 44pt 以上 (高さ 48)。
+  static const tileHeight = 48.0, tileWidth = 150.0;
+
+  @override
+  bool keyStep(int dir) {
+    final all = Cosmetics.of(kind);
+    var i = all.indexWhere((c) => c.id == value.id) + dir;
+    while (i >= 0 && i < all.length && !all[i].unlockedAt(level)) {
+      i += dir;
+    }
+    if (i >= 0 && i < all.length) onChanged(all[i]);
+    return true;
+  }
+
+  @override
+  bool keyEnter() => false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Wrap(
+      spacing: 4,
+      runSpacing: 6,
+      children: [
+        for (final c in Cosmetics.of(kind))
+          _tile(l, c, selected: c.id == value.id, locked: !c.unlockedAt(level)),
+      ],
+    );
+  }
+
+  Widget _tile(
+    AppLocalizations l,
+    CosmeticColor c, {
+    required bool selected,
+    required bool locked,
+  }) {
+    final lockText = l.cosmeticLocked(c.unlockLevel);
+    final fg = selected
+        ? Dot.ink
+        : withAlpha(Palette.pale, locked ? 0.45 : 0.8);
+    return Semantics(
+      button: true,
+      selected: selected,
+      enabled: !locked,
+      label: locked ? '${c.name}, $lockText' : c.name,
+      excludeSemantics: true,
+      onTap: locked ? null : () => onChanged(c),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: locked ? null : () => onChanged(c),
+        child: CustomPaint(
+          painter: _SlantPainter(color: color, on: selected),
+          child: SizedBox(
+            width: tileWidth,
+            height: tileHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 36,
+                    height: 24,
+                    child: locked
+                        ? Center(
+                            child: PixelIcon(
+                              PixelIcons.lock,
+                              size: 18,
+                              color: withAlpha(Palette.pale, 0.45),
+                            ),
+                          )
+                        : CustomPaint(painter: _ChipPainter(kind, c.color)),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            c.name,
+                            maxLines: 1,
+                            style: TextStyle(fontSize: 14, color: fg),
+                          ),
+                        ),
+                        if (locked)
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              lockText,
+                              maxLines: 1,
+                              style: TextStyle(fontSize: 12, color: fg),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 色見本。パドルは陰影つきの横長のブロック、軌跡は小さくなっていく 3 つのドット。
+class _ChipPainter extends CustomPainter {
+  _ChipPainter(this.kind, this.color);
+  final CosmeticKind kind;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..isAntiAlias = false;
+    void rect(double x, double y, double w, double h, Color c) =>
+        canvas.drawRect(Rect.fromLTWH(x, y, w, h), p..color = c);
+    final cy = size.height / 2;
+    if (kind == CosmeticKind.paddle) {
+      const h = 12.0, d = 3.0;
+      final y = cy - h / 2;
+      rect(0, y, size.width, h, color);
+      rect(0, y, size.width, d, Dot.light(color));
+      rect(0, y + h - d, size.width, d, Dot.dark(color));
+      return;
+    }
+    // 古い (左の) ものほど小さく暗い。右が新しい
+    rect(2, cy - 2, 4, 4, Dot.edge);
+    rect(11, cy - 3, 6, 6, Dot.dark(color));
+    rect(22, cy - 5, 10, 10, color);
+  }
+
+  @override
+  bool shouldRepaint(_ChipPainter old) =>
+      old.kind != kind || old.color != color;
 }

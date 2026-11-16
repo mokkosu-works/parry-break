@@ -3,9 +3,13 @@ import 'package:flutter/services.dart';
 
 import '../core/core.dart';
 import '../l10n/app_localizations.dart';
+import '../render/cosmetics.dart';
 import '../render/palette.dart';
 import '../render/pixel.dart';
+import '../services/progress.dart';
+import '../services/quests.dart';
 import '../ui/arcade.dart';
+import '../ui/quest_text.dart';
 import '../ui/stage_text.dart';
 import '../ui/widgets.dart';
 import '../ui/pixel_icons.dart';
@@ -28,6 +32,8 @@ class ResultData {
     this.rank,
     this.over,
     this.daily,
+    this.gain,
+    this.quest,
   });
 
   final int score, round, maxChain, bestScore, bestRound;
@@ -48,6 +54,12 @@ class ResultData {
 
   /// デイリーチャレンジなら、その日の記録をどうしたかと連続日数。[bestScore] はその日の最高得点。
   final DailyResult? daily;
+
+  /// 今回入った XP とレベルの変化 (デバッグモードのプレイでは null で、何も出さない)。
+  final LevelGain? gain;
+
+  /// 今回新しく達成した今日のお題 (その XP は [gain] に含まれる)。なければ null か空。
+  final QuestResult? quest;
 }
 
 /// デイリーの 1 回のプレイが、その日の記録 (その日の最高得点) をどうしたか。
@@ -87,6 +99,7 @@ class ResultOverlay extends StatefulWidget {
     this.onNext,
     this.onStageSelect,
     this.onNewRecord,
+    this.onLevelUp,
     this.reduceMotion = false,
   });
 
@@ -96,6 +109,9 @@ class ResultOverlay extends StatefulWidget {
 
   /// 記録更新のハンコが押された瞬間 (効果音用)。
   final VoidCallback? onNewRecord;
+
+  /// レベルの棒が伸びきって LEVEL UP! が出た瞬間 (効果音用)。
+  final VoidCallback? onLevelUp;
   final bool reduceMotion;
 
   @override
@@ -108,7 +124,7 @@ class _ResultOverlayState extends State<ResultOverlay>
     vsync: this,
     duration: const Duration(milliseconds: 2600),
   );
-  bool _stamped = false;
+  bool _stamped = false, _levelUpped = false;
   final FocusNode _focus = FocusNode(debugLabel: 'ResultOverlay');
 
   /// キーボードで選んでいるボタン (並びは [_buttons] の順)。
@@ -133,6 +149,12 @@ class _ResultOverlayState extends State<ResultOverlay>
       if (!_stamped && widget.data.newBest && _c.value >= 0.56) {
         _stamped = true;
         widget.onNewRecord?.call();
+      }
+      if (!_levelUpped &&
+          (widget.data.gain?.leveledUp ?? false) &&
+          _c.value >= _levelUpAt) {
+        _levelUpped = true;
+        widget.onLevelUp?.call();
       }
     });
   }
@@ -270,9 +292,17 @@ class _ResultOverlayState extends State<ResultOverlay>
                     // 大きい画面は 1000×470 の箱を組んで縮める。そのまま縮めるとボタンが 44pt、
                     // 文字が 11pt を下回る画面 (スマホの横画面) では、文字を小さめにした詰めた配置にし、
                     // 縮めずに (または少しだけ縮めて) 出す。
+                    // レベルの行を出す回は、その行のぶん箱を高くする (なければ今までどおり 1000×470)。
+                    final boxHeight =
+                        470.0 +
+                        (d.gain == null ? 0 : _levelExtra) +
+                        (_newUnlock(l, d) == null ? 0 : _unlockExtra) +
+                        (_questLine(l, d) == null ? 0 : _questExtra);
                     final compact =
                         c.maxWidth < _wideSize.width * _minWideScale ||
-                        c.maxHeight < _wideSize.height * _minWideScale;
+                        c.maxHeight <
+                            (_wideSize.height - 470 + boxHeight) *
+                                _minWideScale;
                     final Widget body;
                     final EdgeInsets padding;
                     if (compact) {
@@ -292,7 +322,7 @@ class _ResultOverlayState extends State<ResultOverlay>
                       padding = const EdgeInsets.fromLTRB(28, 22, 28, 26);
                       body = SizedBox(
                         width: 1000,
-                        height: 470,
+                        height: boxHeight,
                         child: AnimatedBuilder(
                           animation: _c,
                           builder: (context, _) =>
@@ -320,6 +350,15 @@ class _ResultOverlayState extends State<ResultOverlay>
   /// 大きい画面の箱の大きさ (窓の枠と余白を足すと約 1074×536)。
   static const _wideSize = Size(1074, 536);
 
+  /// 大きい画面で、レベルの行 (上の余白 4 + 行 + 下の余白 10) が入るぶん、見出しとの間を 10 詰めた残りだけ箱を高くする。
+  static const _levelExtra = 4 + LevelStrip.rowHeight + 10 - 10;
+
+  /// 大きい画面で、見た目の解放の行 (NEW: …) が入るぶん高くする。
+  static const _unlockExtra = 26.0;
+
+  /// 大きい画面で、今日のお題の達成の行 (QUEST CLEAR: …) が入るぶん高くする。
+  static const _questExtra = 26.0;
+
   /// 大きい画面の箱をこれより縮めると、ボタン (高さ 48) が 44pt を下回る。
   static const _minWideScale = 44 / 48;
 
@@ -346,6 +385,9 @@ class _ResultOverlayState extends State<ResultOverlay>
         PixelTag('STAGE ${stage.id}', color: Palette.sub),
         PixelTag(d.difficulty.label, color: difficultyColor(d.difficulty)),
       ],
+      // エンドレスは EASY のときだけ札を出す (NORMAL は札なし。ステージの難易度の札と同じ形)
+      if (stage == null && d.daily == null && d.difficulty != Difficulty.normal)
+        PixelTag(d.difficulty.label, color: difficultyColor(d.difficulty)),
       if (d.daily != null) const PixelTag('DAILY', color: Palette.accent),
       if (!win) PixelTag(cause, color: Palette.sub),
     ];
@@ -436,6 +478,62 @@ class _ResultOverlayState extends State<ResultOverlay>
     OverCause.timeOver => l.resultCauseTime,
   };
 
+  bool _runGapShown(ResultData d) => _runGapOf(d) != null;
+
+  RunGap? _runGapOf(ResultData d) {
+    final daily = d.daily;
+    if (d.stage != null || d.cleared || d.over == null) return null;
+    final g = runGap(
+      score: d.score,
+      round: d.round,
+      bestScore: d.bestScore,
+      beatRecord: daily != null
+          ? daily.outcome != DailyOutcome.kept
+          : d.newBest,
+      rank: d.rank,
+    );
+    return g.isEmpty ? null : g;
+  }
+
+  /// エンドレスと DAILY のゲームオーバーで、記録と次のランクまでの残りを 1〜2 行。出すものがなければ null。
+  /// 記録を更新したとき (新記録の表示に任せる) と、DAILY をクリアしたときは出さない。
+  Widget? _runGap(AppLocalizations l, ResultData d, {required bool compact}) {
+    final daily = d.daily;
+    final g = _runGapOf(d);
+    if (g == null) return null;
+    final lines = [
+      if (g.toBest case final n?)
+        daily != null
+            ? l.resultNearToday(formatScore(n))
+            : l.resultNearBest(formatScore(n)),
+      if (g.toRank case final r?) _rankGapText(l, r),
+    ];
+    return Padding(
+      padding: EdgeInsets.only(top: compact ? 4 : 10),
+      child: _in(
+        0.6,
+        0.72,
+        _GapBox(
+          title: l.resultGapTitle,
+          text: lines.join('\n'),
+          compact: compact,
+          maxWidth: compact ? 360 : 520,
+          slim: true,
+        ),
+      ),
+    );
+  }
+
+  static String _rankGapText(AppLocalizations l, RankGap r) {
+    final rank = r.next.label, score = formatScore(r.score);
+    if (r.rounds > 0 && r.score > 0) {
+      return l.resultNearRankBoth(rank, r.rounds, score);
+    }
+    return r.rounds > 0
+        ? l.resultNearRankRounds(rank, r.rounds)
+        : l.resultNearRankScore(rank, score);
+  }
+
   /// 見出しの右端: ランク、またはステージで失敗したときの「あと少し」。
   Widget? _trail(AppLocalizations l, ResultData d, {required bool compact}) {
     if (d.rank case final rank?) {
@@ -518,7 +616,8 @@ class _ResultOverlayState extends State<ResultOverlay>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _header(l, d, title, color, win, compact: false),
-        const SizedBox(height: 26),
+        // 箱の高さは決まっているので、レベルの行が入るぶん、見出しとの間を詰める
+        SizedBox(height: d.gain == null ? 26 : 16),
         Expanded(
           child: _pager(
             Row(
@@ -540,6 +639,11 @@ class _ResultOverlayState extends State<ResultOverlay>
             compact: false,
           ),
         ),
+        if (d.gain != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 10),
+            child: _levelAndUnlock(l, d, compact: false),
+          ),
         _buttonRow(),
       ],
     );
@@ -559,16 +663,19 @@ class _ResultOverlayState extends State<ResultOverlay>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _header(l, d, title, color, win, compact: true),
-        const SizedBox(height: 12),
+        SizedBox(height: _runGapShown(d) ? 8 : 12),
         _pager(
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 9, child: _score(d, compact: true)),
+              Expanded(
+                flex: _runGapShown(d) ? 12 : 9,
+                child: _score(d, compact: true),
+              ),
               const SizedBox(width: 14),
               // 区切りの線は右の欄の左の縁に引く (欄の高さが中身で決まるので)
               Expanded(
-                flex: 12,
+                flex: _runGapShown(d) ? 9 : 12,
                 child: Container(
                   padding: const EdgeInsets.only(left: 14),
                   decoration: BoxDecoration(
@@ -588,16 +695,132 @@ class _ResultOverlayState extends State<ResultOverlay>
           ),
           _details(l, d, compact: true),
           compact: true,
+          footer: d.gain == null ? null : _levelAndUnlock(l, d, compact: true),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: _runGapShown(d) ? 8 : 12),
         _buttonRow(fontSize: 14, spacing: 8, dense: true),
       ],
     );
   }
 
+  /// レベルの棒が伸びる時間 (演出の進み具合 [a]〜[b])。全体 2.6 秒のうち 0.62 秒 (1 秒以内)。
+  static const _levelFrom = 0.66, _levelTo = 0.9;
+
+  /// 棒が伸びきって LEVEL UP! を出す時点 (上がるときは、棒が満タンになって次のレベルに替わった直後)。
+  static const _levelUpAt = (_levelFrom + _levelTo) / 2;
+
+  /// 今回のレベルアップで解放された見た目の知らせ (なければ null)。
+  /// 「NEW: パドルの色 CYAN」。複数なら、最初の 1 つのあとに「ほか N」を付ける (design.md 9.9)。
+  String? _newUnlock(AppLocalizations l, ResultData d) {
+    final list = d.gain?.unlocked ?? const <CosmeticUnlock>[];
+    if (list.isEmpty) return null;
+    final first = list.first;
+    final text = switch (first.kind) {
+      CosmeticKind.paddle => l.cosmeticNewPaddle(first.item.name),
+      CosmeticKind.trail => l.cosmeticNewTrail(first.item.name),
+    };
+    return list.length == 1
+        ? text
+        : '$text ${l.cosmeticNewMore(list.length - 1)}';
+  }
+
+  /// 今回達成した今日のお題の知らせ (なければ null)。
+  /// 「QUEST CLEAR: PERFECT ×20 +100 XP」。複数なら最初の 1 つのあとに「ほか N」、
+  /// 3 つ全部が終わった回は「ALL QUESTS CLEAR! +XP」 (design.md 9.10)。
+  String? _questLine(AppLocalizations l, ResultData d) {
+    final q = d.quest;
+    if (d.gain == null || q == null || q.isEmpty) return null;
+    return questClearLine(l, q);
+  }
+
+  /// レベルの行と、その下の知らせ (見た目の解放・今日のお題の達成。あれば)。知らせは LEVEL UP! が出てから見せる
+  /// (場所は先に取っておく。「演出を控えめにする」では、はじめから出す)。
+  Widget _levelAndUnlock(
+    AppLocalizations l,
+    ResultData d, {
+    required bool compact,
+  }) {
+    final level = _level(l, d, compact: compact);
+    final notes = [
+      (text: _newUnlock(l, d), color: Palette.main),
+      (text: _questLine(l, d), color: Dot.mint),
+    ];
+    if (notes.every((n) => n.text == null)) return level;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        level,
+        for (final n in notes)
+          if (n.text case final text?) ...[
+            SizedBox(height: compact ? 2 : 4),
+            MediaQuery.withClampedTextScaling(
+              maxScaleFactor: 1.2,
+              child: Opacity(
+                opacity: _p(_levelUpAt, _levelUpAt + 0.06),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    text,
+                    maxLines: 1,
+                    style: pixelFont(
+                      compact ? 12 : 16,
+                      color: n.color,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+      ],
+    );
+  }
+
+  /// プレイヤーレベル: 「LV 12  ▮▮▮▯▯  +180 XP」の 1 行。どちらのページでも出す。
+  /// 大きい画面ではボタンの上に、スマホの横画面などの詰めた配置では、縦に場所を取らないよう
+  /// ページの切り替え表示 (DETAILS ▸) の左の空きに出す。
+  /// レベルが上がったときは、棒が満タンになったあとレベルが替わって LEVEL UP! が付く。
+  /// 「演出を控えめにする」では、動かずに最後の状態で出す。
+  Widget _level(AppLocalizations l, ResultData d, {required bool compact}) {
+    final g = d.gain;
+    if (g == null) return const SizedBox.shrink();
+    final p = _p(_levelFrom, _levelTo, Curves.easeOut);
+    // 上がったときは前半で旧レベルの棒が満タンまで、後半で新しいレベルの棒が伸びる
+    final up = g.leveledUp;
+    final shown = up && p < 0.5 ? g.before : g.after;
+    final fill = up
+        ? (p < 0.5
+              ? g.before.fraction + (1 - g.before.fraction) * p * 2
+              : g.after.fraction * (p - 0.5) * 2)
+        : g.before.fraction + (g.after.fraction - g.before.fraction) * p;
+    return _in(
+      0.6,
+      0.72,
+      Semantics(
+        label: l.resultLevelSemantics(g.toLevel, g.xp),
+        excludeSemantics: true,
+        child: LevelStrip(
+          level: shown.level,
+          fill: fill.clamp(0.0, 1.0),
+          xp: g.xp,
+          isMax: g.after.isMax && p >= 1,
+          levelUp: up && p >= 0.5,
+          compact: compact,
+        ),
+      ),
+    );
+  }
+
   /// 成績の欄 (1 ページ目 [first]、2 ページ目 [second])。出きったあとのタップで切り替え、
   /// 右下にページを出す。
-  Widget _pager(Widget first, Widget second, {required bool compact}) {
+  Widget _pager(
+    Widget first,
+    Widget second, {
+    required bool compact,
+    Widget? footer,
+  }) {
     final page = _page == 0 ? first : second;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -611,7 +834,10 @@ class _ResultOverlayState extends State<ResultOverlay>
       child: compact
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [page, _pageHint(compact: true)],
+              children: [
+                page,
+                _pageHint(compact: true, lead: footer),
+              ],
             )
           : Stack(
               children: [
@@ -627,42 +853,50 @@ class _ResultOverlayState extends State<ResultOverlay>
   }
 
   /// 「いまのページ / 切り替えたときのページ」の表示。
-  Widget _pageHint({required bool compact}) => Semantics(
-    button: true,
-    label: _page == 0 ? 'Details' : 'Back',
-    // 見えている表示は小さいが、押せる範囲は成績の欄ぜんたい ([_pager])
-    child: Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: _in(
-          0.7,
-          0.8,
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < 2; i++)
-                Container(
-                  width: 8,
-                  height: 8,
-                  margin: const EdgeInsets.only(right: 4),
-                  color: i == _page ? Palette.main : Dot.edge,
-                ),
-              const SizedBox(width: 6),
-              Text(
-                _page == 0 ? 'DETAILS ▸' : '◂ BACK',
-                style: pixelFont(
-                  compact ? 12 : 14,
-                  color: Palette.pale,
-                  letterSpacing: 2,
-                ),
-              ),
-            ],
+  Widget _pageHint({required bool compact, Widget? lead}) {
+    final hint = _in(
+      0.7,
+      0.8,
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < 2; i++)
+            Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.only(right: 4),
+              color: i == _page ? Palette.main : Dot.edge,
+            ),
+          const SizedBox(width: 6),
+          Text(
+            _page == 0 ? 'DETAILS ▸' : '◂ BACK',
+            style: pixelFont(
+              compact ? 12 : 14,
+              color: Palette.pale,
+              letterSpacing: 2,
+            ),
           ),
-        ),
+        ],
       ),
-    ),
-  );
+    );
+    return Semantics(
+      button: true,
+      label: _page == 0 ? 'Details' : 'Back',
+      // 見えている表示は小さいが、押せる範囲は成績の欄ぜんたい ([_pager])
+      child: Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: lead == null
+            ? Align(alignment: Alignment.centerRight, child: hint)
+            : Row(
+                children: [
+                  Expanded(child: lead),
+                  const SizedBox(width: 10),
+                  hint,
+                ],
+              ),
+      ),
+    );
+  }
 
   /// 2 ページ目: パリィの判定の内訳・ミスの原因。1 ページ目 (エンドレスの成績) に出ているものは重ねない。
   Widget _details(AppLocalizations l, ResultData d, {required bool compact}) {
@@ -770,7 +1004,10 @@ class _ResultOverlayState extends State<ResultOverlay>
 
   /// スコア (数え上げ) と記録更新のハンコ。
   Widget _score(ResultData d, {bool compact = false}) {
-    final big = compact ? 44.0 : 84.0;
+    // 狭い画面で「あと少し」が並ぶときは、欄の高さを抑えるためにスコアを少し小さくする
+    final big = _runGapShown(d)
+        ? (compact ? 38.0 : (d.daily != null ? 64.0 : 72.0))
+        : (compact ? 44.0 : 84.0);
     // ステージの最高記録はクリアした回だけ残るので、失敗したときは 0 などに見える理由を添える。
     // デイリーは、その日の記録 (その日の最高得点) をどうしたかと連続日数を添える
     final l = AppLocalizations.of(context);
@@ -786,6 +1023,7 @@ class _ResultOverlayState extends State<ResultOverlay>
         : null;
     // デイリーの添え書きは長いので、HI-SCORE の横ではなく下に出す
     final noteBelow = compact || daily != null;
+    final runGapBox = _runGap(l, d, compact: compact);
     final t = _p(0.12, 0.55, Curves.easeOutQuart);
     final shown = (d.score * t).round();
     final stampT = _p(0.56, 0.66, Curves.easeOutBack);
@@ -820,7 +1058,11 @@ class _ResultOverlayState extends State<ResultOverlay>
                   ),
                 ),
               ),
-              SizedBox(height: compact ? 10 : 14),
+              SizedBox(
+                height: _runGapShown(d)
+                    ? (compact ? 6 : 10)
+                    : (compact ? 10 : 14),
+              ),
               Row(
                 children: [
                   Container(
@@ -885,8 +1127,14 @@ class _ResultOverlayState extends State<ResultOverlay>
                   ),
                 ),
               ],
+              ?runGapBox,
               if (d.newBest) ...[
-                SizedBox(height: compact ? 14 : 22),
+                // 「あと少し」と並ぶときは、欄の高さを抑えるために詰める
+                SizedBox(
+                  height: compact
+                      ? (runGapBox == null ? 14 : 8)
+                      : (runGapBox == null ? 22 : 12),
+                ),
                 Opacity(
                   opacity: stampT.clamp(0.0, 1.0),
                   // 大きく出て 1 段ずつ縮む (ドット絵らしく、なめらかには縮めない)
@@ -1120,44 +1368,78 @@ class _GapBox extends StatelessWidget {
     required this.title,
     required this.text,
     required this.compact,
+    this.maxWidth,
+    this.slim = false,
   });
   final String title, text;
   final bool compact;
+  final double? maxWidth;
+
+  /// 結果の左の欄に置くときの、余白を詰めた形 (欄の高さを増やさないため)。
+  final bool slim;
 
   @override
   Widget build(BuildContext context) => ConstrainedBox(
-    constraints: BoxConstraints(maxWidth: compact ? 200 : 300),
+    constraints: BoxConstraints(maxWidth: maxWidth ?? (compact ? 200 : 300)),
     child: Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 10 : 16,
-        vertical: compact ? 6 : 12,
+        horizontal: slim ? 10 : (compact ? 10 : 16),
+        vertical: slim ? (compact ? 2 : 6) : (compact ? 6 : 12),
       ),
       decoration: BoxDecoration(
         color: withAlpha(Palette.main, 0.12),
-        border: Border.all(color: Palette.main, width: 3),
+        // 詰めた形は、高さを稼ぐために左の縁だけにする
+        border: slim && compact
+            ? const Border(left: BorderSide(color: Palette.main, width: 3))
+            : Border.all(color: Palette.main, width: 3),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: pixelFont(
-              compact ? 14 : 20,
-              color: Palette.main,
-              weight: 900,
-              letterSpacing: 2,
+          if (slim)
+            // 縦に積むと欄の高さが足りないので、見出しは 1 行目の頭に並べる
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$title  ',
+                    style: pixelFont(
+                      compact ? 12 : 16,
+                      color: Palette.main,
+                      weight: 900,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  TextSpan(text: text),
+                ],
+                style: TextStyle(
+                  fontSize: compact ? 11.5 : 14,
+                  color: Palette.white,
+                  height: compact ? 1.15 : 1.25,
+                ),
+              ),
+            )
+          else ...[
+            Text(
+              title,
+              style: pixelFont(
+                compact ? 14 : 20,
+                color: Palette.main,
+                weight: 900,
+                letterSpacing: 2,
+              ),
             ),
-          ),
-          SizedBox(height: compact ? 2 : 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: compact ? 13 : 18,
-              color: Palette.white,
-              height: 1.25,
+            SizedBox(height: compact ? 1 : 4),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: compact ? 13 : 18,
+                color: Palette.white,
+                height: 1.25,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     ),
@@ -1165,6 +1447,139 @@ class _GapBox extends StatelessWidget {
 }
 
 /// 記録更新のハンコ。
+/// 「LV 12  ▮▮▮▯▯  +180 XP」の 1 行 (結果画面)。棒は 1 ドットずつ角ばったドット絵風。
+class LevelStrip extends StatelessWidget {
+  const LevelStrip({
+    super.key,
+    required this.level,
+    required this.fill,
+    required this.xp,
+    this.isMax = false,
+    this.levelUp = false,
+    this.compact = false,
+  });
+
+  /// 大きい画面での行の高さ (詰めた配置では中身の高さのまま)。
+  static const rowHeight = 32.0;
+
+  final int level, xp;
+
+  /// 棒の伸び (0〜1)。
+  final double fill;
+
+  /// 上限のレベルに届いている (棒の右に MAX を出す)。
+  final bool isMax;
+
+  /// LEVEL UP! の札を出す。
+  final bool levelUp;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = compact ? 12.0 : 20.0;
+    const tab = [FontFeature.tabularFigures()];
+    // 端末の文字を大きくしても、1 行に収まるよう、文字の拡大は 1.2 倍までにして、足りなければ縮める
+    Widget fit(Widget child) => Flexible(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: child,
+      ),
+    );
+    final row = Row(
+      children: [
+        fit(
+          Text(
+            'LV $level',
+            style: pixelFont(
+              size,
+              weight: 900,
+              letterSpacing: 2,
+            ).copyWith(fontFeatures: tab),
+          ),
+        ),
+        if (levelUp) ...[
+          SizedBox(width: compact ? 8 : 12),
+          fit(
+            compact
+                // 詰めた配置では行の高さを増やさないよう、縁と影のない札にする
+                ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    color: Palette.yellow,
+                    child: Text(
+                      'LEVEL UP!',
+                      style: pixelFont(
+                        12,
+                        color: Dot.ink,
+                        weight: 900,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                  )
+                : const _Stamp('LEVEL UP!', size: 14),
+          ),
+        ],
+        SizedBox(width: compact ? 10 : 16),
+        Expanded(
+          child: _LevelBar(fill: fill, height: compact ? 10 : 14),
+        ),
+        SizedBox(width: compact ? 10 : 16),
+        fit(
+          Text(
+            isMax ? 'MAX' : '+$xp XP',
+            style: pixelFont(
+              compact ? 12 : 18,
+              color: Palette.main,
+              letterSpacing: 2,
+            ).copyWith(fontFeatures: tab),
+          ),
+        ),
+      ],
+    );
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.2,
+      // 大きい画面の箱は高さが決まっているので、行の高さを固定する ([rowHeight])
+      child: compact ? row : SizedBox(height: rowHeight, child: row),
+    );
+  }
+}
+
+/// レベルの棒 (枠と、ドットの境目で終わる中身)。
+class _LevelBar extends StatelessWidget {
+  const _LevelBar({required this.fill, required this.height});
+  final double fill, height;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: height,
+    child: CustomPaint(painter: _LevelBarPainter(fill)),
+  );
+}
+
+class _LevelBarPainter extends CustomPainter {
+  _LevelBarPainter(this.fill);
+  final double fill;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..isAntiAlias = false;
+    canvas.drawRect(Offset.zero & size, p..color = Dot.edge);
+    final inner = Rect.fromLTWH(2, 2, size.width - 4, size.height - 4);
+    canvas.drawRect(inner, p..color = Dot.ink);
+    // 4px のドット単位で伸ばす
+    final w = fill >= 1 ? inner.width : (inner.width * fill / 4).floor() * 4.0;
+    if (w > 0) {
+      canvas.drawRect(
+        Rect.fromLTWH(inner.left, inner.top, w, inner.height),
+        p..color = Palette.main,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_LevelBarPainter old) => old.fill != fill;
+}
+
 class _Stamp extends StatelessWidget {
   const _Stamp(this.text, {this.size = 22});
   final String text;

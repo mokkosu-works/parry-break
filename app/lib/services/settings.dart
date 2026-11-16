@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/config/difficulty.dart';
+import '../render/cosmetics.dart';
 
 /// 端末に保存する設定 (docs/native-app-spec.md 3.3)。
 enum ControlScheme {
@@ -34,6 +35,9 @@ class Settings {
     this.language,
     this.debugMode = false,
     this.difficulty = Difficulty.normal,
+    this.endlessDifficulty = Difficulty.normal,
+    this.paddleColor = 'sky',
+    this.trailColor = 'standard',
   });
 
   final ControlScheme controls;
@@ -66,6 +70,17 @@ class Settings {
   /// ステージモードで最後に選んだ難易度。
   final Difficulty difficulty;
 
+  /// エンドレスで選べる難易度 (NORMAL / EASY。HARD は選べない)。
+  static const endlessDifficulties = [Difficulty.easy, Difficulty.normal];
+
+  /// エンドレスで最後に選んだ難易度。ステージの [difficulty] とは別に持つ。
+  /// DAILY・練習場は選んだ値にかかわらず NORMAL。
+  final Difficulty endlessDifficulty;
+
+  /// 選んだパドルの色とボールの軌跡の色 ([Cosmetics] の id。design.md 9.9)。
+  /// まだ解放されていない色を指していても保存はそのままで、使うときに [Cosmetics.resolve] が既定にする。
+  final String paddleColor, trailColor;
+
   Settings copyWith({
     ControlScheme? controls,
     double? sensitivity,
@@ -80,6 +95,9 @@ class Settings {
     String? Function()? language,
     bool? debugMode,
     Difficulty? difficulty,
+    Difficulty? endlessDifficulty,
+    String? paddleColor,
+    String? trailColor,
   }) => Settings(
     controls: controls ?? this.controls,
     sensitivity: sensitivity ?? this.sensitivity,
@@ -94,6 +112,9 @@ class Settings {
     language: language != null ? language() : this.language,
     debugMode: debugMode ?? this.debugMode,
     difficulty: difficulty ?? this.difficulty,
+    endlessDifficulty: endlessDifficulty ?? this.endlessDifficulty,
+    paddleColor: paddleColor ?? this.paddleColor,
+    trailColor: trailColor ?? this.trailColor,
   );
 
   Map<String, Object?> toJson() => {
@@ -110,6 +131,9 @@ class Settings {
     'language': language,
     'debugMode': debugMode,
     'difficulty': difficulty.name,
+    'endlessDifficulty': endlessDifficulty.name,
+    'paddleColor': paddleColor,
+    'trailColor': trailColor,
   };
 
   factory Settings.fromJson(Map<String, Object?> j) {
@@ -142,6 +166,15 @@ class Settings {
       },
       debugMode: bool_(j['debugMode'], d.debugMode),
       difficulty: pick(Difficulty.values, j['difficulty'], d.difficulty),
+      // 項目のない古い保存データ・選べない値 (HARD など) は NORMAL
+      endlessDifficulty: pick(
+        endlessDifficulties,
+        j['endlessDifficulty'],
+        d.endlessDifficulty,
+      ),
+      // 項目のない古い保存データ・表にない値は既定の色
+      paddleColor: Cosmetics.known(CosmeticKind.paddle, j['paddleColor']),
+      trailColor: Cosmetics.known(CosmeticKind.trail, j['trailColor']),
     );
   }
 }

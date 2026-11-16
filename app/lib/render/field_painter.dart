@@ -7,6 +7,7 @@ import '../core/blocks/turret.dart';
 import '../core/core.dart';
 import '../l10n/app_localizations.dart';
 import 'block_painters.dart';
+import 'cosmetics.dart';
 import 'fx.dart';
 import 'item_painter.dart';
 import 'palette.dart';
@@ -87,6 +88,12 @@ class FieldPainter extends CustomPainter {
   /// 発射とパリィを PARRY ボタンでする操作方式 (レール方式) か。
   /// 案内を「TAP」ではなく PARRY ボタンを指す文にする。設定の変更に合わせて書き換える。
   bool parryButton;
+
+  /// 選んだパドルの色と、ボールの軌跡の色 (design.md 9.9。null は今までのボールの色)。描くだけで、判定には関わらない。
+  /// パリィ中・クールダウン・スタン・被弾後の点滅の色と、FEVER TIME・貫通・ブレイカーの軌跡の色は入れ替えない。
+  /// 設定の変更に合わせて書き換える。
+  Color paddleColor = Cosmetics.paddleDefault.color;
+  Color? trailColor;
 
   static const _w = Field.width, _h = Field.height, _d = Dot.px;
 
@@ -527,9 +534,9 @@ class FieldPainter extends CustomPainter {
 
   /// GUARD の防壁: 画面の下の点線。消える 3 秒前から点滅する。
   void _guard() {
-    final left = world.effects.guard;
-    if (left <= 0 || world.phase != WorldPhase.playing) return;
-    if (left < 3 && !_blink(6)) return;
+    final e = world.effects, left = e.guard;
+    if (!e.guardUp || world.phase != WorldPhase.playing) return;
+    if (!e.guardHold && left < 3 && !_blink(6)) return;
     final col = Palette.items[ItemKind.guard]!;
     _dashedLine(0, Field.guardY, _w, 24, 8, _t * 24, col, h: _d * 2);
     _dashedLine(0, Field.guardY - _d, _w, 24, 8, _t * 24, Dot.light(col));
@@ -543,7 +550,9 @@ class FieldPainter extends CustomPainter {
     var x = 14.0;
     for (final (kind, left) in w.effects.active) {
       drawItemCapsule(_c, text, kind, x + 16, y, w: 32, h: 20);
-      final timed = kind != ItemKind.blast;
+      final timed =
+          kind != ItemKind.blast &&
+          !(kind == ItemKind.guard && w.effects.guardHold);
       final s = timed ? '${left.ceil()}' : '×${left.round()}';
       // 残り 3 秒を切ったら点滅 (控えめのときは色だけ変える)
       final ending = timed && left < 3;
@@ -573,6 +582,9 @@ class FieldPainter extends CustomPainter {
         ? Dot.mustard
         : const [Dot.white, Dot.white, Dot.peach, Dot.peach][st];
     final tr = fx.trails[b.id] ?? const <Offset>[];
+    // 選んだ軌跡の色は、ふだんのボールの軌跡だけに使う (状態を伝える色は残す)
+    final tint = b.phantom || w.od || b.breaker || pierce ? null : trailColor;
+    final trailCol = tint ?? col;
     // 残像: 古いものほど小さく暗い (3 段階)
     for (var i = 0; i < tr.length; i++) {
       if (w.od && fx.reduceEffects && i.isOdd) continue; // 控えめでは残像を間引く
@@ -583,9 +595,9 @@ class FieldPainter extends CustomPainter {
           ? 2.0
           : 1.0;
       final c = a > 0.66
-          ? (w.od ? Dot.dark(Dot.rose) : col)
+          ? (w.od ? Dot.dark(Dot.rose) : trailCol)
           : a > 0.33
-          ? Dot.dark(col)
+          ? Dot.dark(trailCol)
           : Dot.edge;
       _c.drawRect(
         Rect.fromCenter(center: tr[i], width: _d * s, height: _d * s),
@@ -660,7 +672,7 @@ class FieldPainter extends CustomPainter {
     const y = Field.paddleY;
     final stunned = p.stun > 0;
     final cooling = w.t < pr.cooldownUntil;
-    var col = Dot.sky;
+    var col = paddleColor;
     if (stunned) {
       col = _blink(20, calm: true) ? Dot.brick : Dot.edge;
     } else if (p.invuln > 0 && _blink(15)) {
@@ -1096,17 +1108,21 @@ class FieldPainter extends CustomPainter {
       BannerKind.timeOver => ('TIME OVER', l10n.bannerTimeOver, Dot.bulletRed),
     };
     // アイテムが初めて出るラウンドでは、説明を 1 行足す (design.md 7.10)
-    final item = b.kind == BannerKind.round && world.round.itemIntro
-        ? l10n.introItem
-        : null;
+    // はじめの防壁がある最初のラウンドでも、1 行足す (design.md 7.10)
+    final round = b.kind == BannerKind.round;
+    final notes = [
+      if (round && world.round.itemIntro) l10n.introItem,
+      if (round && world.beginnerGuard && world.round.number == 1)
+        l10n.introBeginnerGuard(world.tuning.beginnerGuardPlays),
+    ];
     b.describe(
-      [sub, item].whereType<String>().join(' ').nullIfEmpty,
-      extra: item != null,
+      [sub, ...notes].whereType<String>().join(' ').nullIfEmpty,
+      extra: notes.isNotEmpty,
     );
     final size = bannerSubSize(_scale), lineH = (size * 1.25).ceilToDouble();
     final lines = [
       if (sub != null && sub.isNotEmpty) ...wrapText(sub, size, bannerSubWidth),
-      if (item != null) ...wrapText(item, size, bannerSubWidth),
+      for (final n in notes) ...wrapText(n, size, bannerSubWidth),
     ];
     // 説明が 2 行以上になったら、その分だけ帯を下へ広げる
     final extra = math.max(0, lines.length - 1) * lineH;
