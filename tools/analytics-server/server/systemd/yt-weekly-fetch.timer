@@ -1,9 +1,0 @@
-[Unit]
-Description=Weekly YouTube analytics fetch (Mon 06:30 JST)
-
-[Timer]
-OnCalendar=Mon *-*-* 06:30:00
-Persistent=true
-
-[Install]
-WantedBy=timers.target

@@ -5,12 +5,23 @@
   python3 exp.py close --id E-20261116-01 --status done|abandoned --note '結果や理由'
   python3 exp.py list [--open]
 
-保存先: /srv/analytics/experiments.jsonl (誰でも読める。書くのは @OPS_USER@ だけ)。
-ssh @SSH_HOST@ 'python3 ~/analytics/exp.py add ...' で、Linux 機の作業セッションからも書ける。
-"""
-import argparse, datetime, json, pathlib, re, sys
+  共通: --root <データ用リポジトリ (mokkosu-works/analytics) の clone>。既定は環境変数 ANALYTICS_DATA、なければ ../analytics
 
-PATH = pathlib.Path("/srv/analytics/experiments.jsonl")
+保存先: <root>/store/experiments.jsonl。書いたら、データ用リポジトリで commit して push する (週次の分析が読む)。
+"""
+import argparse, datetime, json, os, pathlib, re, sys
+
+PATH = None
+
+
+def set_root(root):
+    global PATH
+    PATH = pathlib.Path(root) / "store" / "experiments.jsonl"
+
+
+def read_at(root):
+    set_root(root)
+    return read()
 
 
 def clean(s, n):
@@ -35,11 +46,11 @@ def append(e):
     PATH.parent.mkdir(parents=True, exist_ok=True)
     with PATH.open("a") as f:
         f.write(json.dumps(e, ensure_ascii=False) + "\n")
-    PATH.chmod(0o644)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--root", default=os.environ.get("ANALYTICS_DATA", "../analytics"))
     sub = ap.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("add")
     a.add_argument("--target", choices=["video", "game", "data"], required=True)
@@ -54,6 +65,9 @@ def main():
     l = sub.add_parser("list")
     l.add_argument("--open", action="store_true")
     args = ap.parse_args()
+    if not (pathlib.Path(args.root) / ".git").exists():
+        sys.exit(f"{args.root} がデータ用リポジトリの clone ではない (--root か ANALYTICS_DATA で指定する)")
+    set_root(args.root)
     now = datetime.datetime.now().isoformat(timespec="seconds")
     if args.cmd == "add":
         day = datetime.date.today().strftime("%Y%m%d")
