@@ -985,7 +985,7 @@
           "width": 780,
           "height": 468,
           "src": "../../capture/raw/s4-7_sloppy_v151.mp4",
-          "start": 18,
+          "start": 1.5,
           "crop": {
             "x": 245,
             "y": 0,
@@ -2014,7 +2014,7 @@
           "width": 780,
           "height": 468,
           "src": "../../capture/raw/s4-7_sloppy_v151.mp4",
-          "start": 21,
+          "start": 4.5,
           "crop": {
             "x": 245,
             "y": 0,
@@ -3043,7 +3043,7 @@
           "width": 780,
           "height": 468,
           "src": "../../capture/raw/s3-3_just_v151.mp4",
-          "start": 3.5,
+          "start": 4.5,
           "crop": {
             "x": 245,
             "y": 0,

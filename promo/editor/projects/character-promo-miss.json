@@ -52,7 +52,7 @@
           "width": 860,
           "height": 516,
           "src": "../../capture/raw/s2-7_just_v151.mp4",
-          "start": 23.2,
+          "start": 2,
           "crop": {
             "x": 245,
             "y": 0,
@@ -203,7 +203,7 @@
           "width": 862,
           "height": 517,
           "src": "../../capture/raw/s2-7_just_v151.mp4",
-          "start": 4.3,
+          "start": 5,
           "crop": {
             "x": 245,
             "y": 0,
@@ -354,7 +354,7 @@
           "width": 862,
           "height": 517,
           "src": "../../capture/raw/s4-7_just_v151.mp4",
-          "start": 14.5,
+          "start": 8,
           "crop": {
             "x": 245,
             "y": 0,
