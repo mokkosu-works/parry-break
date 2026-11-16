@@ -32,6 +32,7 @@ records/    videos.csv、youtube_uploads.csv
 | `assets/text/longform/` | 通常尺の見出し画像。アカネの構成案v01は `akane-{opening,chapter,ending}-v01.png`(本人の確認待ち) | 入る | 内蔵画像生成(`design/codex/longform-scenes/ref/` に指示文)から切り出し |
 | `assets/tags/` | モードのタグ `<名前>_tag_<stage\|endless\|daily\|practice>.png`(5 人 × 4) | 入る | Codex の 5 枚を土台に色を塗り替え |
 | `assets/bgm/` | 通常尺の BGM `<名前>-<モード>-bgm-v<版>.flac`(音、一覧は `assets/bgm/README.md`) | 入る | 本人が Windows の DAW で作る(`longform/bgm.md`)。DAW のプロジェクトは Windows に残す |
+| `assets/bgm/midi/` | 通常尺の BGM の MIDI のたたき台 `<名前>-<モード>-bgm-v<版>.mid`(Sonar で開いて仕上げる) | 入る | `longform/bgm_midi.py` |
 | `assets/logo/title-logo.png` | ゲームの実物のタイトルロゴ | 入る | `build/create_title_logo.py` |
 | `design/longform-layout.png`、`design/character-layout-comparison-v01.png` | 画面構成案(通常尺・ショート) | 入る | 手で作った見本 |
 | `design/akane-longform-{opening,chapter,ending}-v01.png` | アカネの通常尺の場面構成案(本人の確認待ち) | 入る | `longform/scene_proposals.py` で既存のロゴ・キャラ・録画と見出しを合成 |

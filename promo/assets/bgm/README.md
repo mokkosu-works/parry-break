@@ -5,6 +5,11 @@
 - 形式は FLAC(48kHz、24bit、ステレオ)。`promo/longform/check_bgm.py --to-flac` で、決まりに合うか確かめてから変換する。
 - ファイル名は `<名前>-<モード>-bgm-v<版>.flac`。作り直したら版を上げる。使わなくなったものは `old/` へ移す。
 - DAW のプロジェクトと書き出した WAV は Windows に残す(git に入れない)。
+- `midi/` は Claude が作った MIDI のたたき台(`<名前>-<モード>-bgm-v<版>.mid`)。`promo/longform/bgm_midi.py` で作る。Sonar で開いて、音源を割り当てて仕上げる。
+
+| MIDI | どの本編用か | テンポ | 長さ |
+|---|---|---|---|
+| `midi/mitsuba-basics-bgm-v01.mid` | ミツバのゲーム全体と基本操作(`design/longform-mitsuba-outline-v01.md`) | 96 | 104 小節(約 4 分 20 秒) |
 
 | ファイル | どの本編用か | テンポ | DAW のプロジェクトの場所 |
 |---|---|---|---|
