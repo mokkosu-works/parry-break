@@ -8,7 +8,7 @@
 capture/    実機の画面録画 (capture.sh、capture_mode.sh、capture_long.sh、raw/、apk/)。raw/old/ に使わない録画
 characters/ キャラの絵 (sheets/、bust/)、プロフィール、反応集、声の割り当て
 assets/     動画に載せるキャラ以外の画像 (文字・吹き出し・タグ・ロゴ)
-longform/   通常尺の道具と台本 (README.md: 撮影ログとの時刻合わせ・反応の割り当て・本編の書き出し。bust.py・full.py: 口パク素材)。projects/ に台本、projects/old/ に過去の版
+longform/   通常尺の道具と台本 (README.md: 撮影ログとの時刻合わせ・反応の割り当て・本編の書き出し。bust.py・full.py: 口パク素材。bgm.md: Windows の DAW で BGM を作る手順)。projects/ に台本、projects/old/ に過去の版
 editor/     キャラ動画の編集ツール (server.py、render.py、check_layout.py、仕様は editor-spec.md)。projects/ に現役のプロジェクト、projects/old/ に過去の版
 build/      動画の組み立て (create_*.py、build.py、specs/、fonts/、assets/、out/)。old/ に使わなくなったスクリプト、out/old/ に過去の書き出し
 design/     企画・決めごと・確認画像。old/ に過去の版の記録
@@ -31,6 +31,7 @@ records/    videos.csv、youtube_uploads.csv
 | `assets/text/shorts-modes/` | モード紹介の見出し・吹き出し(`<名前>_mode01_*.png`) | 入る | Codex(`design/codex/mode01/`) |
 | `assets/text/longform/` | 通常尺の見出し画像。アカネの構成案v01は `akane-{opening,chapter,ending}-v01.png`(本人の確認待ち) | 入る | 内蔵画像生成(`design/codex/longform-scenes/ref/` に指示文)から切り出し |
 | `assets/tags/` | モードのタグ `<名前>_tag_<stage\|endless\|daily\|practice>.png`(5 人 × 4) | 入る | Codex の 5 枚を土台に色を塗り替え |
+| `assets/bgm/` | 通常尺の BGM `<名前>-<モード>-bgm-v<版>.flac`(音、一覧は `assets/bgm/README.md`) | 入る | 本人が Windows の DAW で作る(`longform/bgm.md`)。DAW のプロジェクトは Windows に残す |
 | `assets/logo/title-logo.png` | ゲームの実物のタイトルロゴ | 入る | `build/create_title_logo.py` |
 | `design/longform-layout.png`、`design/character-layout-comparison-v01.png` | 画面構成案(通常尺・ショート) | 入る | 手で作った見本 |
 | `design/akane-longform-{opening,chapter,ending}-v01.png` | アカネの通常尺の場面構成案(本人の確認待ち) | 入る | `longform/scene_proposals.py` で既存のロゴ・キャラ・録画と見出しを合成 |

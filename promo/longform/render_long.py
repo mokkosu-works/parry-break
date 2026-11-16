@@ -3,13 +3,17 @@
 
 python3 promo/longform/render_long.py <台本.json> --out <出力フォルダ> --prepare-only
 python3 promo/longform/render_long.py <台本.json> --out <出力フォルダ>
-前者だけ音声エンジンが必要。出力を上書きしない。冒頭・区切り・締めはまだ扱わない。
+python3 promo/longform/render_long.py <台本.json> --out <新しい出力フォルダ> --voices-from <声を作った出力フォルダ>
+最初のものだけ音声エンジンが必要。出力を上書きしない。冒頭・区切り・締めはまだ扱わない。
+台本の任意の "bgm" で、Windows の DAW で作った BGM を重ねる(promo/longform/bgm.md)。
+"bgm" だけを変えた台本は、--voices-from で前の声を写して書き出せる。
 """
 
 import argparse
 import json
 import math
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -21,6 +25,37 @@ ROOT = Path(__file__).resolve().parents[2]
 FPS = 24
 SIZE = (1920, 1080)
 GAME_SIZE = (1920, 864)
+GAME_VOLUME = 0.38
+# 声の間だけ BGM を下げる強さ。声の合計を鍵にする。
+DUCK = "sidechaincompress=threshold=0.03:ratio=6:attack=30:release=500:makeup=1"
+
+
+def without_bgm(project):
+    """声の作り直しが要るかどうかは、BGM 以外で比べる。"""
+    return {k: v for k, v in project.items() if k != "bgm"}
+
+
+def media_duration(path):
+    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+                         capture_output=True, text=True, check=True).stdout
+    return float(out.strip())
+
+
+def check_bgm(bgm, duration):
+    if not isinstance(bgm, dict) or not isinstance(bgm.get("file"), str):
+        raise ValueError("bgm には file が要ります")
+    path = ROOT / bgm["file"]
+    if not path.is_file():
+        raise ValueError(f"BGM がありません: {bgm['file']}")
+    start = float(bgm.get("start", 0))
+    volume = float(bgm.get("volume", 0.2))
+    fade_in, fade_out = float(bgm.get("fade_in", 0.5)), float(bgm.get("fade_out", 2.0))
+    if not all(math.isfinite(x) for x in (start, volume, fade_in, fade_out)):
+        raise ValueError("bgm の数値が正しくありません")
+    if start < 0 or not 0 < volume <= 1 or fade_in < 0 or fade_out < 0 or fade_in + fade_out > duration:
+        raise ValueError("bgm の start・volume(0〜1)・fade_in・fade_out を確かめてください")
+    if media_duration(path) + 1e-3 < start + duration:
+        raise ValueError("BGM が本編より短いです(start から本編の長さ以上が要ります)")
 
 
 def load_project(path):
@@ -42,6 +77,8 @@ def load_project(path):
     start, duration = float(project["source_start"]), float(project["duration"])
     if not all(math.isfinite(x) for x in (start, duration)) or start < 0 or duration <= 0 or start + duration > aligned["safe_end"]:
         raise ValueError("録画の範囲外、またはボスを含む区間です")
+    if "bgm" in project:
+        check_bgm(project["bgm"], duration)
     events = {e["seq"]: e for e in aligned["events"]}
     last = -1
     for line in project["lines"]:
@@ -97,6 +134,62 @@ def wrap(text, font, width):
     return lines
 
 
+def audio_graph(project, out, starts, parts=("game", "voice", "bgm")):
+    """mix.wav を作る ffmpeg の入力とフィルタ。parts で、見本パック用に一部の音だけにできる。"""
+    start, duration = project["source_start"], project["duration"]
+    bgm = project.get("bgm") if "bgm" in parts else None
+    inputs, filters, tracks = [], [], []
+    if "game" in parts:
+        inputs += ["-ss", str(start), "-t", str(duration), "-i", str(ROOT / project["source"])]
+        filters.append(f"[0:a]aresample=48000,aformat=channel_layouts=stereo,volume={GAME_VOLUME}[game]")
+        tracks.append("[game]")
+    voices = []
+    if "voice" in parts:
+        for i, t in enumerate(starts):
+            n = sum(1 for x in inputs if x == "-i")
+            inputs += ["-i", str(out / f"voice-{i:03}.wav")]
+            filters.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,adelay={round(t*1000)}:all=1[v{i}]")
+            voices.append(f"[v{i}]")
+    if bgm:
+        n = sum(1 for x in inputs if x == "-i")
+        inputs += ["-i", str(ROOT / bgm["file"])]
+        b_start, volume = float(bgm.get("start", 0)), float(bgm.get("volume", 0.2))
+        fade_in, fade_out = float(bgm.get("fade_in", 0.5)), float(bgm.get("fade_out", 2.0))
+        chain = (f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=start={b_start}:duration={duration},"
+                 f"asetpts=PTS-STARTPTS,volume={volume}")
+        if fade_in:
+            chain += f",afade=t=in:d={fade_in}"
+        if fade_out:
+            chain += f",afade=t=out:st={duration - fade_out}:d={fade_out}"
+        if bgm.get("duck", True) and voices:
+            filters.append(chain + "[bgmraw]")
+            filters.append("".join(voices) + f"amix=inputs={len(voices)}:normalize=0,apad,atrim=duration={duration},asplit=2[voice][key]")
+            filters.append(f"[bgmraw][key]{DUCK}[bgm]")
+            voices = ["[voice]"]
+        else:
+            filters.append(chain + "[bgm]")
+        tracks += voices + ["[bgm]"]
+    else:
+        tracks += voices
+    filters.append("".join(tracks) + f"amix=inputs={len(tracks)}:normalize=0,alimiter=limit=0.95:latency=1,apad,atrim=duration={duration}[mix]")
+    return inputs, filters
+
+
+def copy_voices(project, out, source):
+    """BGM だけを変えた台本のために、前の出力フォルダの声と台詞の長さを写す。"""
+    if any(out.iterdir()):
+        raise FileExistsError("出力先は空のフォルダを指定してください")
+    prepared = json.loads((source / "prepared.json").read_text())
+    if without_bgm(project) != without_bgm(prepared["project"]):
+        raise ValueError("BGM 以外の台本が、声を作ったときと違います。--prepare-only で声を作り直してください")
+    for i in range(len(prepared["timed"])):
+        shutil.copy2(source / f"voice-{i:03}.wav", out / f"voice-{i:03}.wav")
+    prepared["project"] = project
+    prepared["voices_from"] = str(source)
+    (out / "prepared.json").write_text(json.dumps(prepared, ensure_ascii=False, indent=2) + "\n")
+    print(f"{source} の声を写しました", flush=True)
+
+
 def render(project, out):
     movie = out / "preview.mp4"
     if movie.exists() or (out / "mix.wav").exists():
@@ -107,14 +200,7 @@ def render(project, out):
     lines = [{**line, **timed, "audio": audio_data(out / f"voice-{i:03}.wav")}
              for i, (line, timed) in enumerate(zip(project["lines"], prepared["timed"]))]
     source, start, duration = ROOT / project["source"], project["source_start"], project["duration"]
-    inputs = ["-ss", str(start), "-t", str(duration), "-i", str(source)]
-    filters = ["[0:a]aresample=48000,aformat=channel_layouts=stereo,volume=0.38[game]"]
-    tracks = ["[game]"]
-    for i, line in enumerate(lines):
-        inputs += ["-i", str(out / f"voice-{i:03}.wav")]
-        filters.append(f"[{i+1}:a]aresample=48000,aformat=channel_layouts=stereo,adelay={round(line['start']*1000)}:all=1[v{i}]")
-        tracks.append(f"[v{i}]")
-    filters.append("".join(tracks) + f"amix=inputs={len(tracks)}:normalize=0,alimiter=limit=0.95:latency=1,apad,atrim=duration={duration}[mix]")
+    inputs, filters = audio_graph(project, out, [line["start"] for line in lines])
     subprocess.run(["ffmpeg", "-v", "error", "-n", *inputs, "-filter_complex", ";".join(filters),
                     "-map", "[mix]", "-c:a", "pcm_s16le", str(out / "mix.wav")], check=True)
     subtitle_font = ImageFont.truetype(str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"), 42)
@@ -184,7 +270,9 @@ def render(project, out):
         if reader.wait() or writer.wait():
             raise RuntimeError("ffmpegの読み込みか書き出しが失敗しました")
     report = {"frames": expected, "fps": FPS, "duration": duration, "source_start": start,
-              "timed": prepared["timed"], "game_volume": .38}
+              "timed": prepared["timed"], "game_volume": GAME_VOLUME}
+    if "bgm" in project:
+        report["bgm"] = project["bgm"]
     (out / "timing.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(movie, flush=True)
 
@@ -194,10 +282,16 @@ if __name__ == "__main__":
     parser.add_argument("project", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--voices-from", type=Path, help="BGM だけを変えた台本のとき、声を作った出力フォルダ")
     args = parser.parse_args()
+    if args.prepare_only and args.voices_from:
+        parser.error("--prepare-only と --voices-from は一緒に使えません")
     args.out.mkdir(parents=True, exist_ok=True)
     project = load_project(args.project)
     if args.prepare_only:
         prepare(project, args.out)
+    elif args.voices_from:
+        copy_voices(project, args.out, args.voices_from)
+        render(project, args.out)
     else:
         render(project, args.out)

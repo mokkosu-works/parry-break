@@ -50,6 +50,24 @@ python3 promo/longform/render_long.py promo/longform/projects/akane-endless-pilo
 
 上のファイルは作成済みなので、そのまま再実行すると上書きを防ぐため止まる。改訂時は台本と出力先に新しい版を付ける。音声を作った後で台本が変わった場合も止まる。
 
+## BGM
+
+BGM は本人が Windows の DAW で作る。手順・書き出しの決まり・Windows でのやり方は [bgm.md](bgm.md)。
+
+```sh
+# DAW で合わせるための見本 (guide.mp4、voice.wav、game.wav、cues.csv/md)。出力は <フォルダ>/bgm-kit/
+python3 promo/longform/bgm_kit.py promo/build/out/akane-endless-pilot-e002 --bpm 120
+
+# 届いた BGM を確かめる (Windows でも動く)
+python3 promo/longform/check_bgm.py <書き出した.wav> --length 45
+
+# 台本に "bgm" を足した版を、前の声を写して書き出す (音声エンジン不要)
+python3 promo/longform/render_long.py promo/longform/projects/akane-endless-pilot-v03.json \\
+  --out promo/build/out/akane-endless-pilot-e003 --voices-from promo/build/out/akane-endless-pilot-e002
+```
+
+`v03` の台本は、BGM が届いてから v02 に `bgm` を足して作る。台詞の間は BGM が約 7dB 下がる (`render_long.py` の `DUCK`)。
+
 案Bどおり、ゲーム映像は1920×864、その下に216pxの帯、左にバストアップ、右に字幕。ロゴとタグは既存素材。「自動プレイ映像」と音声クレジットを表示する。口パクは発声中の簡易開閉で、音素によるリップシンクではない。目パチは発話のない時に通常の顔で入れる。
 
 ゲームの音量は元の0.38倍。声とゲーム音を混ぜて上限を抑える。聞こえ方の判断は本人に依頼する。`prepared.json` に台詞の開始・終了、`timing.json` に出力の長さなどを残す。`validation.json` は今回の確認結果。
