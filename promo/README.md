@@ -5,12 +5,12 @@
 **配信の方針** (投稿先・ペース・担当キャラ・ゲスト・通常尺・作る順番) は [design/distribution-plan.md](design/distribution-plan.md) にまとめてある。まずそちらを読む。
 
 ```
-capture/    実機の画面録画 (capture.sh、capture_mode.sh、raw/、apk/)
+capture/    実機の画面録画 (capture.sh、capture_mode.sh、capture_long.sh、raw/、apk/)。raw/old/ に使わない録画
 characters/ キャラの絵 (sheets/、bust/)、プロフィール、反応集、声の割り当て
 assets/     動画に載せるキャラ以外の画像 (文字・吹き出し・タグ・ロゴ)
-longform/   通常尺の道具と台本 (README.md: 撮影ログとの時刻合わせ・反応の割り当て・本編の書き出し。bust.py・full.py: 口パク素材)
-editor/     キャラ動画の編集ツール (server.py、render.py、check_layout.py)。projects/ に現役のプロジェクト、projects/old/ に過去の版
-build/      動画の組み立て (create_*.py、build.py、specs/、fonts/、assets/、out/)。old/ に使わなくなったスクリプト
+longform/   通常尺の道具と台本 (README.md: 撮影ログとの時刻合わせ・反応の割り当て・本編の書き出し。bust.py・full.py: 口パク素材)。projects/ に台本、projects/old/ に過去の版
+editor/     キャラ動画の編集ツール (server.py、render.py、check_layout.py、仕様は editor-spec.md)。projects/ に現役のプロジェクト、projects/old/ に過去の版
+build/      動画の組み立て (create_*.py、build.py、specs/、fonts/、assets/、out/)。old/ に使わなくなったスクリプト、out/old/ に過去の書き出し
 design/     企画・決めごと・確認画像。old/ に過去の版の記録
 upload/     YouTube へのアップロード
 analytics/  アナリティクスの CSV (exports/) と集計
@@ -34,10 +34,10 @@ records/    videos.csv、youtube_uploads.csv
 | `assets/logo/title-logo.png` | ゲームの実物のタイトルロゴ | 入る | `build/create_title_logo.py` |
 | `design/longform-layout.png`、`design/character-layout-comparison-v01.png` | 画面構成案(通常尺・ショート) | 入る | 手で作った見本 |
 | `design/akane-longform-{opening,chapter,ending}-v01.png` | アカネの通常尺の場面構成案(本人の確認待ち) | 入る | `longform/scene_proposals.py` で既存のロゴ・キャラ・録画と見出しを合成 |
-| `design/checks/` | 書き出しのコマなどの確認画像 | 入る | 確認のたびに |
+| `design/checks/` | 書き出しのコマなどの確認画像。使わなくなったものは `old/` | 入る | 確認のたびに |
 | `design/codex/<回>/` | Codex の指示文(`ref/*.txt`)。参考画像(`ref/*.png`)と生成の下書き(`out/`) | 指示文だけ | Codex。`old-layout/out/` は以前の作業用の写し(どこからも参照しない) |
 | `build/assets/badges/`、`build/fonts/` | ストアの公式バッジ、フォント | 入らない | `build/fetch_assets.sh` |
-| `capture/raw/`、`build/out/` | 録画、書き出した動画 | 入らない | `capture/*.sh`、編集ツール |
+| `capture/raw/`、`build/out/` | 録画、書き出した動画。不採用の録画は `capture/raw/old/`、過去の版の書き出し (v01/v02/v05/mode01、character-promo、ボット動画、声の聞き比べ、通常尺の旧 e001) は `build/out/old/` | 入らない | `capture/*.sh`、編集ツール |
 
 キャラクター素材は [characters/README.md](characters/README.md)、性格・口調・表情の使い分けは [characters/profiles.md](characters/profiles.md) を参照する。
 

@@ -25,12 +25,12 @@ Claude Code から Codex への引き継ぎ。ブランチ `feature/promo-video-
 
 **録り直し(2026-11-17、本人が「いいと思う」と確認)**: `capture/raw/long-endless-akane-pilot05-clean/` は録画中の音声再生元を96回確認し、別アプリの音声を検知せず、出来事ログ930件に欠落なし。R2の映像を0.2秒刻みで照合して時刻を合わせ、45秒の `build/out/akane-endless-pilot-e002/preview.mp4` を作成。台本は `longform/projects/akane-endless-pilot-v02.json`。本人は後から別撮りのBGMも加える予定。旧e001は引き続き不採用。
 
-**音源の訂正(2026-11-17)**: 最初の本編45秒 `akane-endless-pilot-e001` と元録画 `long-endless-akane-pilot01` は、別アプリの音声混入が強く疑われるため不採用。ゲームだけのタイトル録音は生成BGMとよく一致したが、旧録画の音は一致しなかった。本人から音楽アプリが意図せず起動した気がするとの申告あり。起動原因は未特定。詳細は `promo/design/audio-source-check-20261117.md`。録画前と録画中に再生元UIDを監視する処理を追加した。録り直しは端末の消灯で一度失敗し、本人に画面の点灯とロック解除を依頼中。下記のe001の作成・技術検証の記録は履歴であり、採用済みではない。
+**音源の訂正(2026-11-17)**: 最初の本編45秒 `akane-endless-pilot-e001` と元録画 `long-endless-akane-pilot01` は、別アプリの音声混入が強く疑われるため不採用。ゲームだけのタイトル録音は生成BGMとよく一致したが、旧録画の音は一致しなかった。本人から音楽アプリが意図せず起動した気がするとの申告あり。起動原因は未特定。詳細は `promo/design/audio-source-check-20261117.md`。録画前と録画中に再生元UIDを監視する処理を追加した。録り直しは端末の消灯で一度失敗し、画面を点灯・ロック解除してもらい、録り直し済み。下記のe001の作成・技術検証の記録は履歴であり、採用済みではない。
 
 ### できていること
 - **全身口パクのアカネ版(2026-11-17、本人が「いいと思う」と確認、採用)**: `promo/characters/full/akane_full_sheet.png`(3列×2段)、`akane_full_blink.png`、合成済みの `full/akane/{greet,guide,close}_{closed,open}.png` と `greet_blink.png`。道具は `promo/longform/full.py`・`full_preview.py`。内蔵画像生成ツールを使い、指示文は `promo/design/codex/longform-full/ref/` に保存。確認動画は `promo/build/out/akane-full-preview-e001/preview.mp4`(1920×1080、24fps、約18秒、全身と顔の拡大、採用済みの声、仮の台詞)。比較画像は `promo/design/checks/akane-full-v01.png`。口・目の範囲外とアルファが変わらないこと、音声の重なり・尺のはみ出しがないこと、mp4を最後まで読めることを確認済み。残り4人はアカネの通常尺の試作後に展開する。
 - **アカネの場面構成案と台本の骨組み(2026-11-17、本人が「この流れでいいと思うよ」と紹介順を確認)**: `promo/design/akane-longform-{opening,chapter,ending}-v01.png`、一覧は `design/checks/akane-longform-scenes-v01.jpg`。実物のロゴ・採用済みの全身素材・既存録画を使い、新しい見出しは `assets/text/longform/` に置いた。内蔵画像生成の指示文は `design/codex/longform-scenes/ref/`、合成は `longform/scene_proposals.py`。骨組みは `design/longform-akane-outline-v01.md`(約3分45秒：ルール→パリィ→崩れ・フィーバー→記録)。個々の台詞は候補で、完成台本ではない。終了画面の右側に動画1枠・チャンネル1枠を想定し、見本の灰色の枠と説明文字は本番には焼き込まない。
-- **アカネの本編45秒試作(2026-11-17、本人の確認待ち)**: `promo/build/out/akane-endless-pilot-e001/preview.mp4`(1920×1080、24fps、45秒、音声も45秒)。確認画像は `design/checks/akane-endless-pilot-v01.jpg`。新しく実機で撮った `capture/raw/long-endless-akane-pilot01/` の連続45秒に、声・字幕・口パク・表情・目パチを付けた。完成版の冒頭45秒ではなく、冒頭・区切り・締めは未接続。台本は `longform/projects/akane-endless-pilot-v01.json`、配置案は同じ場所の `-plan.json`。反応3つは実際の出来事の約0.18秒後。声の重なり・尺のはみ出しなし、ffmpegで全編を読めることを確認済み。聞こえ方・反応の間・説明と映像の合い方は本人に依頼する。
+- **アカネの本編45秒試作の旧版(不採用)**: `promo/build/out/old/akane-endless-pilot-e001/preview.mp4`(1920×1080、24fps、45秒、音声も45秒)。確認画像は `design/checks/old/akane-endless-pilot-v01.jpg`。新しく実機で撮った `capture/raw/old/long-endless-akane-pilot01/` の連続45秒に、声・字幕・口パク・表情・目パチを付けた。完成版の冒頭45秒ではなく、冒頭・区切り・締めは未接続。台本は `longform/projects/old/akane-endless-pilot-v01.json`、配置案は同じ場所の `-plan.json`。反応3つは実際の出来事の約0.18秒後。声の重なり・尺のはみ出しなし、ffmpegで全編を読めることを確認済み。聞こえ方・反応の間・説明と映像の合い方は本人に依頼する。
 - **通常尺の撮影と本編の道具**: `capture/promo-build.patch` は準備済みの1.5.1の一時作業フォルダだけに適用。APKは `capture/apk/promo_just_v1.5.1_events.apk`、端末の `.promo` へ更新済み。`capture/capture_long.sh`・`.py` で録画とログを同時保存。100秒テイクはR8まで、905件のログを取得。末尾のseq893が1件欠けたため、連続するseq0〜892だけを `longform/align_events.py` で換算し、映像の使用可能な終わりを約99.786秒に制限。試作区間(録画約3.689〜48.689秒)には欠落なし。基準はR2の盤面出現18.86秒、目視の誤差約0.04秒。`make_script.py` で出来事から反応を割り当て、`render_long.py` で案Bの本編を書き出す。手順は `capture/README.md`・`longform/README.md`。欠落・時計・ボス範囲・重複・存在しない反応の検証5件は成功。リポジトリの `app/` は変更していない。
 - **ショート(縦 1080×1920、24 秒)**: 採用版は 2 種類 × 5 人 = 10 本。`promo/editor/projects/<名前>-modes.json`(モード紹介、旧 mode01)と `<名前>-play.json`(プレイ紹介、旧 v05)。過去の版は `projects/old/`。録画は v1.5.1 の撮影用アプリ(`.promo`、広告オフ)で撮り直し済み。
   - モード紹介 5 本は書き出し済み。ただしアカネの声を変えたので(下)、アカネの 2 本は古い声のまま。出す前に書き出し直す。
@@ -54,7 +54,7 @@ Claude Code から Codex への引き継ぎ。ブランチ `feature/promo-video-
 2. **オープニング・区切り・エンディングの構成案と台本の骨組み**: v01を作成済み、紹介順は本人が確認済み(上記)。
 3. **通常尺の仕組み**(試作はアカネのエンドレス 1 本):
    - 撮影用ビルドの出来事ログ、録画と時刻合わせ、台本への反応の割り当て、本編の書き出しは45秒で動作確認済み(上記)。`InputClock.now` は停止時計の時刻なので、実時刻 `wall_us`・ゲーム内の時刻 `sim_s` と分けて保存する。
-   - **次は本編45秒を本人に確認してもらう**。声とゲーム音のバランス、反応の間、口パク、字幕、説明と映像の合い方を見てもらう。
+   - 本編45秒の録り直し版は本人が確認済み。別撮りのBGMを後から追加する予定。
    - 確認後に解説と映像の合わせ方・声の間を詰め、全編の台本と映像を約3分45秒に組む。冒頭・区切り・締め、チャプター、サムネイルも必要。骨組みの時刻は目安なので、映像と実際の声に合わせて確定する。
 4. ショート 1 巡目の準備(通常尺のあと): ワカナ `wakana-modes` の台詞「目標は、ブロックを全部壊すこと。」は仕様と合わない(スコア・耐久の面もある)ので直す。ミツバ `mitsuba-modes` の締めを予告(「各モードは、みんなが紹介するよ」)に。締めの画面に「くわしい解説は、下のリンクから」。投稿文は `promo/posts/` に YouTube 用だけ。
 

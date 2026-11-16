@@ -3,10 +3,10 @@
 全身素材と3場面の構成案を作り、アカネのエンドレスで本編45秒を試した。全身素材と紹介順、録り直した `../build/out/akane-endless-pilot-e002/preview.mp4` は本人の確認済み。本人は後から別撮りのBGMも追加する予定。**最初の本編e001は別アプリの音声混入の疑いがあるため不採用。** 詳細は `../design/audio-source-check-20261117.md`。
 
 - 骨組み：`../design/longform-akane-outline-v01.md`(完成版は約3分45秒の予定)
-- 試作の配置案：`projects/akane-endless-pilot-v01-plan.json`
-- 出来事から反応を割り当てた台本：`projects/akane-endless-pilot-v01.json`
-- 動画：`../build/out/akane-endless-pilot-e001/preview.mp4`(1920×1080、24fps、45秒)
-- 確認画像：`../design/checks/akane-endless-pilot-v01.jpg`
+- 試作の配置案：`projects/akane-endless-pilot-v02-plan.json`
+- 出来事から反応を割り当てた台本：`projects/akane-endless-pilot-v02.json`
+- 動画：`../build/out/akane-endless-pilot-e002/preview.mp4`(1920×1080、24fps、45秒)
+- 確認画像：`../design/checks/old/akane-endless-pilot-v01.jpg`(不採用の旧版)
 
 この45秒は道具・声・反応の間の確認用。完成版の冒頭45秒ではなく、オープニング・章の区切り・エンディングはまだつないでいない。
 
@@ -19,14 +19,14 @@
 映像内で途中のラウンドが始まるコマを確認し、対応する出来事の `seq` と映像の秒を指定する。
 
 ```sh
-python3 promo/longform/align_events.py promo/capture/raw/long-endless-akane-pilot01 \
-  --anchor-seq 90 --video-time 18.86 --through-seq 892 \
-  --note 'R2の新しい盤面の出現を目視確認。約0.04秒の誤差を含む。'
+python3 promo/longform/align_events.py promo/capture/raw/long-endless-akane-pilot05-clean \
+  --anchor-seq 95 --video-time 20.75 \
+  --note 'R2の新しい盤面の出現を0.2秒刻みで目視確認。'
 ```
 
-試作のR2開始は録画の18.85〜18.90秒。初回のタイトルからの画面切り替えは演出の遅れがあるので基準にしなかった。変換した `events.json` は未調整のログと別に保存する。既存ファイルは上書きしない。
+採用した試作のR2開始は録画の約20.75秒。初回のタイトルからの画面切り替えは演出の遅れがあるので基準にしなかった。変換した `events.json` は未調整のログと別に保存する。既存ファイルは上書きしない。
 
-このテイクの末尾では `seq893` が1件欠けていた。`--through-seq 892` で、連続している893件だけを使い、映像の使用可能な終わりも約99.786秒に制限している。今回の試作区間(録画の約3.689〜48.689秒)には欠落がない。欠落・重複・時計の逆行は、調整時に止まる。欠落をまたいで台本を作らない。
+採用したテイクのログ930件には欠落がない。不採用の初回テイクは末尾に1件欠落があり、`--through-seq` で連続した範囲に制限した。欠落・重複・時計の逆行は、調整時に止まる。欠落をまたいで台本を作らない。
 
 ボスのあるラウンド開始を記録した場合は、その0.2秒前を使用可能な終わりにする。台本の区間が使用可能な範囲を越えると、台本作り・書き出しで止まる。余白は自動的な保証ではなく、使う最後のコマも確認する。
 
@@ -36,16 +36,16 @@ python3 promo/longform/align_events.py promo/capture/raw/long-endless-akane-pilo
 
 ```sh
 python3 promo/longform/make_script.py \
-  promo/longform/projects/akane-endless-pilot-v01-plan.json \
-  --out promo/longform/projects/akane-endless-pilot-v01.json
+  promo/longform/projects/akane-endless-pilot-v02-plan.json \
+  --out promo/longform/projects/akane-endless-pilot-v02.json
 
 # AivisSpeech(10101)が必要。採用済みのrender.synthesizeとvoice_timingを使う。
-python3 promo/longform/render_long.py promo/longform/projects/akane-endless-pilot-v01.json \
-  --out promo/build/out/akane-endless-pilot-e001 --prepare-only
+python3 promo/longform/render_long.py promo/longform/projects/akane-endless-pilot-v02.json \
+  --out promo/build/out/akane-endless-pilot-e002 --prepare-only
 
 # 音声作成後はこちら。音声エンジン不要。
-python3 promo/longform/render_long.py promo/longform/projects/akane-endless-pilot-v01.json \
-  --out promo/build/out/akane-endless-pilot-e001
+python3 promo/longform/render_long.py promo/longform/projects/akane-endless-pilot-v02.json \
+  --out promo/build/out/akane-endless-pilot-e002
 ```
 
 上のファイルは作成済みなので、そのまま再実行すると上書きを防ぐため止まる。改訂時は台本と出力先に新しい版を付ける。音声を作った後で台本が変わった場合も止まる。

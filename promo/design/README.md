@@ -14,7 +14,7 @@
 - `longform-akane-outline-v01.md`: アカネのエンドレス紹介の骨組み(約3分45秒、紹介順は本人が確認済み。個々の台詞は候補)
 - `akane-longform-{opening,chapter,ending}-v01.png`: 冒頭・区切り・締めの構成案(本人の確認待ち)。`checks/akane-longform-scenes-v01.jpg` は3場面の一覧
 - `checks/`: 書き出しのコマやセーフエリアを確かめた画像
-  - `akane-endless-pilot-v01.jpg`: 実際の出来事へ反応を合わせた本編45秒の確認画像。動画と手順は `../longform/README.md`
+  - `old/akane-endless-pilot-v01.jpg`: 音声混入が疑われる旧試作の確認画像。動画と手順は `../longform/README.md`
   - `character-series-v01-final-frames.jpg`, `-v02-final-frames.jpg`: 途中の版 v01/v02 のコマ
   - `character-series-v03-mitsuba-compare.jpg`: 構成案と v03 の比べ
   - `character-series-v05-*.jpg`: プレイ紹介(v05)のコマ・セーフエリア・全員左に揃えた版・アウトロの直し
@@ -32,3 +32,5 @@
 ## 過去の版
 
 - `old/character-series-v01.md`, `old/character-series-v02.md`: キャラ動画の最初の 2 版の記録 (プロジェクトは `promo/editor/projects/old/`、スクリプトは `promo/build/old/`)
+- `old/character-video-plans.md`: キャラ別ショートの企画の初稿 (2026-11-17 に `promo/` 直下から移した。いまの決めごとは `shorts-modes.md`・`shorts-play.md`)
+- `checks/old/`: 使わなくなった確認画像 (不採用の通常尺試作 v01、場面構成案の下書き)

@@ -14,12 +14,12 @@
 
 ## 扱い
 
-- `capture/raw/long-endless-akane-pilot01/` は不採用。`capture.json` を `rejected_audio_contamination`、`events.json` を `rejected: true` とし、`DO-NOT-USE.txt` を置いた。
-- `build/out/akane-endless-pilot-e001/preview.mp4` も不採用。旧版は消さず、同じ出力先に `DO-NOT-USE.txt` を置いた。
+- `capture/raw/old/long-endless-akane-pilot01/`(2026-11-17 に `old/` へ移動)は不採用。`capture.json` を `rejected_audio_contamination`、`events.json` を `rejected: true` とし、`DO-NOT-USE.txt` を置いた。
+- `build/out/old/akane-endless-pilot-e001/preview.mp4`(同日 `old/` へ移動)も不採用。旧版は消さず、同じ出力先に `DO-NOT-USE.txt` を置いた。
 - 台本作り・書き出しでは、不採用のテイクを使おうとすると止まる。
 - `capture_long.py` に、撮影前と録画中の音声UIDの確認を追加。ゲーム以外の再生を検知したら、失敗として録画を止める。端末の使用中のユーザーを指定してUIDを調べる。1秒間隔での確認なので、短い音を完全に除外する保証ではない。
 - 画面が消えている場合も止める。`--stay-awake` は `--no-control` と併用できず起動に失敗したため使わない。
-- 録り直しの `akane-pilot02-clean` は複数ユーザーのUID表記への対応前で失敗、`akane-pilot02-clean-b` は端末の消灯により映像と出来事が取れず失敗。どちらも採用しない。本人に画面の点灯とロック解除を依頼中。
+- 録り直しの `akane-pilot02-clean` は複数ユーザーのUID表記への対応前で失敗、`akane-pilot02-clean-b` は端末の消灯により映像と出来事が取れず失敗。どちらも採用しない。失敗した記録は `capture/raw/old/` に移動。画面を点灯・ロック解除してもらい、pilot05を録り直し済み。
 
 確認用の音は `promo/build/out/audio-source-check/` (git外) に保存した。
 
