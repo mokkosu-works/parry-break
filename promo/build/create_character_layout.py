@@ -2,7 +2,7 @@
 
 v02 のプロジェクトから録画・ポーズ・背景の飾りを引き継ぎ、配置を構成案に合わせる。
 - 見出し・吹き出し・「ストアで検索」は、構成案を参考に Codex (画像生成) で作った透過 PNG
-  (promo/characters/text/)。文言を変えるときは画像を作り直す。
+  (promo/assets/text/)。文言を変えるときは画像を作り直す。
 - タイトルはゲームの Silkscreen の PARRY / BREAK (構成案のロゴは画像生成が描いたもので、ゲームのものではない)。
 - アウトロは、本人が編集ツールで調整したミツバ v05 の配置を型にする (OUTRO_TEMPLATE)。
   キャラ・アイコン・タイトル・「ストアで検索」・ストアのバッジ・吹き出し・クレジットだけで、ゲーム映像なし。
@@ -14,6 +14,7 @@ v02 のプロジェクトから録画・ポーズ・背景の飾りを引き継�
 既にあるプロジェクトは上書きせず飛ばす。微調整は編集ツールで行う。経緯は promo/design/shorts-play.md。
 """
 import copy
+import os
 import json
 import pathlib
 import sys
@@ -22,8 +23,15 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PROJECTS = ROOT / "promo/editor/projects"
-ASSETS = ROOT / "promo/characters/text"
-REL = "../../characters/text/"
+# 動画に載せる画像の置き場所 (promo/README.md の「画像の置き場所」)。ファイル名だけで探す
+ASSET_DIRS = [ROOT / "promo/assets/text/shorts-play", ROOT / "promo/assets/text/shorts-modes", ROOT / "promo/assets/tags"]
+
+
+def asset_path(file):
+    for d in ASSET_DIRS:
+        if (d / file).exists():
+            return d / file
+    raise SystemExit(f"画像がありません: {file} ({', '.join(str(d.relative_to(ROOT)) for d in ASSET_DIRS)} を探しました)")
 SILKSCREEN = "../../../app/assets/fonts/Silkscreen-Bold.ttf"
 VERSION = "v05"
 OUTRO_TEMPLATE = "mitsuba-play"
@@ -100,7 +108,7 @@ def decor(scene, style):
 
 
 def size_of(file):
-    with Image.open(ASSETS / file) as im:
+    with Image.open(asset_path(file)) as im:
         return im.size
 
 
@@ -111,7 +119,7 @@ def image_layer(lid, name, file, x, y, width=None, height=None):
     if height is None:
         height = round(width * h / w)
     return {"id": lid, "type": "image", "name": name, "visible": True, "x": round(x), "y": round(y),
-            "width": round(width), "height": round(height), "src": REL + file, "opacity": 1, "resample": "lanczos"}
+            "width": round(width), "height": round(height), "src": os.path.relpath(asset_path(file), PROJECTS), "opacity": 1, "resample": "lanczos"}
 
 
 def headline(file):
@@ -137,7 +145,7 @@ def text_width(word, size, stroke):
     return ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox((0, 0), word, font=font, stroke_width=stroke)[2]
 
 
-LOGO_FILE = ROOT / "promo/build/assets/layout/title-logo.png"  # create_title_logo.py が作る、ゲームの実物のロゴ
+LOGO_FILE = ROOT / "promo/assets/logo/title-logo.png"  # create_title_logo.py が作る、ゲームの実物のロゴ
 LOGO_RATIO = 355 / 84  # 幅 / size。既存の動画の大きさに合わせる
 
 
@@ -150,7 +158,7 @@ def title(old, x, y=1245, size=84):
     w, h = Image.open(LOGO_FILE).size
     width = title_width(size=size)
     return [{"id": "logo", "type": "image", "name": "ロゴ", "visible": True, "x": round(x), "y": y,
-             "width": width, "height": round(width * h / w), "src": "../../build/assets/layout/title-logo.png",
+             "width": width, "height": round(width * h / w), "src": "../../assets/logo/title-logo.png",
              "opacity": 1, "resample": "bicubic"}]
 
 

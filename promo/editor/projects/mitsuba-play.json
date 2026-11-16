@@ -955,7 +955,7 @@
           "y": 177,
           "width": 880,
           "height": 165,
-          "src": "../../characters/text/mitsuba_v05_headline_1.png",
+          "src": "../../assets/text/shorts-play/mitsuba_v05_headline_1.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -1002,7 +1002,7 @@
           "y": 825,
           "width": 219,
           "height": 60,
-          "src": "../../characters/text/mitsuba_tag_stage.png",
+          "src": "../../assets/tags/mitsuba_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -1014,7 +1014,7 @@
           "x": 90,
           "y": 736,
           "height": 704,
-          "src": "../../characters/mitsuba_sheet.png",
+          "src": "../../characters/sheets/mitsuba_sheet.png",
           "pose": 2,
           "bob": true,
           "bobAmplitude": 4,
@@ -1029,7 +1029,7 @@
           "y": 880,
           "width": 470,
           "height": 273,
-          "src": "../../characters/text/mitsuba_v05_bubble_1.png",
+          "src": "../../assets/text/shorts-play/mitsuba_v05_bubble_1.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -1042,7 +1042,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -1997,7 +1997,7 @@
           "y": 206,
           "width": 880,
           "height": 108,
-          "src": "../../characters/text/mitsuba_v05_headline_2b.png",
+          "src": "../../assets/text/shorts-play/mitsuba_v05_headline_2b.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -2044,7 +2044,7 @@
           "y": 825,
           "width": 219,
           "height": 60,
-          "src": "../../characters/text/mitsuba_tag_stage.png",
+          "src": "../../assets/tags/mitsuba_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -2056,7 +2056,7 @@
           "x": 91,
           "y": 736,
           "height": 704,
-          "src": "../../characters/mitsuba_sheet.png",
+          "src": "../../characters/sheets/mitsuba_sheet.png",
           "pose": 4,
           "bob": true,
           "bobAmplitude": 4,
@@ -2071,7 +2071,7 @@
           "y": 905,
           "width": 540,
           "height": 174,
-          "src": "../../characters/text/mitsuba_v05_bubble_2.png",
+          "src": "../../assets/text/shorts-play/mitsuba_v05_bubble_2.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -2084,7 +2084,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -3039,7 +3039,7 @@
           "y": 192,
           "width": 880,
           "height": 136,
-          "src": "../../characters/text/mitsuba_headline_3.png",
+          "src": "../../assets/text/shorts-play/mitsuba_headline_3.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -3086,7 +3086,7 @@
           "y": 825,
           "width": 219,
           "height": 60,
-          "src": "../../characters/text/mitsuba_tag_stage.png",
+          "src": "../../assets/tags/mitsuba_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -3098,7 +3098,7 @@
           "x": 104,
           "y": 736,
           "height": 704,
-          "src": "../../characters/mitsuba_sheet.png",
+          "src": "../../characters/sheets/mitsuba_sheet.png",
           "pose": 5,
           "bob": true,
           "bobAmplitude": 4,
@@ -3113,7 +3113,7 @@
           "y": 880,
           "width": 470,
           "height": 285,
-          "src": "../../characters/text/mitsuba_v05_bubble_3.png",
+          "src": "../../assets/text/shorts-play/mitsuba_v05_bubble_3.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -3126,7 +3126,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -4080,7 +4080,7 @@
           "x": 77,
           "y": 421,
           "height": 960,
-          "src": "../../characters/mitsuba_sheet.png",
+          "src": "../../characters/sheets/mitsuba_sheet.png",
           "pose": 0,
           "bob": false,
           "bobAmplitude": 4,
@@ -4095,7 +4095,7 @@
           "y": 587,
           "width": 504,
           "height": 170,
-          "src": "../../characters/text/mitsuba_bubble_4.png",
+          "src": "../../assets/text/shorts-play/mitsuba_bubble_4.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -4108,7 +4108,7 @@
           "y": 227,
           "width": 584,
           "height": 293,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -4121,7 +4121,7 @@
           "y": 849,
           "width": 403,
           "height": 81,
-          "src": "../../characters/text/mitsuba_v05_store_search.png",
+          "src": "../../assets/text/shorts-play/mitsuba_v05_store_search.png",
           "opacity": 1,
           "resample": "lanczos"
         },

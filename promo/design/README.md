@@ -8,8 +8,19 @@
 - `shorts-modes.md`: ショートのモード紹介 (プロジェクトは `<名前>-modes`、以前の名前は mode01) と、1.5.0 の撮影の手順
 - `shorts-play.md`: ショートのプレイ紹介 (プロジェクトは `<名前>-play`、以前の名前は v05)。文字の画像の作り方もここ
 - `character-layout-comparison-v01.png`: 画面構成案 (5 人の見た目の基準)
+- `longform-layout.png`: 通常尺の画面構成案 (案 B。録画を全幅、下の帯にキャラと字幕)
 - `checks/`: 書き出しのコマやセーフエリアを確かめた画像
-- `codex/<回>/ref/`: Codex に頼んだ指示文。元の生成画像 (`out/`) と参考画像 (`ref/*.png`) は大きいので git に入れない
+  - `character-series-v01-final-frames.jpg`, `-v02-final-frames.jpg`: 途中の版 v01/v02 のコマ
+  - `character-series-v03-mitsuba-compare.jpg`: 構成案と v03 の比べ
+  - `character-series-v05-*.jpg`: プレイ紹介(v05)のコマ・セーフエリア・全員左に揃えた版・アウトロの直し
+  - `character-mode01-frames.jpg`, `-bigger-game.jpg`: モード紹介のコマ、ゲーム画面を大きくした版
+  - `character-sprites-v02-review.png`: v02 で切り出した 30 ポーズの確認
+- `codex/<回>/`: Codex に頼んだ指示文(`ref/*.txt`、git に入る)。参考画像(`ref/*.png`)と生成の下書き(`out/`)は大きいので git に入れない。採用したものは `promo/characters/` か `promo/assets/` に写してある
+  - `v03-mitsuba/`, `v05/`: プレイ紹介の文字の画像
+  - `mode01/`: モード紹介の文字の画像とタグ(`prompt-play-tags*.txt` はプレイ紹介のタグ)
+  - `longform-akane/`: 通常尺のアカネのバストアップ
+  - `longform-bust/`: 通常尺のほかの 4 人のバストアップ(`run.sh` で 1 枚ずつ順に作る)
+  - `old-layout/out/`: 以前 `build/assets/layout/` にあった作業用の写し(どこからも参照しない)
 
 ## 過去の版
 

@@ -115,7 +115,7 @@
           "y": 175,
           "width": 467,
           "height": 170,
-          "src": "../../characters/text/akane_v05_headline_1.png",
+          "src": "../../assets/text/shorts-play/akane_v05_headline_1.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -162,7 +162,7 @@
           "y": 825,
           "width": 215,
           "height": 60,
-          "src": "../../characters/text/akane_tag_stage.png",
+          "src": "../../assets/tags/akane_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -174,7 +174,7 @@
           "x": 96,
           "y": 737,
           "height": 704,
-          "src": "../../characters/akane_sheet.png",
+          "src": "../../characters/sheets/akane_sheet.png",
           "pose": 3,
           "bob": true,
           "bobAmplitude": 4,
@@ -189,7 +189,7 @@
           "y": 884,
           "width": 470,
           "height": 288,
-          "src": "../../characters/text/akane_v05_bubble_1.png",
+          "src": "../../assets/text/shorts-play/akane_v05_bubble_1.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -202,7 +202,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -317,7 +317,7 @@
           "y": 175,
           "width": 739,
           "height": 170,
-          "src": "../../characters/text/akane_v05_headline_2.png",
+          "src": "../../assets/text/shorts-play/akane_v05_headline_2.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -364,7 +364,7 @@
           "y": 825,
           "width": 215,
           "height": 60,
-          "src": "../../characters/text/akane_tag_stage.png",
+          "src": "../../assets/tags/akane_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -376,7 +376,7 @@
           "x": 97,
           "y": 748,
           "height": 692,
-          "src": "../../characters/akane_sheet.png",
+          "src": "../../characters/sheets/akane_sheet.png",
           "pose": 1,
           "bob": true,
           "bobAmplitude": 4,
@@ -391,7 +391,7 @@
           "y": 900,
           "width": 470,
           "height": 239,
-          "src": "../../characters/text/akane_v05_bubble_2.png",
+          "src": "../../assets/text/shorts-play/akane_v05_bubble_2.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -404,7 +404,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -519,7 +519,7 @@
           "y": 175,
           "width": 753,
           "height": 170,
-          "src": "../../characters/text/akane_v05_headline_3.png",
+          "src": "../../assets/text/shorts-play/akane_v05_headline_3.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -566,7 +566,7 @@
           "y": 825,
           "width": 215,
           "height": 60,
-          "src": "../../characters/text/akane_tag_stage.png",
+          "src": "../../assets/tags/akane_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -578,7 +578,7 @@
           "x": 97,
           "y": 770,
           "height": 672,
-          "src": "../../characters/akane_sheet.png",
+          "src": "../../characters/sheets/akane_sheet.png",
           "pose": 4,
           "bob": true,
           "bobAmplitude": 4,
@@ -593,7 +593,7 @@
           "y": 880,
           "width": 470,
           "height": 298,
-          "src": "../../characters/text/akane_v05_bubble_3.png",
+          "src": "../../assets/text/shorts-play/akane_v05_bubble_3.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -606,7 +606,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -720,7 +720,7 @@
           "x": 81,
           "y": 421,
           "height": 960,
-          "src": "../../characters/akane_sheet.png",
+          "src": "../../characters/sheets/akane_sheet.png",
           "pose": 5,
           "bob": false,
           "bobAmplitude": 4,
@@ -735,7 +735,7 @@
           "y": 547,
           "width": 406,
           "height": 250,
-          "src": "../../characters/text/akane_v05_bubble_4.png",
+          "src": "../../assets/text/shorts-play/akane_v05_bubble_4.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -748,7 +748,7 @@
           "y": 227,
           "width": 584,
           "height": 293,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -761,7 +761,7 @@
           "y": 849,
           "width": 423,
           "height": 81,
-          "src": "../../characters/text/akane_v05_store_search.png",
+          "src": "../../assets/text/shorts-play/akane_v05_store_search.png",
           "opacity": 1,
           "resample": "lanczos"
         },

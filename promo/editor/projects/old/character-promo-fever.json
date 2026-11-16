@@ -68,7 +68,7 @@
           "x": 339,
           "y": 860,
           "height": 795,
-          "src": "../../characters/character_sheet_v2.png",
+          "src": "../../characters/sheets/old/character_sheet_v2.png",
           "pose": 4,
           "bob": true,
           "bobAmplitude": 4
@@ -135,7 +135,7 @@
           "y": 888,
           "width": 304,
           "height": 152,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -219,7 +219,7 @@
           "x": 115,
           "y": 795,
           "height": 602,
-          "src": "../../characters/character_sheet_v2.png",
+          "src": "../../characters/sheets/old/character_sheet_v2.png",
           "pose": 1,
           "bob": true,
           "bobAmplitude": 4
@@ -286,7 +286,7 @@
           "y": 888,
           "width": 304,
           "height": 152,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -370,7 +370,7 @@
           "x": 117,
           "y": 775,
           "height": 602,
-          "src": "../../characters/character_sheet_v2.png",
+          "src": "../../characters/sheets/old/character_sheet_v2.png",
           "pose": 2,
           "bob": true,
           "bobAmplitude": 4
@@ -395,7 +395,7 @@
           "y": 260,
           "width": 548,
           "height": 275,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -476,7 +476,7 @@
           "x": 87,
           "y": 545,
           "height": 764,
-          "src": "../../characters/character_sheet_v2.png",
+          "src": "../../characters/sheets/old/character_sheet_v2.png",
           "pose": 0,
           "bob": false,
           "bobAmplitude": 4

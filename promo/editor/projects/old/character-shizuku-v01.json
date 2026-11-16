@@ -144,7 +144,7 @@
           "x": 110,
           "y": 880,
           "height": 480,
-          "src": "../../characters/shizuku_sheet.png",
+          "src": "../../characters/sheets/shizuku_sheet.png",
           "pose": 0,
           "bob": false,
           "bobAmplitude": 4
@@ -186,7 +186,7 @@
           "y": 1070,
           "width": 333,
           "height": 167,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -371,7 +371,7 @@
           "x": 110,
           "y": 880,
           "height": 480,
-          "src": "../../characters/shizuku_sheet.png",
+          "src": "../../characters/sheets/shizuku_sheet.png",
           "pose": 1,
           "bob": false,
           "bobAmplitude": 4
@@ -413,7 +413,7 @@
           "y": 1070,
           "width": 333,
           "height": 167,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -598,7 +598,7 @@
           "x": 110,
           "y": 880,
           "height": 480,
-          "src": "../../characters/shizuku_sheet.png",
+          "src": "../../characters/sheets/shizuku_sheet.png",
           "pose": 4,
           "bob": false,
           "bobAmplitude": 4
@@ -640,7 +640,7 @@
           "y": 1070,
           "width": 333,
           "height": 167,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -795,7 +795,7 @@
           "x": 110,
           "y": 680,
           "height": 480,
-          "src": "../../characters/shizuku_sheet.png",
+          "src": "../../characters/sheets/shizuku_sheet.png",
           "pose": 5,
           "bob": false,
           "bobAmplitude": 4
@@ -809,7 +809,7 @@
           "y": 810,
           "width": 333,
           "height": 167,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },

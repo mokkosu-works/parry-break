@@ -7,7 +7,7 @@
     python3 promo/build/create_mode_videos.py [名前 ...]
 
 既にあるプロジェクトは上書きせず飛ばす。文字の画像 (作り方は promo/design/shorts-play.md) を
-promo/characters/text/<名前>_mode01_*.png に置いてから実行する。
+promo/assets/text/shorts-modes/<名前>_mode01_*.png に置いてから実行する。
 """
 import copy
 import json

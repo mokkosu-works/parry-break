@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]  # promo/build/old/ から
 OUT = ROOT / "promo/build/out/character-promo-v12.mp4"
-SHEET = ROOT / "promo/characters/character_sheet_v2.png"
+SHEET = ROOT / "promo/characters/sheets/old/character_sheet_v2.png"
 APP_ICON = ROOT / "app/branding/icons/icon-512.png"
 FONT = ROOT / "promo/build/fonts/DotGothic16-Regular.ttf"
 PIXEL_FONT = ROOT / "app/assets/fonts/Silkscreen-Bold.ttf"

@@ -6,7 +6,9 @@
 
 ```
 capture/    実機の画面録画 (capture.sh、capture_mode.sh、raw/、apk/)
-characters/ 5人の表情差分、プロフィール、声の割り当て、文字の画像 (text/)
+characters/ キャラの絵 (sheets/、bust/)、プロフィール、反応集、声の割り当て
+assets/     動画に載せるキャラ以外の画像 (文字・吹き出し・タグ・ロゴ)
+longform/   通常尺の道具 (bust.py: バストアップの口パク素材を作る)
 editor/     キャラ動画の編集ツール (server.py、render.py、check_layout.py)。projects/ に現役のプロジェクト、projects/old/ に過去の版
 build/      動画の組み立て (create_*.py、build.py、specs/、fonts/、assets/、out/)。old/ に使わなくなったスクリプト
 design/     企画・決めごと・確認画像。old/ に過去の版の記録
@@ -16,6 +18,24 @@ posts/      動画の ID ごとの投稿文、一覧.md
 records/    videos.csv、youtube_uploads.csv
 ```
 
+## 画像の置き場所
+
+新しい種類の画像を置くときは、この表に 1 行足す。ルール: 種類で分ける、動画の種類ごとにフォルダを分ける、使わなくなったものは同じ場所の `old/` へ(消さない)、ファイル名は変えない、動画は Codex の下書き(`out/`)を直接参照しない。
+
+| 場所 | 中身 | git | 何が作るか |
+|---|---|---|---|
+| `characters/sheets/` | 全身の 6 枠シート `<名前>_sheet.png`(ショートで使う)、色の一覧 `color_roster.png`。`old/character_sheet_v2.png` は旧ミツバ | 入る | Codex(指示文は残っていない、初期の素材) |
+| `characters/bust/` | 通常尺のバストアップ。元のシート `<名前>_bust_sheet{1,2,3}.png`・`<名前>_bust_blink.png` と、合成した `<名前>/<表情>_{closed,open}.png`・`normal_blink.png` | 入る | Codex(`design/codex/longform-akane/`・`longform-bust/`)→ `longform/bust.py` |
+| `assets/text/shorts-play/` | プレイ紹介の見出し・吹き出し・「ストアで検索」(`<名前>_v05_*.png` など) | 入る | Codex(`design/codex/v05/`) |
+| `assets/text/shorts-modes/` | モード紹介の見出し・吹き出し(`<名前>_mode01_*.png`) | 入る | Codex(`design/codex/mode01/`) |
+| `assets/tags/` | モードのタグ `<名前>_tag_<stage\|endless\|daily\|practice>.png`(5 人 × 4) | 入る | Codex の 5 枚を土台に色を塗り替え |
+| `assets/logo/title-logo.png` | ゲームの実物のタイトルロゴ | 入る | `build/create_title_logo.py` |
+| `design/longform-layout.png`、`design/character-layout-comparison-v01.png` | 画面構成案(通常尺・ショート) | 入る | 手で作った見本 |
+| `design/checks/` | 書き出しのコマなどの確認画像 | 入る | 確認のたびに |
+| `design/codex/<回>/` | Codex の指示文(`ref/*.txt`)。参考画像(`ref/*.png`)と生成の下書き(`out/`) | 指示文だけ | Codex。`old-layout/out/` は以前の作業用の写し(どこからも参照しない) |
+| `build/assets/badges/`、`build/fonts/` | ストアの公式バッジ、フォント | 入らない | `build/fetch_assets.sh` |
+| `capture/raw/`、`build/out/` | 録画、書き出した動画 | 入らない | `capture/*.sh`、編集ツール |
+
 キャラクター素材は [characters/README.md](characters/README.md)、性格・口調・表情の使い分けは [characters/profiles.md](characters/profiles.md) を参照する。
 
 ## 現役: キャラ動画 (ショート、縦長 24 秒)
@@ -24,7 +44,7 @@ records/    videos.csv、youtube_uploads.csv
   - **モード紹介** `promo/editor/projects/<名前>-modes.json`: 担当のモードを紹介する (ミツバはゲーム全体の案内)。作り方と決めごとは [design/shorts-modes.md](design/shorts-modes.md)。
   - **プレイ紹介** `promo/editor/projects/<名前>-play.json`: 打ち返し・崩れの楽しさを見せる。作り方と決めごとは [design/shorts-play.md](design/shorts-play.md)。
   - 以前の名前は、モード紹介が mode01、プレイ紹介が v05。途中の版 v01/v02 と、投稿済みのミツバの動画 (`character-promo*`、v009〜v012) は `projects/old/` にあり、編集ツールの一覧には出ない。
-- 見出し・吹き出し・タグの文字は画像 (`promo/characters/text/`) で、文言を変えるときは Codex で作り直す。モードのタグは `<名前>_tag_<stage|endless|daily|practice>.png` (5 人 × 4 モード)。
+- 見出し・吹き出し・タグの文字は画像 (`promo/assets/`) で、文言を変えるときは Codex で作り直す。モードのタグは `<名前>_tag_<stage|endless|daily|practice>.png` (5 人 × 4 モード)。
 - 編集ツール (標準ライブラリ + Pillow + ffmpeg。npm などは不要):
   ```sh
   python3 promo/editor/server.py      # http://127.0.0.1:8765/ を開く (127.0.0.1 だけで待ち受ける)

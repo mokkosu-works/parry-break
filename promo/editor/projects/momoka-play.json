@@ -100,7 +100,7 @@
           "y": 175,
           "width": 612,
           "height": 170,
-          "src": "../../characters/text/momoka_v05_headline_1.png",
+          "src": "../../assets/text/shorts-play/momoka_v05_headline_1.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -147,7 +147,7 @@
           "y": 825,
           "width": 215,
           "height": 60,
-          "src": "../../characters/text/momoka_tag_stage.png",
+          "src": "../../assets/tags/momoka_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -159,7 +159,7 @@
           "x": 105,
           "y": 778,
           "height": 663,
-          "src": "../../characters/momoka_sheet.png",
+          "src": "../../characters/sheets/momoka_sheet.png",
           "pose": 0,
           "bob": true,
           "bobAmplitude": 4,
@@ -174,7 +174,7 @@
           "y": 880,
           "width": 464,
           "height": 300,
-          "src": "../../characters/text/momoka_v05_bubble_1_left.png",
+          "src": "../../assets/text/shorts-play/momoka_v05_bubble_1_left.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -187,7 +187,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -287,7 +287,7 @@
           "y": 175,
           "width": 636,
           "height": 170,
-          "src": "../../characters/text/momoka_v05_headline_2.png",
+          "src": "../../assets/text/shorts-play/momoka_v05_headline_2.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -334,7 +334,7 @@
           "y": 825,
           "width": 215,
           "height": 60,
-          "src": "../../characters/text/momoka_tag_stage.png",
+          "src": "../../assets/tags/momoka_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -346,7 +346,7 @@
           "x": 88,
           "y": 778,
           "height": 663,
-          "src": "../../characters/momoka_sheet.png",
+          "src": "../../characters/sheets/momoka_sheet.png",
           "pose": 1,
           "bob": true,
           "bobAmplitude": 4,
@@ -361,7 +361,7 @@
           "y": 880,
           "width": 452,
           "height": 300,
-          "src": "../../characters/text/momoka_v05_bubble_2_left.png",
+          "src": "../../assets/text/shorts-play/momoka_v05_bubble_2_left.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -374,7 +374,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -474,7 +474,7 @@
           "y": 175,
           "width": 492,
           "height": 170,
-          "src": "../../characters/text/momoka_v05_headline_3.png",
+          "src": "../../assets/text/shorts-play/momoka_v05_headline_3.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -521,7 +521,7 @@
           "y": 825,
           "width": 215,
           "height": 60,
-          "src": "../../characters/text/momoka_tag_stage.png",
+          "src": "../../assets/tags/momoka_tag_stage.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -533,7 +533,7 @@
           "x": 99,
           "y": 770,
           "height": 670,
-          "src": "../../characters/momoka_sheet.png",
+          "src": "../../characters/sheets/momoka_sheet.png",
           "pose": 4,
           "bob": true,
           "bobAmplitude": 4,
@@ -548,7 +548,7 @@
           "y": 880,
           "width": 435,
           "height": 300,
-          "src": "../../characters/text/momoka_v05_bubble_3_left.png",
+          "src": "../../assets/text/shorts-play/momoka_v05_bubble_3_left.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -561,7 +561,7 @@
           "y": 1245,
           "width": 359,
           "height": 180,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -660,7 +660,7 @@
           "x": 77,
           "y": 421,
           "height": 960,
-          "src": "../../characters/momoka_sheet.png",
+          "src": "../../characters/sheets/momoka_sheet.png",
           "pose": 5,
           "bob": false,
           "bobAmplitude": 4,
@@ -675,7 +675,7 @@
           "y": 547,
           "width": 377,
           "height": 250,
-          "src": "../../characters/text/momoka_v05_bubble_4.png",
+          "src": "../../assets/text/shorts-play/momoka_v05_bubble_4.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -688,7 +688,7 @@
           "y": 227,
           "width": 584,
           "height": 293,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -701,7 +701,7 @@
           "y": 849,
           "width": 452,
           "height": 81,
-          "src": "../../characters/text/momoka_v05_store_search.png",
+          "src": "../../assets/text/shorts-play/momoka_v05_store_search.png",
           "opacity": 1,
           "resample": "lanczos"
         },

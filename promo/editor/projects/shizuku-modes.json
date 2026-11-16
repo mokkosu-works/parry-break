@@ -85,7 +85,7 @@
           "y": 140,
           "width": 449,
           "height": 140,
-          "src": "../../characters/text/shizuku_mode01_headline_1.png",
+          "src": "../../assets/text/shorts-modes/shizuku_mode01_headline_1.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -132,7 +132,7 @@
           "y": 794,
           "width": 218,
           "height": 60,
-          "src": "../../characters/text/shizuku_tag_practice.png",
+          "src": "../../assets/tags/shizuku_tag_practice.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -144,7 +144,7 @@
           "x": 89,
           "y": 833,
           "height": 608,
-          "src": "../../characters/shizuku_sheet.png",
+          "src": "../../characters/sheets/shizuku_sheet.png",
           "pose": 0,
           "bob": false,
           "bobAmplitude": 4,
@@ -159,7 +159,7 @@
           "y": 890,
           "width": 470,
           "height": 209,
-          "src": "../../characters/text/shizuku_mode01_bubble_1.png",
+          "src": "../../assets/text/shorts-modes/shizuku_mode01_bubble_1.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -172,7 +172,7 @@
           "y": 1245,
           "width": 355,
           "height": 178,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -257,7 +257,7 @@
           "y": 140,
           "width": 483,
           "height": 140,
-          "src": "../../characters/text/shizuku_mode01_headline_2.png",
+          "src": "../../assets/text/shorts-modes/shizuku_mode01_headline_2.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -304,7 +304,7 @@
           "y": 794,
           "width": 218,
           "height": 60,
-          "src": "../../characters/text/shizuku_tag_practice.png",
+          "src": "../../assets/tags/shizuku_tag_practice.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -316,7 +316,7 @@
           "x": 90,
           "y": 833,
           "height": 607,
-          "src": "../../characters/shizuku_sheet.png",
+          "src": "../../characters/sheets/shizuku_sheet.png",
           "pose": 5,
           "bob": false,
           "bobAmplitude": 4,
@@ -331,7 +331,7 @@
           "y": 890,
           "width": 470,
           "height": 208,
-          "src": "../../characters/text/shizuku_mode01_bubble_2.png",
+          "src": "../../assets/text/shorts-modes/shizuku_mode01_bubble_2.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -344,7 +344,7 @@
           "y": 1245,
           "width": 355,
           "height": 178,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -429,7 +429,7 @@
           "y": 140,
           "width": 458,
           "height": 140,
-          "src": "../../characters/text/shizuku_mode01_headline_3.png",
+          "src": "../../assets/text/shorts-modes/shizuku_mode01_headline_3.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -476,7 +476,7 @@
           "y": 794,
           "width": 218,
           "height": 60,
-          "src": "../../characters/text/shizuku_tag_practice.png",
+          "src": "../../assets/tags/shizuku_tag_practice.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -488,7 +488,7 @@
           "x": 86,
           "y": 834,
           "height": 606,
-          "src": "../../characters/shizuku_sheet.png",
+          "src": "../../characters/sheets/shizuku_sheet.png",
           "pose": 1,
           "bob": false,
           "bobAmplitude": 4,
@@ -503,7 +503,7 @@
           "y": 891,
           "width": 470,
           "height": 207,
-          "src": "../../characters/text/shizuku_mode01_bubble_3.png",
+          "src": "../../assets/text/shorts-modes/shizuku_mode01_bubble_3.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -516,7 +516,7 @@
           "y": 1245,
           "width": 355,
           "height": 178,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         }
@@ -600,7 +600,7 @@
           "x": 77,
           "y": 480,
           "height": 960,
-          "src": "../../characters/shizuku_sheet.png",
+          "src": "../../characters/sheets/shizuku_sheet.png",
           "pose": 4,
           "bob": false,
           "bobAmplitude": 4,
@@ -615,7 +615,7 @@
           "y": 572,
           "width": 453,
           "height": 200,
-          "src": "../../characters/text/shizuku_mode01_bubble_4.png",
+          "src": "../../assets/text/shorts-modes/shizuku_mode01_bubble_4.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -628,7 +628,7 @@
           "y": 227,
           "width": 584,
           "height": 293,
-          "src": "../../build/assets/layout/title-logo.png",
+          "src": "../../assets/logo/title-logo.png",
           "opacity": 1,
           "resample": "bicubic"
         },
@@ -641,7 +641,7 @@
           "y": 856,
           "width": 379,
           "height": 67,
-          "src": "../../characters/text/shizuku_v05_store_search.png",
+          "src": "../../assets/text/shorts-play/shizuku_v05_store_search.png",
           "opacity": 1,
           "resample": "lanczos"
         },

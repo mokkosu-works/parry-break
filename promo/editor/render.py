@@ -136,8 +136,9 @@ def to_rel(path):
 def list_assets():
     """画面の素材選びに出す、リポジトリ内の既存ファイル。"""
     groups = {
-        "image": [ROOT / "promo/characters", ROOT / "app/branding/icons", ROOT / "promo/build/assets/badges",
-                  ROOT / "promo/characters/text"],
+        "image": [ROOT / "promo/characters/sheets", ROOT / "app/branding/icons", ROOT / "promo/build/assets/badges",
+                  ROOT / "promo/assets/text/shorts-play", ROOT / "promo/assets/text/shorts-modes",
+                  ROOT / "promo/assets/tags", ROOT / "promo/assets/logo"],
         "video": [ROOT / "promo/capture/raw"],
         "font": [ROOT / "promo/build/fonts", ROOT / "app/assets/fonts"],
     }

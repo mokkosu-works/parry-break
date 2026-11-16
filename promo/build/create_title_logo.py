@@ -3,7 +3,7 @@
 
 PARRY (からし色、れんが色の影) と BREAK (空色、すみれ色の影) の間に、ボールの軌跡の点線。
 動画のロゴは、この画像を使う。ゲームのロゴを変えたら、このスクリプトの値を合わせて作り直す。
-出力: promo/build/assets/layout/title-logo.png (git に入れない素材。既存のファイルは上書きしない場合は --force なしで止まる)
+出力: promo/assets/logo/title-logo.png (git に入れない素材。既存のファイルは上書きしない場合は --force なしで止まる)
 """
 import argparse
 import math
@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 FONT = ROOT / "app/assets/fonts/Silkscreen-Bold.ttf"
-OUT = ROOT / "promo/build/assets/layout/title-logo.png"
+OUT = ROOT / "promo/assets/logo/title-logo.png"
 
 MUSTARD, BRICK = (0xFF, 0xC4, 0x14), (0xF2, 0x38, 0x1F)  # Palette.main / sub
 SKY, VIOLET = (0x2E, 0x7B, 0xFF), (0x9A, 0x45, 0xFF)  # Palette.accent / Dot.violet
