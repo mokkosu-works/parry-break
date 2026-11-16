@@ -1,0 +1,113 @@
+{
+ "manifest_version": "1.0",
+ "name": "zonoko",
+ "description": "OpenGameArtのCC0英語ボイスから音声クローンツールZonosを使用して生成した日本語ボイスを学習させたものです。\n元ボイスのライセンスを継承してcc0とします\n",
+ "creators": [
+  "zgock"
+ ],
+ "model_architecture": "Style-Bert-VITS2 (JP-Extra)",
+ "model_format": "ONNX",
+ "training_epochs": 100,
+ "training_steps": 4300,
+ "uuid": "7fc08a41-b64d-456d-8b22-8e1284674775",
+ "version": "1.0.0",
+ "speakers": [
+  {
+   "name": "zonoko",
+   "supported_languages": [
+    "ja"
+   ],
+   "uuid": "8e2dfde9-a155-4bd8-b451-80832ad5e8ac",
+   "local_id": 0,
+   "styles": [
+    {
+     "name": "ノーマル",
+     "icon": null,
+     "local_id": 0,
+     "voice_samples": [
+      {
+       "transcript": "こんにちは、初めまして。あなたの名前はなんていうの？"
+      },
+      {
+       "transcript": "どうして私の意見を無視するの？許せない！ムカつく！あんたなんか死ねばいいのに。"
+      },
+      {
+       "transcript": "あなたがいなくなって、私は一人になっちゃって、泣いちゃいそうなほど悲しいです。"
+      }
+     ]
+    },
+    {
+     "name": "A",
+     "icon": null,
+     "local_id": 1,
+     "voice_samples": [
+      {
+       "transcript": "こんにちは、初めまして。あなたの名前はなんていうの？"
+      },
+      {
+       "transcript": "どうして私の意見を無視するの？許せない！ムカつく！あんたなんか死ねばいいのに。"
+      },
+      {
+       "transcript": "あなたがいなくなって、私は一人になっちゃって、泣いちゃいそうなほど悲しいです。"
+      }
+     ]
+    },
+    {
+     "name": "B",
+     "icon": null,
+     "local_id": 2,
+     "voice_samples": [
+      {
+       "transcript": "こんにちは、初めまして。あなたの名前はなんていうの？"
+      },
+      {
+       "transcript": "どうして私の意見を無視するの？許せない！ムカつく！あんたなんか死ねばいいのに。"
+      },
+      {
+       "transcript": "あなたがいなくなって、私は一人になっちゃって、泣いちゃいそうなほど悲しいです。"
+      }
+     ]
+    },
+    {
+     "name": "C",
+     "icon": null,
+     "local_id": 3,
+     "voice_samples": [
+      {
+       "transcript": "こんにちは、初めまして。あなたの名前はなんていうの？"
+      },
+      {
+       "transcript": "どうして私の意見を無視するの？許せない！ムカつく！あんたなんか死ねばいいのに。"
+      },
+      {
+       "transcript": "あなたがいなくなって、私は一人になっちゃって、泣いちゃいそうなほど悲しいです。"
+      }
+     ]
+    },
+    {
+     "name": "D",
+     "icon": null,
+     "local_id": 4,
+     "voice_samples": [
+      {
+       "transcript": "こんにちは、初めまして。あなたの名前はなんていうの？"
+      },
+      {
+       "transcript": "どうして私の意見を無視するの？許せない！ムカつく！あんたなんか死ねばいいのに。"
+      },
+      {
+       "transcript": "あなたがいなくなって、私は一人になっちゃって、泣いちゃいそうなほど悲しいです。"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "styles": [
+  "ノーマル",
+  "A",
+  "B",
+  "C",
+  "D"
+ ]
+}

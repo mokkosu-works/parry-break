@@ -1,0 +1,37 @@
+{
+ "manifest_version": "1.0",
+ "name": "花音",
+ "description": "研究開発用の試作音声合成モデル。自由に使用可",
+ "creators": [],
+ "model_architecture": "Style-Bert-VITS2 (JP-Extra)",
+ "model_format": "ONNX",
+ "training_epochs": null,
+ "training_steps": null,
+ "uuid": "a670e6b8-0852-45b2-8704-1bc9862f2fe6",
+ "version": "1.0.0",
+ "speakers": [
+  {
+   "name": "花音",
+   "supported_languages": [
+    "ja"
+   ],
+   "uuid": "b1ca560f-f212-4e67-ab7d-0a4f5afb75a8",
+   "local_id": 0,
+   "styles": [
+    {
+     "name": "ノーマル",
+     "icon": null,
+     "local_id": 0,
+     "voice_samples": [
+      {
+       "transcript": "うーん！音声ってむずかしいのです。"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "styles": [
+  "ノーマル"
+ ]
+}

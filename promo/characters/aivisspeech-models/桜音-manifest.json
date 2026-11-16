@@ -1,0 +1,43 @@
+{
+ "manifest_version": "1.0",
+ "name": "桜音",
+ "description": "研究開発用の試作音声合成モデル。自由に使用可",
+ "creators": [],
+ "model_architecture": "Style-Bert-VITS2 (JP-Extra)",
+ "model_format": "ONNX",
+ "training_epochs": null,
+ "training_steps": null,
+ "uuid": "3328da9a-8124-4619-a853-f7fc2f37889f",
+ "version": "1.0.0",
+ "speakers": [
+  {
+   "name": "桜音",
+   "supported_languages": [
+    "ja"
+   ],
+   "uuid": "91e8582b-daf8-4eb8-9d34-7cffae50d93f",
+   "local_id": 0,
+   "styles": [
+    {
+     "name": "ノーマル",
+     "icon": null,
+     "local_id": 0,
+     "voice_samples": [
+      {
+       "transcript": "スマホの電話の声は本人の声ではなく、つくられた声が相手の耳に届けられているんだよ？"
+      },
+      {
+       "transcript": "なみだはにんげんのつくることのできる一番小さな海です"
+      },
+      {
+       "transcript": "えっちなのはいけないと思います！"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "styles": [
+  "ノーマル"
+ ]
+}

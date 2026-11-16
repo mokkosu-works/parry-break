@@ -1,0 +1,39 @@
+{
+ "manifest_version": "1.0",
+ "name": "まい",
+ "description": "研究開発用の試作音声合成モデル。自由に使用可",
+ "creators": [],
+ "model_architecture": "Style-Bert-VITS2 (JP-Extra)",
+ "model_format": "ONNX",
+ "training_epochs": null,
+ "training_steps": null,
+ "uuid": "e9339137-2ae3-4d41-9394-fb757a7e61e6",
+ "version": "1.0.0",
+ "speakers": [
+  {
+   "name": "まい",
+   "supported_languages": [
+    "ja"
+   ],
+   "uuid": "41b7785f-35cc-4089-a360-dd8a63da5e75",
+   "local_id": 0,
+   "styles": [
+    {
+     "name": "ノーマル",
+     "local_id": 0,
+     "voice_samples": [
+      {
+       "transcript": "ばりうれしか！あんたと一緒におれるなんて、ほんと幸せばい。"
+      },
+      {
+       "transcript": "なんでそんなことすんねん！ほんまに腹立つわ！"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "styles": [
+  "ノーマル"
+ ]
+}

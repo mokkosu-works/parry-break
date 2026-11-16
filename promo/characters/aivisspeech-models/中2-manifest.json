@@ -1,0 +1,37 @@
+{
+ "manifest_version": "1.0",
+ "name": "中2",
+ "description": "研究開発用の試作音声合成モデル。自由に使用可",
+ "creators": [],
+ "model_architecture": "Style-Bert-VITS2 (JP-Extra)",
+ "model_format": "ONNX",
+ "training_epochs": null,
+ "training_steps": null,
+ "uuid": "9107b8b6-1ed1-43f5-bebe-0de4df4d229d",
+ "version": "1.0.0",
+ "speakers": [
+  {
+   "name": "中2",
+   "supported_languages": [
+    "ja"
+   ],
+   "uuid": "27dce2b7-b033-4b82-a722-d18ddba66d94",
+   "local_id": 0,
+   "styles": [
+    {
+     "name": "ノーマル",
+     "icon": null,
+     "local_id": 0,
+     "voice_samples": [
+      {
+       "transcript": "夜空に浮かぶ無数の星たち。その中でも、一際輝く星があった。子供の頃、祖父がよく「一番光る星は願いを叶えてくれる」と話してくれた。いつも信じきれなかったその話を、ふと今、試してみたくなった。"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "styles": [
+  "ノーマル"
+ ]
+}
