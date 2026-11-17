@@ -726,6 +726,15 @@ _voice_cache = {}
 _voice_lock = threading.Lock()
 
 
+# AivisSpeech は「1-1」のハイフンを引き算と読む(イチ マイナス イチ)。ステージ番号は「1の1」と読ませる。
+STAGE_NUMBER = re.compile(r"(?<![\d.\-−‐–])(\d{1,2})[-−‐–](\d{1,2})(?![\d.\-−‐–])")
+
+
+def speech_text(text):
+    """読み上げ用の文。字幕・台本の文字は変えず、エンジンに渡す文だけを直す。"""
+    return STAGE_NUMBER.sub(r"\1の\2", text)
+
+
 def synthesize(text, profile="mitsuba"):
     """台詞 1 つを AivisSpeech で作る。(wav のバイト列, 秒)。同じ台詞は作り直さない。"""
     settings = VOICE_PROFILES[profile]
@@ -734,7 +743,7 @@ def synthesize(text, profile="mitsuba"):
         if key in _voice_cache:
             return _voice_cache[key]
     try:
-        params = urllib.parse.urlencode({"text": text, "speaker": settings["speaker"]})
+        params = urllib.parse.urlencode({"text": speech_text(text), "speaker": settings["speaker"]})
         query = json.loads(_engine(f"/audio_query?{params}", b""))
         for field in ("speedScale", "intonationScale", "pitchScale", "tempoDynamicsScale"):
             query[field] = settings[field]
