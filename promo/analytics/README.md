@@ -1,5 +1,7 @@
 # アナリティクス
 
+> **自動取得**: YouTube と Google Play の数字は、GitHub Actions が毎週取って時系列で蓄積し、レポートと提案つきの引き渡しファイルにまとめる([docs/analytics-pipeline.md](../../docs/analytics-pipeline.md))。この README の CSV の取り込みは、API にない「視聴を継続 %」(視聴 vs スワイプ)が要るときだけ使う。
+
 YouTube Studio の「アナリティクス」→ 詳細モード で、指標を増やして (視聴を継続 %、ユニークリーチ、平均視聴割合など) 書き出した zip を `exports/` に置く。
 
 ```sh

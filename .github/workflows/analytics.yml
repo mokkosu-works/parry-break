@@ -1,0 +1,175 @@
+# アナリティクスの週次: 収集 → 蓄積 → 分析 → レポート。仕組みは docs/analytics-pipeline.md、コードは tools/analytics/。
+# 時系列の正本は、非公開のデータ用リポジトリ mokkosu-works/analytics (store/ と reports/)。
+# このリポジトリは公開なので、ログに数字を出さない (スクリプトは件数だけを出す。Claude の出力も表示しない)。
+name: analytics
+
+on:
+  schedule:
+    # 月曜 6:30 (日本時間) = 日曜 21:30 (UTC)。既定ブランチ (dev) のこのファイルで動く
+    - cron: '30 21 * * 0'
+  workflow_dispatch:
+    inputs:
+      backfill_since:
+        description: '過去分を遡って入れる開始日 (YYYY-MM-DD)。空なら直近 14 日'
+        required: false
+        default: ''
+      notify:
+        description: 'Discord に送る'
+        type: boolean
+        default: true
+
+# GITHUB_TOKEN は既定で読み取りだけにする
+permissions:
+  contents: read
+
+# 同時に 2 つ動くと、データ用リポジトリへの push が競合するので、1 つずつ
+concurrency:
+  group: analytics
+  cancel-in-progress: false
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # 鍵は environment の secret に置く (このジョブだけが読める)
+    environment: analytics
+    permissions:
+      contents: read
+      id-token: write  # claude-code-action が使う
+    outputs:
+      sent: ${{ steps.send.outputs.sent }}
+    env:
+      DATA_REPO: git@github.com:mokkosu-works/analytics.git
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # データ用リポジトリの deploy key は、使う step の中だけでファイルにして、終わったら消す
+      # (あとの Claude の step から読めないように)
+      - name: データ用リポジトリを取る
+        env:
+          DEPLOY_KEY: ${{ secrets.ANALYTICS_DATA_DEPLOY_KEY }}
+        run: |
+          set -euo pipefail
+          k="$RUNNER_TEMP/data_key"; umask 077; printf '%s\n' "$DEPLOY_KEY" > "$k"
+          trap 'rm -f "$k"' EXIT
+          GIT_SSH_COMMAND="ssh -i $k -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" git clone --depth 50 -q "$DATA_REPO" data
+          mkdir -p work
+
+      - name: 収集 (YouTube・Google Play・App Store → store/)
+        id: collect
+        continue-on-error: true  # 一部の取得に失敗しても、取れた分の保存と、レポートは続ける (失敗は通知に出る)
+        working-directory: tools/analytics
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          PLAY_SA_JSON: ${{ secrets.PLAY_SA_JSON }}
+          PLAY_BUCKET: ${{ secrets.PLAY_BUCKET }}
+          PLAY_PACKAGES: ${{ vars.PLAY_PACKAGES }}
+          # App Store は分析専用の鍵 (リリース用の ASC_* は使わない)
+          ASC_ISSUER_ID: ${{ secrets.ASC_ANALYTICS_ISSUER_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_ANALYTICS_KEY_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_ANALYTICS_KEY_P8 }}
+          ASC_BUNDLE_ID: ${{ vars.ASC_BUNDLE_ID || 'com.watsuwo.parrybreak' }}
+          BACKFILL: ${{ inputs.backfill_since }}
+        run: |
+          if [ -n "$BACKFILL" ]; then
+            python3 collect.py backfill --root "$GITHUB_WORKSPACE/data" --since "$BACKFILL"
+          else
+            python3 collect.py run --root "$GITHUB_WORKSPACE/data"
+          fi
+
+      - name: 事実を作る (facts.json)
+        working-directory: tools/analytics
+        run: |
+          python3 facts.py --root "$GITHUB_WORKSPACE/data" --promo "$GITHUB_WORKSPACE/promo" --out "$GITHUB_WORKSPACE/work/facts.json"
+          cp "$GITHUB_WORKSPACE/data/reports/latest.json" "$GITHUB_WORKSPACE/work/prev_handoff.json" 2>/dev/null || echo '"初回"' > "$GITHUB_WORKSPACE/work/prev_handoff.json"
+          cp "$GITHUB_WORKSPACE/data/store/experiments.jsonl" "$GITHUB_WORKSPACE/work/experiments.jsonl" 2>/dev/null || echo '記録なし' > "$GITHUB_WORKSPACE/work/experiments.jsonl"
+
+      # Claude は API の鍵を持たない。読めるのは work/ のファイルだけ (Read のみ)。出力はログに出さない
+      - name: 分析 (Claude)
+        id: claude
+        continue-on-error: true  # 分析に失敗しても、事実だけでレポートを出す
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # 指示の本文は tools/analytics/prompt.md (読むファイル、守ること、返す JSON の形)
+          prompt: |
+            tools/analytics/prompt.md を Read で読み、その指示どおりに今週の分析をして、最後に JSON だけを返す。
+          # 公開リポジトリなので、Claude のやりとり (数字を含む) をログに出さない
+          show_full_output: false
+          claude_args: >-
+            --allowedTools "Read"
+            --max-turns 15
+
+      - name: 検証してレポートを作る
+        working-directory: tools/analytics
+        run: |
+          set -euo pipefail
+          W="$GITHUB_WORKSPACE/work"
+          F="${{ steps.claude.outputs.execution_file }}"; [ -f "$F" ] || F="$RUNNER_TEMP/claude-execution-output.json"
+          python3 extract.py "$F" "$W/analysis.json" || : > "$W/analysis.json"
+          python3 validate.py --facts "$W/facts.json" --analysis "$W/analysis.json" --root "$GITHUB_WORKSPACE/data" --out "$W/handoff.json"
+          python3 report.py html --facts "$W/facts.json" --handoff "$W/handoff.json" --out "$W/report.html" --run-url "$RUN_URL"
+          D=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["date"])' "$W/facts.json")
+          mkdir -p "$GITHUB_WORKSPACE/data/reports"
+          cp "$W/report.html" "$GITHUB_WORKSPACE/data/reports/$D.html"
+          cp "$W/handoff.json" "$GITHUB_WORKSPACE/data/reports/$D.json"
+          cp "$W/handoff.json" "$GITHUB_WORKSPACE/data/reports/latest.json"
+          cp "$W/facts.json" "$GITHUB_WORKSPACE/data/reports/$D.facts.json"
+
+      # 収集や分析が途中で失敗しても、取れた分は残す
+      - name: データ用リポジトリに保存する
+        if: always() && hashFiles('data/.git/HEAD') != ''
+        env:
+          DEPLOY_KEY: ${{ secrets.ANALYTICS_DATA_DEPLOY_KEY }}
+        working-directory: data
+        run: |
+          set -euo pipefail
+          for d in store reports; do if [ -d "$d" ]; then git add -A "$d"; fi; done
+          if git diff --cached --quiet; then echo "変更なし"; exit 0; fi
+          git -c user.name="analytics-bot" -c user.email="analytics-bot@users.noreply.github.com" \
+            commit -q -m "chore(data): $(date -u +%F) (${{ github.run_id }})"
+          k="$RUNNER_TEMP/data_key"; umask 077; printf '%s\n' "$DEPLOY_KEY" > "$k"
+          trap 'rm -f "$k"' EXIT
+          GIT_SSH_COMMAND="ssh -i $k -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" git push -q origin HEAD:main
+          echo "保存した"
+
+      - name: Discord に送る
+        id: send
+        if: github.event_name == 'schedule' || inputs.notify
+        working-directory: tools/analytics
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          W="$GITHUB_WORKSPACE/work"
+          python3 report.py send --facts "$W/facts.json" --handoff "$W/handoff.json" --html "$W/report.html" --run-url "$RUN_URL"
+          echo "sent=true" >> "$GITHUB_OUTPUT"
+
+      # 収集の一部失敗は continue-on-error で先に進めたので、最後にジョブを赤にする (気づけるように)
+      - name: 収集の失敗をジョブの結果に反映する
+        if: steps.collect.outcome == 'failure'
+        run: |
+          echo "::error::一部の取得に失敗した (詳細はレポートの「データの状態」)"
+          exit 1
+
+  # レポートを送れずに止まったら、Discord に知らせる
+  # (収集の一部失敗でジョブが赤でも、レポートが届いていれば、そちらの「データの状態」に出るので重ねて送らない)
+  notify-failure:
+    needs: weekly
+    if: failure() && needs.weekly.outputs.sent != 'true'
+    runs-on: ubuntu-latest
+    environment: analytics
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/analytics
+      - name: 失敗を知らせる
+        working-directory: tools/analytics
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python3 report.py failure --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
