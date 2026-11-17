@@ -1,16 +1,16 @@
 # アナリティクス: 収集 → 蓄積 → 分析 → レポート
 
-YouTube・Google Play・App Store の数字を、GitHub Actions が毎週取り、**日次の事実を時系列で蓄積**する。その推移から決まった規則で事実(`facts.json`)を作り、Claude が分析と提案を書き、規則で検証してから、Discord に要約と HTML のレポートを送る。動画の制作やゲームの改修を進める AI(作業セッション)は、引き渡しファイルを読んで動く。
+YouTube・Google Play・App Store の数字を、GitHub Actions が毎日取り、**日次の事実を時系列で蓄積**する。レポートは毎日、取得日の 2 日前(対象日)の数字と、対象日までの直近 7 日の推移を出す。その推移から決まった規則で事実(`facts.json`)を作り、Claude が分析と提案を書き、規則で検証してから、Discord に要約と HTML のレポートを送る。動画の制作やゲームの改修を進める AI(作業セッション)は、引き渡しファイルを読んで動く。
 
 ```
-cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ──────▶ 分析 ─────▶ 検証 ─────▶ レポート
+cron(毎日 9:30 JST) ▶ 収集 ─────────▶ 事実 ──────▶ 分析 ─────▶ 検証 ─────▶ レポート
                      YouTube・Play・   facts.json    Claude       validate.py   Discord: embed + HTML 添付
                      App Store         規則で集計     鍵なし・Read  規則で判定
                      鍵あり・AI なし
                         │                                                        │
                         └──────▶ mokkosu-works/analytics (非公開) ◀──────────────┘
                                  store/  日次の事実 (時系列の正本)
-                                 reports/ 週ごとの HTML・事実・引き渡し (latest.json)
+                                 reports/ 日ごとの HTML・事実・引き渡し (latest.json)
 ```
 
 - ワークフロー: [`.github/workflows/analytics.yml`](../.github/workflows/analytics.yml)
@@ -25,7 +25,7 @@ cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ───
 | `store/status.jsonl` | 取得の状況。source ごとに 1 日 1 行(`ok` / `ng` / `no_data` と理由) |
 | `store/meta/youtube_videos.json` | 動画のタイトル・公開日(videos.csv との結びつけに使う) |
 | `store/experiments.jsonl` | 実験の記録(`exp.py` が追記) |
-| `reports/YYYY-MM-DD.{html,json,facts.json}`、`reports/latest.json` | 週ごとのレポート・引き渡し・事実 |
+| `reports/YYYY-MM-DD.{html,json,facts.json}`、`reports/latest.json` | 日ごとのレポート・引き渡し・事実 |
 
 - 毎回、**直近 14 日を取り直して上書き**する(数字の確定の遅れを吸収)。同じ日の再実行で行は増えない。
 - 履歴は git が持つ。過去分は `workflow_dispatch` の `backfill_since` で遡って入れられる(YouTube の日次は遡れる。Play のバルクレポートは月の CSV が残っている範囲。App Store は過去分の依頼 `ONE_TIME_SNAPSHOT` が出した範囲)。
@@ -41,13 +41,17 @@ cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ───
 
 **レビューの文面は保存しない**(件数と星の平均だけ)。利用者の文章で、指示が混ざりうるため。
 
-## 2. 毎週の流れ(`analytics.yml`、1 つのジョブ)
+## 2. 毎日の流れ(`analytics.yml`、1 つのジョブ)
+
+- **対象日は、取得日(日本の日付)の 2 日前**。数字の確定が遅れるため(ジョブの `TZ` は `Asia/Tokyo`)。
+- 対象日の数字は速報値。毎回直近 14 日を取り直すので、あとの実行で確定した数字に上書きされる。
+- 各サービスの 1 日の区切りは日本時間ではない(YouTube・Play は米国太平洋時間)。9:30 JST の時点で、対象日の数字がまだ出ていないことがある。そのときはレポートに「まだ出ていない」と出る。
 
 | step | やること | 持つ鍵 |
 |---|---|---|
 | データ用リポジトリを取る | clone。鍵は step の中だけでファイルにして消す | deploy key |
 | 収集 | `collect.py run`。source ごとに失敗しても止めず、`status.jsonl` に残す | YouTube・Play・App Store の読み取り用の鍵 |
-| 事実を作る | `facts.py`。8 週の推移、動画の伸び(公開日からの日数をそろえた累計)と投稿内容、区分ごとの比較、Play・App Store の週ごと、要確認(`alerts`)、データの注意 | なし |
+| 事実を作る | `facts.py`。対象日の数字(前日・前週の同じ曜日・その前の 7 日の平均と比べる)、7 日ごとの推移(8 区間)、動画の伸び(公開日からの日数をそろえた累計)と投稿内容、区分ごとの比較、Play・App Store の週ごと、要確認(`alerts`)、データの注意 | なし |
 | 分析 | claude-code-action。`tools/analytics/prompt.md` の指示で `work/` を読み(Read だけ)、JSON を返す。**ログに出さない** | Claude のトークンだけ |
 | 検証・レポート | `extract.py` → `validate.py` → `report.py html` | なし |
 | 保存 | データ用リポジトリに commit・push(途中で失敗しても、取れた分は保存する) | deploy key |
@@ -56,17 +60,17 @@ cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ───
 
 ### 動画の伸びと投稿内容
 - **伸び**: 公開日を 1 日目にして、1・3・7・14・28 日目までの累計の再生数を出す。公開日が違う動画を、同じ日数で比べるため。3 日目・7 日目は、全動画の中央値に対する倍率も出す。ストアに公開日からのデータが無い動画は、比較から外す(`backfill` で埋まる)。
-- **状態**(規則): 公開 7 日以内は「公開直後」、今週の再生が累計の 30% 以上なら「伸び続けている」、10% 未満(公開 15 日以降)なら「落ち着いた」、ほかは「ゆるやか」。
+- **状態**(規則): 公開 7 日以内は「公開直後」、直近 7 日の再生が累計の 30% 以上なら「伸び続けている」、10% 未満(公開 15 日以降)なら「落ち着いた」、ほかは「ゆるやか」。
 - **投稿内容**(`content.py` が `promo/` から集める): 種類(プレイ動画 / キャラクター動画)、パターン、冒頭の種類(A 惜しい失敗 / B 見栄えのする場面 / C 結果の瞬間)と冒頭の字幕、本編の字幕、長さ、公開の曜日・時刻、ハッシュタグ。字幕は `promo/build/specs/spec.<パターン>.json`、公開予約は `promo/records/youtube_uploads.csv`。動画の結びつけは、`youtube_uploads.csv` の動画 ID を優先し、無ければ(タイトル, 投稿日)。
 - **区分ごと**: 種類・冒頭の種類・パターン・曜日ごとの 3 日目・7 日目の中央値。5 本未満は参考値。
 - **Claude の分析**: 伸びた動画と伸びなかった動画で、投稿内容の何が違うかを、`content_findings`(気づき・仮説・根拠・確かめ方)と `video_insights`(動画ごとの見立て)に書く。根拠の数字は、提案と同じ規則で検証する。
 - **レポート**: 「動画の伸び」の折れ線(上位 5 本に色、ほかは灰色)と表、区分ごとの表、「投稿内容の分析」。Discord には、3 日目で中央値を上回った上位 3 本と、気づきを 3 件まで。
 
 ### 要確認(`alerts`)の規則
-- 再生数が前週の半分以下(前週 100 回以上のとき)
+- 直近 7 日の再生数が、その前の 7 日の半分以下(その前の 7 日が 100 回以上のとき)
 - source の取得に失敗(`ng`)
-- YouTube の最新データが 1 週以上古い
-- クラッシュ率・ANR 率が前週の 1.5 倍以上、かつ 0.5% 以上
+- YouTube の最新データが、対象日より 3 日以上古い
+- クラッシュ率・ANR 率(7 日)が、その前の 7 日の 1.5 倍以上、かつ 0.5% 以上
 
 `alerts` があれば状態は必ず「要確認」。Claude は「要確認」に上げられるが、下げられない。
 
@@ -82,7 +86,8 @@ Claude の出力が読めなくても止めない(提案なし・事実だけの
 
 ## 4. レポート
 
-- **Discord**: embed(状態、YouTube の再生数・平均視聴割合・登録者、Play のインストール・クラッシュ率、App Store のダウンロード・インプレッション・製品ページの表示、要確認、承認が要る提案、取得に失敗した source)+ **HTML を添付**。Discord の中では HTML はプレビューされないので、要点は embed に出し、詳細は添付を開く。
+- **Discord**: embed(状態、対象日の YouTube の再生数(前日比・前週の同じ曜日比)・平均視聴割合・登録者・よく再生された動画、直近 7 日の再生数、Play のインストール・クラッシュ率(7 日)、App Store のダウンロード・インプレッション・製品ページの表示(7 日)、要確認、承認が要る提案、取得に失敗した source)+ **HTML を添付**。
+- **HTML の構成**: 対象日の数字(YouTube・Play・App Store を前日と比べる)→ YouTube の直近 7 日と 7 日ごとの推移 → 動画の伸びと投稿内容 → 動画別 → Play・App Store の直近 7 日 → 提案 → データの状態。Discord の中では HTML はプレビューされないので、要点は embed に出し、詳細は添付を開く。
 - **HTML**: 1 ファイルで完結(外部を読み込まない、スクリプトなし、CSP で禁止)。値はすべてエスケープ。ダークモード対応。推移は SVG の折れ線。
 - `@` のメンションは無効。Webhook の URL はログに出さない。送信に失敗したら、ジョブが赤になる。
 
@@ -144,13 +149,13 @@ App Store の数字は、App Store Connect API の **Analytics Reports** で取�
 ## 7. 運用
 
 - 手動で動かす: Actions の analytics → Run workflow(`notify` を外すと Discord に送らない。`backfill_since` で過去分)
-- **公開リポジトリの schedule は、60 日リポジトリに活動がないと止まる**。月曜に Discord が来なければ、Actions の画面を確認する
+- **公開リポジトリの schedule は、60 日リポジトリに活動がないと止まる**。朝に Discord が来なければ、Actions の画面を確認する
 - 実験の記録: [`.claude/skills/analytics-handoff/SKILL.md`](../.claude/skills/analytics-handoff/SKILL.md) の 3 章
 
 ## 8. 既知の問題と、これから
 
 - App Store の Analytics Reports の列名(`Event`・`Download Type`・`Counts` など)と種類の値は、Apple の公開資料で確かめきれていない。初回の実データで指標名を確認する。列が見つからないレポートは、行を作らずに飛ばす。
 - `promo/records/videos.csv` の投稿日と、再生のあった日が合わない動画がある。動画の結びつけは(タイトル, 投稿日)なので、食い違うと「記録なし」になる。
-- チャンネル合計と、動画別の合計が一致しない週がある(削除・非公開の動画の可能性。原因は未確認)。`data_quality` に出す。
+- チャンネル合計と、動画別の合計が一致しない期間がある(削除・非公開の動画の可能性。原因は未確認)。`data_quality` に出す。
 - 「視聴 vs スワイプ」は API に無い。`promo/analytics/import_studio.py`(Studio の CSV の手動取り込み)は残す。
 - Play のバルクレポートの列名は、CSV の見出しを機械的に変換して指標名にしている。初回の実データで名前を確認する。

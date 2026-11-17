@@ -106,9 +106,59 @@ circle.s1{fill:var(--s1)}circle.s2{fill:var(--s2)}circle.s3{fill:var(--s3)}circl
 """
 
 
-def kpi(label, val, p, series, good_up=True):
+def kpi(label, val, p, series, good_up=True, cmp="前 7 日比", extra=""):
     return (f'<div class="card kpi"><div class="label">{e(label)}</div><div class="val">{e(val)}</div>'
-            f'<div class="{delta_cls(p, good_up)}">前週比 {e(fmt_pct(p))}</div>{spark(series)}</div>')
+            f'<div class="{delta_cls(p, good_up)}">{e(cmp)} {e(fmt_pct(p))}</div>{extra}{spark(series) if series else ""}</div>')
+
+
+DAY_LABEL = {"views": "再生数", "engagedViews": "エンゲージ視聴", "averageViewPercentage": "平均視聴割合", "subscribersGained": "登録者の増加"}
+DAY_KEYS = {"play": ("installs_daily_user_installs", "installs_daily_user_uninstalls", "vitals_crash_rate"),
+            "appstore": ("downloads_total", "engagement_impression", "engagement_page_view", "install_delete")}
+
+
+def day_value(m, v):
+    return fmt_rate(v) if m == "averageViewPercentage" else fmt(v, 4 if "rate" in m else None)
+
+
+def day_section(facts):
+    """対象日 (取得日の 2 日前) の数字。前日・前週の同じ曜日と比べる。"""
+    dy = facts.get("day")
+    if not dy:
+        return []
+    out = [f'<h2>{e(dy["date"])} ({e(dy["weekday"])}) の数字</h2>',
+           '<p class="muted">取得日の 2 日前。速報値で、あとの実行で確定した数字に上書きされることがある。</p>']
+    ch = dy["youtube_channel"]
+    if dy["available"].get("youtube"):
+        cards = []
+        for m, label in DAY_LABEL.items():
+            c = ch.get(m) or {}
+            sub = (f'<div class="{delta_cls(c.get("vs_last_week_pct"))}">前週の同じ曜日比 {e(fmt_pct(c.get("vs_last_week_pct")))}</div>'
+                   f'<div class="muted">前 7 日の平均 {e(day_value(m, c.get("prior7_mean")))}</div>')
+            cards.append(kpi(label, day_value(m, c.get("value")), c.get("vs_prev_day_pct"), None, cmp="前日比", extra=sub))
+        out.append('<div class="kpis">' + "".join(cards) + "</div>")
+    else:
+        out.append('<p class="muted">この日の YouTube の数字は、まだ出ていない。</p>')
+    if dy["youtube_top_videos"]:
+        out.append('<h3>この日に再生された動画</h3><div class="tbl"><table><tr><th class="l">動画</th><th>再生数</th><th>前日</th><th>前日比</th></tr>')
+        for v in dy["youtube_top_videos"]:
+            name = f'{e(v["id"] or "記録なし")} <span class="muted">{e(cut(v["title"] or v["youtube_id"], 28))}</span>'
+            out.append(f'<tr><td class="l">{name}</td><td>{fmt(v["views"])}</td><td>{fmt(v["prev_day"])}</td>'
+                       f'<td class="{delta_cls(v["vs_prev_day_pct"])}">{fmt_pct(v["vs_prev_day_pct"])}</td></tr>')
+        out.append("</table></div>")
+    for src, title in (("play", "Google Play"), ("appstore", "App Store")):
+        rows = [(ent, m, x) for ent, ms in (dy.get(src) or {}).items() for m, x in ms.items() if m in DAY_KEYS[src]]
+        if not dy["available"].get(src):
+            if src in facts.get("status", {}):
+                out.append(f'<h3>{title}</h3><p class="muted">この日の数字は、まだ出ていない。</p>')
+            continue
+        out.append(f'<h3>{title}</h3><div class="tbl"><table><tr><th class="l">指標</th><th>この日</th><th>前日</th><th>前日比</th></tr>')
+        for ent, m, x in rows:
+            good_up = not any(k in m for k in ("crash", "uninstall", "delet"))
+            name = asc_label(m) if src == "appstore" else m
+            out.append(f'<tr><td class="l">{e(name)}</td><td>{day_value(m, x["value"]) if x["value"] is not None else "未着"}</td>'
+                       f'<td>{day_value(m, x["prev_day"])}</td><td class="{delta_cls(x["vs_prev_day_pct"], good_up)}">{fmt_pct(x["vs_prev_day_pct"])}</td></tr>')
+        out.append("</table></div>")
+    return out
 
 
 GROUP_LABEL = {"kind": "種類ごと", "hook": "冒頭の種類ごと", "pattern": "パターンごと", "weekday": "公開の曜日ごと"}
@@ -253,19 +303,21 @@ def build_html(facts, h, run_url=None):
     out = ['<!doctype html><html lang="ja"><head><meta charset="utf-8">',
            '<meta name="viewport" content="width=device-width,initial-scale=1">',
            "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:\">",
-           f"<title>週次レポート {e(facts['date'])}</title><style>{CSS}</style></head><body><main>"]
+           f"<title>日次レポート {e(facts['date'])}</title><style>{CSS}</style></head><body><main>"]
     st = h.get("status", "ok")
-    out.append(f'<h1>PARRY BREAK 週次レポート</h1><div class="sub">取得日 {e(facts["date"])} / 対象の週 {e(w0["start"])} 〜 {e(w0["end"])}'
+    dy = facts.get("day") or {}
+    out.append(f'<h1>PARRY BREAK 日次レポート</h1><div class="sub">対象日 {e(dy.get("date", w0["end"]))} ({e(dy.get("weekday", ""))}) / 取得日 {e(facts["date"])} / 直近 7 日 {e(w0["start"])} 〜 {e(w0["end"])}'
                f' &nbsp;<span class="badge {e(st)}">{"要確認" if st == "attention" else "異常なし"}</span></div>')
     if h.get("summary"):
         out.append(f'<div class="card">{e(h["summary"])}</div>')
     if h.get("alerts"):
         out.append('<div class="card alert"><b>要確認</b><ul>' + "".join(f"<li>{e(a['text'])}</li>" for a in h["alerts"]) + "</ul></div>")
     if h.get("highlights"):
-        out.append("<h2>今週の要点</h2><ul>" + "".join(f"<li>{e(x)}</li>" for x in h["highlights"]) + "</ul>")
+        out.append("<h2>今日の要点</h2><ul>" + "".join(f"<li>{e(x)}</li>" for x in h["highlights"]) + "</ul>")
+    out += day_section(facts)
 
     # ---- YouTube
-    out.append("<h2>YouTube</h2>")
+    out.append("<h2>YouTube (直近 7 日)</h2>")
     if cw and cw[0].get("days"):
         c0 = cw[0]
         prev = cw[1] if len(cw) > 1 else {}
@@ -276,7 +328,7 @@ def build_html(facts, h, run_url=None):
             kpi("平均視聴割合", fmt_rate(c0['averageViewPercentage']), wow("averageViewPercentage"), old_first("averageViewPercentage")),
             kpi("登録者の増加", fmt(c0["subscribersGained"]), wow("subscribersGained"), old_first("subscribersGained")),
         ]) + "</div>")
-        out.append('<h3>週ごとの推移 (チャンネル)</h3><div class="tbl"><table><tr><th class="l">週</th><th>再生数</th><th>前週比</th>'
+        out.append('<h3>7 日ごとの推移 (チャンネル)</h3><div class="tbl"><table><tr><th class="l">期間</th><th>再生数</th><th>前 7 日比</th>'
                    "<th>エンゲージ視聴</th><th>平均視聴割合</th><th>いいね</th><th>シェア</th><th>登録者</th></tr>")
         for w in cw:
             if not w.get("days"):
@@ -286,10 +338,10 @@ def build_html(facts, h, run_url=None):
                        f'<td>{fmt_rate(w["averageViewPercentage"])}</td><td>{fmt(w["likes"])}</td><td>{fmt(w["shares"])}</td><td>{fmt(w["subscribersGained"])}</td></tr>')
         out.append("</table></div>")
     else:
-        out.append('<p class="muted">今週の YouTube のデータはない。</p>')
+        out.append('<p class="muted">直近 7 日の YouTube のデータはない。</p>')
     out += growth_section(yt, h)
     if yt["videos"]:
-        out.append('<h2>動画別 (直近 28 日)</h2><div class="tbl"><table><tr><th class="l">動画</th><th class="l">パターン / 冒頭</th><th>今週</th><th>前週</th>'
+        out.append('<h2>動画別 (直近 28 日)</h2><div class="tbl"><table><tr><th class="l">動画</th><th class="l">パターン / 冒頭</th><th>直近 7 日</th><th>前 7 日</th>'
                    "<th>28 日</th><th>平均視聴割合</th><th>エンゲージ率</th><th>維持率 5%</th></tr>")
         for v in yt["videos"][:30]:
             name = f'{e(v["id"] or "記録なし")} <span class="muted">{e(cut(v["title"] or v["youtube_id"], 28))}</span>'
@@ -300,11 +352,11 @@ def build_html(facts, h, run_url=None):
                        f'<td>{fmt_rate(v["avg_view_pct_28d"])}</td><td>{fmt_rate(v["engaged_rate_28d"])}</td><td>{fmt(r5, 2)}</td></tr>')
         out.append("</table></div>")
     # ---- Play
-    out.append("<h2>Google Play</h2>")
+    out.append("<h2>Google Play (直近 7 日)</h2>")
     if not pl["packages"]:
         out.append('<p class="muted">Google Play のデータはない。</p>')
     for pkg, series in pl["packages"].items():
-        out.append(f'<h3>{e(pkg)}</h3><div class="tbl"><table><tr><th class="l">指標</th><th>今週</th><th>前週</th><th>前週比</th><th>8 週</th><th>最新の日付</th></tr>')
+        out.append(f'<h3>{e(pkg)}</h3><div class="tbl"><table><tr><th class="l">指標</th><th>直近 7 日</th><th>前 7 日</th><th>前 7 日比</th><th>8 区間</th><th>最新の日付</th></tr>')
         for m, s in series.items():
             good_up = not any(k in m for k in ("crash", "anr", "uninstall"))
             nd = 4 if "rate" in m else None
@@ -313,17 +365,17 @@ def build_html(facts, h, run_url=None):
                        f'<td>{e(s["last_date"])}</td></tr>')
         out.append("</table></div>")
     if pl.get("versions_w0"):
-        out.append('<h3>バージョン別 (今週)</h3><div class="tbl"><table><tr><th class="l">versionCode</th><th>クラッシュ率</th><th>ANR 率</th></tr>')
+        out.append('<h3>バージョン別 (直近 7 日)</h3><div class="tbl"><table><tr><th class="l">versionCode</th><th>クラッシュ率</th><th>ANR 率</th></tr>')
         for ver, d in pl["versions_w0"].items():
             out.append(f'<tr><td class="l">{e(ver)}</td><td>{fmt(d.get("vitals_crash_rate"), 4)}</td><td>{fmt(d.get("vitals_anr_rate"), 4)}</td></tr>')
         out.append("</table></div>")
     # ---- App Store
-    out.append("<h2>App Store</h2>")
+    out.append("<h2>App Store (直近 7 日)</h2>")
     apps = (facts.get("appstore") or {}).get("apps") or {}
     if not apps:
         out.append('<p class="muted">App Store のデータはない。</p>')
     for app, series in apps.items():
-        out.append(f'<h3>Apple ID {e(app)}</h3><div class="tbl"><table><tr><th class="l">指標</th><th>今週</th><th>前週</th><th>前週比</th><th>8 週</th><th>最新の日付</th></tr>')
+        out.append(f'<h3>Apple ID {e(app)}</h3><div class="tbl"><table><tr><th class="l">指標</th><th>直近 7 日</th><th>前 7 日</th><th>前 7 日比</th><th>8 区間</th><th>最新の日付</th></tr>')
         for m, s in sorted(series.items(), key=lambda kv: (asc_order(kv[0]), kv[0])):
             good_up = not any(k in m for k in ("crash", "delet"))
             out.append(f'<tr><td class="l">{e(asc_label(m))}</td><td>{fmt(s["weekly"][0])}</td><td>{fmt(s["weekly"][1] if len(s["weekly"]) > 1 else None)}</td>'
@@ -335,7 +387,7 @@ def build_html(facts, h, run_url=None):
     props = sorted(h.get("proposals", []), key=lambda p: (not p["needs_human_approval"], not p["auto_executable"]))
     out.append(f"<h2>提案 ({len(props)} 件)</h2>")
     if not props:
-        out.append('<p class="muted">今週の提案はない。</p>')
+        out.append('<p class="muted">今回の提案はない。</p>')
     for p in props:
         chips = ('<span class="chip need">人の承認が必要</span>' if p["needs_human_approval"] else "") + \
                 ('<span class="chip auto">自動で実行してよい</span>' if p["auto_executable"] else "") + \
@@ -378,11 +430,22 @@ def embed(facts, h, run_url=None):
         desc.append(cut(h["summary"], 400))
     desc += [f"• {cut(x, 180)}" for x in h.get("highlights", [])[:5]]
     fields = []
+    dy = facts.get("day") or {}
+    day_name = f"{dy.get('date', w0['end'])[5:]} ({dy.get('weekday', '')})"
+    if dy.get("available", {}).get("youtube"):
+        c = dy["youtube_channel"]
+        v = c.get("views") or {}
+        fields.append({"name": f"{day_name} の再生数", "value": f"{fmt(v.get('value'))} (前日比 {fmt_pct(v.get('vs_prev_day_pct'))} / 前週の同じ曜日比 {fmt_pct(v.get('vs_last_week_pct'))})", "inline": False})
+        fields.append({"name": "平均視聴割合", "value": fmt_rate((c.get("averageViewPercentage") or {}).get("value")), "inline": True})
+        fields.append({"name": "登録者の増加", "value": fmt((c.get("subscribersGained") or {}).get("value")), "inline": True})
+        if dy.get("youtube_top_videos"):
+            lines = [f'• {x["id"] or x["youtube_id"]} {fmt(x["views"])} 回 ({fmt_pct(x["vs_prev_day_pct"])})' for x in dy["youtube_top_videos"][:3]]
+            fields.append({"name": f"{day_name} によく再生された動画", "value": cut("\n".join(lines), 1024), "inline": False})
+    elif dy:
+        fields.append({"name": f"{day_name} の YouTube", "value": "まだ数字が出ていない", "inline": False})
     if cw and cw[0].get("days"):
         c0 = cw[0]
-        fields.append({"name": "YouTube 再生数", "value": f"{fmt(c0['views'])} ({fmt_pct(c0.get('views_wow_pct'))})", "inline": True})
-        fields.append({"name": "平均視聴割合", "value": fmt_rate(c0['averageViewPercentage']), "inline": True})
-        fields.append({"name": "登録者の増加", "value": fmt(c0["subscribersGained"]), "inline": True})
+        fields.append({"name": "直近 7 日の再生数", "value": f"{fmt(c0['views'])} (前 7 日比 {fmt_pct(c0.get('views_wow_pct'))})", "inline": True})
     ranked = [v for v in sorted(facts["youtube"]["videos"], key=growth_key, reverse=True)
               if (v["growth"].get("d3_vs_median") or 0) > 1]
     if ranked:
@@ -400,13 +463,13 @@ def embed(facts, h, run_url=None):
         cr = s.get("vitals_crash_rate")
         parts = []
         if ins:
-            parts.append(f"インストール {fmt(ins['weekly'][0])} ({fmt_pct(ins['wow_pct'])})")
+            parts.append(f"インストール (7 日) {fmt(ins['weekly'][0])} ({fmt_pct(ins['wow_pct'])})")
         if cr:
-            parts.append(f"クラッシュ率 {fmt(cr['weekly'][0], 4)}")
+            parts.append(f"クラッシュ率 (7 日) {fmt(cr['weekly'][0], 4)}")
         if parts:
             fields.append({"name": cut(f"Play {pkg}", 256), "value": " / ".join(parts), "inline": False})
     for app, s in ((facts.get("appstore") or {}).get("apps") or {}).items():
-        parts = [f"{asc_label(k)} {fmt(s[k]['weekly'][0])} ({fmt_pct(s[k]['wow_pct'])})"
+        parts = [f"{asc_label(k)} (7 日) {fmt(s[k]['weekly'][0])} ({fmt_pct(s[k]['wow_pct'])})"
                  for k in ("downloads_total", "engagement_impression", "engagement_page_view") if k in s]
         if parts:
             fields.append({"name": "App Store", "value": cut(" / ".join(parts), 1024), "inline": False})
@@ -421,10 +484,10 @@ def embed(facts, h, run_url=None):
     bad = [f"{s}: {STATE_JA.get(v.get('state'), v.get('state'))}" for s, v in facts.get("status", {}).items() if v.get("state") != "ok"]
     if bad:
         fields.append({"name": "データの状態", "value": cut("\n".join(bad), 1024), "inline": False})
-    title = f"{'🔔' if st == 'attention' else '✅'} PARRY BREAK 週次レポート {facts['date']}"
-    em = {"title": cut(title, 256), "description": cut("\n".join(desc) or f"対象の週 {w0['start']} 〜 {w0['end']}", 4000),
+    title = f"{'🔔' if st == 'attention' else '✅'} PARRY BREAK 日次レポート {dy.get('date', w0['end'])}"
+    em = {"title": cut(title, 256), "description": cut("\n".join(desc) or f"対象日 {day_name}", 4000),
           "color": COLOR.get(st, COLOR["ok"]), "fields": fields[:25],
-          "footer": {"text": f"対象の週 {w0['start']} 〜 {w0['end']} ・ 詳細は添付の HTML"}}
+          "footer": {"text": f"対象日 {dy.get('date', w0['end'])} (取得日の 2 日前・速報値) ・ 直近 7 日 {w0['start']} 〜 {w0['end']} ・ 詳細は添付の HTML"}}
     if run_url:
         em["url"] = run_url
     return em
@@ -484,7 +547,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.cmd == "failure":
         now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime("%F %H:%M")
-        em = {"title": "⚠️ アナリティクスの週次が失敗した", "color": COLOR["failure"],
+        em = {"title": "⚠️ アナリティクスの日次が失敗した", "color": COLOR["failure"],
               "description": f"{now} (JST)。実行ログを確認する。収集できた分は、データ用リポジトリに保存されている場合がある。"}
         if a.run_url:
             em["url"] = a.run_url

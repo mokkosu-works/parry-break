@@ -17,7 +17,7 @@ def sample():
         rows.append({"source": "appstore", "metric": "engagement_" + "x" * 20, "entity": "111", "date": day, "value": 1})
     store.upsert(d.name, rows)
     store.update_meta(d.name, "youtube_videos", {"v1": {"title": EVIL, "published_jst": "2026-10-01"}})
-    f = facts.build(d.name, None, datetime.date(2026, 11, 16))
+    f = facts.build(d.name, None, datetime.date(2026, 11, 15))
     a = {"status": "ok", "summary": EVIL, "highlights": [EVIL],
          "proposals": [{"target": "video", "kind": "experiment", "action": "動画を投稿する " + EVIL, "confidence": "low",
                         "sample_size": 1, "evidence": [{"metric": "views", "value": "70"}]}]}
@@ -87,7 +87,7 @@ class ReportTest(unittest.TestCase):
             rows.append({"source": "youtube", "metric": "views", "entity": "channel", "date": day, "value": 100})
         store.upsert(d.name, rows)
         store.update_meta(d.name, "youtube_videos", meta)
-        f = facts.build(d.name, None, datetime.date(2026, 11, 16))
+        f = facts.build(d.name, None, datetime.date(2026, 11, 15))
         a = {"content_findings": [{"finding": EVIL, "hypothesis": "h", "sample_size": 8, "evidence": [{"metric": "v", "value": "21"}]}],
              "video_insights": [{"id": "yt7", "verdict": "伸びた", "comment": EVIL}]}
         h = validate.build(f, a, None, {}, f["date"])
@@ -104,16 +104,24 @@ class ReportTest(unittest.TestCase):
 
     def test_appstore_section(self):
         html = report.build_html(self.f, self.h)
-        self.assertIn("<h2>App Store</h2>", html)
+        self.assertIn("<h2>App Store (直近 7 日)</h2>", html)
         self.assertIn("ダウンロード (計)", html)  # 知っている指標は日本語の名前
         self.assertIn("engagement_" + "x" * 20, html)  # 知らない指標は、そのままの名前
         em = json.dumps(report.embed(self.f, self.h), ensure_ascii=False)
         self.assertIn("App Store", em)
-        self.assertIn("ダウンロード (計) 14", em)
+        self.assertIn("ダウンロード (計) (7 日) 14", em)
+
+    def test_day_section(self):
+        html = report.build_html(self.f, self.h)
+        self.assertIn("2026-11-13 (金) の数字", html)  # 取得日 11-15 の 2 日前
+        self.assertIn("前週の同じ曜日比", html)
+        em = report.embed(self.f, self.h)
+        self.assertIn("日次レポート 2026-11-13", em["title"])
+        self.assertTrue(any(f["name"].startswith("11-13 (金) の再生数") for f in em["fields"]))
 
     def test_empty_facts(self):
         d = tempfile.TemporaryDirectory()
-        f = facts.build(d.name, None, datetime.date(2026, 11, 16))
+        f = facts.build(d.name, None, datetime.date(2026, 11, 15))
         h = validate.build(f, None, "なし", {}, f["date"])
         self.assertIn("データはない", report.build_html(f, h))
         report.embed(f, h)

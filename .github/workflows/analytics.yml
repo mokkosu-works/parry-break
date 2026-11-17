@@ -1,12 +1,13 @@
-# アナリティクスの週次: 収集 → 蓄積 → 分析 → レポート。仕組みは docs/analytics-pipeline.md、コードは tools/analytics/。
+# アナリティクスの日次: 収集 → 蓄積 → 分析 → レポート。仕組みは docs/analytics-pipeline.md、コードは tools/analytics/。
 # 時系列の正本は、非公開のデータ用リポジトリ mokkosu-works/analytics (store/ と reports/)。
 # このリポジトリは公開なので、ログに数字を出さない (スクリプトは件数だけを出す。Claude の出力も表示しない)。
 name: analytics
 
 on:
   schedule:
-    # 月曜 6:30 (日本時間) = 日曜 21:30 (UTC)。既定ブランチ (dev) のこのファイルで動く
-    - cron: '30 21 * * 0'
+    # 毎日 9:30 (日本時間) = 0:30 (UTC)。既定ブランチ (dev) のこのファイルで動く
+    # 対象日は日本の日付で 2 日前 (TZ を下で Asia/Tokyo にしている)。遅い時刻ほど、対象日の数字がそろいやすい
+    - cron: '30 0 * * *'
   workflow_dispatch:
     inputs:
       backfill_since:
@@ -28,7 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  weekly:
+  daily:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     # 鍵は environment の secret に置く (このジョブだけが読める)
@@ -39,6 +40,7 @@ jobs:
     outputs:
       sent: ${{ steps.send.outputs.sent }}
     env:
+      TZ: Asia/Tokyo  # 「今日」と対象日 (2 日前) を日本の日付で数える
       DATA_REPO: git@github.com:mokkosu-works/analytics.git
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
@@ -98,7 +100,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # 指示の本文は tools/analytics/prompt.md (読むファイル、守ること、返す JSON の形)
           prompt: |
-            tools/analytics/prompt.md を Read で読み、その指示どおりに今週の分析をして、最後に JSON だけを返す。
+            tools/analytics/prompt.md を Read で読み、その指示どおりに今日の分析をして、最後に JSON だけを返す。
           # 公開リポジトリなので、Claude のやりとり (数字を含む) をログに出さない
           show_full_output: false
           claude_args: >-
@@ -159,8 +161,8 @@ jobs:
   # レポートを送れずに止まったら、Discord に知らせる
   # (収集の一部失敗でジョブが赤でも、レポートが届いていれば、そちらの「データの状態」に出るので重ねて送らない)
   notify-failure:
-    needs: weekly
-    if: failure() && needs.weekly.outputs.sent != 'true'
+    needs: daily
+    if: failure() && needs.daily.outputs.sent != 'true'
     runs-on: ubuntu-latest
     environment: analytics
     steps:
