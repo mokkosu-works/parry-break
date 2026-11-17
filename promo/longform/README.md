@@ -89,15 +89,15 @@ python3 -m unittest discover -s promo/longform -p test_pipeline.py
 
 ## 完成版を 1 本にまとめる
 
-`assemble.py` は、オープニング → (章の区切り → 本編) × 章の数 → エンディング をつなぐ。配置はアカネの構成案(`scene_proposals.py`、本人確認済み)と同じで、色は `render_long.PROFILES`。全身はショートと同じ 6 ポーズのシート(オープニング=通常で口パク・目パチ、区切り=固有で静止、エンディング=成功で口パク)。
+`assemble.py` は、オープニング → (章の区切り → 本編) × 章の数 → エンディング をつなぐ。配置はアカネの構成案(`scene_proposals.py`、本人確認済み)と同じで、色は `render_long.PROFILES`。全身はショートと同じ 6 ポーズのシート(オープニング=通常、区切り=固有で章のタイトルを読む、エンディング=成功。どれも口パク・目パチ)。
 
 ```sh
-python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e003 --prepare-only  # 声(AivisSpeech)
-python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e003
+python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e004 --prepare-only  # 声(AivisSpeech)
+python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e004
 ```
 
 - 構成(`projects/mitsuba-full-v01.json`)に書いた本編の台本と、本編を書き出したときの台本が違えば止まる。
 - 場面ごとに映像のコマ数を正とし、音声をその長さにそろえてからつなぐ(長さがコマの区切りに合わない本編で、ずれがたまらないように)。
 - 出力: `full.mp4`、YouTube のチャプター `chapters.txt`、`timing.json`。BGM はまだ入れない。
 - エンディングの右半分は、YouTube の終了画面(動画 1 枠・チャンネル 1 枠)を置く場所なので何も描かない。
-- ミツバの完成版の試し: `../build/out/mitsuba-full-e003/full.mp4`(4 分 8 秒)。
+- ミツバの完成版の試し: `../build/out/mitsuba-full-e004/full.mp4`(4 分 12 秒)。

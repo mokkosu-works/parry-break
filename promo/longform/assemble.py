@@ -96,16 +96,25 @@ def full_body(profile):
             for s in ("closed", "open", "blink")}
 
 
+def scenes(plan):
+    """声のある場面: (鍵, 長さ, 台詞)。章の区切りは、章のタイトルを 1 つ読む。"""
+    out = [("opening", plan["opening"]["duration"], plan["opening"]["lines"])]
+    for i, chapter in enumerate(plan["chapters"], 1):
+        out.append((f"chapter-{i:02}", chapter["card"], [chapter["line"]]))
+    out.append(("ending", plan["ending"]["duration"], plan["ending"]["lines"]))
+    return out
+
+
 def check_plan(plan):
     if plan.get("profile") not in PROFILES:
         raise ValueError(f"帯の色などが決まっていないキャラです: {plan.get('profile')}")
     for key in ("opening", "ending"):
-        scene = plan[key]
-        if not (HEADINGS / scene["heading"]).is_file():
-            raise ValueError(f"見出しの画像がありません: {scene['heading']}")
+        if not (HEADINGS / plan[key]["heading"]).is_file():
+            raise ValueError(f"見出しの画像がありません: {plan[key]['heading']}")
+    for key, duration, lines in scenes(plan):
         last = -1
-        for line in scene["lines"]:
-            if not last < line["start"] < scene["duration"]:
+        for line in lines:
+            if not last < line["start"] < duration:
                 raise ValueError(f"{key} の台詞は時刻順に、場面の中に置いてください")
             last = line["start"]
     for chapter in plan["chapters"]:
@@ -131,16 +140,15 @@ def prepare(plan, out):
     if any(out.iterdir()):
         raise FileExistsError("音声の出力先は空のフォルダを指定してください")
     record = {"plan": plan, "timed": {}}
-    for key in ("opening", "ending"):
-        scene = plan[key]
-        timed, problems = voice_timing(scene["lines"], scene["duration"], print, profile=plan["profile"])
+    for key, duration, lines in scenes(plan):
+        timed, problems = voice_timing(lines, duration, print, profile=plan["profile"])
         if problems:
             raise ValueError(" / ".join(problems))
         for i, line in enumerate(timed):
             (out / f"{key}-{i:02}.wav").write_bytes(synthesize(line["text"], plan["profile"])[0])
         record["timed"][key] = timed
     (out / "prepared.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")
-    print("オープニングとエンディングの声を保存しました", flush=True)
+    print("オープニング・章の区切り・エンディングの声を保存しました", flush=True)
 
 
 def voice_track(out, key, timed, duration, dest):
@@ -154,21 +162,22 @@ def voice_track(out, key, timed, duration, dest):
                     "-map", "[mix]", "-c:a", "pcm_s16le", str(dest)], check=True)
 
 
-def talking_scene(out, key, plan, layer, background, sprites, sprite_xy, subtitle, dest):
-    """全身が話す場面(オープニング・エンディング)。background は固定の画像か、コマを返す関数。"""
-    scene, colors = plan[key], PROFILES[plan["profile"]]
+def talking_scene(out, key, plan, duration, layer, background, sprites, sprite_xy, subtitle, dest):
+    """全身が話す場面。background は固定の画像か、コマを返す関数。subtitle が None なら字幕を出さない。"""
+    colors = PROFILES[plan["profile"]]
     timed = json.loads((out / "prepared.json").read_text())["timed"][key]
     lines = [{**t, "audio": audio_data(out / f"{key}-{i:02}.wav")} for i, t in enumerate(timed)]
-    box, width, size = subtitle
-    caption_font, tag = font(size), name_tag(colors)
-    for line in lines:
-        line["caption"] = wrap(line["text"], caption_font, width)
+    if subtitle:
+        box, width, size = subtitle
+        caption_font, tag = font(size), name_tag(colors)
+        for line in lines:
+            line["caption"] = wrap(line["text"], caption_font, width)
     sound = out / f"{key}.wav"
-    voice_track(out, key, timed, scene["duration"], sound)
-    frames = round(scene["duration"] * FPS)
+    voice_track(out, key, timed, duration, sound)
+    frames = round(duration * FPS)
     encode = ["ffmpeg", "-v", "error", "-n", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{SIZE[0]}x{SIZE[1]}",
               "-r", str(FPS), "-i", "pipe:0", "-i", str(sound), "-map", "0:v", "-map", "1:a", *ENCODE,
-              "-t", str(scene["duration"]), str(dest)]
+              "-t", str(duration), str(dest)]
     with subprocess.Popen(encode, stdin=subprocess.PIPE) as writer:
         try:
             for n in range(frames):
@@ -182,7 +191,7 @@ def talking_scene(out, key, plan, layer, background, sprites, sprite_xy, subtitl
                 elif not current and t >= BLINK_FIRST and (t - BLINK_FIRST) % BLINK_EVERY < BLINK_LENGTH:
                     state = "blink"
                 frame.alpha_composite(sprites[state], sprite_xy)
-                if current:
+                if current and subtitle:
                     d = ImageDraw.Draw(frame)
                     d.rounded_rectangle(box, radius=22, fill=colors["box"], outline=colors["outline"], width=3)
                     frame.alpha_composite(tag, (box[0] + 24, box[1] - 22))
@@ -236,7 +245,7 @@ def opening(plan, out, sheets, dest):
     credit_voice(layer, plan)
     sprites = pose_sprites(sheets, "normal", 870)
     try:
-        talking_scene(out, "opening", plan, layer, background, sprites, (330 - sprites["closed"].width // 2, 150),
+        talking_scene(out, "opening", plan, scene["duration"], layer, background, sprites, (330 - sprites["closed"].width // 2, 150),
                       ((730, 820, 1820, 1000), 1000, 42), dest)
     finally:
         reader.stdout.close()
@@ -250,7 +259,7 @@ def credit_voice(layer, plan):
                                font=font(24), fill=PROFILES[plan["profile"]]["credit"])
 
 
-def chapter_card(plan, number, chapter, sheets, dest, work):
+def chapter_card(plan, out, number, chapter, sheets, dest, work):
     colors = PROFILES[plan["profile"]]
     first = ROOT / chapter["parts"][0]["render"] / "preview.mp4"
     # 背景は、その章の本編の最初のゲーム画面(下の帯を除く)。
@@ -265,14 +274,12 @@ def chapter_card(plan, number, chapter, sheets, dest, work):
     d.text((660, 345), number, font=font(80), fill=colors["outline"])
     heading = Image.open(HEADINGS / chapter["heading"]).convert("RGBA")
     put(card, heading, (650, 470), width=min(1080, round(heading.width * 180 / heading.height)))
-    sprites = pose_sprites(sheets, "special", 760)
-    card.alpha_composite(sprites["closed"], (260 - sprites["closed"].width // 2, 244))
     d.text((1820, 1040), "自動プレイ映像", font=font(24), fill="#b9a8b1", anchor="rm")
-    image = work / f"card-{number}.png"
-    card.convert("RGB").save(image)
-    subprocess.run(["ffmpeg", "-v", "error", "-n", "-loop", "1", "-framerate", str(FPS), "-i", str(image),
-                    "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", str(chapter["card"]), *ENCODE,
-                    str(dest)], check=True)
+    credit_voice(card, plan)
+    # 固有のポーズで、章のタイトルを読む(字幕は出さない。見出しが大きく出ているため)。
+    sprites = pose_sprites(sheets, "special", 760)
+    talking_scene(out, f"chapter-{number}", plan, chapter["card"], Image.new("RGBA", SIZE, (0, 0, 0, 0)), card,
+                  sprites, (260 - sprites["closed"].width // 2, 244), None, dest)
 
 
 def ending(plan, out, sheets, dest):
@@ -289,7 +296,7 @@ def ending(plan, out, sheets, dest):
     d.text((1820, 1040), "自動プレイ映像", font=font(24), fill="#b9a8b1", anchor="rm")
     credit_voice(layer, plan)
     sprites = pose_sprites(sheets, "success", 755)
-    talking_scene(out, "ending", plan, layer, background, sprites, (250 - sprites["closed"].width // 2, 278),
+    talking_scene(out, "ending", plan, scene["duration"], layer, background, sprites, (250 - sprites["closed"].width // 2, 278),
                   ((470, 800, 1040, 930), 500, 32), dest)
 
 
@@ -325,7 +332,7 @@ def render(plan, out):
         number = f"{i:02}"
         print(f"章 {number}", flush=True)
         card = work / f"{number}-0-card.mp4"
-        chapter_card(plan, number, chapter, sheets, card, work)
+        chapter_card(plan, out, number, chapter, sheets, card, work)
         starts.append((f"{number} {chapter['title']}", len(pieces)))
         pieces.append(card)
         pieces += [ROOT / part["render"] / "preview.mp4" for part in chapter["parts"]]
