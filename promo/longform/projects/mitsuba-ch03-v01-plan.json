@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "profile": "mitsuba",
+  "events": "promo/capture/raw/long-stage-mitsuba-s12-just-02/events.json",
+  "source_clock_start": -1.169,
+  "duration": 24,
+  "note": "通常尺 03 白いブロックで崩すの本編(区切りの 3 秒は含まない)。1-2 の映像 8.0〜32.0 秒。崩落は 13.58 秒(3 個)と 19.43 秒(2 個、同時にクリア)。 台詞は骨組みの候補から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.3,
+      "kind": "explanation",
+      "text": "白くて、金のひし形があるブロック。これを壊すと……",
+      "expression": "focus"
+    },
+    {
+      "start": 7.6,
+      "kind": "explanation",
+      "text": "白いブロックが、まわりを支えてたんだね。支えがなくなると、まとめて落ちるんだ！",
+      "expression": "explain"
+    },
+    {
+      "start": 15.4,
+      "kind": "chat",
+      "text": "名付けて、『ぴかっと崩し』！ ……あれ、誰も呼んでくれない？",
+      "expression": "steam"
+    }
+  ],
+  "reactions": [
+    {
+      "type": "collapse",
+      "after": 5.4,
+      "before": 6.0
+    }
+  ]
+}

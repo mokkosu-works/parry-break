@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "profile": "mitsuba",
+  "source": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/capture.mp4",
+  "events": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/events.json",
+  "source_start": 8.200245999999998,
+  "duration": 26,
+  "note": "通常尺 01 どんなゲーム?の本編(区切りの 3 秒は含まない)。1-1 JUST の映像 8.2〜34.2 秒(開始から STAGE CLEAR と結果まで)。ブロックの降下は短いクリアでは見えないので、降下の台詞は入れていない。 台詞は骨組みの候補から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.3,
+      "kind": "explanation",
+      "text": "見た目は、ブロック崩し。",
+      "expression": "explain"
+    },
+    {
+      "start": 2.8,
+      "kind": "explanation",
+      "text": "でも、ボールはひとつだけ。落としたら、そこでおしまいなんだ。",
+      "expression": "normal"
+    },
+    {
+      "start": 8.3,
+      "kind": "explanation",
+      "text": "パドルで打ち返して、上のブロックを壊していくよ。",
+      "expression": "explain"
+    },
+    {
+      "start": 12.4,
+      "kind": "chat",
+      "text": "わっ、なんか光った！ これは、あとで紹介するね。",
+      "expression": "surprise"
+    },
+    {
+      "start": 18.5,
+      "kind": "explanation",
+      "text": "多くの面は、ブロックを全部壊せばクリア！",
+      "expression": "success"
+    }
+  ]
+}
