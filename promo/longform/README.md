@@ -86,3 +86,18 @@ python3 -m unittest discover -s promo/longform -p test_pipeline.py
 ```
 
 本編の試作を本人が確認してから、解説と映像の合わせ方や声の間を詰め、約3分45秒の全編を組み立てる。
+
+## 完成版を 1 本にまとめる
+
+`assemble.py` は、オープニング → (章の区切り → 本編) × 章の数 → エンディング をつなぐ。配置はアカネの構成案(`scene_proposals.py`、本人確認済み)と同じで、色は `render_long.PROFILES`。全身はショートと同じ 6 ポーズのシート(オープニング=通常で口パク・目パチ、区切り=固有で静止、エンディング=成功で口パク)。
+
+```sh
+python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e003 --prepare-only  # 声(AivisSpeech)
+python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e003
+```
+
+- 構成(`projects/mitsuba-full-v01.json`)に書いた本編の台本と、本編を書き出したときの台本が違えば止まる。
+- 場面ごとに映像のコマ数を正とし、音声をその長さにそろえてからつなぐ(長さがコマの区切りに合わない本編で、ずれがたまらないように)。
+- 出力: `full.mp4`、YouTube のチャプター `chapters.txt`、`timing.json`。BGM はまだ入れない。
+- エンディングの右半分は、YouTube の終了画面(動画 1 枠・チャンネル 1 枠)を置く場所なので何も描かない。
+- ミツバの完成版の試し: `../build/out/mitsuba-full-e003/full.mp4`(4 分 8 秒)。
