@@ -140,5 +140,12 @@
     "after_title": 1.0,
     "before_ending": 1.5,
     "card_min": 2.5
+  },
+  "bgm": {
+    "file": "promo/assets/bgm/mitsuba-basics-bgm-v01.flac",
+    "start": 0,
+    "volume": 0.2,
+    "fade_in": 0.5,
+    "fade_out": 2.0
   }
 }
