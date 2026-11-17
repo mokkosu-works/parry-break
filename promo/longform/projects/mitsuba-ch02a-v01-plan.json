@@ -3,8 +3,8 @@
   "profile": "mitsuba",
   "events": "promo/capture/raw/long-stage-mitsuba-s11-sloppy-01/events.json",
   "source_clock_start": 1.156,
-  "duration": 30,
-  "note": "通常尺 02 当たる瞬間にタップの前半(区切りの 3 秒は含まない)。下手版 1-1 の映像 10.3〜40.3 秒。PERFECT・GOOD・JUST・MISS がすべて映る。後半は 02b(1-4 の敵弾)。 台詞は骨組みの候補から。本人の確認待ち。",
+  "duration": 31,
+  "note": "通常尺 02 当たる瞬間にタップの前半(区切りの 3 秒は含まない)。下手版 1-1 の映像 10.3〜41.3 秒。PERFECT・GOOD・JUST・MISS がすべて映る。後半は 02b(1-4 の敵弾)。 台詞は骨組みの候補から。本人の確認待ち。",
   "lines": [
     {
       "start": 0.2,
@@ -25,10 +25,10 @@
       "expression": "explain"
     },
     {
-      "start": 24.2,
+      "start": 24.0,
       "kind": "explanation",
-      "text": "早すぎると、空振り。でも、ちょっと待てば、また押せるよ。",
-      "expression": "think"
+      "text": "早すぎると、空振り。でも、パドルで普通に跳ね返るから、大丈夫！",
+      "expression": "normal"
     }
   ],
   "reactions": [
