@@ -1,11 +1,11 @@
 # tools/analytics
 
-アナリティクスの週次(収集 → 蓄積 → 分析 → レポート)のコード。仕組み・鍵・運用は [docs/analytics-pipeline.md](../../docs/analytics-pipeline.md)。動かすのは [`.github/workflows/analytics.yml`](../../.github/workflows/analytics.yml)。標準ライブラリだけ(Play の署名に `openssl`)。
+アナリティクスの週次(収集 → 蓄積 → 分析 → レポート)のコード。仕組み・鍵・運用は [docs/analytics-pipeline.md](../../docs/analytics-pipeline.md)。動かすのは [`.github/workflows/analytics.yml`](../../.github/workflows/analytics.yml)。標準ライブラリだけ(Play・App Store の署名に `openssl`)。
 
 | ファイル | 役割 |
 |---|---|
 | `store.py` | 時系列ストア。日次の行を `store/<source>/YYYY-MM.jsonl` に upsert、読み出し、取得の状況、メタ情報 |
-| `youtube.py` / `play.py` | API からの取得 → 日次の行。鍵は環境変数 |
+| `youtube.py` / `play.py` / `appstore.py` | API からの取得 → 日次の行。鍵は環境変数 |
 | `collect.py` | 収集(`run` / `backfill`)。source ごとに失敗を分ける |
 | `content.py` | 動画の投稿内容(冒頭・本編の字幕、長さ、公開の曜日・時刻など)を `promo/` の記録から集める |
 | `facts.py` | ストアから `facts.json` を作る(週ごとの推移、動画の伸びと投稿内容、要確認) |

@@ -227,6 +227,24 @@ def growth_section(yt, h):
     return out
 
 
+ASC_LABELS = {
+    "engagement_impression": "インプレッション", "engagement_page_view": "製品ページの表示", "engagement_tap": "タップ",
+    "engagement_total": "表示・操作の合計", "downloads_total": "ダウンロード (計)",
+    "downloads_first_time_download": "初回ダウンロード", "downloads_redownload": "再ダウンロード",
+    "install_total": "インストール・削除の計", "install_install": "インストール", "install_delete": "削除",
+    "sessions": "セッション", "crashes": "クラッシュ",
+}
+
+
+def asc_label(m):
+    return ASC_LABELS.get(m, m)
+
+
+def asc_order(m):
+    keys = list(ASC_LABELS)
+    return keys.index(m) if m in keys else len(keys)
+
+
 def build_html(facts, h, run_url=None):
     yt, pl = facts["youtube"], facts["play"]
     cw = yt["channel_weekly"]
@@ -298,6 +316,19 @@ def build_html(facts, h, run_url=None):
         out.append('<h3>バージョン別 (今週)</h3><div class="tbl"><table><tr><th class="l">versionCode</th><th>クラッシュ率</th><th>ANR 率</th></tr>')
         for ver, d in pl["versions_w0"].items():
             out.append(f'<tr><td class="l">{e(ver)}</td><td>{fmt(d.get("vitals_crash_rate"), 4)}</td><td>{fmt(d.get("vitals_anr_rate"), 4)}</td></tr>')
+        out.append("</table></div>")
+    # ---- App Store
+    out.append("<h2>App Store</h2>")
+    apps = (facts.get("appstore") or {}).get("apps") or {}
+    if not apps:
+        out.append('<p class="muted">App Store のデータはない。</p>')
+    for app, series in apps.items():
+        out.append(f'<h3>Apple ID {e(app)}</h3><div class="tbl"><table><tr><th class="l">指標</th><th>今週</th><th>前週</th><th>前週比</th><th>8 週</th><th>最新の日付</th></tr>')
+        for m, s in sorted(series.items(), key=lambda kv: (asc_order(kv[0]), kv[0])):
+            good_up = not any(k in m for k in ("crash", "delet"))
+            out.append(f'<tr><td class="l">{e(asc_label(m))}</td><td>{fmt(s["weekly"][0])}</td><td>{fmt(s["weekly"][1] if len(s["weekly"]) > 1 else None)}</td>'
+                       f'<td class="{delta_cls(s["wow_pct"], good_up)}">{fmt_pct(s["wow_pct"])}</td><td>{spark(list(reversed(s["weekly"])), 90, 22)}</td>'
+                       f'<td>{e(s["last_date"])}</td></tr>')
         out.append("</table></div>")
 
     # ---- 提案
@@ -374,6 +405,11 @@ def embed(facts, h, run_url=None):
             parts.append(f"クラッシュ率 {fmt(cr['weekly'][0], 4)}")
         if parts:
             fields.append({"name": cut(f"Play {pkg}", 256), "value": " / ".join(parts), "inline": False})
+    for app, s in ((facts.get("appstore") or {}).get("apps") or {}).items():
+        parts = [f"{asc_label(k)} {fmt(s[k]['weekly'][0])} ({fmt_pct(s[k]['wow_pct'])})"
+                 for k in ("downloads_total", "engagement_impression", "engagement_page_view") if k in s]
+        if parts:
+            fields.append({"name": "App Store", "value": cut(" / ".join(parts), 1024), "inline": False})
     if h.get("alerts"):
         fields.append({"name": "🔔 要確認", "value": cut("\n".join(f"• {a['text']}" for a in h["alerts"]), 1024), "inline": False})
     need = [p for p in h.get("proposals", []) if p["needs_human_approval"]]

@@ -58,7 +58,7 @@ jobs:
           GIT_SSH_COMMAND="ssh -i $k -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" git clone --depth 50 -q "$DATA_REPO" data
           mkdir -p work
 
-      - name: 収集 (YouTube・Google Play → store/)
+      - name: 収集 (YouTube・Google Play・App Store → store/)
         id: collect
         continue-on-error: true  # 一部の取得に失敗しても、取れた分の保存と、レポートは続ける (失敗は通知に出る)
         working-directory: tools/analytics
@@ -69,6 +69,11 @@ jobs:
           PLAY_SA_JSON: ${{ secrets.PLAY_SA_JSON }}
           PLAY_BUCKET: ${{ secrets.PLAY_BUCKET }}
           PLAY_PACKAGES: ${{ vars.PLAY_PACKAGES }}
+          # App Store は分析専用の鍵 (リリース用の ASC_* は使わない)
+          ASC_ISSUER_ID: ${{ secrets.ASC_ANALYTICS_ISSUER_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_ANALYTICS_KEY_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_ANALYTICS_KEY_P8 }}
+          ASC_BUNDLE_ID: ${{ vars.ASC_BUNDLE_ID || 'com.watsuwo.parrybreak' }}
           BACKFILL: ${{ inputs.backfill_since }}
         run: |
           if [ -n "$BACKFILL" ]; then

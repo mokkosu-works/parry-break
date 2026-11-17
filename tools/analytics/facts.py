@@ -4,7 +4,7 @@
   python3 facts.py --root <データ用リポジトリ> --promo promo [--date YYYY-MM-DD] [--out facts.json]
 
 週は「取得日の 3 日前まで」を区切りにした 7 日ずつ (w0 = 今週、w1 = 前週 … w7)。数字の確定が遅れるため。
-含めるもの: チャンネルの週ごとの推移 (8 週)、動画別の今週・前週・28 日、パターン・冒頭ごとの比較、Play の週ごとの推移、
+含めるもの: チャンネルの週ごとの推移 (8 週)、動画別の今週・前週・28 日、パターン・冒頭ごとの比較、Play・App Store の週ごとの推移、
 動画ごとの伸び (公開日からの日数をそろえた累計) と投稿内容 (promo/ の記録)、取得の状況、要確認の判定 (alerts)。レビューの文面は、ストアにもここにも無い (件数と星だけ)。
 """
 import argparse, datetime, json, pathlib, statistics, sys
@@ -195,8 +195,8 @@ def play_mode(metric):
     return "sum"
 
 
-def play_facts(root, ws):
-    rows = store.load(root, "play", start=ws[-1][0].isoformat(), end=ws[0][1].isoformat())
+def weekly_series(rows, ws, mode_of=play_mode):
+    """{entity: {metric: 週ごとの推移}}。entity に # があるもの (バージョン別) は除く。"""
     pk = {}
     for r in rows:
         if "#" in r["entity"]:  # バージョン別は、別に扱う
@@ -206,7 +206,7 @@ def play_facts(root, ws):
     for pkg, metrics in pk.items():
         series = {}
         for metric, rs in sorted(metrics.items()):
-            mode = play_mode(metric)
+            mode = mode_of(metric)
             vals = []
             for w in ws:
                 xs = sorted((r for r in rs if in_win(r, w)), key=lambda r: r["date"])
@@ -221,12 +221,25 @@ def play_facts(root, ws):
             series[metric] = {"mode": mode, "weekly": vals, "wow_pct": pct(vals[0], vals[1]) if len(vals) > 1 else None,
                               "last_date": max(r["date"] for r in rs)}
         out[pkg] = series
+    return out
+
+
+def play_facts(root, ws):
+    rows = store.load(root, "play", start=ws[-1][0].isoformat(), end=ws[0][1].isoformat())
+    out = weekly_series(rows, ws)
     by_ver = {}
     for r in rows:
         if "#" in r["entity"] and in_win(r, ws[0]) and r["metric"] in ("vitals_crash_rate", "vitals_anr_rate"):
             by_ver.setdefault(r["entity"].split("#", 1)[1], {}).setdefault(r["metric"], []).append(r["value"])
     versions = {v: {k: r2(statistics.mean(xs), 5) for k, xs in d.items()} for v, d in sorted(by_ver.items())}
     return {"packages": out, "versions_w0": versions}
+
+
+# ---------------------------------------------------------------- App Store
+def appstore_facts(root, ws):
+    """{"apps": {Apple ID: {指標: 週ごとの推移}}}。指標は件数 (合計) だけ。"""
+    rows = store.load(root, "appstore", start=ws[-1][0].isoformat(), end=ws[0][1].isoformat())
+    return {"apps": weekly_series(rows, ws, lambda m: "sum")}  # 名前に total を含んでも、日ごとの件数なので足す
 
 
 # ---------------------------------------------------------------- 状態と要確認
@@ -292,11 +305,12 @@ def build(root, promo_dir, today):
     ws = windows(today)
     yt = youtube_facts(root, ws, promo_dir)
     pl = play_facts(root, ws)
+    ap = appstore_facts(root, ws)
     st = source_status(root, today)
     return {"schema": 1, "date": today.isoformat(),
             "weeks": [{"week": f"w{i}", "start": w[0].isoformat(), "end": w[1].isoformat()} for i, w in enumerate(ws)],
             "status": st, "alerts": alerts(yt, pl, st, ws), "data_quality": data_quality(yt),
-            "youtube": yt, "play": pl}
+            "youtube": yt, "play": pl, "appstore": ap}
 
 
 def main(argv=None):

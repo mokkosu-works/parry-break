@@ -1,11 +1,12 @@
 # アナリティクス: 収集 → 蓄積 → 分析 → レポート
 
-YouTube と Google Play の数字を、GitHub Actions が毎週取り、**日次の事実を時系列で蓄積**する。その推移から決まった規則で事実(`facts.json`)を作り、Claude が分析と提案を書き、規則で検証してから、Discord に要約と HTML のレポートを送る。動画の制作やゲームの改修を進める AI(作業セッション)は、引き渡しファイルを読んで動く。
+YouTube・Google Play・App Store の数字を、GitHub Actions が毎週取り、**日次の事実を時系列で蓄積**する。その推移から決まった規則で事実(`facts.json`)を作り、Claude が分析と提案を書き、規則で検証してから、Discord に要約と HTML のレポートを送る。動画の制作やゲームの改修を進める AI(作業セッション)は、引き渡しファイルを読んで動く。
 
 ```
 cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ──────▶ 分析 ─────▶ 検証 ─────▶ レポート
-                     YouTube・Play     facts.json    Claude       validate.py   Discord: embed + HTML 添付
-                     鍵あり・AI なし    規則で集計     鍵なし・Read  規則で判定
+                     YouTube・Play・   facts.json    Claude       validate.py   Discord: embed + HTML 添付
+                     App Store         規則で集計     鍵なし・Read  規則で判定
+                     鍵あり・AI なし
                         │                                                        │
                         └──────▶ mokkosu-works/analytics (非公開) ◀──────────────┘
                                  store/  日次の事実 (時系列の正本)
@@ -27,7 +28,7 @@ cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ───
 | `reports/YYYY-MM-DD.{html,json,facts.json}`、`reports/latest.json` | 週ごとのレポート・引き渡し・事実 |
 
 - 毎回、**直近 14 日を取り直して上書き**する(数字の確定の遅れを吸収)。同じ日の再実行で行は増えない。
-- 履歴は git が持つ。過去分は `workflow_dispatch` の `backfill_since` で遡って入れられる(YouTube の日次は遡れる。Play のバルクレポートは月の CSV が残っている範囲)。
+- 履歴は git が持つ。過去分は `workflow_dispatch` の `backfill_since` で遡って入れられる(YouTube の日次は遡れる。Play のバルクレポートは月の CSV が残っている範囲。App Store は過去分の依頼 `ONE_TIME_SNAPSHOT` が出した範囲)。
 - 書き込みは、ワークフローから deploy key で push する。ファイルはキー順に並べて書くので、差分は変わった数字だけになる。
 
 ### 指標(entity)
@@ -36,6 +37,7 @@ cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ───
 |---|---|---|
 | youtube | `channel` / 動画 ID | `views` `engagedViews` `estimatedMinutesWatched` `likes` `shares` `comments` `subscribersGained` `averageViewDuration` `averageViewPercentage`(日次)、`retention_r001`〜`retention_r100`(取得日時点の 28 日の維持率曲線の写し) |
 | play | パッケージ名 / `パッケージ名#versionCode` | `vitals_crash_rate` `vitals_anr_rate` `vitals_user_perceived_*` `vitals_distinct_users`、バルクレポートの数値列(`installs_*` `ratings_*` `crashes_*`)、`review_count` `review_star_avg` |
+| appstore | アプリの Apple ID | `engagement_impression` `engagement_page_view` `engagement_tap`(インプレッション・製品ページの表示・タップ)、`downloads_total` `downloads_<種類>`(初回・再ダウンロードなど)、`install_install` `install_delete`、`sessions`、`crashes`。どれも日ごとの件数の合計(`_total` は種類の合計) |
 
 **レビューの文面は保存しない**(件数と星の平均だけ)。利用者の文章で、指示が混ざりうるため。
 
@@ -44,8 +46,8 @@ cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ───
 | step | やること | 持つ鍵 |
 |---|---|---|
 | データ用リポジトリを取る | clone。鍵は step の中だけでファイルにして消す | deploy key |
-| 収集 | `collect.py run`。source ごとに失敗しても止めず、`status.jsonl` に残す | YouTube・Play の読み取り専用の鍵 |
-| 事実を作る | `facts.py`。8 週の推移、動画の伸び(公開日からの日数をそろえた累計)と投稿内容、区分ごとの比較、Play の週ごと、要確認(`alerts`)、データの注意 | なし |
+| 収集 | `collect.py run`。source ごとに失敗しても止めず、`status.jsonl` に残す | YouTube・Play・App Store の読み取り用の鍵 |
+| 事実を作る | `facts.py`。8 週の推移、動画の伸び(公開日からの日数をそろえた累計)と投稿内容、区分ごとの比較、Play・App Store の週ごと、要確認(`alerts`)、データの注意 | なし |
 | 分析 | claude-code-action。`tools/analytics/prompt.md` の指示で `work/` を読み(Read だけ)、JSON を返す。**ログに出さない** | Claude のトークンだけ |
 | 検証・レポート | `extract.py` → `validate.py` → `report.py html` | なし |
 | 保存 | データ用リポジトリに commit・push(途中で失敗しても、取れた分は保存する) | deploy key |
@@ -80,7 +82,7 @@ Claude の出力が読めなくても止めない(提案なし・事実だけの
 
 ## 4. レポート
 
-- **Discord**: embed(状態、YouTube の再生数・平均視聴割合・登録者、Play のインストール・クラッシュ率、要確認、承認が要る提案、取得に失敗した source)+ **HTML を添付**。Discord の中では HTML はプレビューされないので、要点は embed に出し、詳細は添付を開く。
+- **Discord**: embed(状態、YouTube の再生数・平均視聴割合・登録者、Play のインストール・クラッシュ率、App Store のダウンロード・インプレッション・製品ページの表示、要確認、承認が要る提案、取得に失敗した source)+ **HTML を添付**。Discord の中では HTML はプレビューされないので、要点は embed に出し、詳細は添付を開く。
 - **HTML**: 1 ファイルで完結(外部を読み込まない、スクリプトなし、CSP で禁止)。値はすべてエスケープ。ダークモード対応。推移は SVG の折れ線。
 - `@` のメンションは無効。Webhook の URL はログに出さない。送信に失敗したら、ジョブが赤になる。
 
@@ -96,6 +98,8 @@ environment `analytics` は、使えるブランチを `dev` だけにしてあ�
 | `PLAY_BUCKET` | secret | バルクレポートのバケット名(`pubsite_prod_…`) |
 | `PLAY_PACKAGES` | variable | パッケージ名(カンマ区切り)。`com.watsuwo.parrybreak` を設定済み |
 | `DISCORD_WEBHOOK_URL` | secret | 送信先のチャンネルの設定 → 連携サービス → ウェブフック → URL をコピー |
+| `ASC_ANALYTICS_ISSUER_ID` / `ASC_ANALYTICS_KEY_ID` / `ASC_ANALYTICS_KEY_P8` | secret | 下の「App Store」。**リリース用の `ASC_*` は使い回さない** |
+| `ASC_BUNDLE_ID` | variable(任意) | 無ければ `com.watsuwo.parrybreak`。アプリの Apple ID は、これから API で引く |
 | `CLAUDE_CODE_OAUTH_TOKEN` | secret(リポジトリ) | 既存のものを使う |
 
 ### YouTube
@@ -114,14 +118,26 @@ environment `analytics` は、使えるブランチを `dev` だけにしてあ�
 2. Play Console の「ユーザーと権限」で、サービスアカウントのメールを招待し、「**アプリ情報の閲覧、一括レポートのダウンロード(読み取り専用)**」だけを与える(アカウント全体)。反映に時間がかかることがある(その間は「取得に失敗」と出る)。
 3. Play Console の「レポートのダウンロード」→「Cloud Storage の URI をコピー」の `gs://pubsite_prod_…/` から、バケット名を取る。
 
-鍵の権限は読み取りだけ。動画の投稿用・ストアのリリース用の鍵は使わない。
+### App Store
+App Store の数字は、App Store Connect API の **Analytics Reports** で取る。「レポートの依頼」を 1 回作ると、Apple が毎日レポートを作る(最初は 1〜2 日後)。**依頼を作れるのは Admin の鍵だけ**で、作ったあとは Sales の鍵で読める。そこで、最初の 1 回だけ Admin の鍵で動かし、そのあと Sales の鍵に入れ替える。
+
+1. App Store Connect → ユーザとアクセス → 統合 → App Store Connect API →「チーム キー」で、**Admin** のキーを作る。`.p8` をダウンロードする(1 回しかダウンロードできない)。Issuer ID とキー ID を控える。
+2. environment `analytics` に `ASC_ANALYTICS_ISSUER_ID`・`ASC_ANALYTICS_KEY_ID`・`ASC_ANALYTICS_KEY_P8`(`.p8` の中身すべて)を入れる。
+3. analytics を手動で 1 回動かす(`notify` なし)。`collect.py` が、継続の依頼(`ONGOING`)と過去分の依頼(`ONE_TIME_SNAPSHOT`)を作る。`store/status.jsonl` の appstore の行に「依頼を作った」と出る(この時点では、まだ数字はない)。
+4. 同じ画面で **Sales** のキーを作り、`ASC_ANALYTICS_KEY_ID` と `ASC_ANALYTICS_KEY_P8` を入れ替える。**Admin のキーは取り消す**。
+5. 1〜2 日後に、もう一度動かす(過去分を入れるなら `backfill_since` を付ける)。appstore が `ok` になれば完了。
+
+- 継続の依頼は、長く読まれないと Apple が止める。止まったら(「依頼がなく、作れなかった」と出る)、1〜4 をやり直す。
+- 使うのは、利用者を特定しにくい Standard のレポートだけ。
+
+鍵の権限は読み取りだけ(App Store は Sales。最初の 1 回の Admin は、すぐ取り消す)。動画の投稿用・ストアのリリース用の鍵は使わない。
 
 ## 6. 安全の設計
 
 | 守るもの | 方法 |
 |---|---|
 | 数字(このリポジトリは公開) | 数字は非公開のデータ用リポジトリと Discord にだけ置く。スクリプトのログは件数だけ。Claude のやりとりはログに出さない(`show_full_output: false`) |
-| 鍵 | environment の secret。使う step の `env` にだけ渡す。deploy key は使う step の中でファイルにして消す。**Claude の step には API の鍵も deploy key も無い** |
+| 鍵 | environment の secret。App Store の Admin の鍵は、依頼を作る 1 回だけ使い、Sales の鍵に入れ替えて取り消す。使う step の `env` にだけ渡す。deploy key は使う step の中でファイルにして消す。**Claude の step には API の鍵も deploy key も無い** |
 | Claude | ツールは Read だけ。集計済みの事実だけを渡す。出力は規則で検証してから使う |
 | 利用者の文章 | レビューの文面は取得の時点で捨てる |
 
@@ -133,7 +149,7 @@ environment `analytics` は、使えるブランチを `dev` だけにしてあ�
 
 ## 8. 既知の問題と、これから
 
-- App Store Connect の収集は未対応(次に足す。読み取り専用の API キーを用意し、取れる指標を確かめてから)。
+- App Store の Analytics Reports の列名(`Event`・`Download Type`・`Counts` など)と種類の値は、Apple の公開資料で確かめきれていない。初回の実データで指標名を確認する。列が見つからないレポートは、行を作らずに飛ばす。
 - `promo/records/videos.csv` の投稿日と、再生のあった日が合わない動画がある。動画の結びつけは(タイトル, 投稿日)なので、食い違うと「記録なし」になる。
 - チャンネル合計と、動画別の合計が一致しない週がある(削除・非公開の動画の可能性。原因は未確認)。`data_quality` に出す。
 - 「視聴 vs スワイプ」は API に無い。`promo/analytics/import_studio.py`(Studio の CSV の手動取り込み)は残す。

@@ -28,6 +28,9 @@ class FactsTest(unittest.TestCase):
                                  {"source": "play", "metric": "installs_daily_user_installs", "entity": "pkg", "date": "2026-11-08", "value": 3},
                                  {"source": "play", "metric": "installs_daily_user_installs", "entity": "pkg", "date": "2026-11-09", "value": 4}])
         store.record_status(self.root, "play", "2026-11-16", "ng", "bulk: HTTP 403")
+        store.upsert(self.root, [{"source": "appstore", "metric": m, "entity": "111", "date": d, "value": v}
+                                 for m, d, v in (("downloads_total", "2026-11-08", 2), ("downloads_total", "2026-11-09", 3),
+                                                 ("downloads_total", "2026-11-01", 1), ("engagement_impression", "2026-11-09", 40))])
         self.promo = pathlib.Path(self.root) / "promo"
         (self.promo / "records").mkdir(parents=True)
         (self.promo / "build/specs").mkdir(parents=True)
@@ -52,6 +55,8 @@ class FactsTest(unittest.TestCase):
         crash = f["play"]["packages"]["pkg"]["vitals_crash_rate"]
         self.assertEqual(crash["weekly"][:2], [0.02, 0.01])
         self.assertEqual(f["play"]["packages"]["pkg"]["installs_daily_user_installs"]["weekly"][0], 7)
+        dl = f["appstore"]["apps"]["111"]["downloads_total"]
+        self.assertEqual((dl["mode"], dl["weekly"][:2], dl["wow_pct"]), ("sum", [5, 1], 400.0))  # total でも合計
         codes = {a["code"] for a in f["alerts"]}
         self.assertEqual(codes, {"views_halved", "play_fetch_ng", "vitals_crash_rate_up"})
         self.assertTrue(any("4 週" in x or "週分" in x for x in f["data_quality"]))
