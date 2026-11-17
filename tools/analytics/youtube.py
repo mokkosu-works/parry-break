@@ -8,7 +8,6 @@ import datetime, json, os, sys, urllib.error, urllib.parse, urllib.request
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 ANALYTICS = "https://youtubeanalytics.googleapis.com/v2/reports"
 DATA_API = "https://www.googleapis.com/youtube/v3"
-LAG = 3  # 数字の確定が遅れるため、取得日の 3 日前までを対象にする
 METRICS = ["views", "engagedViews", "estimatedMinutesWatched", "likes", "shares", "comments",
            "subscribersGained", "averageViewDuration", "averageViewPercentage"]
 RETENTION_POINTS = (0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 1.00)  # 経過時間の割合ごとの audienceWatchRatio (28 日の窓の写し)

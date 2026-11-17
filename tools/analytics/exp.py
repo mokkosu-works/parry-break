@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""実験の記録 (追記だけの JSON Lines)。作業した AI や人が「何を、いつ実行したか」を残し、翌週の分析が結果を評価する。
+"""実験の記録 (追記だけの JSON Lines)。作業した AI や人が「何を、いつ実行したか」を残し、以降の日次の分析が結果を評価する。
 
   python3 exp.py add --target video|game --action '実行したこと' --metric '見る指標' [--metric ...] [--proposal-id ID] [--baseline '実行前の数字']
   python3 exp.py close --id E-20261116-01 --status done|abandoned --note '結果や理由'
@@ -7,7 +7,7 @@
 
   共通: --root <データ用リポジトリ (mokkosu-works/analytics) の clone>。既定は環境変数 ANALYTICS_DATA、なければ ../analytics
 
-保存先: <root>/store/experiments.jsonl。書いたら、データ用リポジトリで commit して push する (週次の分析が読む)。
+保存先: <root>/store/experiments.jsonl。書いたら、データ用リポジトリで commit して push する (日次の分析が読む)。
 """
 import argparse, datetime, json, os, pathlib, re, sys
 

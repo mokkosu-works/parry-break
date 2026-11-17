@@ -6,7 +6,7 @@
 Analytics Reports は「レポートの依頼」を 1 回作ると、Apple が毎日レポートを作る (最初は 1〜2 日後)。
   - 依頼を作れるのは Admin の鍵だけ。読むのは Sales / Finance の鍵でもできる。
   - 依頼がなければ、ここで作ろうとする (継続 ONGOING と、過去分 ONE_TIME_SNAPSHOT)。権限がなければ、作らずに理由を残す。
-  - 継続の依頼は、しばらく読まれないと Apple が止める (stoppedDueToInactivity)。週次で読むので、ふつうは止まらない。
+  - 継続の依頼は、しばらく読まれないと Apple が止める (stoppedDueToInactivity)。毎日読むので、ふつうは止まらない。
 使うのは、利用者を特定しにくい Standard のレポートだけ。行は日付と種類ごとの合計にする。
 """
 import base64, csv, datetime, gzip, io, json, os, re, subprocess, tempfile, time

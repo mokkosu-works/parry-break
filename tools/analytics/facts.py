@@ -3,15 +3,18 @@
 
   python3 facts.py --root <データ用リポジトリ> --promo promo [--date YYYY-MM-DD] [--out facts.json]
 
-週は「取得日の 3 日前まで」を区切りにした 7 日ずつ (w0 = 今週、w1 = 前週 … w7)。数字の確定が遅れるため。
-含めるもの: チャンネルの週ごとの推移 (8 週)、動画別の今週・前週・28 日、パターン・冒頭ごとの比較、Play・App Store の週ごとの推移、
+対象日は取得日の 2 日前 (数字の確定が遅れるため)。対象日の数字 (`day`: 前日・前週の同じ曜日・その前の 7 日の平均との比較) と、
+対象日までを区切りにした 7 日ずつの推移 (w0 = 直近 7 日、w1 = その前の 7 日 … w7) を作る。
+含めるもの: チャンネルの 7 日ごとの推移 (8 区間)、動画別の直近 7 日・その前の 7 日・28 日、パターン・冒頭ごとの比較、Play・App Store の週ごとの推移、
 動画ごとの伸び (公開日からの日数をそろえた累計) と投稿内容 (promo/ の記録)、取得の状況、要確認の判定 (alerts)。レビューの文面は、ストアにもここにも無い (件数と星だけ)。
 """
 import argparse, datetime, json, pathlib, statistics, sys
 
 import content, store
 
-LAG = 3
+LAG = 2
+WEEKDAY_JA = "月火水木金土日"
+DAY_YT = ("views", "engagedViews", "averageViewPercentage", "subscribersGained", "estimatedMinutesWatched")
 WEEKS = 8
 MIN_VIEWS = 100  # 28 日でこれ未満の動画は、率の比較に使わない (データ不足)
 YT_SUM = ("views", "engagedViews", "estimatedMinutesWatched", "likes", "shares", "comments", "subscribersGained")
@@ -242,6 +245,41 @@ def appstore_facts(root, ws):
     return {"apps": weekly_series(rows, ws, lambda m: "sum")}  # 名前に total を含んでも、日ごとの件数なので足す
 
 
+# ---------------------------------------------------------------- 対象日 (取得日の 2 日前)
+def day_facts(root, ws, videos):
+    """対象日の数字を、前日・前週の同じ曜日・その前の 7 日の平均と比べる。対象日の数字は速報で、あとの実行で上書きされうる。"""
+    day = ws[0][1]
+    d = lambda n: (day - datetime.timedelta(days=n)).isoformat()
+    yt_rows = store.load(root, "youtube", start=d(7), end=d(0))
+    ch = {(r["metric"], r["date"]): r["value"] for r in yt_rows if r["entity"] == "channel"}
+    channel = {}
+    for m in DAY_YT:
+        x, prior = ch.get((m, d(0))), [ch[(m, d(i))] for i in range(1, 8) if (m, d(i)) in ch]
+        avg = r2(statistics.mean(prior), 2 if m == "averageViewPercentage" else 1) if prior else None
+        channel[m] = {"value": x, "prev_day": ch.get((m, d(1))), "same_weekday_last_week": ch.get((m, d(7))), "prior7_mean": avg,
+                      "vs_prev_day_pct": pct(x, ch.get((m, d(1)))), "vs_last_week_pct": pct(x, ch.get((m, d(7)))), "vs_prior7_pct": pct(x, avg)}
+    names = {v["youtube_id"]: v for v in videos}
+    vv = {}
+    for r in yt_rows:
+        if r["entity"] != "channel" and r["metric"] == "views" and r["date"] in (d(0), d(1)):
+            vv.setdefault(r["entity"], {})[r["date"]] = r["value"]
+    top = sorted(((k, x.get(d(0)), x.get(d(1))) for k, x in vv.items() if x.get(d(0))), key=lambda t: -t[1])[:5]
+    top_videos = [{"youtube_id": k, "id": (names.get(k) or {}).get("id"), "title": (names.get(k) or {}).get("title"),
+                   "views": a, "prev_day": b, "vs_prev_day_pct": pct(a, b)} for k, a, b in top]
+    stores = {}
+    for src in ("play", "appstore"):
+        by = {}
+        for r in store.load(root, src, start=d(1), end=d(0)):
+            if "#" not in r["entity"]:
+                by.setdefault(r["entity"], {}).setdefault(r["metric"], {})[r["date"]] = r["value"]
+        stores[src] = {ent: {m: {"value": x.get(d(0)), "prev_day": x.get(d(1)), "vs_prev_day_pct": pct(x.get(d(0)), x.get(d(1)))}
+                             for m, x in sorted(ms.items())} for ent, ms in by.items()}
+    avail = {"youtube": (("views", d(0)) in ch),
+             **{src: any(v["value"] is not None for ms in stores[src].values() for v in ms.values()) for src in stores}}
+    return {"date": d(0), "weekday": WEEKDAY_JA[day.weekday()], "available": avail, "youtube_channel": channel,
+            "youtube_top_videos": top_videos, "play": stores["play"], "appstore": stores["appstore"]}
+
+
 # ---------------------------------------------------------------- 状態と要確認
 def source_status(root, today):
     p = pathlib.Path(root) / "store" / "status.jsonl"
@@ -267,11 +305,11 @@ def alerts(yt, pl, status, ws):
     out = []
     t = yt["channel_weekly"]
     if len(t) > 1 and t[1]["views"] >= 100 and t[0]["views"] <= t[1]["views"] / 2:
-        out.append({"level": "warn", "code": "views_halved", "text": f"再生数が前週の半分以下 ({t[1]['views']:g} → {t[0]['views']:g})"})
+        out.append({"level": "warn", "code": "views_halved", "text": f"直近 7 日の再生数が、その前の 7 日の半分以下 ({t[1]['views']:g} → {t[0]['views']:g})"})
     for s, st in status.items():
         if st.get("state") == "ng":
             out.append({"level": "warn", "code": f"{s}_fetch_ng", "text": f"{s} の取得に失敗 ({st.get('note', '')[:100]})"})
-    stale = (ws[0][1] - datetime.timedelta(days=7)).isoformat()
+    stale = (ws[0][1] - datetime.timedelta(days=3)).isoformat()  # 対象日より 3 日以上古い
     if yt["last_date"] and yt["last_date"] < stale:
         out.append({"level": "warn", "code": "youtube_stale", "text": f"YouTube の最新データが古い ({yt['last_date']})"})
     for pkg, series in pl["packages"].items():
@@ -288,7 +326,7 @@ def data_quality(yt):
     out = []
     ch_views = yt["channel_weekly"][0]["views"]
     if ch_views != yt["videos_w0_sum"]:
-        out.append(f"今週のチャンネル合計 {ch_views:g} 回と、動画別の合計 {yt['videos_w0_sum']:g} 回が一致しない (削除・非公開の動画などの可能性。原因は未確認)")
+        out.append(f"直近 7 日のチャンネル合計 {ch_views:g} 回と、動画別の合計 {yt['videos_w0_sum']:g} 回が一致しない (削除・非公開の動画などの可能性。原因は未確認)")
     missing = [v["youtube_id"] for v in yt["videos"] if not v["in_records"]]
     if missing:
         out.append(f"promo/records に記録のない動画が {len(missing)} 本 (投稿内容と結びつかない)")
@@ -307,9 +345,14 @@ def build(root, promo_dir, today):
     pl = play_facts(root, ws)
     ap = appstore_facts(root, ws)
     st = source_status(root, today)
-    return {"schema": 1, "date": today.isoformat(),
+    day = day_facts(root, ws, yt["videos"])
+    dq = data_quality(yt)
+    late = [s for s, ok in day["available"].items() if not ok and s in st]
+    if late:
+        dq.append(f"対象日 ({day['date']}) の数字がまだ無い: {', '.join(late)} (確定が遅れている。あとの実行で入る)")
+    return {"schema": 1, "date": today.isoformat(), "day": day,
             "weeks": [{"week": f"w{i}", "start": w[0].isoformat(), "end": w[1].isoformat()} for i, w in enumerate(ws)],
-            "status": st, "alerts": alerts(yt, pl, st, ws), "data_quality": data_quality(yt),
+            "status": st, "alerts": alerts(yt, pl, st, ws), "data_quality": dq,
             "youtube": yt, "play": pl, "appstore": ap}
 
 
