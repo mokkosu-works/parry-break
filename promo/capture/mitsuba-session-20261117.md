@@ -10,16 +10,20 @@
 | 1-1 下手版 | `long-stage-mitsuba-s11-sloppy-01` | `recorded_unaligned`。MISS 7 回を記録 |
 | 1-2 白ブロック・崩落 | `long-stage-mitsuba-s12-just-02` | `recorded_unaligned`。`keystone` 2 回、`collapse` 2 回 |
 | 1-4 砲台弾 | `long-stage-mitsuba-s14-just-01` | `recorded_unaligned`。`BulletFired` 7 回 |
-| 2-1 FEVER・アイテム | `long-stage-mitsuba-s21-just-01`, `-02` | どちらも `recorded_unaligned`。各テイクでアイテムを取得したが `parried: false`。パリィ取得映像は未撮影 |
+| 2-1 FEVER・アイテム | `long-stage-mitsuba-s21-just-01`, `-02`, `-04`, `-05` | すべて `recorded_unaligned`。**`-05` でブラストをパリィ取得 (`parried: true`, JUST, +8000)**、FEVER 1 回。`-01`/`-02` は `parried: false`、`-04` はアイテム取得なし |
+| 結果ランク画面 | `long-stage-mitsuba-s21-just-05` の末尾 | 2-1 クリアの結果画面 (ランク B, 158,800) が十数秒映る |
+| 06 モード選択画面 | `mtitle_mitsuba-01.mp4` | 16 秒。タイトルでメニューのカーソルを上下 (capture_mode.sh。開始前に他アプリの再生なしを確認) |
+| 06 EASY | `mtitle_mitsuba-easy-01.mp4` | 25 秒。NORMAL→EASY に切り替え、エンドレス開始。ROUND 1 に「はじめの3回は防壁つき」と緑の防壁が映る。他アプリの再生なしを確認 |
+| 06 エンドレス | `long-endless-mitsuba-mode-endless-02` | `recorded_unaligned`, 30 秒。NORMAL。ROUND 1 の防壁つきが映る |
+| 06 デイリー | `long-daily-mitsuba-mode-daily-02` | `recorded_unaligned`, 30 秒 |
+| 06 練習 | `long-practice-mitsuba-mode-practice-02` | `recorded_unaligned`, 30 秒 |
+| 06 ステージ | 1-1 のテイクを流用 | 新規撮影なし |
 | タイトル・今日のお題・設定画面 | `mitsuba-ui-01`, `mitsuba-ui-colors-01` | `recorded`。色画面を含む。結果ランク画面の専用テイクは未確認 |
 
-`long-stage-mitsuba-s12-just-01` は誤ったステージ選択の失敗テイク (`failed`)。素材とログは残してあるが、編集には使わない。
+`long-*-mitsuba-mode-*-01` は端末が WSL から外れていた失敗テイク (`failed`)。`long-stage-mitsuba-s21-just-03` はデバッグモードが切れていて 2-1 がロックされていた失敗テイク (`failed`)。`long-stage-mitsuba-s12-just-01` は誤ったステージ選択の失敗テイク (`failed`)。素材とログは残してあるが、編集には使わない。
 
 ## 残作業
 
-- 2-1 でアイテムをパリィ取得するテイクを追加撮影する (計画上は「できれば」だが、まだ撮れていない)。
-- 4モード選択画面と各モードの短い映像を用意する。既存 `m*_v151.mp4` を使えるか確認し、EASY とエンドレス開始時の防壁も撮影対象に含める。
-- 結果ランク画面が素材に入っているか確認し、なければ撮影する。
 - すべての動画・イベントログを目視で時刻合わせし、使う区間と台詞を決める。現状、撮影済みテイクは未アライン (`recorded_unaligned`)。
 - 撮影以外の制作素材 (ミツバ全身口パク、章見出し、BGM) は未完了。
 
@@ -27,5 +31,8 @@
 
 - ブランチ: `feature/promo-video-tools`。
 - 撮影用 `.promo` APK は v1.6.0 の JUST 版・下手版を作成済み。ストア版は対象外。アプリデータは消さない。
-- 撮影ツール変更とテストは未コミット: `README.md`, `capture_long.py`, `build_mitsuba.py`, `test_capture_long.py`。
+- ミツバ通常尺の撮影は完了 (2026-11-17)。デバッグモード中のエンドレスは記録されないため、データを消さずに防壁が映った。
+- 撮影ツールの変更はコミット済み (`6b04cac`)。
+- 端末が adb から見えなくなったら、Windows 側で `usbipd attach --wsl --busid 2-6` (moto g66j) で付け直す。
+- 端末の `.promo` は JUST 版 (sha256 `32933a7f…`)。デバッグモードは ON、難易度は NORMAL に戻してある。レベル・今日のお題の画面を撮るときは切る (設定の VER を 3 回タップ。ON のときだけ設定に「その他」タブが出る)。
 - 現在、録画・ビルドなどの処理は停止中。再開時は接続状態とインストール済み `.promo` の版を確認してから進める。
