@@ -1,6 +1,6 @@
 # tools/analytics
 
-アナリティクスの週次(収集 → 蓄積 → 分析 → レポート)のコード。仕組み・鍵・運用は [docs/analytics-pipeline.md](../../docs/analytics-pipeline.md)。動かすのは [`.github/workflows/analytics.yml`](../../.github/workflows/analytics.yml)。標準ライブラリだけ(Play・App Store の署名に `openssl`)。
+アナリティクスの日次(収集 → 蓄積 → 分析 → レポート)のコード。仕組み・鍵・運用は [docs/analytics-pipeline.md](../../docs/analytics-pipeline.md)。動かすのは [`.github/workflows/analytics.yml`](../../.github/workflows/analytics.yml)。標準ライブラリだけ(Play・App Store の署名に `openssl`)。
 
 | ファイル | 役割 |
 |---|---|
@@ -8,7 +8,7 @@
 | `youtube.py` / `play.py` / `appstore.py` | API からの取得 → 日次の行。鍵は環境変数 |
 | `collect.py` | 収集(`run` / `backfill`)。source ごとに失敗を分ける |
 | `content.py` | 動画の投稿内容(冒頭・本編の字幕、長さ、公開の曜日・時刻など)を `promo/` の記録から集める |
-| `facts.py` | ストアから `facts.json` を作る(週ごとの推移、動画の伸びと投稿内容、要確認) |
+| `facts.py` | ストアから `facts.json` を作る(対象日の数字、7 日ごとの推移、動画の伸びと投稿内容、要確認) |
 | `prompt.md` | 分析をする Claude への指示 |
 | `extract.py` | claude-code-action の実行記録から、返答の JSON を取り出す |
 | `validate.py` | 提案を規則で検証して、引き渡し(`handoff.json`)を作る |

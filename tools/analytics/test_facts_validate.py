@@ -3,7 +3,7 @@ import csv, datetime, json, pathlib, tempfile, unittest
 import facts, store, validate
 
 D = datetime.date
-TODAY = D(2026, 11, 16)  # w0 = 11-07〜11-13、w1 = 10-31〜11-06
+TODAY = D(2026, 11, 15)  # w0 = 11-07〜11-13、w1 = 10-31〜11-06
 
 
 def yt(metric, entity, date, value):
@@ -27,7 +27,7 @@ class FactsTest(unittest.TestCase):
                                  {"source": "play", "metric": "vitals_crash_rate", "entity": "pkg", "date": "2026-11-01", "value": 0.01},
                                  {"source": "play", "metric": "installs_daily_user_installs", "entity": "pkg", "date": "2026-11-08", "value": 3},
                                  {"source": "play", "metric": "installs_daily_user_installs", "entity": "pkg", "date": "2026-11-09", "value": 4}])
-        store.record_status(self.root, "play", "2026-11-16", "ng", "bulk: HTTP 403")
+        store.record_status(self.root, "play", "2026-11-15", "ng", "bulk: HTTP 403")
         store.upsert(self.root, [{"source": "appstore", "metric": m, "entity": "111", "date": d, "value": v}
                                  for m, d, v in (("downloads_total", "2026-11-08", 2), ("downloads_total", "2026-11-09", 3),
                                                  ("downloads_total", "2026-11-01", 1), ("engagement_impression", "2026-11-09", 40))])
@@ -69,6 +69,19 @@ class FactsTest(unittest.TestCase):
         self.assertIsNone(g["views_d7"])
         self.assertTrue(any("backfill" in x for x in f["data_quality"]))
         json.dumps(f)  # JSON にできること
+
+    def test_day_facts(self):
+        f = facts.build(self.root, self.promo, TODAY)
+        dy = f["day"]
+        self.assertEqual((dy["date"], dy["weekday"]), ("2026-11-13", "金"))  # 取得日の 2 日前
+        v = dy["youtube_channel"]["views"]
+        # 11-07〜13 は 1 日 10 回、10-31〜11-06 は 1 日 40 回。前 7 日 (11-06〜12) の平均は (40 + 10*6) / 7
+        self.assertEqual((v["value"], v["prev_day"], v["same_weekday_last_week"], v["vs_last_week_pct"], v["prior7_mean"]),
+                         (10, 10, 40, -75.0, 14.3))
+        self.assertTrue(dy["available"]["youtube"])
+        self.assertEqual(dy["youtube_top_videos"][0]["id"], "v001")
+        self.assertFalse(dy["available"]["play"])  # Play は 11-13 のデータがない
+        self.assertTrue(any("対象日" in x and "play" in x for x in f["data_quality"]))
 
     def test_growth_by_days_since_publish(self):
         store.update_meta(self.root, "youtube_videos", {"v1": {"title": "T", "published_jst": "2026-10-31"}})

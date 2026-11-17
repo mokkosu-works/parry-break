@@ -1,11 +1,11 @@
 ---
 name: analytics-handoff
-description: 週次のアナリティクス(YouTube・Google Play)の引き渡しファイルを読んで、動画の制作やゲームの改善に使う。実行したら実験を記録する。「今週のアナリティクスを見て」「提案を実行して」「/analytics-handoff」で使う。
+description: 日次のアナリティクス(YouTube・Google Play・App Store)の引き渡しファイルを読んで、動画の制作やゲームの改善に使う。実行したら実験を記録する。「今日のアナリティクスを見て」「提案を実行して」「/analytics-handoff」で使う。
 ---
 
 # アナリティクスの引き渡しを使う
 
-仕組みの全体は `docs/analytics-pipeline.md`。GitHub Actions(`.github/workflows/analytics.yml`)が毎週月曜の朝に、数字の事実と提案を作り、非公開のデータ用リポジトリ `mokkosu-works/analytics` に保存する。この手順は、それを**受け取って動く側**のもの。
+仕組みの全体は `docs/analytics-pipeline.md`。GitHub Actions(`.github/workflows/analytics.yml`)が毎朝、数字の事実と提案を作り、非公開のデータ用リポジトリ `mokkosu-works/analytics` に保存する。この手順は、それを**受け取って動く側**のもの。
 
 ## 1. 読む
 
@@ -13,7 +13,7 @@ description: 週次のアナリティクス(YouTube・Google Play)の引き渡�
 # 初回は clone。2 回目からは pull だけ
 git clone git@github.com:mokkosu-works/analytics.git ../analytics || git -C ../analytics pull -q
 cat ../analytics/reports/latest.json          # 引き渡し(状態・要点・提案・実験の評価)
-cat ../analytics/reports/<日付>.facts.json     # その週の事実(週ごとの推移、動画別、Play)
+cat ../analytics/reports/<日付>.facts.json     # その日の事実(対象日の数字、7 日ごとの推移、動画別、Play・App Store)
 ```
 
 `reports/<日付>.html` は人が見るためのレポート(Discord に添付されるものと同じ)。
@@ -42,9 +42,9 @@ python3 tools/analytics/exp.py --root ../analytics close --id E-… --status don
 git -C ../analytics add store/experiments.jsonl && git -C ../analytics commit -m "exp: …" && git -C ../analytics push
 ```
 
-push まですること(翌週の分析は、データ用リポジトリの記録を読む)。
+push まですること(翌日以降の分析は、データ用リポジトリの記録を読む)。
 
-記録がないと、翌週の分析が「効いたか」を評価できず、同じ提案が繰り返される。やめたものも、`abandoned` で閉じる。
+記録がないと、以降の分析が「効いたか」を評価できず、同じ提案が繰り返される。やめたものも、`abandoned` で閉じる。
 
 ## 4. 人に報告すること
 
