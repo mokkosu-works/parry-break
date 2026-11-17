@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "profile": "mitsuba",
-  "duration": 36,
-  "note": "通常尺 06 4つの遊び方の本編(区切りの 2 秒は含まない)。モード選択 → ステージ → エンドレス → EASY とはじめの防壁 → デイリー → 練習。右上のタグは各モードの担当の色。台詞は骨組みの候補を短くしたもの。本人の確認待ち。",
+  "duration": 39.0,
+  "note": "通常尺 06 4つの遊び方の本編(区切りは含まない)。モード選択 → ステージ → エンドレス → EASY とはじめの防壁 → デイリー → 練習。右上のタグは各モードの担当の色。担当を言う場面では、そのメンバーのバストアップと名札を出す(guest)。グループ名(モコズ)は商標の確認が済むまで言わない。2026-11-17 に本人の指摘で、「面」を「ステージ」に統一し、メンバーの紹介の順番を変えた。",
   "clips": [
     {
       "source": "promo/capture/raw/mtitle_mitsuba-01.mp4",
       "start": 4.0,
-      "duration": 3.5,
+      "duration": 8.0,
       "tag": null,
       "autoplay": false,
       "audio_note": "撮影前後に、ほかのアプリが音を再生していないことを確かめた(capture/mitsuba-session-20261117.md)。",
@@ -17,15 +17,17 @@
       "source": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/capture.mp4",
       "events": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/events.json",
       "start": 10.0,
-      "duration": 5.5,
-      "tag": "tags/wakana_tag_stage.png"
+      "duration": 7.0,
+      "tag": "tags/wakana_tag_stage.png",
+      "guest": "wakana"
     },
     {
       "source": "promo/capture/raw/long-endless-mitsuba-mode-endless-02/capture.mp4",
       "events": "promo/capture/raw/long-endless-mitsuba-mode-endless-02/events.json",
       "start": 5.0,
       "duration": 6.0,
-      "tag": "tags/akane_tag_endless.png"
+      "tag": "tags/akane_tag_endless.png",
+      "guest": "akane"
     },
     {
       "source": "promo/capture/raw/mtitle_mitsuba-easy-01.mp4",
@@ -48,15 +50,17 @@
       "source": "promo/capture/raw/long-daily-mitsuba-mode-daily-02/capture.mp4",
       "events": "promo/capture/raw/long-daily-mitsuba-mode-daily-02/events.json",
       "start": 5.0,
-      "duration": 5.5,
-      "tag": "tags/momoka_tag_daily.png"
+      "duration": 6.0,
+      "tag": "tags/momoka_tag_daily.png",
+      "guest": "momoka"
     },
     {
       "source": "promo/capture/raw/long-practice-mitsuba-mode-practice-02/capture.mp4",
       "events": "promo/capture/raw/long-practice-mitsuba-mode-practice-02/events.json",
       "start": 5.0,
-      "duration": 8.5,
-      "tag": "tags/shizuku_tag_practice.png"
+      "duration": 5.0,
+      "tag": "tags/shizuku_tag_practice.png",
+      "guest": "shizuku"
     }
   ],
   "lines": [
@@ -67,40 +71,40 @@
       "expression": "explain"
     },
     {
-      "start": 3.7,
+      "start": 3.0,
+      "kind": "progress",
+      "text": "わたしたちのメンバーが、それぞれくわしく紹介するよ！",
+      "expression": "success"
+    },
+    {
+      "start": 8.2,
       "kind": "explanation",
-      "text": "ステージは、一面ずつ進める。ワカナさんの担当！",
+      "text": "ステージは、ひとつずつ順番に進める。担当は、メンバーのワカナさん！",
       "expression": "normal"
     },
     {
-      "start": 9.2,
+      "start": 15.2,
       "kind": "explanation",
-      "text": "エンドレスは、どこまで続くかの勝負！ アカネちゃんの担当！",
+      "text": "エンドレスは、どこまで続くかの勝負！ 担当は、アカネちゃん！",
       "expression": "normal"
     },
     {
-      "start": 15.6,
+      "start": 21.6,
       "kind": "explanation",
       "text": "EASYもあるし、はじめの3回は、下に防壁が付くよ。",
       "expression": "explain"
     },
     {
-      "start": 22.2,
+      "start": 28.2,
       "kind": "explanation",
-      "text": "デイリーは、毎日ちがう面。モモカちゃんの担当！",
+      "text": "デイリーは、毎日ちがうステージ。担当は、モモカちゃん！",
       "expression": "normal"
     },
     {
-      "start": 27.7,
+      "start": 34.2,
       "kind": "explanation",
-      "text": "練習は、落としても大丈夫。シズクちゃんの担当！",
+      "text": "練習は、落としても大丈夫。担当は、シズクちゃん！",
       "expression": "normal"
-    },
-    {
-      "start": 32.6,
-      "kind": "progress",
-      "text": "くわしくは、みんなが紹介するよ！",
-      "expression": "success"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "profile": "mitsuba",
-  "note": "ミツバの通常尺(ゲーム全体と基本操作の紹介)の完成版の構成。骨組みは design/longform-mitsuba-outline-v01.md。本編 7 章は本人の確認済み(2026-11-17)。オープニングとエンディングの台詞は骨組みの候補。章の区切りでは章のタイトルを読む(2026-11-17 に本人が決定。区切りは 3 秒)。BGM は本人が作ってから足す。",
+  "note": "ミツバの通常尺(ゲーム全体と基本操作の紹介)の完成版の構成。骨組みは design/longform-mitsuba-outline-v01.md。本編 7 章は本人の確認済み(2026-11-17)。章の区切りでは章のタイトルを読む。変わり目の間は gaps(タイトルの前 1.5 秒・後 1.0 秒・エンディングの前 1.5 秒。区切りは最低 2.5 秒)。背景はショートと同じキャラの色。エンディングは字幕なしで、アイコンとストアのバッジを出す。BGM は本人が作ってから足す。",
   "opening": {
     "duration": 12,
     "heading": "mitsuba-opening-v01.png",
@@ -24,109 +24,95 @@
     {
       "title": "どんなゲーム?",
       "heading": "mitsuba-ch01-v01.png",
-      "card": 3,
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch01-v01.json",
-          "render": "promo/build/out/mitsuba-ch01-e003"
+          "render": "promo/build/out/mitsuba-ch01-e005"
         }
       ],
       "line": {
-        "start": 0.3,
         "text": "どんなゲーム？"
       }
     },
     {
       "title": "当たる瞬間にタップ",
       "heading": "mitsuba-ch02-v01.png",
-      "card": 3,
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch02a-v01.json",
-          "render": "promo/build/out/mitsuba-ch02a-e004"
+          "render": "promo/build/out/mitsuba-ch02a-e005"
         },
         {
           "script": "promo/longform/projects/mitsuba-ch02b-v01.json",
-          "render": "promo/build/out/mitsuba-ch02b-e003"
+          "render": "promo/build/out/mitsuba-ch02b-e005"
         }
       ],
       "line": {
-        "start": 0.3,
         "text": "当たる瞬間にタップ！"
       }
     },
     {
       "title": "白いブロックで崩す",
       "heading": "mitsuba-ch03-v01.png",
-      "card": 3,
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch03-v01.json",
-          "render": "promo/build/out/mitsuba-ch03-e003"
+          "render": "promo/build/out/mitsuba-ch03-e005"
         }
       ],
       "line": {
-        "start": 0.3,
         "text": "白いブロックで崩す！"
       }
     },
     {
       "title": "フィーバー",
       "heading": "mitsuba-ch04-v01.png",
-      "card": 3,
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch04-v01.json",
-          "render": "promo/build/out/mitsuba-ch04-e003"
+          "render": "promo/build/out/mitsuba-ch04-e005"
         }
       ],
       "line": {
-        "start": 0.3,
         "text": "フィーバー！"
       }
     },
     {
       "title": "アイテムはパリィで取る",
       "heading": "mitsuba-ch05-v01.png",
-      "card": 3,
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch05-v01.json",
-          "render": "promo/build/out/mitsuba-ch05-e003"
+          "render": "promo/build/out/mitsuba-ch05-e005"
         }
       ],
       "line": {
-        "start": 0.3,
         "text": "アイテムは、パリィで取る！"
       }
     },
     {
       "title": "4つの遊び方",
       "heading": "mitsuba-ch06-v01.png",
-      "card": 3,
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch06-v01.json",
-          "render": "promo/build/out/mitsuba-ch06-e003"
+          "render": "promo/build/out/mitsuba-ch06-e005"
         }
       ],
       "line": {
-        "start": 0.3,
         "text": "4つの遊び方！"
       }
     },
     {
       "title": "毎日の楽しみ",
       "heading": "mitsuba-ch07-v01.png",
-      "card": 3,
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch07-v01.json",
-          "render": "promo/build/out/mitsuba-ch07-e002"
+          "render": "promo/build/out/mitsuba-ch07-e005"
         }
       ],
       "line": {
-        "start": 0.3,
         "text": "毎日の楽しみ！"
       }
     }
@@ -148,5 +134,11 @@
         "text": "パリィブレイク。ストアで検索！"
       }
     ]
+  },
+  "gaps": {
+    "before_title": 1.5,
+    "after_title": 1.0,
+    "before_ending": 1.5,
+    "card_min": 2.5
   }
 }
