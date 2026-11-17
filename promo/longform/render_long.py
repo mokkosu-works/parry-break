@@ -65,15 +65,21 @@ def check_bgm(bgm, duration):
         raise ValueError("BGM が本編より短いです(start から本編の長さ以上が要ります)")
 
 
-def load_project(path):
-    project = json.loads(path.read_text())
-    if project.get("profile") not in PROFILES:
-        raise ValueError(f"帯の色などが決まっていないキャラです: {project.get('profile')}")
-    tag = project.get("tag", PROFILES[project["profile"]]["tag"])
-    if tag is not None and not (ROOT / "promo/assets" / tag).is_file():
-        raise ValueError(f"タグの画像がありません: {tag}")
-    source = ROOT / project["source"]
-    aligned = json.loads((ROOT / project["events"]).read_text())
+def clips_of(project):
+    """台本の映像の区間の並び。"clips" がなければ、source・source_start の 1 区間。"""
+    default_tag = project.get("tag", PROFILES[project["profile"]]["tag"])
+    if "clips" not in project:
+        return [{"source": project["source"], "events": project["events"], "start": float(project["source_start"]),
+                 "duration": float(project["duration"]), "tag": default_tag, "autoplay": True, "logo": True}]
+    return [{"source": c["source"], "events": c.get("events"), "audio_note": c.get("audio_note"),
+             "start": float(c["start"]), "duration": float(c["duration"]), "tag": c.get("tag", default_tag),
+             "autoplay": c.get("autoplay", True), "logo": c.get("logo", True)} for c in project["clips"]]
+
+
+def check_logged_clip(source, events_path, start, duration):
+    """出来事ログのある録画: 音声の監視・ログとの組み合わせ・使える範囲を確かめ、換算済みのログを返す。"""
+    source = ROOT / source
+    aligned = json.loads((ROOT / events_path).read_text())
     event_video = Path(aligned["capture"]) / aligned["video"]
     capture_meta = json.loads((Path(aligned["capture"]) / "capture.json").read_text())
     if aligned.get("rejected") or capture_meta.get("status") != "recorded_unaligned":
@@ -84,9 +90,46 @@ def load_project(path):
         raise ValueError("録画と出来事ログの組み合わせが一致しません")
     if not source.is_file():
         raise ValueError("録画がありません")
-    start, duration = float(project["source_start"]), float(project["duration"])
     if not all(math.isfinite(x) for x in (start, duration)) or start < 0 or duration <= 0 or start + duration > aligned["safe_end"]:
         raise ValueError("録画の範囲外、またはボスを含む区間です")
+    return aligned
+
+
+def check_unlogged_clip(clip):
+    """ログのない録画(タイトル・設定などの画面操作)。音声の確かめ方を台本に書いてあるものだけ使う。"""
+    source = ROOT / clip["source"]
+    if not source.is_file():
+        raise ValueError(f"録画がありません: {clip['source']}")
+    if not isinstance(clip.get("audio_note"), str) or not clip["audio_note"].strip():
+        raise ValueError(f"ログのない録画には、ほかのアプリの音が入っていないことの確かめ方 (audio_note) が要ります: {clip['source']}")
+    start, duration = clip["start"], clip["duration"]
+    if not all(math.isfinite(x) for x in (start, duration)) or start < 0 or duration <= 0 or start + duration > media_duration(source):
+        raise ValueError(f"録画の範囲外です: {clip['source']}")
+
+
+def load_project(path):
+    project = json.loads(path.read_text())
+    if project.get("profile") not in PROFILES:
+        raise ValueError(f"帯の色などが決まっていないキャラです: {project.get('profile')}")
+    clips = clips_of(project)
+    for clip in clips:
+        if clip["tag"] is not None and not (ROOT / "promo/assets" / clip["tag"]).is_file():
+            raise ValueError(f"タグの画像がありません: {clip['tag']}")
+    duration = float(project["duration"])
+    if "clips" in project:
+        if not clips or abs(sum(c["duration"] for c in clips) - duration) > 1e-6:
+            raise ValueError("clips の長さの合計が duration と一致しません")
+        if any("event_seq" in line for line in project["lines"]):
+            raise ValueError("clips を使う台本では、出来事に合わせた反応はまだ使えません")
+        for clip in clips:
+            if clip["events"]:
+                check_logged_clip(clip["source"], clip["events"], clip["start"], clip["duration"])
+            else:
+                check_unlogged_clip(clip)
+        aligned, start = {"events": []}, 0
+    else:
+        start = float(project["source_start"])
+        aligned = check_logged_clip(project["source"], project["events"], start, duration)
     if "bgm" in project:
         check_bgm(project["bgm"], duration)
     events = {e["seq"]: e for e in aligned["events"]}
@@ -146,12 +189,22 @@ def wrap(text, font, width):
 
 def audio_graph(project, out, starts, parts=("game", "voice", "bgm")):
     """mix.wav を作る ffmpeg の入力とフィルタ。parts で、見本パック用に一部の音だけにできる。"""
-    start, duration = project["source_start"], project["duration"]
+    duration = project["duration"]
     bgm = project.get("bgm") if "bgm" in parts else None
     inputs, filters, tracks = [], [], []
-    if "game" in parts:
-        inputs += ["-ss", str(start), "-t", str(duration), "-i", str(ROOT / project["source"])]
+    if "game" in parts and "clips" not in project:
+        inputs += ["-ss", str(project["source_start"]), "-t", str(duration), "-i", str(ROOT / project["source"])]
         filters.append(f"[0:a]aresample=48000,aformat=channel_layouts=stereo,volume={GAME_VOLUME}[game]")
+        tracks.append("[game]")
+    elif "game" in parts:
+        # 区間ごとに長さをそろえてからつなぐ(録画の音声が映像より少し短くても、後ろがずれないように)。
+        clips = clips_of(project)
+        for i, clip in enumerate(clips):
+            inputs += ["-ss", str(clip["start"]), "-t", str(clip["duration"]), "-i", str(ROOT / clip["source"])]
+            filters.append(f"[{i}:a]aresample=48000,aformat=channel_layouts=stereo,apad,"
+                           f"atrim=duration={clip['duration']},asetpts=PTS-STARTPTS[g{i}]")
+        filters.append("".join(f"[g{i}]" for i in range(len(clips))) +
+                       f"concat=n={len(clips)}:v=0:a=1,volume={GAME_VOLUME}[game]")
         tracks.append("[game]")
     voices = []
     if "voice" in parts:
@@ -209,7 +262,8 @@ def render(project, out):
         raise ValueError("台本が音声作成時から変わっています。別の出力先で音声を作り直してください")
     lines = [{**line, **timed, "audio": audio_data(out / f"voice-{i:03}.wav")}
              for i, (line, timed) in enumerate(zip(project["lines"], prepared["timed"]))]
-    source, start, duration = ROOT / project["source"], project["source_start"], project["duration"]
+    duration = project["duration"]
+    clips = clips_of(project)
     inputs, filters = audio_graph(project, out, [line["start"] for line in lines])
     subprocess.run(["ffmpeg", "-v", "error", "-n", *inputs, "-filter_complex", ";".join(filters),
                     "-map", "[mix]", "-c:a", "pcm_s16le", str(out / "mix.wav")], check=True)
@@ -235,32 +289,50 @@ def render(project, out):
     name_tag = Image.new("RGBA", (name_width, 38), (0, 0, 0, 0))
     ImageDraw.Draw(name_tag).rounded_rectangle((0, 0, name_width - 1, 37), radius=10, fill=colors["outline"])
     ImageDraw.Draw(name_tag).text((name_width / 2, 18), name, font=name_font, fill=colors["box"], anchor="mm")
-    overlays = []
-    tag = project.get("tag", colors["tag"])
-    for asset, xy, width in [("logo/title-logo.png", (24, 20), 220), *([(tag, (1580, 24), 300)] if tag else [])]:
+    def overlay(asset, width):
         im = Image.open(ROOT / "promo/assets" / asset).convert("RGBA")
-        im = im.resize((width, round(im.height * width / im.width)), Image.Resampling.LANCZOS)
-        overlays.append((im, xy))
-    decode = ["ffmpeg", "-v", "error", "-ss", str(start), "-i", str(source), "-t", str(duration),
-              "-vf", "scale=1920:864,fps=24", "-an", "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"]
+        return im.resize((width, round(im.height * width / im.width)), Image.Resampling.LANCZOS)
+    logo = overlay("logo/title-logo.png", 220)
+    tags = {c["tag"]: overlay(c["tag"], 300) for c in clips if c["tag"]}
+    # 区間ごとのコマの範囲。四捨五入の誤差がたまらないように、累計の秒からコマ番号を決める。
+    bounds, elapsed = [], 0.0
+    for clip in clips:
+        bounds.append((round(elapsed * FPS), round((elapsed + clip["duration"]) * FPS), clip))
+        elapsed += clip["duration"]
+
+    def decode(clip):
+        return ["ffmpeg", "-v", "error", "-ss", str(clip["start"]), "-i", str(ROOT / clip["source"]), "-t", str(clip["duration"]),
+                "-vf", "scale=1920:864,fps=24", "-an", "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"]
     encode = ["ffmpeg", "-v", "error", "-n", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1920x1080", "-r", str(FPS),
               "-i", "pipe:0", "-i", str(out / "mix.wav"), "-map", "0:v", "-map", "1:a", "-c:v", "libx264",
               "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
               "-movflags", "+faststart", "-t", str(duration), str(movie)]
     expected = round(duration * FPS)
     frame_bytes = GAME_SIZE[0] * GAME_SIZE[1] * 3
-    with subprocess.Popen(decode, stdout=subprocess.PIPE) as reader, subprocess.Popen(encode, stdin=subprocess.PIPE) as writer:
+    reader = None
+    with subprocess.Popen(encode, stdin=subprocess.PIPE) as writer:
         try:
             for n in range(expected):
+                first, _, clip = next(b for b in bounds if b[0] <= n < b[1])
+                if n == first:
+                    if reader:
+                        reader.stdout.close()
+                        if reader.wait():
+                            raise RuntimeError("ffmpegの読み込みが失敗しました")
+                    reader = subprocess.Popen(decode(clip), stdout=subprocess.PIPE)
                 raw = reader.stdout.read(frame_bytes)
                 if len(raw) != frame_bytes:
-                    raise RuntimeError(f"録画が途中で終わりました: {n}/{expected}コマ")
+                    raise RuntimeError(f"録画が途中で終わりました: {n}/{expected}コマ ({clip['source']})")
                 frame = belt.copy()
                 frame.paste(Image.frombytes("RGB", GAME_SIZE, raw), (0, 0))
-                for im, xy in overlays:
-                    frame.paste(im, xy, im)
+                # タイトル・設定の画面は、画面の中にロゴや見出しがあるので重ねない("logo": false)。
+                if clip["logo"]:
+                    frame.paste(logo, (24, 20), logo)
+                if clip["tag"]:
+                    frame.paste(tags[clip["tag"]], (1580, 24), tags[clip["tag"]])
                 draw = ImageDraw.Draw(frame)
-                draw.text((1720, 826), "自動プレイ映像", font=small, fill="white", stroke_width=2, stroke_fill=colors["box"])
+                if clip["autoplay"]:
+                    draw.text((1720, 826), "自動プレイ映像", font=small, fill="white", stroke_width=2, stroke_fill=colors["box"])
                 draw.text((22, 1050), f"音声：AivisSpeech {prepared['profile']['speakerName']}", font=small, fill=colors["credit"])
                 t = n / FPS
                 current = next((l for l in lines if l["start"] <= t < l["end"]), None)
@@ -282,15 +354,18 @@ def render(project, out):
                 if n and n % (FPS * 10) == 0:
                     print(f"{n//FPS}/{duration}秒", flush=True)
         except BaseException:
-            reader.terminate()
+            if reader:
+                reader.terminate()
             writer.terminate()
             raise
         finally:
-            reader.stdout.close()
+            if reader:
+                reader.stdout.close()
             writer.stdin.close()
-        if reader.wait() or writer.wait():
+        if (reader and reader.wait()) or writer.wait():
             raise RuntimeError("ffmpegの読み込みか書き出しが失敗しました")
-    report = {"frames": expected, "fps": FPS, "duration": duration, "source_start": start,
+    report = {"frames": expected, "fps": FPS, "duration": duration,
+              "clips": [{k: c[k] for k in ("source", "start", "duration", "tag")} for c in clips],
               "timed": prepared["timed"], "game_volume": GAME_VOLUME}
     if "bgm" in project:
         report["bgm"] = project["bgm"]

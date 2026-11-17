@@ -34,7 +34,7 @@ python3 promo/longform/align_events.py promo/capture/raw/long-endless-akane-pilo
 
 解説・雑談は配置案へ手で書き、反応は指定した時間帯の実際の出来事から選ぶ。対象がなければ止まり、出来事や反応を作り足さない。反応の根拠になる `event_seq` を台本に残す。反応の台詞は `make_script.py` の `REACTIONS` にキャラごとにある(アカネ: ジャスト・フィーバー開始・崩れ。ミツバ: それに加えて空振り・パリィでのアイテム取得・ラウンドクリア)。帯の色・右上のタグ・声のクレジットは `render_long.py` の `PROFILES`(台本の `"tag"` でタグを替えられる。ミツバは既定でタグなし)。
 
-ミツバの通常尺は、章ごとに 1 つの台本にしている(`projects/mitsuba-ch04-v01.json` など。区切りの数秒は含まない)。02 は 1-1 の下手版(02a)と 1-4 の敵弾(02b)の 2 つに分けた。確認動画は `../build/out/mitsuba-ch{01,02a,02b,03,04,05}-e003/`(字幕の枠の左上に、話している人の名札を出す。名前と色は `PROFILES`)。
+ミツバの通常尺は、章ごとに 1 つの台本にしている(`projects/mitsuba-ch04-v01.json` など。区切りの数秒は含まない)。02 は 1-1 の下手版(02a)と 1-4 の敵弾(02b)の 2 つに分けた。06・07 は、短い録画をつなぐ `"clips"` の台本(`source`・`start`・`duration` と、任意の `events`・`tag`・`autoplay`・`logo`)。ログのない録画(タイトル・設定の画面)は、ほかのアプリの音が入っていないことの確かめ方を `audio_note` に書いたものだけ使える。タイトル・設定の画面は `"logo": false` で左上のロゴを重ねず、`"autoplay": false` で「自動プレイ映像」を出さない。clips の台本は反応を使わないので、`make_script.py` を通さずに直接書く。確認動画は `../build/out/mitsuba-ch{01,02a,02b,03,04,05}-e003/`(02a は e004、06 は e003、07 は e002)(字幕の枠の左上に、話している人の名札を出す。名前と色は `PROFILES`)。
 
 ```sh
 python3 promo/longform/make_script.py \

@@ -80,6 +80,19 @@ class PipelineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "台詞がありません"):
             make(plan, events)
 
+    def test_unlogged_clip_requires_audio_note(self):
+        from render_long import check_unlogged_clip
+        video = self.folder / "title.mp4"
+        video.write_bytes(b"")
+        with self.assertRaisesRegex(ValueError, "audio_note"):
+            check_unlogged_clip({"source": str(video), "start": 0, "duration": 3, "audio_note": " "})
+
+    def test_single_source_project_becomes_one_clip_with_profile_tag(self):
+        from render_long import clips_of
+        project = {"profile": "akane", "source": "a.mp4", "events": "e.json", "source_start": 2, "duration": 45}
+        self.assertEqual([(c["start"], c["duration"], c["tag"], c["logo"]) for c in clips_of(project)],
+                         [(2.0, 45.0, "tags/akane_tag_endless.png", True)])
+
     def test_audio_guard_ignores_paused_players_and_past_events(self):
         dump = "\n".join([
             "AudioPlaybackConfiguration u/pid:10547/123 state:started attr:usage=USAGE_MEDIA",
