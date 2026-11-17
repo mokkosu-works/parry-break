@@ -9,6 +9,9 @@
   python3 promo/upload/upload_youtube.py upload v002b --yes --publish-at 2026-11-08T19:00:00+09:00   # 予約公開
   python3 promo/upload/upload_youtube.py upload v002b --yes --privacy public                        # すぐ公開
 
+通常尺 (横長) の動画: 管理 ID が l で始まるもの (l001 など) は通常尺として扱う。#Shorts を足さず、
+媒体は「YouTube」と記録する。投稿文の [説明文] は、次の [ ] の見出し (固定コメントなど) の前までを送る。
+
 安全のための決めごと:
 - --yes がなければ、何も送らない (予行)。
 - 公開の範囲の既定は unlisted。public にするには --privacy public を明示する。
@@ -185,16 +188,23 @@ def parse_post(rid):
     if not m:
         die(f"{p} に「=== YouTube ===」がない")
     sec = m.group(1)
-    t = re.search(r"\[タイトル\]\n(.*?)\n\n\[説明文\]\n(.*)", sec, re.S)
+    t = re.search(r"\[タイトル\]\n(.*?)\n\n\[説明文\]\n(.*?)(?:\n\[[^\]\n]+\]\n|\Z)", sec, re.S)
     if not t:
         die(f"{p} の [タイトル] / [説明文] が読めない")
     return t.group(1).strip(), t.group(2).strip()
 
 
-def build_body(title, desc, privacy, publish_at, shorts_tag):
+def is_long(rid):
+    """管理 ID が l で始まる動画は通常尺 (横長)。"""
+    return rid.startswith("l")
+
+
+def build_body(title, desc, privacy, publish_at, shorts_tag, rid=""):
     if shorts_tag and "#shorts" not in desc.lower():
         desc += "\n#Shorts"
-    tags = [h[1:] for h in re.findall(r"#\S+", desc)][:15]
+    tags = [h[1:] for h in re.findall(r"#\S+", desc)][:14]
+    if rid and rid not in tags:
+        tags.append(rid)  # 管理 ID (投稿文の「YouTube のタグ欄に入れる」)
     status = {"privacyStatus": privacy, "selfDeclaredMadeForKids": False}
     if publish_at:
         status.update(privacyStatus="private", publishAt=publish_at)
@@ -226,13 +236,15 @@ def cmd_upload(a):
         if when <= datetime.datetime.now(when.tzinfo) + datetime.timedelta(minutes=15):
             die("--publish-at は、いまから 15 分以上先にする")
         a.publish_at = when.isoformat()
-    body = build_body(title, desc, a.privacy, a.publish_at, not a.no_shorts_tag)
+    long = is_long(a.id)
+    body = build_body(title, desc, a.privacy, a.publish_at, not (a.no_shorts_tag or long), a.id)
     if len(body["snippet"]["description"]) > 5000:
         die("説明文が 5000 文字を超えている")
     size = video.stat().st_size
 
     print(f"動画: {video.relative_to(ROOT)} ({size / 1e6:.1f} MB)")
     print(f"タイトル: {body['snippet']['title']}")
+    print(f"種類: {'通常尺' if long else 'ショート'} / タグ: {', '.join(body['snippet']['tags'])}")
     print(f"公開の範囲: {body['status']['privacyStatus']}" + (f" → {a.publish_at} に公開" if a.publish_at else ""))
     print("説明文:\n" + "\n".join("  " + l for l in body["snippet"]["description"].splitlines()))
     if not a.yes:
@@ -259,11 +271,12 @@ def cmd_upload(a):
     except urllib.error.HTTPError as e:
         die(f"アップロードに失敗 {e.code}: {e.read().decode(errors='replace')}")
     vid = res["id"]
-    print(f"\nアップロードした: https://www.youtube.com/shorts/{vid}  (動画 ID {vid})")
+    link = f"https://www.youtube.com/watch?v={vid}" if long else f"https://www.youtube.com/shorts/{vid}"
+    print(f"\nアップロードした: {link}  (動画 ID {vid})")
 
     # 記録 (csv の投稿日・媒体、と動画 ID の対応)
     day = (datetime.datetime.fromisoformat(a.publish_at).date() if a.publish_at else datetime.date.today())
-    row["投稿日"], row["媒体"] = day.isoformat(), "YouTube Shorts"
+    row["投稿日"], row["媒体"] = day.isoformat(), ("YouTube" if long else "YouTube Shorts")
     with CSV_PATH.open("w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
