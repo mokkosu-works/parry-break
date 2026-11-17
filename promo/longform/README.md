@@ -1,5 +1,7 @@
 # 通常尺の試作
 
+作り方と決めごと(場面の構成・間・色・台詞の決まり)は [../design/longform.md](../design/longform.md)。このファイルは道具の使い方。
+
 全身素材と3場面の構成案を作り、アカネのエンドレスで本編45秒を試した。全身素材と紹介順、録り直した `../build/out/akane-endless-pilot-e002/preview.mp4` は本人の確認済み。本人は後から別撮りのBGMも追加する予定。**最初の本編e001は別アプリの音声混入の疑いがあるため不採用。** 詳細は `../design/audio-source-check-20261117.md`。
 
 - 骨組み：`../design/longform-akane-outline-v01.md`(完成版は約3分45秒の予定)

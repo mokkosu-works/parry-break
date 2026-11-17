@@ -44,6 +44,10 @@ records/    videos.csv、youtube_uploads.csv
 
 キャラクター素材は [characters/README.md](characters/README.md)、性格・口調・表情の使い分けは [characters/profiles.md](characters/profiles.md) を参照する。
 
+## 通常尺 (横長、約 4 分)
+
+作り方と、本人と決めたこと(場面の構成・間・色・台詞の決まり・時刻合わせ・確認の仕方)は [design/longform.md](design/longform.md) にまとめてある。ほかのキャラの回を作るときは、まずそちらを読む。道具の使い方は [longform/README.md](longform/README.md)。
+
 ## 現役: キャラ動画 (ショート、縦長 24 秒)
 
 - 採用版は 2 種類で、どちらも 5 人分ある。
