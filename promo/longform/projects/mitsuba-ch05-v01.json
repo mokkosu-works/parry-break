@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "profile": "mitsuba",
+  "source": "promo/capture/raw/long-stage-mitsuba-s21-just-05/capture.mp4",
+  "events": "promo/capture/raw/long-stage-mitsuba-s21-just-05/events.json",
+  "source_start": 15.499531999999999,
+  "duration": 23,
+  "note": "通常尺 05 アイテムはパリィで取るの本編(区切りの 2 秒は含まない)。本命テイク -05 の映像 15.5〜38.5 秒。カプセルの出現 18.9 秒、ブラストのパリィ取得 22.3 秒、そのあとブレイカーが 2 回。台詞は骨組みの候補から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.3,
+      "kind": "explanation",
+      "text": "第2章からは、アイテムも出るよ。",
+      "expression": "explain"
+    },
+    {
+      "start": 3.3,
+      "kind": "explanation",
+      "text": "カプセルが落ちてきた！ これが、アイテム！",
+      "expression": "surprise"
+    },
+    {
+      "start": 7.004,
+      "kind": "reaction",
+      "text": "取れた！ 今のは、パリィ取り！",
+      "expression": "success",
+      "event_seq": 81,
+      "event_type": "item_taken"
+    },
+    {
+      "start": 10.0,
+      "kind": "explanation",
+      "text": "パドルで取っても効くけど、パリィで取ると、もっと強くなるんだ！",
+      "expression": "explain"
+    },
+    {
+      "start": 15.4,
+      "kind": "explanation",
+      "text": "アイテムは、全部で6種類。どれが来るかは、お楽しみ！",
+      "expression": "smug"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "profile": "mitsuba",
+  "source": "promo/capture/raw/long-stage-mitsuba-s21-just-04/capture.mp4",
+  "events": "promo/capture/raw/long-stage-mitsuba-s21-just-04/events.json",
+  "source_start": 13.999744,
+  "duration": 23,
+  "note": "通常尺 04 フィーバーの本編(区切りの 2 秒は含まない)。2-1 の予備テイク -04(アイテムを取らないので、フィーバーだけを見せられる)。映像の 14.0〜37.0 秒。台詞は骨組みの候補から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.3,
+      "kind": "explanation",
+      "text": "打ち返しを重ねるほど、ボールが速く、強くなっていくよ。",
+      "expression": "explain"
+    },
+    {
+      "start": 6.422,
+      "kind": "reaction",
+      "text": "フィーバーだって！",
+      "expression": "smug",
+      "event_seq": 73,
+      "event_type": "fever_start"
+    },
+    {
+      "start": 8.4,
+      "kind": "explanation",
+      "text": "フィーバー中は、ボールがブロックをどんどん貫いていくよ！",
+      "expression": "explain"
+    },
+    {
+      "start": 13.2,
+      "kind": "chat",
+      "text": "背景まで光ってる！ 見てるだけで、楽しくなっちゃうね。",
+      "expression": "normal"
+    },
+    {
+      "start": 18.361,
+      "kind": "reaction",
+      "text": "クリア！ 次はどんなの？",
+      "expression": "success",
+      "event_seq": 162,
+      "event_type": "round_cleared"
+    }
+  ]
+}
