@@ -3,8 +3,8 @@
   "profile": "mitsuba",
   "events": "promo/capture/raw/long-stage-mitsuba-s14-just-01/events.json",
   "source_clock_start": 7.197,
-  "duration": 10.3,
-  "note": "通常尺 02 当たる瞬間にタップの後半。1-4 の映像 16.5〜26.8 秒。砲台の弾を JUST で打ち返すのが 21.56 秒(この区間の 5.06 秒)。 台詞は骨組みの候補から。本人の確認待ち。",
+  "duration": 10.4,
+  "note": "通常尺 02 当たる瞬間にタップの後半。1-4 の映像 16.5〜26.9 秒。砲台の弾を JUST で打ち返すのが 21.56 秒(この区間の 5.06 秒)。 台詞は骨組みの候補から。本人の確認待ち。",
   "lines": [
     {
       "start": 0.3,
@@ -21,7 +21,7 @@
     {
       "start": 6.0,
       "kind": "explanation",
-      "text": "当たると、少し動けなくなるから、気をつけて。",
+      "text": "被弾すると、少し動けなくなるから、気をつけて。",
       "expression": "explain"
     }
   ],

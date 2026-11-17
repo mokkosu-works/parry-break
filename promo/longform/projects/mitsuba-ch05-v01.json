@@ -30,11 +30,11 @@
     {
       "start": 10.0,
       "kind": "explanation",
-      "text": "パドルで取っても効くけど、パリィで取ると、もっと強くなるんだ！",
+      "text": "パドルに触れるだけでも取れるけど、触れる瞬間にタップすると、効果が強くなるんだ！",
       "expression": "explain"
     },
     {
-      "start": 15.4,
+      "start": 16.8,
       "kind": "explanation",
       "text": "アイテムは、全部で6種類。どれが来るかは、お楽しみ！",
       "expression": "smug"

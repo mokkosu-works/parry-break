@@ -9,13 +9,13 @@
     {
       "start": 0.2,
       "kind": "explanation",
-      "text": "左側をなぞって、パドルを動かす。右側をタップで、打ち返す！",
+      "text": "画面の左半分をなぞって、パドルを動かす。右半分をタップで、打ち返す！",
       "expression": "explain"
     },
     {
-      "start": 6.0,
+      "start": 6.6,
       "kind": "explanation",
-      "text": "押すのは、ボールが当たる直前。ぴったりなほど、強く返るよ。",
+      "text": "押すのは、当たる直前。ぴったりなほど、強く返るよ。",
       "expression": "explain"
     },
     {
