@@ -29,9 +29,9 @@ GAME_VOLUME = 0.38
 # キャラごとの帯の色と、右上のタグ(担当のモードがないキャラは None)。台本の "tag" で替えられる。
 # ミツバの色は旧シリーズ案の配色(黄 #E9B400・焦げ茶 #302719)。
 PROFILES = {
-    "akane": {"belt": "#2c191c", "box": "#130e11", "outline": "#d5372c", "credit": "#c3aeb2",
+    "akane": {"name": "アカネ", "belt": "#2c191c", "box": "#130e11", "outline": "#d5372c", "credit": "#c3aeb2",
               "tag": "tags/akane_tag_endless.png"},
-    "mitsuba": {"belt": "#2b2315", "box": "#15110a", "outline": "#e9b400", "credit": "#cbbf9f", "tag": None},
+    "mitsuba": {"name": "ミツバ", "belt": "#2b2315", "box": "#15110a", "outline": "#e9b400", "credit": "#cbbf9f", "tag": None},
 }
 # 声の間だけ BGM を下げる強さ。声の合計を鍵にする。
 DUCK = "sidechaincompress=threshold=0.03:ratio=6:attack=30:release=500:makeup=1"
@@ -228,6 +228,13 @@ def render(project, out):
     blink = Image.open(bust / "normal_blink.png").convert("RGBA").resize((347, 340), Image.Resampling.LANCZOS)
     for line in lines:
         line["caption"] = wrap(line["text"], subtitle_font, 1430)
+    # 話している人の名札。字幕の枠の左上にかけて置き、話している間だけ出す(掛け合いに備える)。
+    name_font = ImageFont.truetype(str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"), 26)
+    name = colors["name"]
+    name_width = round(name_font.getlength(name)) + 36
+    name_tag = Image.new("RGBA", (name_width, 38), (0, 0, 0, 0))
+    ImageDraw.Draw(name_tag).rounded_rectangle((0, 0, name_width - 1, 37), radius=10, fill=colors["outline"])
+    ImageDraw.Draw(name_tag).text((name_width / 2, 18), name, font=name_font, fill=colors["box"], anchor="mm")
     overlays = []
     tag = project.get("tag", colors["tag"])
     for asset, xy, width in [("logo/title-logo.png", (24, 20), 220), *([(tag, (1580, 24), 300)] if tag else [])]:
@@ -264,6 +271,7 @@ def render(project, out):
                     sprite = blink
                 frame.paste(sprite, (12, 712), sprite)
                 if current:
+                    frame.paste(name_tag, (392, 868), name_tag)
                     captions = current["caption"]
                     top = 972 - len(captions) * 28
                     for i, caption in enumerate(captions):
