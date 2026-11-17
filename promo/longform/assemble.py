@@ -7,7 +7,7 @@ python3 promo/longform/assemble.py <構成.json> --out <出力フォルダ>     
 本編は render_long.py で書き出し済みのものを使う。構成に書いた台本と、書き出したときの台本が違えば止まる。
 配置はアカネの構成案(scene_proposals.py、本人確認済み)を土台にし、色はキャラごと(render_long.PROFILES)。
 変わり目の「間」は構成の "gaps" にそろえる(場面の後ろの無音を切り、区切りの長さをタイトルに合わせる)。
-BGM はまだ入れない(本人が DAW で作る。bgm.md)。出力は上書きしない。
+構成に "bgm" があれば、声の間だけ下げて混ぜる(本人が DAW で作る。bgm.md)。出力は上書きしない。
 """
 
 import argparse
@@ -19,7 +19,7 @@ import sys
 from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps
 
 from full_preview import POSES, audio_data, speaking
-from render_long import PROFILES, NARRATORS, wrap
+from render_long import DUCK, PROFILES, NARRATORS, check_bgm, without_bgm, wrap
 
 ROOT = Path(__file__).resolve().parents[2]
 FPS = 24
@@ -353,12 +353,37 @@ def shifted(timed, offset):
     return [{**t, "start": t["start"] + offset, "end": t["end"] + offset} for t in timed]
 
 
+def mix_bgm(bgm, joined, voices, duration, final):
+    """完成版に BGM を混ぜる。声の間だけ BGM を下げる(鍵は声だけを並べた音。ゲーム音には反応しない)。"""
+    check_bgm(bgm, duration)
+    start, volume = float(bgm.get("start", 0)), float(bgm.get("volume", 0.2))
+    fade_in, fade_out = float(bgm.get("fade_in", 0.5)), float(bgm.get("fade_out", 2.0))
+    flat = [v for scene in voices for v in scene]
+    inputs = ["-i", str(joined), "-i", str(ROOT / bgm["file"])]
+    filters = []
+    for k, (path, at) in enumerate(flat):
+        inputs += ["-i", str(path)]
+        filters.append(f"[{k + 2}:a]aresample=48000,aformat=channel_layouts=stereo,adelay={round(at * 1000)}:all=1[k{k}]")
+    filters.append("".join(f"[k{k}]" for k in range(len(flat))) +
+                   f"amix=inputs={len(flat)}:normalize=0,apad,atrim=duration={duration}[key]")
+    filters.append(f"[1:a]aresample=48000,aformat=channel_layouts=stereo,atrim=start={start}:duration={duration},"
+                   f"asetpts=PTS-STARTPTS,volume={volume},afade=t=in:d={fade_in},"
+                   f"afade=t=out:st={duration - fade_out}:d={fade_out}[bgmraw]")
+    filters.append(f"[bgmraw][key]{DUCK}[bgm]" if bgm.get("duck", True) else "[bgmraw]anull[bgm]")
+    filters.append("[0:a][bgm]amix=inputs=2:normalize=0,alimiter=limit=0.95:latency=1,"
+                   f"atrim=duration={duration}[mix]")
+    subprocess.run(["ffmpeg", "-v", "error", "-n", *inputs, "-filter_complex", ";".join(filters),
+                    "-map", "0:v", "-map", "[mix]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+                    "-movflags", "+faststart", str(final)], check=True)
+
+
 def render(plan, out):
     final = out / "full.mp4"
     if final.exists():
         raise FileExistsError("完成版が既にあります。上書きしません")
     prepared = json.loads((out / "prepared.json").read_text())
-    if prepared["plan"] != plan:
+    # BGM だけを変えたときは、声を作り直さなくてよい。
+    if without_bgm(prepared["plan"]) != without_bgm(plan):
         raise ValueError("構成が声を作ったときと違います。別の出力先で --prepare-only からやり直してください")
     work = out / "parts"
     work.mkdir(exist_ok=True)
@@ -370,6 +395,8 @@ def render(plan, out):
     pieces, starts, report = [], [("オープニング", 0)], []
 
     open_timed = timed["opening"]
+    # voices: 場面ごとの声のファイルと、場面の中での開始時刻(BGM を声の間だけ下げるため)。pieces と同じ並び。
+    voices = [[(out / f"opening-{i:02}.wav", t["start"]) for i, t in enumerate(open_timed)]]
     open_frames = frames_of(trimmed_length(plan["opening"]["duration"], open_timed[-1]["end"], gaps))
     print("オープニング", flush=True)
     opening(plan, out, sheets, open_timed, open_frames, work / "00-opening.mp4")
@@ -378,7 +405,7 @@ def render(plan, out):
     for i, chapter in enumerate(plan["chapters"], 1):
         number = f"{i:02}"
         prev_tail = pieces[-1][1] / FPS - pieces[-1][4]
-        parts = []
+        parts, part_voices = [], []
         for j, part in enumerate(chapter["parts"]):
             render_dir = ROOT / part["render"]
             part_timed = json.loads((render_dir / "prepared.json").read_text())["timed"]
@@ -389,6 +416,7 @@ def render(plan, out):
                 keep = frames_of(trimmed_length(frames / FPS, part_timed[-1]["end"], gaps))
                 cut, frames = keep < frames, min(frames, keep)
             parts.append((movie, frames, cut, part_timed[0]["start"], part_timed[-1]["end"]))
+            part_voices.append([(render_dir / f"voice-{k:03}.wav", t["start"]) for k, t in enumerate(part_timed)])
         title = timed[f"chapter-{number}"][0]
         lead, length = card_timing(prev_tail, title["duration"], parts[0][3], gaps)
         card_frames = frames_of(length)
@@ -399,7 +427,9 @@ def render(plan, out):
         report.append((f"区切り {number} → 本編", "タイトルの後", card_frames / FPS - lead - title["duration"] + parts[0][3]))
         starts.append((f"{number} {chapter['title']}", len(pieces)))
         pieces.append((card, card_frames, False, lead, lead + title["duration"]))
+        voices.append([(out / f"chapter-{number}-00.wav", lead)])
         pieces += parts
+        voices += part_voices
 
     prev_tail = pieces[-1][1] / FPS - pieces[-1][4]
     end_timed = shifted(timed["ending"], ending_offset(prev_tail, timed["ending"][0]["start"], gaps))
@@ -411,6 +441,7 @@ def render(plan, out):
     end_frames = frames_of(plan["ending"]["duration"])
     ending(plan, out, sheets, end_timed, end_frames, work / "99-ending.mp4")
     pieces.append((work / "99-ending.mp4", end_frames, False, end_timed[0]["start"], end_timed[-1]["end"]))
+    voices.append([(out / f"ending-{i:02}.wav", t["start"]) for i, t in enumerate(end_timed)])
 
     # 場面ごとに、使うコマ数を正とし、音声をその長さにそろえてからつなぐ。後ろを切った場面は音を小さくしていく。
     offsets = [sum(p[1] for p in pieces[:i]) / FPS for i in range(len(pieces))]
@@ -427,8 +458,12 @@ def render(plan, out):
     graph = ";".join(labels) + ";" + "".join(f"[v{i}][a{i}]" for i in range(len(pieces))) + \
         f"concat=n={len(pieces)}:v=1:a=1[v][a]"
     print("つなぎ合わせ", flush=True)
+    joined = out / "full-nobgm.mp4" if "bgm" in plan else final
     subprocess.run(["ffmpeg", "-v", "error", "-n", *inputs, "-filter_complex", graph, "-map", "[v]", "-map", "[a]",
-                    *ENCODE, str(final)], check=True)
+                    *ENCODE, str(joined)], check=True)
+    if "bgm" in plan:
+        print("BGM を混ぜる", flush=True)
+        mix_bgm(plan["bgm"], joined, [[(f, offsets[i] + t) for f, t in v] for i, v in enumerate(voices)], elapsed, final)
     actual = frame_count(final) / FPS
     if abs(actual - elapsed) > .5 / FPS:
         raise RuntimeError(f"完成版の長さ {actual:.2f} 秒が、構成の合計 {elapsed:.2f} 秒と合いません")
