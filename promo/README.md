@@ -29,7 +29,7 @@ records/    videos.csv、youtube_uploads.csv
 | `characters/full/` | 通常尺の全身3ポーズ。元の `<名前>_full_sheet.png`・`<名前>_full_blink.png` と、合成した `<名前>/{greet,guide,close}_{closed,open}.png`・`greet_blink.png`、合成範囲の `regions.json` | 入る | 画像生成(`design/codex/longform-full/ref/` に指示文) → `longform/full.py` |
 | `assets/text/shorts-play/` | プレイ紹介の見出し・吹き出し・「ストアで検索」(`<名前>_v05_*.png` など) | 入る | Codex(`design/codex/v05/`) |
 | `assets/text/shorts-modes/` | モード紹介の見出し・吹き出し(`<名前>_mode01_*.png`) | 入る | Codex(`design/codex/mode01/`) |
-| `assets/text/longform/` | 通常尺の見出し画像。アカネの構成案v01は `akane-{opening,chapter,ending}-v01.png`(本人の確認待ち) | 入る | 内蔵画像生成(`design/codex/longform-scenes/ref/` に指示文)から切り出し |
+| `assets/text/longform/` | 通常尺の見出し画像。アカネの構成案v01は `akane-{opening,chapter,ending}-v01.png`(本人の確認待ち)。ミツバは `mitsuba-{opening,ch01〜ch07,ending}-v01.png`(題名・章の札7つ・ストアで検索、縁はタグの濃い茶色。本人の確認待ち、確認画像は `design/checks/mitsuba-headings-v01.jpg`) | 入る | 内蔵画像生成(アカネは `design/codex/longform-scenes/ref/`、ミツバは `design/codex/longform-mitsuba-headings/`(`run.sh`、3行ずつ3枚)に指示文)から切り出し |
 | `assets/tags/` | モードのタグ `<名前>_tag_<stage\|endless\|daily\|practice>.png`(5 人 × 4) | 入る | Codex の 5 枚を土台に色を塗り替え |
 | `assets/bgm/` | 通常尺の BGM `<名前>-<モード>-bgm-v<版>.flac`(音、一覧は `assets/bgm/README.md`) | 入る | 本人が Windows の DAW で作る(`longform/bgm.md`)。DAW のプロジェクトは Windows に残す |
 | `assets/bgm/midi/` | 通常尺の BGM の MIDI のたたき台 `<名前>-<モード>-bgm-v<版>.mid`(Sonar で開いて仕上げる) | 入る | `longform/bgm_midi.py` |
