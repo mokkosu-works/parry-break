@@ -45,12 +45,20 @@ cron(月 6:30 JST) ─▶ 収集 ─────────▶ 事実 ───
 |---|---|---|
 | データ用リポジトリを取る | clone。鍵は step の中だけでファイルにして消す | deploy key |
 | 収集 | `collect.py run`。source ごとに失敗しても止めず、`status.jsonl` に残す | YouTube・Play の読み取り専用の鍵 |
-| 事実を作る | `facts.py`。8 週の推移、動画別、パターン・冒頭ごと、Play の週ごと、要確認(`alerts`)、データの注意 | なし |
+| 事実を作る | `facts.py`。8 週の推移、動画の伸び(公開日からの日数をそろえた累計)と投稿内容、区分ごとの比較、Play の週ごと、要確認(`alerts`)、データの注意 | なし |
 | 分析 | claude-code-action。`tools/analytics/prompt.md` の指示で `work/` を読み(Read だけ)、JSON を返す。**ログに出さない** | Claude のトークンだけ |
 | 検証・レポート | `extract.py` → `validate.py` → `report.py html` | なし |
 | 保存 | データ用リポジトリに commit・push(途中で失敗しても、取れた分は保存する) | deploy key |
 | Discord に送る | `report.py send` | Webhook |
 | 失敗の通知 | レポートを送れずに止まったときだけ、別ジョブで知らせる | Webhook |
+
+### 動画の伸びと投稿内容
+- **伸び**: 公開日を 1 日目にして、1・3・7・14・28 日目までの累計の再生数を出す。公開日が違う動画を、同じ日数で比べるため。3 日目・7 日目は、全動画の中央値に対する倍率も出す。ストアに公開日からのデータが無い動画は、比較から外す(`backfill` で埋まる)。
+- **状態**(規則): 公開 7 日以内は「公開直後」、今週の再生が累計の 30% 以上なら「伸び続けている」、10% 未満(公開 15 日以降)なら「落ち着いた」、ほかは「ゆるやか」。
+- **投稿内容**(`content.py` が `promo/` から集める): 種類(プレイ動画 / キャラクター動画)、パターン、冒頭の種類(A 惜しい失敗 / B 見栄えのする場面 / C 結果の瞬間)と冒頭の字幕、本編の字幕、長さ、公開の曜日・時刻、ハッシュタグ。字幕は `promo/build/specs/spec.<パターン>.json`、公開予約は `promo/records/youtube_uploads.csv`。動画の結びつけは、`youtube_uploads.csv` の動画 ID を優先し、無ければ(タイトル, 投稿日)。
+- **区分ごと**: 種類・冒頭の種類・パターン・曜日ごとの 3 日目・7 日目の中央値。5 本未満は参考値。
+- **Claude の分析**: 伸びた動画と伸びなかった動画で、投稿内容の何が違うかを、`content_findings`(気づき・仮説・根拠・確かめ方)と `video_insights`(動画ごとの見立て)に書く。根拠の数字は、提案と同じ規則で検証する。
+- **レポート**: 「動画の伸び」の折れ線(上位 5 本に色、ほかは灰色)と表、区分ごとの表、「投稿内容の分析」。Discord には、3 日目で中央値を上回った上位 3 本と、気づきを 3 件まで。
 
 ### 要確認(`alerts`)の規則
 - 再生数が前週の半分以下(前週 100 回以上のとき)
@@ -93,8 +101,13 @@ environment `analytics` は、使えるブランチを `dev` だけにしてあ�
 ### YouTube
 1. Google Cloud のプロジェクトで、**YouTube Analytics API** と **YouTube Data API v3** を有効にする。
 2. OAuth 同意画面(外部)を作り、公開ステータスを「**本番環境**」にする(「テスト中」だと、許可が 7 日で切れる)。
-3. OAuth クライアント ID を、種類「**デスクトップ アプリ**」で作る。
-4. 手元で `python3 tools/analytics/youtube_auth.py` を実行する。ID とシークレットを聞かれ、ブラウザでチャンネルのオーナーとして許可すると、3 つの secret を直接入れる(値は画面にもファイルにも残らない)。
+3. OAuth クライアントを、種類「**ウェブ アプリケーション**」で作る。承認済みのリダイレクト URI に `https://developers.google.com/oauthplayground` を足す。
+4. [OAuth 2.0 Playground](https://developers.google.com/oauthplayground) で refresh token を取る。
+   - 右上の歯車で「Use your own OAuth credentials」に 3 の ID とシークレットを入れ、Access type を Offline にする。
+   - 「Input your own scopes」に `https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly` を入れて「Authorize APIs」を押す。
+   - チャンネルのオーナーのアカウントで、2 つの権限を許可する。
+   - 「Exchange authorization code for tokens」を押すと、Refresh token が出る。
+5. GitHub の Settings → Environments → `analytics` で、`YT_CLIENT_ID`・`YT_CLIENT_SECRET`・`YT_REFRESH_TOKEN` を入れる。値はチャットやファイルに残さない。
 
 ### Google Play
 1. Google Cloud でサービスアカウントを作り、JSON の鍵を発行する。同じプロジェクトで **Google Play Developer Reporting API** を有効にする。

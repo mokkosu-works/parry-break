@@ -1,7 +1,7 @@
 """YouTube Analytics の取得 → 日次の行 (読み取り専用。標準ライブラリだけ)。
 
 鍵は環境変数で渡す (Actions の secret): YT_CLIENT_ID / YT_CLIENT_SECRET / YT_REFRESH_TOKEN。
-使う権限は yt-analytics.readonly と youtube.readonly だけ。refresh token は youtube_auth.py で作る (secret に直接入れる)。
+使う権限は yt-analytics.readonly と youtube.readonly だけ。refresh token の作り方は docs/analytics-pipeline.md の §5。
 """
 import datetime, json, os, sys, urllib.error, urllib.parse, urllib.request
 

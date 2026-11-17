@@ -72,8 +72,8 @@ def delta_cls(p, good_up=True):
 
 
 CSS = """
-:root{--bg:#f7f7f5;--card:#fff;--fg:#1d1d1f;--muted:#6b6b70;--line:#e3e3e0;--accent:#3a6ff7;--ok:#2e9e5b;--warn:#b7791f;--bad:#d64545;--chip:#efefec}
-@media (prefers-color-scheme:dark){:root{--bg:#141416;--card:#1d1d20;--fg:#ececef;--muted:#9a9aa2;--line:#2e2e33;--accent:#7c9cff;--ok:#4cc27c;--warn:#e0b04a;--bad:#ff6b6b;--chip:#2a2a2f}}
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--grid:#e1e0d9;--axis:#c3c2b7;--chart-bg:#cfcec8;--bg:#f7f7f5;--card:#fff;--fg:#1d1d1f;--muted:#6b6b70;--line:#e3e3e0;--accent:#3a6ff7;--ok:#2e9e5b;--warn:#b7791f;--bad:#d64545;--chip:#efefec}
+@media (prefers-color-scheme:dark){:root{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--grid:#2c2c2a;--axis:#383835;--chart-bg:#4a4a46;--bg:#141416;--card:#1d1d20;--fg:#ececef;--muted:#9a9aa2;--line:#2e2e33;--accent:#7c9cff;--ok:#4cc27c;--warn:#e0b04a;--bad:#ff6b6b;--chip:#2a2a2f}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
 main{max-width:960px;margin:0 auto;padding:24px 16px 64px}
 h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:32px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}h3{font-size:15px;margin:20px 0 8px}
@@ -88,19 +88,143 @@ h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:32px 0 12px;padding-bo
 ul{padding-left:20px;margin:6px 0}li{margin:3px 0}
 .tbl{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
 th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th{color:var(--muted);font-weight:600}
-td.l,th.l{text-align:left;white-space:normal;min-width:120px}
+td.l,th.l{text-align:left;white-space:normal;min-width:120px}td.wide,th.wide{min-width:260px}
 td .spark{color:var(--accent);vertical-align:middle}
 .chip{display:inline-block;background:var(--chip);border-radius:6px;padding:0 6px;font-size:12px;margin-right:4px}
 .chip.need{background:var(--warn);color:#fff}.chip.auto{background:var(--ok);color:#fff}
 .alert{border-left:4px solid var(--warn)}.muted{color:var(--muted)}
 .prop h3{margin:0 0 6px}.prop dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:8px 0 0;font-size:13px}.prop dt{color:var(--muted)}
 footer{margin-top:40px;color:var(--muted);font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;margin-bottom:6px}.key{display:inline-flex;align-items:center;gap:5px}
+.sw{display:inline-block;width:14px;height:3px;border-radius:2px;background:currentColor}.bgsw{background:var(--chart-bg)}
+.chart{width:100%;max-width:720px;height:auto;display:block}.chart .grid{stroke:var(--grid);stroke-width:1}.chart .axis{stroke:var(--axis);stroke-width:1}
+.chart .tick{fill:var(--muted);font-size:12px}.chart .lbl{fill:var(--fg);font-size:12px;font-weight:600}
+.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.chart .bg{fill:none;stroke:var(--chart-bg);stroke-width:1.2}
+.chart .dot{stroke:var(--card);stroke-width:2}
+.s1{color:var(--s1);stroke:var(--s1)}.s2{color:var(--s2);stroke:var(--s2)}.s3{color:var(--s3);stroke:var(--s3)}.s4{color:var(--s4);stroke:var(--s4)}.s5{color:var(--s5);stroke:var(--s5)}
+circle.s1{fill:var(--s1)}circle.s2{fill:var(--s2)}circle.s3{fill:var(--s3)}circle.s4{fill:var(--s4)}circle.s5{fill:var(--s5)}
 """
 
 
 def kpi(label, val, p, series, good_up=True):
     return (f'<div class="card kpi"><div class="label">{e(label)}</div><div class="val">{e(val)}</div>'
             f'<div class="{delta_cls(p, good_up)}">前週比 {e(fmt_pct(p))}</div>{spark(series)}</div>')
+
+
+GROUP_LABEL = {"kind": "種類ごと", "hook": "冒頭の種類ごと", "pattern": "パターンごと", "weekday": "公開の曜日ごと"}
+VERDICT_CLS = {"伸びた": "up", "伸びなかった": "down"}
+HILITE = 5  # 色を付ける動画の数 (残りは灰色の細い線で、比較の背景にする)
+
+
+def growth_key(v):
+    """伸びの順位。いちばん多くの動画を比べられる 3 日目の倍率で並べ、同じなら 7 日目、累計。"""
+    g = v["growth"]
+    return (g.get("d3_vs_median") or 0, g.get("d7_vs_median") or 0, g.get("views_total") or 0)
+
+
+def growth_chart(videos, w=560, h=280):
+    """公開日を 1 日目にした累計再生数の折れ線 (SVG、スクリプトなし)。上位 HILITE 本に色、残りは灰色。端に ID を直接書く。"""
+    series = [v for v in videos if (v["growth"].get("curve") or [None])[0] is not None and len(v["growth"]["curve"]) >= 2]
+    if len(series) < 1:
+        return ""
+    series.sort(key=growth_key, reverse=True)
+    top, rest = series[:HILITE], series[HILITE:]
+    pl, pr, pt, pb = 44, 56, 12, 28
+    days = max(len(v["growth"]["curve"]) for v in series)
+    ymax = max(max(v["growth"]["curve"]) for v in series) or 1
+    step = 10 ** max(len(str(int(ymax))) - 1, 0)
+    ymax = ((int(ymax) // step) + 1) * step
+    X = lambda d: pl + (d - 1) * (w - pl - pr) / max(days - 1, 1)
+    Y = lambda val: pt + (h - pt - pb) * (1 - val / ymax)
+    o = [f'<svg class="chart" viewBox="0 0 {w} {h}" role="img" aria-label="公開からの日数ごとの累計再生数">']
+    for i in range(5):  # 横の補助線と目盛り
+        val = ymax * i / 4
+        o.append(f'<line class="grid" x1="{pl}" x2="{w - pr}" y1="{Y(val):.1f}" y2="{Y(val):.1f}"/>'
+                 f'<text class="tick" x="{pl - 6}" y="{Y(val) + 4:.1f}" text-anchor="end">{fmt(int(val))}</text>')
+    for d in sorted({1, 3, 7, 14, 21, 28} & set(range(1, days + 1))):
+        o.append(f'<text class="tick" x="{X(d):.1f}" y="{h - 8}" text-anchor="middle">{d}日</text>')
+    o.append(f'<line class="axis" x1="{pl}" x2="{w - pr}" y1="{Y(0):.1f}" y2="{Y(0):.1f}"/>')
+
+    def path(v):
+        return " ".join(f"{X(i + 1):.1f},{Y(c):.1f}" for i, c in enumerate(v["growth"]["curve"]))
+
+    def tip(v):
+        g = v["growth"]
+        return e(f'{v["id"] or v["youtube_id"]}: {len(g["curve"])} 日目まで {fmt(g["curve"][-1])} 回')
+    for v in rest:
+        o.append(f'<polyline class="bg" points="{path(v)}"><title>{tip(v)}</title></polyline>')
+    labels = []
+    for i, v in enumerate(reversed(top)):  # 上位ほど手前に描く
+        k = len(top) - i
+        c = v["growth"]["curve"]
+        x, y = X(len(c)), Y(c[-1])
+        o.append(f'<polyline class="ln s{k}" points="{path(v)}"><title>{tip(v)}</title></polyline>'
+                 f'<circle class="dot s{k}" cx="{x:.1f}" cy="{y:.1f}" r="4"><title>{tip(v)}</title></circle>')
+        labels.append([y, x, v["id"] or v["youtube_id"][:6]])
+    labels.sort()
+    for j in range(1, len(labels)):  # 端の名前が重ならないように、縦に 13px ずつ離す
+        labels[j][0] = max(labels[j][0], labels[j - 1][0] + 14)
+    for y, x, name in labels:
+        o.append(f'<text class="lbl" x="{x + 7:.1f}" y="{y + 4:.1f}">{e(name)}</text>')
+    o.append("</svg>")
+    legend = "".join(f'<span class="key"><i class="sw s{k}"></i>{e(v["id"] or v["youtube_id"])}'
+                     f' <span class="muted">{e(cut((v.get("content") or {}).get("hook_caption") or v["title"] or "", 18))}</span></span>'
+                     for k, v in enumerate(top, 1))
+    if rest:
+        legend += f'<span class="key"><i class="sw bgsw"></i>ほか {len(rest)} 本</span>'
+    return f'<div class="legend">{legend}</div>' + "".join(o)
+
+
+def growth_section(yt, h):
+    vids = yt["videos"]
+    out = ["<h2>動画の伸び</h2>",
+           '<p class="sub">公開日を 1 日目にそろえた累計の再生数。公開日が違う動画を、同じ日数で比べる。中央値比は、同じ日数の全動画の中央値に対する倍率。</p>']
+    chart = growth_chart(vids)
+    out.append(f'<div class="card">{chart}</div>' if chart else '<p class="muted">伸びを比べられる動画がまだない (公開日からのデータが要る。backfill で埋まる)。</p>')
+    if vids:
+        out.append('<div class="tbl"><table><tr><th class="l">動画</th><th class="l wide">投稿内容</th><th class="l">公開</th><th>経過</th>'
+                   "<th>1日目</th><th>3日目</th><th>7日目</th><th>28日目</th><th>中央値比<br>(3日目)</th><th>中央値比<br>(7日目)</th><th class=\"l\">状態</th><th>平均視聴割合</th></tr>")
+        for v in sorted(vids, key=growth_key, reverse=True)[:30]:
+            g, c = v["growth"], v.get("content") or {}
+            body = (f'{e(c.get("kind") or "")} {e(c.get("hook") or "")} {e(c.get("hook_label") or "")}<br>'
+                    f'<span class="muted">冒頭「{e(c.get("hook_caption") or "-")}」 本編「{e(c.get("body_caption") or "-")}」 {e(fmt(c.get("length_sec")))}秒</span>') if c else '<span class="muted">記録なし</span>'
+            pub = f'{e(v["published"] or "-")} {e(c.get("weekday") or "")}' + (f' {c["publish_hour"]}時' if c.get("publish_hour") is not None else "")
+            def rcell(r):
+                cls = "up" if r is not None and r >= 1.5 else "down" if r is not None and r <= 0.67 else "flat"
+                return f'<td class="{cls}">{"-" if r is None else f"{r:.2f}倍"}</td>'
+            out.append(f'<tr><td class="l">{e(v["id"] or v["youtube_id"])}</td><td class="l wide">{body}</td><td class="l">{pub}</td>'
+                       f'<td>{fmt(g.get("age_days"))}日</td><td>{fmt(g.get("views_d1"))}</td><td>{fmt(g.get("views_d3"))}</td>'
+                       f'<td>{fmt(g.get("views_d7"))}</td><td>{fmt(g.get("views_d28"))}</td>'
+                       f'{rcell(g.get("d3_vs_median"))}{rcell(g.get("d7_vs_median"))}<td class="l">{e(g.get("state"))}</td>'
+                       f'<td>{fmt_rate(v["avg_view_pct_28d"])}</td></tr>')
+        out.append("</table></div>")
+    for key, lab in GROUP_LABEL.items():
+        g = yt["groups"].get(key) or []
+        if len(g) >= 2:
+            out.append(f'<h3>{lab}</h3><div class="tbl"><table><tr><th class="l">区分</th><th>本数</th>'
+                       "<th>3日目の中央値</th><th>7日目の中央値</th><th>平均視聴割合</th></tr>")
+            for x in g:
+                ref = ' <span class="chip">参考値</span>' if x["reference_only"] else ""
+                d7 = "-" if x["d7_median"] is None else f'{fmt(x["d7_median"])} <span class="muted">({x["n_d7"]}本)</span>'
+                out.append(f'<tr><td class="l">{e(x["group"])}{ref}</td><td>{x["n"]}</td><td>{fmt(x["d3_median"])}</td>'
+                           f'<td>{d7}</td><td>{fmt_rate(x["avg_view_pct_mean"])}</td></tr>')
+            out.append("</table></div>")
+    if h.get("content_findings"):
+        out.append("<h2>投稿内容の分析</h2>")
+        for f in h["content_findings"]:
+            chips = ('<span class="chip">参考値 (5 本未満)</span>' if f["reference_only"] else "") + \
+                    ("" if f["evidence_verified"] else '<span class="chip">根拠が事実に無い</span>')
+            ev = "".join(f"<li>{e(x['metric'])}: {e(x['value'])}</li>" for x in f["evidence"])
+            out.append(f'<div class="card prop"><h3>{e(f["finding"])}</h3>{chips}<dl>'
+                       f'<dt>仮説</dt><dd>{e(f["hypothesis"])}</dd><dt>根拠</dt><dd><ul>{ev}</ul></dd>'
+                       f'<dt>確かめ方</dt><dd>{e(f["next_test"])} (サンプル {f["sample_size"]} 本)</dd></dl></div>')
+    if h.get("video_insights"):
+        out.append("<h3>動画ごとの見立て</h3><ul>")
+        for x in h["video_insights"]:
+            mark = "" if x["evidence_verified"] else ' <span class="chip">根拠が事実に無い</span>'
+            out.append(f'<li><b>{e(x["id"])}</b> <span class="{VERDICT_CLS.get(x["verdict"], "flat")}">{e(x["verdict"])}</span>: {e(x["comment"])}{mark}</li>')
+        out.append("</ul>")
+    return out
 
 
 def build_html(facts, h, run_url=None):
@@ -145,8 +269,9 @@ def build_html(facts, h, run_url=None):
         out.append("</table></div>")
     else:
         out.append('<p class="muted">今週の YouTube のデータはない。</p>')
+    out += growth_section(yt, h)
     if yt["videos"]:
-        out.append('<h3>動画別</h3><div class="tbl"><table><tr><th class="l">動画</th><th class="l">パターン / 冒頭</th><th>今週</th><th>前週</th>'
+        out.append('<h2>動画別 (直近 28 日)</h2><div class="tbl"><table><tr><th class="l">動画</th><th class="l">パターン / 冒頭</th><th>今週</th><th>前週</th>'
                    "<th>28 日</th><th>平均視聴割合</th><th>エンゲージ率</th><th>維持率 5%</th></tr>")
         for v in yt["videos"][:30]:
             name = f'{e(v["id"] or "記録なし")} <span class="muted">{e(cut(v["title"] or v["youtube_id"], 28))}</span>'
@@ -156,17 +281,6 @@ def build_html(facts, h, run_url=None):
                        f'<td>{fmt(v["views_w0"])}</td><td>{fmt(v["views_w1"])}</td><td>{fmt(v["views_28d"])}</td>'
                        f'<td>{fmt_rate(v["avg_view_pct_28d"])}</td><td>{fmt_rate(v["engaged_rate_28d"])}</td><td>{fmt(r5, 2)}</td></tr>')
         out.append("</table></div>")
-    for key, lab in (("pattern", "パターンごと"), ("hook", "冒頭の種類ごと")):
-        g = yt["groups"].get(key) or []
-        if g:
-            out.append(f'<h3>{lab} (28 日、データ十分な動画のみ)</h3><div class="tbl"><table><tr><th class="l">区分</th><th>本数</th>'
-                       "<th>再生数の中央値</th><th>平均視聴割合</th><th>エンゲージ率</th></tr>")
-            for x in g:
-                ref = ' <span class="chip">参考値</span>' if x["reference_only"] else ""
-                out.append(f'<tr><td class="l">{e(x["group"])}{ref}</td><td>{x["n"]}</td><td>{fmt(x["views_28d_median"])}</td>'
-                           f'<td>{fmt_rate(x["avg_view_pct_mean"])}</td><td>{fmt_rate(x["engaged_rate_mean"])}</td></tr>')
-            out.append("</table></div>")
-
     # ---- Play
     out.append("<h2>Google Play</h2>")
     if not pl["packages"]:
@@ -238,6 +352,18 @@ def embed(facts, h, run_url=None):
         fields.append({"name": "YouTube 再生数", "value": f"{fmt(c0['views'])} ({fmt_pct(c0.get('views_wow_pct'))})", "inline": True})
         fields.append({"name": "平均視聴割合", "value": fmt_rate(c0['averageViewPercentage']), "inline": True})
         fields.append({"name": "登録者の増加", "value": fmt(c0["subscribersGained"]), "inline": True})
+    ranked = [v for v in sorted(facts["youtube"]["videos"], key=growth_key, reverse=True)
+              if (v["growth"].get("d3_vs_median") or 0) > 1]
+    if ranked:
+        lines = []
+        for v in ranked[:3]:
+            g = v["growth"]
+            hook = (v.get("content") or {}).get("hook_caption")
+            lines.append(f'• {v["id"] or v["youtube_id"]} 3日目 {fmt(g["views_d3"])} 回 (中央値の {g["d3_vs_median"]:.2f} 倍)' + (f'「{cut(hook, 20)}」' if hook else ""))
+        fields.append({"name": "伸びが上位の動画 (公開 3 日目で比較)", "value": cut("\n".join(lines), 1024), "inline": False})
+    if h.get("content_findings"):
+        lines = [f'• {cut(f["finding"], 150)}' + (" (参考値)" if f["reference_only"] else "") for f in h["content_findings"][:3]]
+        fields.append({"name": "投稿内容の気づき", "value": cut("\n".join(lines), 1024), "inline": False})
     for pkg, s in facts["play"]["packages"].items():
         ins = next((v for k, v in s.items() if "daily_user_installs" in k), None)
         cr = s.get("vitals_crash_rate")

@@ -20,6 +20,7 @@ KINDS = {"experiment", "fix", "gather"}
 CONF = {"high", "medium", "low"}
 STATUS = {"ok", "attention"}
 OUTCOMES = {"improved", "no_change", "worse", "insufficient_data"}
+VERDICTS = {"伸びた", "平均的", "伸びなかった", "公開直後"}
 
 
 def clean(s, n):
@@ -60,6 +61,14 @@ def load_analysis(p):
     return (d, None) if isinstance(d, dict) else (None, "最上位が辞書でない")
 
 
+def clean_evidence(items):
+    out = []
+    for e in (items or [])[:6]:
+        if isinstance(e, dict) and e.get("metric") and e.get("value") is not None:
+            out.append({"metric": clean(e["metric"], 80), "value": clean(e["value"], 160)})
+    return out
+
+
 def validate_proposal(p, tokens):
     if not isinstance(p, dict):
         return None, "辞書でない"
@@ -69,10 +78,7 @@ def validate_proposal(p, tokens):
     action = clean(p.get("action", ""), 200)
     if not action:
         return None, "action が空"
-    ev = []
-    for e in (p.get("evidence") or [])[:6]:
-        if isinstance(e, dict) and e.get("metric") and e.get("value") is not None:
-            ev.append({"metric": clean(e["metric"], 80), "value": clean(e["value"], 160)})
+    ev = clean_evidence(p.get("evidence"))
     verified = bool(ev) and all(evidence_ok(e["value"], tokens) for e in ev)
     try:
         n = int(p.get("sample_size"))
@@ -93,6 +99,7 @@ def validate_proposal(p, tokens):
 def build(facts, analysis, err, experiments, day):
     tokens = corpus(facts)
     proposals, rejected, reviews, dq, highlights = [], [], [], list(facts.get("data_quality", [])), []
+    insights, findings = [], []
     # 状態は、規則の要確認 (alerts) があれば必ず attention。Claude は ok → attention に上げられるが、下げられない
     status = "attention" if facts.get("alerts") else "ok"
     summary = ""
@@ -110,6 +117,23 @@ def build(facts, analysis, err, experiments, day):
                 proposals.append(v)
             else:
                 rejected.append({"reason": why, "raw_action": clean(p.get("action", "") if isinstance(p, dict) else "", 120)})
+        for x in (analysis.get("video_insights") or [])[:8]:
+            if isinstance(x, dict) and x.get("comment"):
+                ev = clean_evidence(x.get("evidence"))
+                insights.append({"id": clean(x.get("id", ""), 40), "verdict": x.get("verdict") if x.get("verdict") in VERDICTS else "",
+                                 "comment": clean(x["comment"], 200), "evidence": ev,
+                                 "evidence_verified": bool(ev) and all(evidence_ok(e["value"], tokens) for e in ev)})
+        for x in (analysis.get("content_findings") or [])[:5]:
+            if isinstance(x, dict) and x.get("finding"):
+                ev = clean_evidence(x.get("evidence"))
+                try:
+                    n = int(x.get("sample_size"))
+                except (TypeError, ValueError):
+                    n = 0
+                findings.append({"finding": clean(x["finding"], 200), "hypothesis": clean(x.get("hypothesis", ""), 200),
+                                 "next_test": clean(x.get("next_test", ""), 150), "sample_size": n, "evidence": ev,
+                                 "evidence_verified": bool(ev) and all(evidence_ok(e["value"], tokens) for e in ev),
+                                 "reference_only": n < 5})
         for r in (analysis.get("experiment_reviews") or [])[:20]:
             if isinstance(r, dict) and r.get("experiment_id") in experiments and r.get("outcome") in OUTCOMES:
                 reviews.append({"experiment_id": r["experiment_id"], "outcome": r["outcome"], "note": clean(r.get("note", ""), 300),
@@ -117,7 +141,7 @@ def build(facts, analysis, err, experiments, day):
         dq += [clean(x, 240) for x in (analysis.get("data_quality") or [])[:8] if isinstance(x, str)]
     return {"schema": 2, "date": day, "generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
             "status": status, "summary": summary, "highlights": highlights, "alerts": facts.get("alerts", []),
-            "data_quality": list(dict.fromkeys(dq)), "proposals": proposals, "experiment_reviews": reviews,
+            "data_quality": list(dict.fromkeys(dq)), "video_insights": insights, "content_findings": findings, "proposals": proposals, "experiment_reviews": reviews,
             "open_experiments": [e for e in experiments.values() if e["status"] == "open"], "rejected": rejected,
             "rules_for_consumers": "auto_executable が false のものは実行しない。needs_human_approval が true は人の承認が先。"
                                    "hypothesis は仮説で、事実は facts だけ。実行したら exp.py で記録する。"}

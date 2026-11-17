@@ -80,7 +80,7 @@ jobs:
       - name: 事実を作る (facts.json)
         working-directory: tools/analytics
         run: |
-          python3 facts.py --root "$GITHUB_WORKSPACE/data" --records "$GITHUB_WORKSPACE/promo/records/videos.csv" --out "$GITHUB_WORKSPACE/work/facts.json"
+          python3 facts.py --root "$GITHUB_WORKSPACE/data" --promo "$GITHUB_WORKSPACE/promo" --out "$GITHUB_WORKSPACE/work/facts.json"
           cp "$GITHUB_WORKSPACE/data/reports/latest.json" "$GITHUB_WORKSPACE/work/prev_handoff.json" 2>/dev/null || echo '"初回"' > "$GITHUB_WORKSPACE/work/prev_handoff.json"
           cp "$GITHUB_WORKSPACE/data/store/experiments.jsonl" "$GITHUB_WORKSPACE/work/experiments.jsonl" 2>/dev/null || echo '記録なし' > "$GITHUB_WORKSPACE/work/experiments.jsonl"
 

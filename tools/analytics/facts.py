@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """分析の材料 (facts.json) を、ストアの時系列から、決まった規則で作る。AI は使わない。
 
-  python3 facts.py --root <データ用リポジトリ> --records promo/records/videos.csv [--date YYYY-MM-DD] [--out facts.json]
+  python3 facts.py --root <データ用リポジトリ> --promo promo [--date YYYY-MM-DD] [--out facts.json]
 
 週は「取得日の 3 日前まで」を区切りにした 7 日ずつ (w0 = 今週、w1 = 前週 … w7)。数字の確定が遅れるため。
 含めるもの: チャンネルの週ごとの推移 (8 週)、動画別の今週・前週・28 日、パターン・冒頭ごとの比較、Play の週ごとの推移、
-取得の状況、要確認の判定 (alerts)。レビューの文面は、ストアにもここにも無い (件数と星だけ)。
+動画ごとの伸び (公開日からの日数をそろえた累計) と投稿内容 (promo/ の記録)、取得の状況、要確認の判定 (alerts)。レビューの文面は、ストアにもここにも無い (件数と星だけ)。
 """
-import argparse, csv, datetime, json, pathlib, statistics, sys
+import argparse, datetime, json, pathlib, statistics, sys
 
-import store
+import content, store
 
 LAG = 3
 WEEKS = 8
@@ -46,23 +46,61 @@ def yt_agg(rows, w):
     for r in rows:
         if in_win(r, w):
             by_day.setdefault(r["date"], {})[r["metric"]] = r["value"]
-    out = {k: sum(d.get(k, 0) for d in by_day.values()) for k in YT_SUM}
+    # 取れていない指標は 0 ではなく None にする (0 と「データなし」を区別する)。再生数だけは 0 で埋める
+    out = {k: (sum(d.get(k, 0) for d in by_day.values()) if k == "views" or any(k in d for d in by_day.values()) else None) for k in YT_SUM}
     v = out["views"]
     for k in YT_WEIGHTED:
-        out[k] = r2(sum(d.get(k, 0) * d.get("views", 0) for d in by_day.values()) / v) if v else None
-    out["engagedRate"] = r2(out["engagedViews"] / v * 100, 1) if v else None
+        ds = [d for d in by_day.values() if k in d]
+        vv = sum(d.get("views", 0) for d in ds)
+        out[k] = r2(sum(d[k] * d.get("views", 0) for d in ds) / vv) if vv else None
+    out["engagedRate"] = r2(out["engagedViews"] / v * 100, 1) if v and out["engagedViews"] is not None else None
     out["days"] = len(by_day)
     return out
 
 
-def load_records(path):
-    if not path or not pathlib.Path(path).exists():
-        return {}
-    with open(path, encoding="utf-8-sig", newline="") as f:
-        return {(r["タイトル"].strip(), r["投稿日"].strip()): r for r in csv.DictReader(f)}
+GROWTH_DAYS = (1, 3, 7, 14, 28)  # 公開日を 1 日目として、この日数までの累計再生数を比べる (公開日の違いを消すため)
+CURVE_DAYS = 28
 
 
-def youtube_facts(root, ws, records):
+def growth(daily, pub, as_of, covered):
+    """1 本の動画の伸び。daily は {日付: 再生数}。covered はストアに公開日からのデータがあるか (無ければ累計は出さない)。"""
+    if not pub:
+        return {"age_days": None}
+    p = datetime.date.fromisoformat(pub)
+    age = (as_of - p).days + 1
+    out = {"age_days": age, "covered_from_publish": covered}
+    cum, curve = 0, []
+    for i in range(min(max(age, 0), CURVE_DAYS)):
+        cum += daily.get((p + datetime.timedelta(days=i)).isoformat(), 0)
+        curve.append(cum)
+    for n in GROWTH_DAYS:
+        out[f"views_d{n}"] = curve[n - 1] if covered and age >= n and len(curve) >= n else None
+    out["curve"] = curve if covered and curve else None
+    total = sum(v for d, v in daily.items() if pub <= d <= as_of.isoformat())
+    out["views_total"] = total if covered else None
+    # 再生数が最も多かった日 (同じ数なら早い日)
+    peak = min(((-v, d) for d, v in daily.items() if pub <= d <= as_of.isoformat()), default=(0, None))
+    out["peak_day"] = (datetime.date.fromisoformat(peak[1]) - p).days + 1 if peak[1] and covered else None
+    return out
+
+
+def growth_state(g, views_w0):
+    """規則で決める伸びの状態。公開 7 日以内は「公開直後」。"""
+    age, total = g.get("age_days"), g.get("views_total")
+    if age is None or total is None:
+        return "不明"
+    if age <= 7:
+        return "公開直後"
+    share = views_w0 / total if total else 0
+    if share >= 0.3:
+        return "伸び続けている"
+    if share < 0.1 and age > 14:
+        return "落ち着いた"
+    return "ゆるやか"
+
+
+def youtube_facts(root, ws, promo_dir):
+    catalog, by_yt = content.load(promo_dir)
     rows = store.load(root, "youtube", start=ws[-1][0].isoformat(), end=ws[0][1].isoformat())
     by_ent = {}
     for r in rows:
@@ -75,49 +113,75 @@ def youtube_facts(root, ws, records):
     for i in range(len(trend) - 1):
         trend[i]["views_wow_pct"] = pct(trend[i]["views"], trend[i + 1]["views"])
     meta = store.read_meta(root, "youtube_videos")
-    w28 = (ws[3][0], ws[0][1])
+    as_of = ws[0][1]
+    w28 = (ws[3][0], as_of)
+    # 伸びは、公開日からの全期間の日次の再生数で見る (8 週の窓に限らない)
+    all_views = store.load(root, "youtube", metric="views")
+    first_date = min((r["date"] for r in all_views if r["entity"] == "channel"), default=None)
+    daily_by = {}
+    for r in all_views:
+        if r["entity"] != "channel":
+            daily_by.setdefault(r["entity"], {})[r["date"]] = r["value"]
     latest_ret = {}
-    for r in store.load(root, "youtube", start=(ws[0][1] - datetime.timedelta(days=60)).isoformat()):
+    for r in store.load(root, "youtube", start=(as_of - datetime.timedelta(days=60)).isoformat()):
         if r["metric"].startswith("retention_"):
             cur = latest_ret.setdefault(r["entity"], {})
-            if r["date"] >= cur.get("_date", ""):
-                if r["date"] > cur.get("_date", ""):
-                    cur.clear()
-                    cur["_date"] = r["date"]
+            if r["date"] > cur.get("_date", ""):
+                cur.clear()
+                cur["_date"] = r["date"]
+            if r["date"] == cur["_date"]:
                 cur[r["metric"]] = r["value"]
     videos = []
-    for vid, vr in by_ent.items():
+    for vid in set(by_ent) | set(daily_by):
+        vr = by_ent.get(vid, [])
         a0, a1, a28 = yt_agg(vr, ws[0]), yt_agg(vr, ws[1]), yt_agg(vr, w28)
         m = meta.get(vid, {})
-        rec = records.get((m.get("title", ""), m.get("published_jst", ""))) or {}
+        c = content.match(catalog, by_yt, vid, m.get("title"), m.get("published_jst")) or {}
+        pub = m.get("published_jst") or (c.get("publish_at") or "")[:10] or None
+        covered = bool(first_date and pub and first_date <= pub)
+        g = growth(daily_by.get(vid, {}), pub, as_of, covered)
         ret = {k: v for k, v in latest_ret.get(vid, {}).items() if not k.startswith("_")}
         videos.append({
-            "id": rec.get("id") or None, "youtube_id": vid, "title": m.get("title"), "published": m.get("published_jst"),
-            "pattern": rec.get("パターン名") or None, "hook": rec.get("冒頭の種類") or None,
-            "length_sec": float(rec["長さ(秒)"]) if rec.get("長さ(秒)") else None,
+            "id": c.get("id"), "youtube_id": vid, "title": m.get("title") or c.get("title"), "published": pub,
+            "content": {k: c.get(k) for k in ("kind", "pattern", "hook", "hook_label", "hook_caption", "body_caption",
+                                               "length_sec", "weekday", "publish_hour", "hashtags")} if c else None,
+            "pattern": c.get("pattern"), "hook": c.get("hook"), "kind": c.get("kind"),
+            "length_sec": c.get("length_sec"),
             "views_w0": a0["views"], "views_w1": a1["views"], "views_28d": a28["views"],
             "avg_view_pct_28d": a28["averageViewPercentage"], "avg_view_sec_28d": a28["averageViewDuration"],
             "engaged_rate_28d": a28["engagedRate"], "likes_28d": a28["likes"], "shares_28d": a28["shares"],
             "subscribers_28d": a28["subscribersGained"],
-            "retention": ret or None, "insufficient": a28["views"] < MIN_VIEWS, "in_records": bool(rec),
+            "retention": ret or None, "insufficient": a28["views"] < MIN_VIEWS, "in_records": bool(c),
+            "growth": {**g, "state": growth_state(g, a0["views"])},
         })
+    # 同じ日数での比較: 各日数の中央値に対する倍率
+    for n in (3, 7):
+        k = f"views_d{n}"
+        vals = [v["growth"][k] for v in videos if v["growth"].get(k) is not None]
+        med = statistics.median(vals) if vals else None
+        for v in videos:
+            x = v["growth"].get(k)
+            v["growth"][f"d{n}_vs_median"] = r2(x / med) if x is not None and med else None
     videos.sort(key=lambda v: (-v["views_w0"], -v["views_28d"]))
     groups = {}
-    for key in ("pattern", "hook"):
+    for key in ("kind", "hook", "pattern", "weekday"):
         g = {}
         for v in videos:
-            if not v["insufficient"] and v["in_records"]:
-                g.setdefault(v[key] or "(不明)", []).append(v)
+            val = (v.get("content") or {}).get(key) if key == "weekday" else v.get(key)
+            if v["in_records"] and v["growth"].get("views_d3") is not None:
+                g.setdefault(val or "(なし)", []).append(v)
         groups[key] = [{
-            "group": k, "n": len(vs), "views_28d_median": statistics.median(x["views_28d"] for x in vs),
+            "group": k, "n": len(vs),
+            "d3_median": statistics.median(x["growth"]["views_d3"] for x in vs),
+            "d7_median": (statistics.median(d7) if (d7 := [x["growth"]["views_d7"] for x in vs if x["growth"]["views_d7"] is not None]) else None),
+            "n_d7": len(d7),
             "avg_view_pct_mean": r2(statistics.mean(x["avg_view_pct_28d"] or 0 for x in vs), 1),
-            "engaged_rate_mean": r2(statistics.mean(x["engaged_rate_28d"] or 0 for x in vs), 1),
             "reference_only": len(vs) < 5,
-        } for k, vs in sorted(g.items())]
+        } for k, vs in sorted(g.items(), key=lambda kv: str(kv[0]))]
     vid_sum = sum(v["views_w0"] for v in videos)
     last = max((r["date"] for r in ch), default=None)
-    return {"channel_weekly": trend, "videos": videos, "groups": groups,
-            "videos_w0_sum": vid_sum, "last_date": last}
+    return {"channel_weekly": trend, "videos": videos, "groups": groups, "videos_w0_sum": vid_sum,
+            "last_date": last, "collection_start": first_date}
 
 
 # ---------------------------------------------------------------- Play
@@ -214,16 +278,19 @@ def data_quality(yt):
         out.append(f"今週のチャンネル合計 {ch_views:g} 回と、動画別の合計 {yt['videos_w0_sum']:g} 回が一致しない (削除・非公開の動画などの可能性。原因は未確認)")
     missing = [v["youtube_id"] for v in yt["videos"] if not v["in_records"]]
     if missing:
-        out.append(f"videos.csv に記録のない動画が {len(missing)} 本 (タイトルと投稿日で結びつかない)")
+        out.append(f"promo/records に記録のない動画が {len(missing)} 本 (投稿内容と結びつかない)")
+    uncovered = [v for v in yt["videos"] if v["growth"].get("covered_from_publish") is False]
+    if uncovered:
+        out.append(f"公開日より後から蓄積を始めた動画が {len(uncovered)} 本 (伸びの比較から外れる。backfill で埋まる)")
     weeks_with_data = sum(1 for w in yt["channel_weekly"] if w["days"])
     if weeks_with_data < 4:
         out.append(f"YouTube の時系列は {weeks_with_data} 週分しかない。推移の判断は参考程度")
     return out
 
 
-def build(root, records_path, today):
+def build(root, promo_dir, today):
     ws = windows(today)
-    yt = youtube_facts(root, ws, load_records(records_path))
+    yt = youtube_facts(root, ws, promo_dir)
     pl = play_facts(root, ws)
     st = source_status(root, today)
     return {"schema": 1, "date": today.isoformat(),
@@ -235,12 +302,12 @@ def build(root, records_path, today):
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", required=True)
-    ap.add_argument("--records", default="promo/records/videos.csv")
+    ap.add_argument("--promo", default="promo", help="promo/ のディレクトリ (投稿内容の記録)")
     ap.add_argument("--date")
     ap.add_argument("--out", default="facts.json")
     a = ap.parse_args(argv)
     today = datetime.date.fromisoformat(a.date) if a.date else datetime.date.today()
-    f = build(a.root, a.records, today)
+    f = build(a.root, a.promo, today)
     pathlib.Path(a.out).write_text(json.dumps(f, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"保存: {a.out} (動画 {len(f['youtube']['videos'])} 本、要確認 {len(f['alerts'])} 件)")  # 数字そのものは出さない
 

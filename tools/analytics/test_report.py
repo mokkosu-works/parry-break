@@ -71,6 +71,35 @@ class ReportTest(unittest.TestCase):
             with mock.patch.dict(os.environ, {"DISCORD_WEBHOOK_URL": v}), self.assertRaises(SystemExit):
                 report.send({"content": "x"})
 
+    def test_growth_chart_and_findings(self):
+        d = tempfile.TemporaryDirectory()
+        rows, meta = [], {}
+        for k in range(8):  # 8 本 → 色は 5 本、残りは灰色
+            vid = f"yt{k}"
+            meta[vid] = {"title": f"t{k}", "published_jst": "2026-10-20"}
+            for i in range(25):
+                day = (datetime.date(2026, 10, 20) + datetime.timedelta(days=i)).isoformat()
+                rows.append({"source": "youtube", "metric": "views", "entity": vid, "date": day, "value": (k + 1) * 3})
+        for i in range(25):
+            day = (datetime.date(2026, 10, 19) + datetime.timedelta(days=i)).isoformat()
+            rows.append({"source": "youtube", "metric": "views", "entity": "channel", "date": day, "value": 100})
+        store.upsert(d.name, rows)
+        store.update_meta(d.name, "youtube_videos", meta)
+        f = facts.build(d.name, None, datetime.date(2026, 11, 16))
+        a = {"content_findings": [{"finding": EVIL, "hypothesis": "h", "sample_size": 8, "evidence": [{"metric": "v", "value": "21"}]}],
+             "video_insights": [{"id": "yt7", "verdict": "伸びた", "comment": EVIL}]}
+        h = validate.build(f, a, None, {}, f["date"])
+        page = report.build_html(f, h)
+        d.cleanup()
+        self.assertEqual(page.count('class="ln s'), 5)
+        self.assertEqual(page.count('class="bg"'), 3)
+        self.assertIn("ほか 3 本", page)
+        self.assertIn("投稿内容の分析", page)
+        self.assertNotIn("<script>", page)
+        em = json.dumps(report.embed(f, h), ensure_ascii=False)
+        self.assertIn("伸びが上位の動画", em)
+        self.assertIn("yt7 3日目 72 回", em)  # 1 日 24 回 × 3 日
+
     def test_empty_facts(self):
         d = tempfile.TemporaryDirectory()
         f = facts.build(d.name, None, datetime.date(2026, 11, 16))
