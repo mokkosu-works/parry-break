@@ -96,7 +96,7 @@
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch06-v01.json",
-          "render": "promo/build/out/mitsuba-ch06-e005"
+          "render": "promo/build/out/mitsuba-ch06-e007"
         }
       ],
       "line": {

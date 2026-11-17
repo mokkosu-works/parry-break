@@ -314,14 +314,18 @@ def ending(plan, out, sheets, timed, frames, dest):
     d.rectangle((0, 0, 1920, 12), fill=colors["outline"])
     # 右半分は YouTube の終了画面の要素(動画・チャンネル登録)を置く場所なので、何も描かない。
     d.line((1060, 95, 1060, 1010), fill=colors["outline"], width=3)
-    # 左: ロゴ → アプリのアイコン → 「ストアで検索」 → ストアのバッジ を縦に並べる(中心 x=775)。
-    center, y = 775, 70
-    for im in (fit(Image.open(LOGO).convert("RGBA"), width=420),
-               rounded(Image.open(ICON).convert("RGBA").resize((180, 180), Image.Resampling.LANCZOS), 40),
-               fit(swap_light_dark(Image.open(HEADINGS / scene["heading"]), colors["text"]), width=470)):
-        bg.alpha_composite(im, (center - im.width // 2, y))
-        y += im.height + 34
+    # 左: ロゴ → アプリのアイコン → 「ストアで検索」 → ストアのバッジ を縦に並べ、
+    # まとまりを右の縦線と同じ範囲(y=95〜1010)の縦の中央に置く(中心 x=775)。
+    center, spacing = 775, 34
+    stack = [fit(Image.open(LOGO).convert("RGBA"), width=420),
+             rounded(Image.open(ICON).convert("RGBA").resize((180, 180), Image.Resampling.LANCZOS), 40),
+             fit(swap_light_dark(Image.open(HEADINGS / scene["heading"]), colors["text"]), width=470)]
     badges = [fit(Image.open(b).convert("RGBA"), height=84) for b in BADGES]
+    total = sum(im.height for im in stack) + spacing * len(stack) + 10 + badges[0].height
+    y = (95 + 1010) // 2 - total // 2
+    for im in stack:
+        bg.alpha_composite(im, (center - im.width // 2, y))
+        y += im.height + spacing
     x = center - (sum(b.width for b in badges) + 24) // 2
     for b in badges:
         bg.alpha_composite(b, (x, y + 10))

@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "profile": "mitsuba",
-  "duration": 39.0,
+  "duration": 39.8,
   "note": "通常尺 06 4つの遊び方の本編(区切りは含まない)。モード選択 → ステージ → エンドレス → EASY とはじめの防壁 → デイリー → 練習。右上のタグは各モードの担当の色。担当を言う場面では、そのメンバーのバストアップと名札を出す(guest)。グループ名(モコズ)は商標の確認が済むまで言わない。2026-11-17 に本人の指摘で、「面」を「ステージ」に統一し、メンバーの紹介の順番を変えた。",
   "clips": [
     {
       "source": "promo/capture/raw/mtitle_mitsuba-01.mp4",
       "start": 4.0,
-      "duration": 8.0,
+      "duration": 8.8,
       "tag": null,
       "autoplay": false,
       "audio_note": "撮影前後に、ほかのアプリが音を再生していないことを確かめた(capture/mitsuba-session-20261117.md)。",
@@ -71,37 +71,37 @@
       "expression": "explain"
     },
     {
-      "start": 3.0,
+      "start": 2.85,
       "kind": "progress",
-      "text": "わたしたちのメンバーが、それぞれくわしく紹介するよ！",
+      "text": "くわしくは、担当のメンバーが、それぞれの動画で紹介するよ！",
       "expression": "success"
     },
     {
-      "start": 8.2,
+      "start": 9.0,
       "kind": "explanation",
       "text": "ステージは、ひとつずつ順番に進める。担当は、メンバーのワカナさん！",
       "expression": "normal"
     },
     {
-      "start": 15.2,
+      "start": 16.0,
       "kind": "explanation",
       "text": "エンドレスは、どこまで続くかの勝負！ 担当は、アカネちゃん！",
       "expression": "normal"
     },
     {
-      "start": 21.6,
+      "start": 22.4,
       "kind": "explanation",
       "text": "EASYもあるし、はじめの3回は、下に防壁が付くよ。",
       "expression": "explain"
     },
     {
-      "start": 28.2,
+      "start": 29.0,
       "kind": "explanation",
       "text": "デイリーは、毎日ちがうステージ。担当は、モモカちゃん！",
       "expression": "normal"
     },
     {
-      "start": 34.2,
+      "start": 35.0,
       "kind": "explanation",
       "text": "練習は、落としても大丈夫。担当は、シズクちゃん！",
       "expression": "normal"
