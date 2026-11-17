@@ -1018,7 +1018,8 @@
           "pose": 2,
           "bob": true,
           "bobAmplitude": 4,
-          "isolate": true
+          "isolate": true,
+          "talk": true
         },
         {
           "id": "bubble",
@@ -2060,7 +2061,8 @@
           "pose": 4,
           "bob": true,
           "bobAmplitude": 4,
-          "isolate": true
+          "isolate": true,
+          "talk": true
         },
         {
           "id": "bubble",
@@ -3102,7 +3104,8 @@
           "pose": 5,
           "bob": true,
           "bobAmplitude": 4,
-          "isolate": true
+          "isolate": true,
+          "talk": true
         },
         {
           "id": "bubble",
@@ -4084,7 +4087,8 @@
           "pose": 0,
           "bob": false,
           "bobAmplitude": 4,
-          "isolate": true
+          "isolate": true,
+          "talk": true
         },
         {
           "id": "bubble",

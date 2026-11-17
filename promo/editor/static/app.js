@@ -262,7 +262,7 @@ function renderVoiceEditor(panel) {
 
 function imageKey(layer) {
   const l = clone(layer);
-  for (const k of ['x', 'y', 'id', 'name', 'visible', 'bob', 'bobAmplitude']) delete l[k];
+  for (const k of ['x', 'y', 'id', 'name', 'visible', 'bob', 'bobAmplitude', 'talk']) delete l[k];
   return JSON.stringify(l);
 }
 
@@ -653,6 +653,10 @@ function renderProps(onlyIfIdle = false) {
     form.append(h('label', {}, '揺れ'), bob);
     form.append(...numberField('揺れの振幅', layer, 'bobAmplitude', { min: 0, max: 200 }));
     form.append(h('div', { class: 'note' }, `揺れは縦に 振幅×sin(2π×${state.info.bobHz}×t) px。再生で確かめられます。揺れはシーンごとに切り替えます。`));
+    const talk = h('input', { type: 'checkbox', checked: layer.talk === true });
+    bindInput(talk, (v) => { layer.talk = v; return true; });
+    form.append(h('label', {}, '口パク・目パチ'), talk);
+    form.append(h('div', { class: 'note' }, '台詞の声に合わせて口を開閉し、話していない間にまばたきします。書き出した動画で確かめられます (プレビューは止まった絵)。素材の隣に <名前>/closed.png・open.png・blink.png が要ります (promo/longform/sheet_face.py で作る)。'));
   } else if (layer.type === 'rect') {
     form.append(h('h3', { class: 'full' }, '枠・吹き出し'));
     form.append(...selectField('形', {shape:layer.shape || 'rect'}, 'shape', [['rect','四角'],['speech','吹き出し'],['burst','ギザギザ'],['cloud','雲形'],['oval','楕円'],['heart','ハート'],['leaf','葉'],['slash','斜線'],['dot','丸'],['spark','きらめき']], {set:(v)=> {layer.shape=v;}}));

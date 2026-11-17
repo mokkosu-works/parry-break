@@ -25,8 +25,9 @@ records/    videos.csv、youtube_uploads.csv
 | 場所 | 中身 | git | 何が作るか |
 |---|---|---|---|
 | `characters/sheets/` | 全身の 6 枠シート `<名前>_sheet.png`(ショートで使う)、色の一覧 `color_roster.png`。`old/character_sheet_v2.png` は旧ミツバ | 入る | Codex(指示文は残っていない、初期の素材) |
+| `characters/sheets/<名前>/` | 全身の口パク・目パチ用シート `closed.png`・`open.png`・`blink.png`(元のシートと同じ大きさ・形)と `regions.json`。ショートと通常尺で共通 | 入る | Codex(`design/codex/sheets-face/`、`run.sh` と指示文) → `longform/sheet_face.py` |
 | `characters/bust/` | 通常尺のバストアップ。元のシート `<名前>_bust_sheet{1,2,3}.png`・`<名前>_bust_blink.png` と、合成した `<名前>/<表情>_{closed,open}.png`・`normal_blink.png` | 入る | Codex(`design/codex/longform-akane/`・`longform-bust/`)→ `longform/bust.py` |
-| `characters/full/` | 通常尺の全身3ポーズ。元の `<名前>_full_sheet.png`・`<名前>_full_blink.png` と、合成した `<名前>/{greet,guide,close}_{closed,open}.png`・`greet_blink.png`、合成範囲の `regions.json` | 入る | 画像生成(`design/codex/longform-full/ref/` に指示文) → `longform/full.py` |
+| `characters/full/` | **使わなくなった**通常尺専用の全身3ポーズ(アカネだけ残す。構成案が使っているため)。今は `characters/sheets/<名前>/` を使う | 入る | 画像生成(`design/codex/longform-full/ref/` に指示文) → `longform/full.py` |
 | `assets/text/shorts-play/` | プレイ紹介の見出し・吹き出し・「ストアで検索」(`<名前>_v05_*.png` など) | 入る | Codex(`design/codex/v05/`) |
 | `assets/text/shorts-modes/` | モード紹介の見出し・吹き出し(`<名前>_mode01_*.png`) | 入る | Codex(`design/codex/mode01/`) |
 | `assets/text/longform/` | 通常尺の見出し画像。アカネの構成案v01は `akane-{opening,chapter,ending}-v01.png`(本人の確認待ち)。ミツバは `mitsuba-{opening,ch01〜ch07,ending}-v01.png`(題名・章の札7つ・ストアで検索、縁はタグの濃い茶色。本人の確認待ち、確認画像は `design/checks/mitsuba-headings-v01.jpg`) | 入る | 内蔵画像生成(アカネは `design/codex/longform-scenes/ref/`、ミツバは `design/codex/longform-mitsuba-headings/`(`run.sh`、3行ずつ3枚)に指示文)から切り出し |

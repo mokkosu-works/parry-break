@@ -1,0 +1,255 @@
+{
+  "normal": {
+    "natural": "open",
+    "mouth": [
+      250,
+      278,
+      298,
+      314
+    ],
+    "eyes": [
+      184,
+      218,
+      338,
+      282
+    ],
+    "face": [
+      144,
+      148,
+      368,
+      339
+    ],
+    "mouth_result": {
+      "offset": [
+        0,
+        0
+      ],
+      "changed_box": [
+        250,
+        278,
+        299,
+        315
+      ]
+    },
+    "blink_result": {
+      "offset": [
+        0,
+        0
+      ],
+      "changed_box": [
+        184,
+        218,
+        339,
+        283
+      ]
+    }
+  },
+  "focus": {
+    "natural": "closed",
+    "mouth": [
+      240,
+      298,
+      282,
+      322
+    ],
+    "eyes": [
+      176,
+      240,
+      322,
+      296
+    ],
+    "face": [
+      136,
+      170,
+      352,
+      347
+    ],
+    "mouth_result": {
+      "offset": [
+        -1,
+        0
+      ],
+      "changed_box": [
+        240,
+        298,
+        283,
+        323
+      ]
+    },
+    "blink_result": {
+      "offset": [
+        -2,
+        0
+      ],
+      "changed_box": [
+        176,
+        240,
+        323,
+        297
+      ]
+    }
+  },
+  "surprise": {
+    "natural": "open",
+    "mouth": [
+      246,
+      278,
+      280,
+      310
+    ],
+    "eyes": [
+      154,
+      226,
+      330,
+      284
+    ],
+    "face": [
+      114,
+      156,
+      360,
+      335
+    ],
+    "mouth_result": {
+      "offset": [
+        -2,
+        0
+      ],
+      "changed_box": [
+        246,
+        278,
+        281,
+        311
+      ]
+    },
+    "blink_result": {
+      "offset": [
+        -6,
+        0
+      ],
+      "changed_box": [
+        154,
+        226,
+        331,
+        285
+      ]
+    }
+  },
+  "fail": {
+    "natural": "closed",
+    "mouth": [
+      240,
+      290,
+      282,
+      320
+    ],
+    "eyes": [
+      160,
+      236,
+      316,
+      296
+    ],
+    "face": [
+      120,
+      166,
+      346,
+      345
+    ],
+    "mouth_result": {
+      "offset": [
+        -3,
+        0
+      ],
+      "changed_box": [
+        240,
+        290,
+        283,
+        321
+      ]
+    },
+    "blink_result": {
+      "offset": [
+        -10,
+        0
+      ],
+      "changed_box": [
+        160,
+        236,
+        317,
+        297
+      ]
+    }
+  },
+  "success": {
+    "natural": "open",
+    "mouth": [
+      226,
+      272,
+      280,
+      310
+    ],
+    "eyes": null,
+    "face": [
+      186,
+      202,
+      310,
+      335
+    ],
+    "mouth_result": {
+      "offset": [
+        -5,
+        0
+      ],
+      "changed_box": [
+        226,
+        272,
+        281,
+        311
+      ]
+    }
+  },
+  "special": {
+    "natural": "closed",
+    "mouth": [
+      218,
+      302,
+      272,
+      328
+    ],
+    "eyes": [
+      150,
+      236,
+      316,
+      302
+    ],
+    "face": [
+      110,
+      166,
+      346,
+      353
+    ],
+    "mouth_result": {
+      "offset": [
+        -6,
+        -1
+      ],
+      "changed_box": [
+        218,
+        302,
+        273,
+        329
+      ]
+    },
+    "blink_result": {
+      "offset": [
+        0,
+        0
+      ],
+      "changed_box": [
+        150,
+        236,
+        317,
+        303
+      ]
+    }
+  }
+}

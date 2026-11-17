@@ -9,6 +9,7 @@ character_promo.py は v12 を再現する記録として残し、ここでは�
     python3 promo/editor/render.py promo/editor/projects/mitsuba-modes.json
 """
 
+import array
 import hashlib
 import io
 import json
@@ -357,6 +358,15 @@ def _validate_layer(bad, where, layer, seconds, check_files):
         amp = layer.get("bobAmplitude", 4)
         if not _num(amp) or amp < 0 or amp > 200:
             bad(where, "揺れの振幅は 0〜200 にしてください")
+        if not isinstance(layer.get("talk", False), bool):
+            bad(where, "口パクは true か false にしてください")
+        elif layer.get("talk", False) and check_files:
+            try:
+                missing = [s for s in FACE_STATES if not face_sheet(layer.get("src"), s)]
+            except ValueError:
+                missing = []  # src の問題は下で知らせる
+            if missing:
+                bad(where, f"口パク用の絵がありません ({', '.join(missing)})。promo/longform/sheet_face.py で作ってください")
         try:
             path = resolve(layer.get("src"), "image")
             if check_files:
@@ -482,10 +492,22 @@ def image_pixels(layer):
     return out
 
 
-def character_pixels(layer):
-    """輪郭で分離したポーズ、または旧シートの等幅ポーズを高さhへ縮小。"""
+FACE_STATES = ("closed", "open", "blink")
+
+
+def face_sheet(src, state):
+    """口パク・目パチ用のシート。<名前>_sheet.png の隣の <名前>/<state>.png(longform/sheet_face.py が作る)。"""
+    path = resolve(src, "image")
+    if not path.name.endswith("_sheet.png"):
+        return None
+    face = path.parent / path.name[:-len("_sheet.png")] / f"{state}.png"
+    return face if face.is_file() else None
+
+
+def character_pixels(layer, state=None):
+    """輪郭で分離したポーズ、または旧シートの等幅ポーズを高さhへ縮小。state は口パク・目パチの絵の種類。"""
     pose, height = layer["pose"], round(layer["height"])
-    path = resolve(layer["src"], "image")
+    path = face_sheet(layer["src"], state) if state else resolve(layer["src"], "image")
     if layer.get("isolate", False):
         sprite = isolate_sheet(str(path), path.stat().st_mtime_ns)[pose]
     else:
@@ -655,8 +677,64 @@ def _box(layer):
     return layer["x"], layer["y"], layer["x"] + layer["width"], layer["y"] + layer["height"]
 
 
-def _scene_video(tmp, index, scene, progress):
-    """1 シーンを mp4 にする。v12 の scene() と同じ ffmpeg の組み立て方。"""
+# 口パク・目パチ。口は発声中だけ 1/12 秒ごとに開閉する(約 6 回/秒。音素は推定しない。longform/full_preview.py と同じ考え方)
+MOUTH_FLAP_HZ = 12
+MOUTH_RMS = 220
+BLINK_FIRST, BLINK_EVERY, BLINK_LENGTH = 1.2, 3.4, 0.13
+
+
+def _wav_samples(data):
+    with wave.open(io.BytesIO(data)) as w:
+        if w.getsampwidth() != 2:
+            raise ExportError("台詞の音声が 16 ビットではありません", "AivisSpeech の出力形式を確かめてください")
+        rate, channels = w.getframerate(), w.getnchannels()
+        samples = array.array("h", w.readframes(w.getnframes()))
+    if sys.byteorder != "little":
+        samples.byteswap()
+    return samples, rate, channels
+
+
+def face_windows(voices, total):
+    """台詞の音声 [(話し始めの秒, wav のバイト列)] から、口を開ける時間帯と目パチの時間帯を、動画全体の秒で返す。"""
+    open_frames, speaking = set(), []
+    for start, data in voices:
+        samples, rate, channels = _wav_samples(data)
+        duration = len(samples) / (rate * channels)
+        speaking.append((start, start + duration))
+        for k in range(math.ceil(start * FPS), math.floor((start + duration) * FPS) + 1):
+            t = k / FPS
+            a = max(0, int((t - start) * rate) * channels)
+            b = min(len(samples), a + int(rate * .035) * channels)
+            if b <= a or int(t * MOUTH_FLAP_HZ) % 2:
+                continue
+            if math.sqrt(sum(v * v for v in samples[a:b]) / (b - a)) > MOUTH_RMS:
+                open_frames.add(k)
+    mouth = []
+    for k in sorted(open_frames):  # 続いたコマを 1 つの時間帯にまとめる
+        if mouth and abs(mouth[-1][1] - k / FPS) < 1e-6:
+            mouth[-1][1] = (k + 1) / FPS
+        else:
+            mouth.append([k / FPS, (k + 1) / FPS])
+    blink, t = [], BLINK_FIRST
+    while t + BLINK_LENGTH < total:  # 話している間はまばたきしない
+        if not any(a - .2 < t + BLINK_LENGTH and t < b + .2 for a, b in speaking):
+            blink.append([t, t + BLINK_LENGTH])
+        t += BLINK_EVERY
+    return {"open": mouth, "blink": blink}
+
+
+def _enable(windows, offset, seconds):
+    """動画全体の秒の時間帯を、シーンの中の秒にして ffmpeg の enable の式にする。シーンに無ければ None。"""
+    parts = [(max(0, a - offset), min(seconds, b - offset)) for a, b in windows if b > offset and a < offset + seconds]
+    return "+".join(f"between(t,{a:.3f},{b - .001:.3f})" for a, b in parts if b > a) or None
+
+
+def _scene_video(tmp, index, scene, progress, face=None, offset=0):
+    """1 シーンを mp4 にする。v12 の scene() と同じ ffmpeg の組み立て方。
+
+    face は face_windows() の結果。talk のキャラは、口を開ける時間帯と目パチの時間帯に別の絵を重ねる。
+    offset はこのシーンの始まりの秒(動画全体)。
+    """
     sid, seconds = scene["id"], scene["duration"]
     progress(f"シーン「{SCENES[index][1]}」の背景を描いています")
     frame = tmp / f"{sid}-frame.png"
@@ -666,6 +744,7 @@ def _scene_video(tmp, index, scene, progress):
     inputs, filters, still = ["-loop", "1", "-i", tmp / f"{sid}.png"], [], base.convert("RGBA")
     current, n, audio, dynamic_boxes = "0:v", 1, None, []
     for gi, (kind, item) in enumerate(groups):
+        extra = []  # 同じ位置に、時間帯を限って重ねる絵 [(画像, enable の式)]
         if kind == "static" and gi == 0:
             for layer in item:
                 draw_static(base, layer)
@@ -693,16 +772,29 @@ def _scene_video(tmp, index, scene, progress):
             dynamic_boxes.append(_box(layer))
         else:
             layer = item
+            talk = layer.get("talk", False) and face is not None
             sprite = tmp / f"{sid}-sprite{n}.png"
-            character_pixels(layer).save(sprite)
+            # 口パクのキャラは、口を閉じた絵を土台にする(話していない時の顔)
+            character_pixels(layer, "closed" if talk else None).save(sprite)
             inputs += ["-loop", "1", "-framerate", FPS, "-t", seconds, "-i", sprite]
             y = round(layer["y"])
             amp = layer.get("bobAmplitude", 4)
             y_expr = f"'{y}+{amp:g}*sin(2*PI*t*{BOB_HZ})'" if layer.get("bob", True) and amp else str(y)
             overlay, position = f"[{n}:v]", f"{round(layer['x'])}:{y_expr}"
             dynamic_boxes.append(_box(layer))
+            if talk:
+                for state in ("open", "blink"):
+                    expr = _enable(face[state], offset, seconds)
+                    if expr:
+                        path = tmp / f"{sid}-sprite{n}-{state}.png"
+                        character_pixels(layer, state).save(path)
+                        extra.append((path, expr))
         filters.append(f"[{current}]{overlay}overlay={position}:shortest=1[s{n}]")
         current, n = f"s{n}", n + 1
+        for path, expr in extra:
+            inputs += ["-loop", "1", "-framerate", FPS, "-t", seconds, "-i", path]
+            filters.append(f"[{current}][{n}:v]overlay={position}:shortest=1:enable='{expr}'[s{n}]")
+            current, n = f"s{n}", n + 1
     base.save(tmp / f"{sid}.png")
     if current == "0:v":
         filters.append("[0:v]null[v]")
@@ -861,12 +953,21 @@ def export(project, progress=lambda message, fraction=None: None):
 
     with tempfile.TemporaryDirectory(prefix="promo-editor-") as t:
         tmp = pathlib.Path(t)
+
+        def voice_step(message):
+            step(message)
+            advance()
+        # 口パクの時間帯を決めるため、声を先に作る
+        voices = _voices(tmp, lines, total, voice_step, voice_profile(project))
+        face = face_windows([(line["start"], v.read_bytes()) for line, v in zip(lines, voices)], total)
         parts = []
         outro_still, outro_boxes = None, []
+        offset = 0
         for i, scene in enumerate(project["scenes"]):
-            dest, still, boxes = _scene_video(tmp, i, scene, step)
+            dest, still, boxes = _scene_video(tmp, i, scene, step, face, offset)
             parts.append(dest)
             outro_still, outro_boxes = still, boxes
+            offset += scene["duration"]
             advance()
         step("シーンをつないでいます")
         listfile = tmp / "list.txt"
@@ -874,11 +975,6 @@ def export(project, progress=lambda message, fraction=None: None):
         joined = tmp / "joined.mp4"
         _ffmpeg("-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", listfile, "-c", "copy", joined)
         advance()
-
-        def voice_step(message):
-            step(message)
-            advance()
-        voices = _voices(tmp, lines, total, voice_step, voice_profile(project))
         step("音声を重ねて仕上げています")
         inputs = ["-i", joined]
         filters, mix = [], ["[0:a]"]

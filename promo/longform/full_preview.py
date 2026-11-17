@@ -19,19 +19,63 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 FPS = 24
+POSES = ("normal", "focus", "surprise", "fail", "success", "special")  # シートの並び(通常・集中・予想外・失敗・成功・固有)
 SIZE = (1920, 1080)
-LINES = [
-    ("greet", "あいさつ", "よしっ、アカネだよ！ 今日はエンドレスを紹介するよ。"),
-    ("guide", "案内", "ボールはひとつ。落としたら、そこでおしまい！"),
-    ("close", "締め", "キミも挑戦してみて！ パリィブレイク。ストアで検索！"),
-]
+# キャラごとの表示名と仮の台詞。台詞は口パクの確認用で、本番の台本ではない。
+CHARS = {
+    "akane": {
+        "label": "アカネ",
+        "voice": "中2",
+        "lines": [
+            ("normal", "オープニング(通常)", "よしっ、アカネだよ！ 今日はエンドレスを紹介するよ。"),
+            ("special", "章の区切り(固有)", "ボールはひとつ。落としたら、そこでおしまい！"),
+            ("success", "エンディング(成功)", "キミも挑戦してみて！ パリィブレイク。ストアで検索！"),
+        ],
+    },
+    "mitsuba": {
+        "label": "ミツバ",
+        "voice": "花音",
+        "lines": [
+            ("normal", "オープニング(通常)", "こんにちは、ミツバだよ！ 今日は、パリィブレイクの遊び方を、最初から見ていこう！"),
+            ("special", "章の区切り(固有)", "ボールはひとつ。落としたら、そこでおしまいなんだ。"),
+            ("success", "エンディング(成功)", "まずは、1-1から遊んでみて！ パリィブレイク。ストアで検索！"),
+        ],
+    },
+    "shizuku": {
+        "label": "シズク",
+        "voice": "zonoko",
+        "lines": [
+            ("normal", "オープニング(通常)", "シズクです。今日は、練習モードを紹介します。"),
+            ("special", "章の区切り(固有)", "落としても、すぐに出直せる。焦らなくていい。"),
+            ("success", "エンディング(成功)", "タイミングは、体で覚えて。パリィブレイク。ストアで検索。"),
+        ],
+    },
+    "momoka": {
+        "label": "モモカ",
+        "voice": "るな",
+        "lines": [
+            ("normal", "オープニング(通常)", "モモカだよ！ 今日は、デイリーを紹介するね！"),
+            ("special", "章の区切り(固有)", "毎日ちがう配置なの。みんな同じ面で遊ぶんだよ！"),
+            ("success", "エンディング(成功)", "今日のお題、一緒にやろ？ パリィブレイク。ストアで検索！"),
+        ],
+    },
+    "wakana": {
+        "label": "ワカナ",
+        "voice": "まい",
+        "lines": [
+            ("normal", "オープニング(通常)", "ワカナです。今日は、ステージを紹介するわね。"),
+            ("special", "章の区切り(固有)", "一面ずつ進めて、星を集めていくのよ。"),
+            ("success", "エンディング(成功)", "あなたも、最初の面から。パリィブレイク。ストアで検索。"),
+        ],
+    },
+}
 
 
 def voice_only(name, dest):
     sys.path.insert(0, str(ROOT / "promo/editor"))
     from render import synthesize, voice_timing, VOICE_PROFILES
     record = {"character": name, "profile": VOICE_PROFILES[name], "lines": []}
-    for pose, label, text in LINES:
+    for pose, label, text in CHARS[name]["lines"]:
         path = dest / f"{pose}.wav"
         if path.exists():
             raise SystemExit(f"音声が既にあります(上書きしません): {path}")
@@ -79,8 +123,12 @@ def render(name, dest):
     data = json.loads((dest / "voice.json").read_text())
     if data["character"] != name:
         raise SystemExit("音声のキャラが一致しません")
-    folder = ROOT / "promo/characters/full" / name
-    atlas = json.loads((folder / "regions.json").read_text())
+    # ショートと同じ 6 ポーズのシートを、ショートと同じ「輪郭で分離」で切り出す(editor/sprites.py)。
+    sys.path.insert(0, str(ROOT / "promo/editor"))
+    from sprites import isolate_sheet
+    folder = ROOT / "promo/characters/sheets" / name
+    sheets = {s: isolate_sheet(str(folder / f"{s}.png"), (folder / f"{s}.png").stat().st_mtime_ns)
+              for s in ("closed", "open", "blink")}
     font_path = str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc")
     fonts = {s: ImageFont.truetype(font_path, s) for s in (24, 30, 38, 42)}
     total, scenes = 0, []
@@ -91,10 +139,13 @@ def render(name, dest):
         if abs(measured - line["duration"]) > 1 / FPS:
             raise SystemExit(f"{pose}: 音声と記録の長さが一致しません")
         duration = math.ceil((line["duration"] + 1.6) * FPS) / FPS
-        states = {s: Image.open(folder / f"{pose}_{s}.png").convert("RGBA") for s in ("closed", "open")}
-        if pose == "greet":
-            states["blink"] = Image.open(folder / "greet_blink.png").convert("RGBA")
-        face = atlas[pose]["face"]
+        index = POSES.index(pose)
+        states = {s: sheets[s][index] for s in ("closed", "open")}
+        if pose == "normal":
+            states["blink"] = sheets["blink"][index]
+        # 顔の拡大は、絵の上から 5 割(髪の高いキャラでも口が入る範囲)
+        bb = states["closed"].getchannel("A").getbbox()
+        face = (bb[0], bb[1], bb[2], bb[1] + round((bb[3] - bb[1]) * .5))
         sprites = {}
         for state, im in states.items():
             full = im.resize((round(im.width * 760 / im.height), 760), Image.Resampling.LANCZOS)
@@ -124,13 +175,13 @@ def render(name, dest):
             for scene in scenes:
                 plate = Image.new("RGB", SIZE, "#f3f0eb")
                 draw = ImageDraw.Draw(plate)
-                draw.text((70, 38), f"アカネ 全身口パク確認  /  {scene['label']}", font=fonts[42], fill="#332b2c")
+                draw.text((70, 38), f"{CHARS[name]['label']} 全身口パク確認  /  {scene['label']}", font=fonts[42], fill="#332b2c")
                 draw.text((70, 100), "素材の動きの確認用です。動画本編の画面構成とは異なります。", font=fonts[24], fill="#665a5c")
-                draw.text((165, 152), "全身（高さ760px）", font=fonts[30], fill="#665a5c")
+                draw.text((165, 152), "全身（ショートと同じ絵）", font=fonts[30], fill="#665a5c")
                 draw.text((1080, 152), "顔の拡大", font=fonts[30], fill="#665a5c")
                 draw.rounded_rectangle((925, 215, 1800, 790), radius=24, fill="#e5ded7")
-                draw.text((960, 815), "口の開閉 / あいさつのみ目パチ", font=fonts[24], fill="#665a5c")
-                draw.text((70, 1000), "音声：AivisSpeech 中2  ｜  試し動画・台詞は仮", font=fonts[24], fill="#665a5c")
+                draw.text((960, 815), "口の開閉 / オープニングのみ目パチ", font=fonts[24], fill="#665a5c")
+                draw.text((70, 1000), f"音声：AivisSpeech {CHARS[name]['voice']}  ｜  試し動画・台詞は仮", font=fonts[24], fill="#665a5c")
                 # 字幕は長いものを2行へ。確認用のラベルと字幕はフォント描画。
                 text = scene["text"]
                 if len(text) > 32:
@@ -142,8 +193,8 @@ def render(name, dest):
                 for n in range(round(scene["length"] * FPS)):
                     t = n / FPS
                     state = "open" if speaking(scene["audio"], t - .6) and t >= .6 else "closed"
-                    # 話し終えたあとに目パチを1回。口パクとの同時合成は本編で扱う。
-                    if scene["pose"] == "greet" and .6 + scene["duration"] + .3 <= t < .6 + scene["duration"] + .47:
+                    # 話し終えたあとに目パチを1回(オープニングの通常のみ)。口パクとの同時合成は本編で扱う。
+                    if scene["pose"] == "normal" and .6 + scene["duration"] + .3 <= t < .6 + scene["duration"] + .47:
                         state = "blink"
                     counts[scene["pose"]][state] += 1
                     frame = plate.copy()
@@ -166,7 +217,7 @@ def render(name, dest):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("name", choices=["akane"])
+    parser.add_argument("name", choices=sorted(CHARS))
     parser.add_argument("--voice-only", action="store_true")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
