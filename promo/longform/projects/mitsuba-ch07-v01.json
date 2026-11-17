@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "profile": "mitsuba",
+  "duration": 26,
+  "note": "通常尺 07 毎日の楽しみの本編(区切りの 2 秒は含まない)。結果のランク(2-1 本命テイクの結果画面)→ タイトルの LV → 設定のパドルの色 → 今日のお題。台詞は骨組みの候補から。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-stage-mitsuba-s21-just-05/capture.mp4",
+      "events": "promo/capture/raw/long-stage-mitsuba-s21-just-05/events.json",
+      "start": 34.5,
+      "duration": 9.0,
+      "tag": null
+    },
+    {
+      "source": "promo/capture/raw/mitsuba-ui-colors-01/capture.mp4",
+      "start": 0.5,
+      "duration": 4.0,
+      "tag": null,
+      "autoplay": false,
+      "audio_note": "録画中に音声の再生元を 35 回確かめた(capture.json の audio_checks)。",
+      "logo": false
+    },
+    {
+      "source": "promo/capture/raw/mitsuba-ui-colors-01/capture.mp4",
+      "start": 17.3,
+      "duration": 8.2,
+      "tag": null,
+      "autoplay": false,
+      "audio_note": "録画中に音声の再生元を 35 回確かめた(capture.json の audio_checks)。",
+      "logo": false
+    },
+    {
+      "source": "promo/capture/raw/mitsuba-ui-01/capture.mp4",
+      "start": 0.0,
+      "duration": 4.8,
+      "tag": null,
+      "autoplay": false,
+      "audio_note": "録画中に音声の再生元を 35 回確かめた(capture.json の audio_checks)。",
+      "logo": false
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.2,
+      "kind": "explanation",
+      "text": "遊び終わると、ランクが出るよ。次はもっと上を目指したくなる！",
+      "expression": "explain"
+    },
+    {
+      "start": 9.2,
+      "kind": "explanation",
+      "text": "遊ぶほどレベルが上がって、パドルの色が増えるんだ。",
+      "expression": "explain"
+    },
+    {
+      "start": 14.6,
+      "kind": "explanation",
+      "text": "見た目が変わるだけだから、好きな色でどうぞ！",
+      "expression": "normal"
+    },
+    {
+      "start": 21.2,
+      "kind": "explanation",
+      "text": "毎日、今日のお題が3つ出るよ。全部できるかな？",
+      "expression": "smug"
+    }
+  ]
+}

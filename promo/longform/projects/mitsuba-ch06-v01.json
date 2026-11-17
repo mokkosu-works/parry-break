@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "profile": "mitsuba",
+  "duration": 36,
+  "note": "通常尺 06 4つの遊び方の本編(区切りの 2 秒は含まない)。モード選択 → ステージ → エンドレス → EASY とはじめの防壁 → デイリー → 練習。右上のタグは各モードの担当の色。台詞は骨組みの候補を短くしたもの。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/mtitle_mitsuba-01.mp4",
+      "start": 4.0,
+      "duration": 3.5,
+      "tag": null,
+      "autoplay": false,
+      "audio_note": "撮影前後に、ほかのアプリが音を再生していないことを確かめた(capture/mitsuba-session-20261117.md)。",
+      "logo": false
+    },
+    {
+      "source": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/events.json",
+      "start": 10.0,
+      "duration": 5.5,
+      "tag": "tags/wakana_tag_stage.png"
+    },
+    {
+      "source": "promo/capture/raw/long-endless-mitsuba-mode-endless-02/capture.mp4",
+      "events": "promo/capture/raw/long-endless-mitsuba-mode-endless-02/events.json",
+      "start": 5.0,
+      "duration": 6.0,
+      "tag": "tags/akane_tag_endless.png"
+    },
+    {
+      "source": "promo/capture/raw/mtitle_mitsuba-easy-01.mp4",
+      "start": 3.2,
+      "duration": 4.05,
+      "tag": "tags/akane_tag_endless.png",
+      "autoplay": true,
+      "audio_note": "撮影前後に、ほかのアプリが音を再生していないことを確かめた(capture/mitsuba-session-20261117.md)。",
+      "logo": false
+    },
+    {
+      "source": "promo/capture/raw/mtitle_mitsuba-easy-01.mp4",
+      "start": 7.25,
+      "duration": 2.95,
+      "tag": "tags/akane_tag_endless.png",
+      "autoplay": true,
+      "audio_note": "撮影前後に、ほかのアプリが音を再生していないことを確かめた(capture/mitsuba-session-20261117.md)。"
+    },
+    {
+      "source": "promo/capture/raw/long-daily-mitsuba-mode-daily-02/capture.mp4",
+      "events": "promo/capture/raw/long-daily-mitsuba-mode-daily-02/events.json",
+      "start": 5.0,
+      "duration": 5.5,
+      "tag": "tags/momoka_tag_daily.png"
+    },
+    {
+      "source": "promo/capture/raw/long-practice-mitsuba-mode-practice-02/capture.mp4",
+      "events": "promo/capture/raw/long-practice-mitsuba-mode-practice-02/events.json",
+      "start": 5.0,
+      "duration": 8.5,
+      "tag": "tags/shizuku_tag_practice.png"
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.2,
+      "kind": "progress",
+      "text": "遊び方は、4つあるよ！",
+      "expression": "explain"
+    },
+    {
+      "start": 3.7,
+      "kind": "explanation",
+      "text": "ステージは、一面ずつ進める。ワカナさんの担当！",
+      "expression": "normal"
+    },
+    {
+      "start": 9.2,
+      "kind": "explanation",
+      "text": "エンドレスは、どこまで続くかの勝負！ アカネちゃんの担当！",
+      "expression": "normal"
+    },
+    {
+      "start": 15.6,
+      "kind": "explanation",
+      "text": "EASYもあるし、はじめの3回は、下に防壁が付くよ。",
+      "expression": "explain"
+    },
+    {
+      "start": 22.2,
+      "kind": "explanation",
+      "text": "デイリーは、毎日ちがう面。モモカちゃんの担当！",
+      "expression": "normal"
+    },
+    {
+      "start": 27.7,
+      "kind": "explanation",
+      "text": "練習は、落としても大丈夫。シズクちゃんの担当！",
+      "expression": "normal"
+    },
+    {
+      "start": 32.6,
+      "kind": "progress",
+      "text": "くわしくは、みんなが紹介するよ！",
+      "expression": "success"
+    }
+  ]
+}
