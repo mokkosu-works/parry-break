@@ -16,3 +16,4 @@ YouTube のタグ欄に入れる: v013
 動画ファイル: promo/build/out/mitsuba-modes-e001.mp4(24 秒)
 構成: promo/editor/projects/mitsuba-modes.json
 組にする通常尺: l001(https://youtu.be/fI4B1TVegc8)。YouTube Studio で、このショートの「関連動画」に l001 を設定する。
+保留(2026-11-17): l001 と同じ理由で、まだ送っていない。送る前に、l001 の公開日に合わせて予約日時を決め直す。
