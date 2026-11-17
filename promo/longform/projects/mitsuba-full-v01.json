@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "profile": "mitsuba",
+  "note": "ミツバの通常尺(ゲーム全体と基本操作の紹介)の完成版の構成。骨組みは design/longform-mitsuba-outline-v01.md。本編 7 章は本人の確認済み(2026-11-17)。オープニングとエンディングの台詞は骨組みの候補。BGM は本人が作ってから足す。",
+  "opening": {
+    "duration": 12,
+    "heading": "mitsuba-opening-v01.png",
+    "background": {
+      "source": "promo/capture/raw/long-stage-mitsuba-s21-just-05/capture.mp4",
+      "start": 19.0
+    },
+    "lines": [
+      {
+        "start": 0.8,
+        "text": "こんにちは、ミツバだよ！"
+      },
+      {
+        "start": 3.4,
+        "text": "今日は、パリィブレイクの遊び方を、最初から見ていこう！"
+      }
+    ]
+  },
+  "chapters": [
+    {
+      "title": "どんなゲーム?",
+      "heading": "mitsuba-ch01-v01.png",
+      "card": 3,
+      "parts": [
+        {
+          "script": "promo/longform/projects/mitsuba-ch01-v01.json",
+          "render": "promo/build/out/mitsuba-ch01-e003"
+        }
+      ]
+    },
+    {
+      "title": "当たる瞬間にタップ",
+      "heading": "mitsuba-ch02-v01.png",
+      "card": 3,
+      "parts": [
+        {
+          "script": "promo/longform/projects/mitsuba-ch02a-v01.json",
+          "render": "promo/build/out/mitsuba-ch02a-e004"
+        },
+        {
+          "script": "promo/longform/projects/mitsuba-ch02b-v01.json",
+          "render": "promo/build/out/mitsuba-ch02b-e003"
+        }
+      ]
+    },
+    {
+      "title": "白いブロックで崩す",
+      "heading": "mitsuba-ch03-v01.png",
+      "card": 3,
+      "parts": [
+        {
+          "script": "promo/longform/projects/mitsuba-ch03-v01.json",
+          "render": "promo/build/out/mitsuba-ch03-e003"
+        }
+      ]
+    },
+    {
+      "title": "フィーバー",
+      "heading": "mitsuba-ch04-v01.png",
+      "card": 2,
+      "parts": [
+        {
+          "script": "promo/longform/projects/mitsuba-ch04-v01.json",
+          "render": "promo/build/out/mitsuba-ch04-e003"
+        }
+      ]
+    },
+    {
+      "title": "アイテムはパリィで取る",
+      "heading": "mitsuba-ch05-v01.png",
+      "card": 2,
+      "parts": [
+        {
+          "script": "promo/longform/projects/mitsuba-ch05-v01.json",
+          "render": "promo/build/out/mitsuba-ch05-e003"
+        }
+      ]
+    },
+    {
+      "title": "4つの遊び方",
+      "heading": "mitsuba-ch06-v01.png",
+      "card": 2,
+      "parts": [
+        {
+          "script": "promo/longform/projects/mitsuba-ch06-v01.json",
+          "render": "promo/build/out/mitsuba-ch06-e003"
+        }
+      ]
+    },
+    {
+      "title": "毎日の楽しみ",
+      "heading": "mitsuba-ch07-v01.png",
+      "card": 2,
+      "parts": [
+        {
+          "script": "promo/longform/projects/mitsuba-ch07-v01.json",
+          "render": "promo/build/out/mitsuba-ch07-e002"
+        }
+      ]
+    }
+  ],
+  "ending": {
+    "duration": 20,
+    "heading": "mitsuba-ending-v01.png",
+    "background": {
+      "source": "promo/capture/raw/long-stage-mitsuba-s21-just-05/capture.mp4",
+      "at": 26.0
+    },
+    "lines": [
+      {
+        "start": 0.6,
+        "text": "まずは、1-1から遊んでみて！"
+      },
+      {
+        "start": 3.8,
+        "text": "パリィブレイク。ストアで検索！"
+      }
+    ]
+  }
+}
