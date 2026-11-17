@@ -94,8 +94,8 @@ python3 -m unittest discover -s promo/longform -p test_pipeline.py
 `assemble.py` は、オープニング → (章の区切り → 本編) × 章の数 → エンディング をつなぐ。配置はアカネの構成案(`scene_proposals.py`、本人確認済み)を土台にし、色は `render_long.PROFILES`(背景はショートと同じキャラの色。ミツバはクリーム `#FDF3D3` に焦げ茶の文字)。全身はショートと同じ 6 ポーズのシート(オープニング=通常、区切り=固有で章のタイトルを読む、エンディング=成功。どれも口パク・目パチ)。
 
 ```sh
-python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e008 --prepare-only  # 声(AivisSpeech)
-python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e008
+python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e009 --prepare-only  # 声(AivisSpeech)
+python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e009
 ```
 
 - **変わり目の間**(構成の `gaps`。2026-11-17 に本人の指摘でそろえた): 前の場面の最後の台詞 → 区切りのタイトルまで 1.5 秒、タイトル → 本編の最初の台詞まで 1.0 秒、07 → エンディングの最初の台詞まで 1.5 秒。
@@ -107,4 +107,4 @@ python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json
 - エンディングは字幕を出さず、ロゴ・アプリのアイコン・「ストアで検索」・ストアのバッジ(Google Play・App Store。`promo/build/fetch_assets.sh` で取る)を並べる。右半分は YouTube の終了画面(最新の動画・チャンネル登録)を置く場所なので何も描かない。チャンネルが YouTube パートナープログラムに入っていないので、動画の中にストアのリンクは置けない。ストアのリンクは説明欄と固定コメントに貼る。
 - 出力: `full.mp4`、YouTube のチャプター `chapters.txt`、`timing.json`。構成に `"bgm"`(`file`・`start`・`volume`(既定 0.2)・`fade_in`・`fade_out`)があれば、BGM なしの `full-nobgm.mp4` を作ってから BGM を混ぜる。声の間だけ BGM を下げる(鍵は声だけを並べた音なので、ゲーム音には反応しない)。BGM だけを変えたときは、声を作り直さなくてよい(前の出力の `prepared.json` と声を写す)。
 - 本編の `"guest"`(clips の項目): その区間で、メンバーのバストアップと「メンバー」の名札をゲーム映像の右に出す(06 章で、担当のメンバーを紹介するとき)。グループ名(モコズ)は商標の確認が済むまで言わない。
-- ミツバの完成版の試し: `../build/out/mitsuba-full-e008/full.mp4`(4 分 8 秒)。本編は `../build/out/mitsuba-ch*-e005/`(06 は e007)。
+- ミツバの完成版の試し: `../build/out/mitsuba-full-e009/full.mp4`(4 分 8 秒)。本編は `../build/out/mitsuba-ch*-e009/`。

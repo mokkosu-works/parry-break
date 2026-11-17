@@ -27,7 +27,7 @@
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch01-v01.json",
-          "render": "promo/build/out/mitsuba-ch01-e005"
+          "render": "promo/build/out/mitsuba-ch01-e009"
         }
       ],
       "line": {
@@ -40,11 +40,11 @@
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch02a-v01.json",
-          "render": "promo/build/out/mitsuba-ch02a-e005"
+          "render": "promo/build/out/mitsuba-ch02a-e009"
         },
         {
           "script": "promo/longform/projects/mitsuba-ch02b-v01.json",
-          "render": "promo/build/out/mitsuba-ch02b-e005"
+          "render": "promo/build/out/mitsuba-ch02b-e009"
         }
       ],
       "line": {
@@ -57,7 +57,7 @@
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch03-v01.json",
-          "render": "promo/build/out/mitsuba-ch03-e005"
+          "render": "promo/build/out/mitsuba-ch03-e009"
         }
       ],
       "line": {
@@ -70,7 +70,7 @@
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch04-v01.json",
-          "render": "promo/build/out/mitsuba-ch04-e005"
+          "render": "promo/build/out/mitsuba-ch04-e009"
         }
       ],
       "line": {
@@ -83,7 +83,7 @@
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch05-v01.json",
-          "render": "promo/build/out/mitsuba-ch05-e005"
+          "render": "promo/build/out/mitsuba-ch05-e009"
         }
       ],
       "line": {
@@ -96,7 +96,7 @@
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch06-v01.json",
-          "render": "promo/build/out/mitsuba-ch06-e007"
+          "render": "promo/build/out/mitsuba-ch06-e009"
         }
       ],
       "line": {
@@ -109,7 +109,7 @@
       "parts": [
         {
           "script": "promo/longform/projects/mitsuba-ch07-v01.json",
-          "render": "promo/build/out/mitsuba-ch07-e005"
+          "render": "promo/build/out/mitsuba-ch07-e009"
         }
       ],
       "line": {
