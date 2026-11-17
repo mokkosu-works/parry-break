@@ -1,0 +1,47 @@
+=== YouTube ===
+[タイトル]
+弾を打ち返すブロック崩し、遊び方を最初から！【PARRY BREAK】
+
+[説明文]
+当たる瞬間にタップして、弾を打ち返すブロック崩し「PARRY BREAK」。
+操作・判定・白いブロックの崩落・フィーバー・アイテム・4 つの遊び方・毎日の楽しみまで、ミツバが最初から案内します。
+まずは 1-1 から遊んでみてください。無料です。
+
+▼ダウンロード
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+ストアで「PARRY BREAK」を検索しても見つかります。
+
+▼チャプター
+0:00 オープニング
+0:09 01 どんなゲーム?
+0:35 02 当たる瞬間にタップ
+1:19 03 白いブロックで崩す
+1:45 04 フィーバー
+2:10 05 アイテムはパリィで取る
+2:36 06 4つの遊び方
+3:18 07 毎日の楽しみ
+3:48 エンディング
+
+ナビ: ミツバ (Mokkosu Works)
+※ゲーム画面は自動プレイ映像です。
+音声: AivisSpeech: 花音(魔法プログラム)
+
+#PARRYBREAK #パリィブレイク #ブロック崩し #ドット絵 #インディーゲーム #ゲーム紹介
+
+[固定コメント]
+PARRY BREAK は無料で遊べます！
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+
+[終了画面(YouTube Studio で設定)]
+- 右半分の上: 動画「最新のアップロード」
+- 右半分の下: チャンネル登録
+- 表示は最後の 20 秒(3:48〜)。動画の右半分は、このために空けてある。
+
+=== 管理 ===
+管理ID: l001
+YouTube のタグ欄に入れる: l001
+動画ファイル: promo/build/out/mitsuba-full-e009/full.mp4(4 分 8 秒、1920×1080、BGM 入り)
+構成: promo/longform/projects/mitsuba-full-v01.json、骨組み: promo/design/longform-mitsuba-outline-v01.md
+組にするショート: mitsuba-modes(同じ日に、この動画を先に公開し、そのあとショートを出して、ショートの関連動画をこの動画にする)
