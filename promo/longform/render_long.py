@@ -26,6 +26,13 @@ FPS = 24
 SIZE = (1920, 1080)
 GAME_SIZE = (1920, 864)
 GAME_VOLUME = 0.38
+# キャラごとの帯の色と、右上のタグ(担当のモードがないキャラは None)。台本の "tag" で替えられる。
+# ミツバの色は旧シリーズ案の配色(黄 #E9B400・焦げ茶 #302719)。
+PROFILES = {
+    "akane": {"belt": "#2c191c", "box": "#130e11", "outline": "#d5372c", "credit": "#c3aeb2",
+              "tag": "tags/akane_tag_endless.png"},
+    "mitsuba": {"belt": "#2b2315", "box": "#15110a", "outline": "#e9b400", "credit": "#cbbf9f", "tag": None},
+}
 # 声の間だけ BGM を下げる強さ。声の合計を鍵にする。
 DUCK = "sidechaincompress=threshold=0.03:ratio=6:attack=30:release=500:makeup=1"
 
@@ -60,8 +67,11 @@ def check_bgm(bgm, duration):
 
 def load_project(path):
     project = json.loads(path.read_text())
-    if project.get("profile") != "akane":
-        raise ValueError("いまの試作はアカネのみ")
+    if project.get("profile") not in PROFILES:
+        raise ValueError(f"帯の色などが決まっていないキャラです: {project.get('profile')}")
+    tag = project.get("tag", PROFILES[project["profile"]]["tag"])
+    if tag is not None and not (ROOT / "promo/assets" / tag).is_file():
+        raise ValueError(f"タグの画像がありません: {tag}")
     source = ROOT / project["source"]
     aligned = json.loads((ROOT / project["events"]).read_text())
     event_video = Path(aligned["capture"]) / aligned["video"]
@@ -95,7 +105,7 @@ def load_project(path):
                 raise ValueError("反応が出来事の直後に配置されていません")
         expression = line.get("expression", "normal")
         for state in ("closed", "open"):
-            if not (ROOT / f"promo/characters/bust/akane/{expression}_{state}.png").is_file():
+            if not (ROOT / f"promo/characters/bust/{project['profile']}/{expression}_{state}.png").is_file():
                 raise ValueError(f"表情がありません: {expression}")
     return project
 
@@ -205,19 +215,22 @@ def render(project, out):
                     "-map", "[mix]", "-c:a", "pcm_s16le", str(out / "mix.wav")], check=True)
     subtitle_font = ImageFont.truetype(str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"), 42)
     small = ImageFont.truetype(str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"), 24)
-    belt = Image.new("RGB", SIZE, "#2c191c")
+    colors = PROFILES[project["profile"]]
+    bust = ROOT / "promo/characters/bust" / project["profile"]
+    belt = Image.new("RGB", SIZE, colors["belt"])
     d = ImageDraw.Draw(belt)
-    d.rounded_rectangle((368, 890, 1888, 1054), radius=22, fill="#130e11", outline="#d5372c", width=3)
+    d.rounded_rectangle((368, 890, 1888, 1054), radius=22, fill=colors["box"], outline=colors["outline"], width=3)
     sprites = {}
     for expression in {"normal", *[l.get("expression", "normal") for l in lines]}:
         for state in ("closed", "open"):
-            im = Image.open(ROOT / f"promo/characters/bust/akane/{expression}_{state}.png").convert("RGBA")
+            im = Image.open(bust / f"{expression}_{state}.png").convert("RGBA")
             sprites[expression, state] = im.resize((347, 340), Image.Resampling.LANCZOS)
-    blink = Image.open(ROOT / "promo/characters/bust/akane/normal_blink.png").convert("RGBA").resize((347, 340), Image.Resampling.LANCZOS)
+    blink = Image.open(bust / "normal_blink.png").convert("RGBA").resize((347, 340), Image.Resampling.LANCZOS)
     for line in lines:
         line["caption"] = wrap(line["text"], subtitle_font, 1430)
     overlays = []
-    for asset, xy, width in [("logo/title-logo.png", (24, 20), 220), ("tags/akane_tag_endless.png", (1580, 24), 300)]:
+    tag = project.get("tag", colors["tag"])
+    for asset, xy, width in [("logo/title-logo.png", (24, 20), 220), *([(tag, (1580, 24), 300)] if tag else [])]:
         im = Image.open(ROOT / "promo/assets" / asset).convert("RGBA")
         im = im.resize((width, round(im.height * width / im.width)), Image.Resampling.LANCZOS)
         overlays.append((im, xy))
@@ -240,8 +253,8 @@ def render(project, out):
                 for im, xy in overlays:
                     frame.paste(im, xy, im)
                 draw = ImageDraw.Draw(frame)
-                draw.text((1720, 826), "自動プレイ映像", font=small, fill="white", stroke_width=2, stroke_fill="#130e11")
-                draw.text((22, 1050), "音声：AivisSpeech 中2", font=small, fill="#c3aeb2")
+                draw.text((1720, 826), "自動プレイ映像", font=small, fill="white", stroke_width=2, stroke_fill=colors["box"])
+                draw.text((22, 1050), f"音声：AivisSpeech {prepared['profile']['speakerName']}", font=small, fill=colors["credit"])
                 t = n / FPS
                 current = next((l for l in lines if l["start"] <= t < l["end"]), None)
                 expression = current.get("expression", "normal") if current else "normal"

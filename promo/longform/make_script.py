@@ -10,19 +10,43 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-# characters/reactions.md のアカネ欄から、短くて時機を限定しやすい候補を選ぶ。
+# characters/reactions.md の各キャラの欄から、短くて時機を限定しやすい候補を選ぶ。
+# 鍵は「出来事の種類」に、反応の枠で指定した判定(:just など)とパリィ取得(:parried)を足したもの。
 REACTIONS = {
-    "parry:just": [("よしっ、ジャスト！", "success"), ("ど真ん中！", "success")],
-    "fever_start": [("来た、フィーバー！", "fired")],
-    "collapse": [("まとめて落ちた！", "success"), ("崩れた崩れた！", "surprise")],
+    "akane": {
+        "parry:just": [("よしっ、ジャスト！", "success"), ("ど真ん中！", "success")],
+        "fever_start": [("来た、フィーバー！", "fired")],
+        "collapse": [("まとめて落ちた！", "success"), ("崩れた崩れた！", "surprise")],
+    },
+    "mitsuba": {
+        "parry:just": [("えっ、いまの見た？ ジャスト！", "success"), ("ぴったりだと、ジャストになるんだね！", "success")],
+        "fever_start": [("フィーバーだって！", "smug"), ("キラキラしてる！", "success")],
+        "collapse": [("崩れた〜！", "success"), ("白いブロック、すごい！", "success")],
+        "miss": [("あれ、早すぎた？", "surprise"), ("スカッ……！", "surprise")],
+        "item_taken:parried": [("取れた！ 今のは、パリィ取り！", "success")],
+        "round_cleared": [("クリア！ 次はどんなの？", "success"), ("やった〜！", "success")],
+    },
 }
+
+
+def reaction_key(slot):
+    key = slot["type"]
+    if "grade" in slot:
+        key += ":" + slot["grade"]
+    if slot.get("parried"):
+        key += ":parried"
+    return key
 
 
 def make(plan, aligned):
     if aligned.get("rejected"):
         raise ValueError("音声などの問題で不採用になったテイクです")
-    if plan["profile"] != "akane":
-        raise ValueError("いまの反応集はアカネのみ")
+    if plan["profile"] not in REACTIONS:
+        raise ValueError(f"反応集がないキャラです: {plan['profile']}")
+    reactions = REACTIONS[plan["profile"]]
+    for slot in plan["reactions"]:
+        if reaction_key(slot) not in reactions:
+            raise ValueError(f"この反応の台詞がありません: {reaction_key(slot)}")
     anchor = aligned["alignment"]
     start = anchor["video_s"] - anchor["clock_s"] + plan["source_clock_start"]
     if start < 0 or start + plan["duration"] > aligned["safe_end"]:
@@ -37,13 +61,14 @@ def make(plan, aligned):
                 continue
             if "grade" in slot and event.get("grade") != slot["grade"]:
                 continue
+            if "parried" in slot and event.get("parried") is not slot["parried"]:
+                continue
             found.append(event)
         if not found:
             raise ValueError(f"反応の対象になる出来事がありません: {slot}")
         event = found[0]
         used.add(event["seq"])
-        key = event["type"] + (":" + slot["grade"] if "grade" in slot else "")
-        choices = REACTIONS[key]
+        choices = reactions[reaction_key(slot)]
         previous = {l["text"] for l in lines[-2:]}
         choice = next((c for c in choices if c[0] not in previous), choices[0])
         lines.append({"start": round(event["video_s"] - start + .18, 3), "kind": "reaction",

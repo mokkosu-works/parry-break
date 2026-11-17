@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import unittest.mock
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "capture"))
@@ -60,6 +61,23 @@ class PipelineTests(unittest.TestCase):
         events = {"alignment": {"video_s": 0, "clock_s": 0}, "safe_end": 60,
                   "events": [self.event(0, 3, video_s=3)]}
         with self.assertRaisesRegex(ValueError, "対象になる出来事がありません"):
+            make(plan, events)
+
+    def test_parried_item_reaction_skips_paddle_pickups(self):
+        plan = {"profile": "mitsuba", "source_clock_start": 0, "duration": 10, "lines": [], "events": "e.json", "note": "",
+                "reactions": [{"type": "item_taken", "parried": True, "after": 2, "before": 6}]}
+        events = {"alignment": {"video_s": 0, "clock_s": 0}, "safe_end": 60, "capture": "/x", "video": "v.mp4",
+                  "events": [self.event(0, 3, video_s=3, type="item_taken", parried=False),
+                             self.event(1, 5, video_s=5, type="item_taken", parried=True)]}
+        with unittest.mock.patch("make_script.ROOT", Path("/")):
+            script = make(plan, events)
+        self.assertEqual([l["event_seq"] for l in script["lines"]], [1])
+
+    def test_reaction_without_lines_for_profile_rejected(self):
+        plan = {"profile": "akane", "source_clock_start": 0, "duration": 10, "lines": [],
+                "reactions": [{"type": "item_taken", "parried": True, "after": 2, "before": 6}]}
+        events = {"alignment": {"video_s": 0, "clock_s": 0}, "safe_end": 60, "events": []}
+        with self.assertRaisesRegex(ValueError, "台詞がありません"):
             make(plan, events)
 
     def test_audio_guard_ignores_paused_players_and_past_events(self):
