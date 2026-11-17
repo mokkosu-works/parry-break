@@ -42,6 +42,31 @@ def check_audio_owner(expected_uid):
     return players
 
 
+def check_screen_awake():
+    if re.search(r"mWakefulness=(?:Asleep|Dozing)", adb("shell", "dumpsys", "power")):
+        raise RuntimeError("端末の画面が消えています。本人に画面の点灯とロック解除を依頼してください")
+
+
+def select_stage(stage):
+    chapter, number = map(int, stage.split("-"))
+    adb("shell", "input", "tap", "1720", "506")
+    time.sleep(2.5)
+    adb("shell", "input", "keyevent", *(["KEYCODE_DPAD_LEFT"] * 30))
+    time.sleep(1)
+    for _ in range(chapter - 1):
+        adb("shell", "input", "tap", "1368", "225")
+        time.sleep(1.2)
+    adb("shell", "input", "tap", str(178 + 277 * (number - 1)), "535")
+    time.sleep(2)
+    adb("shell", "input", "tap", "2102", "927")
+
+
+def check_event_modes(events, mode, stage=None):
+    expected = f"stage:{stage or '1-1'}" if mode == "stage" else mode
+    if any(event.get("mode") != expected for event in events):
+        raise RuntimeError(f"撮影先と出来事ログのモードが一致しません（期待: {expected}）")
+
+
 def stop(proc, sig=signal.SIGINT):
     if proc is None or proc.poll() is not None:
         return
@@ -62,7 +87,11 @@ def main():
     p.add_argument("mode", choices=["endless", "daily", "practice", "stage"])
     p.add_argument("take")
     p.add_argument("seconds", nargs="?", type=int, default=120)
+    p.add_argument("--stage", choices=["1-1", "1-2", "1-4", "2-1"],
+                   help="ミツバ用の撮影先。stage モードのみ。省略時は1-1")
     args = p.parse_args()
+    if args.stage and args.mode != "stage":
+        p.error("--stage は stage モードでだけ指定できます")
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,60}", args.take) or not 15 <= args.seconds <= 600:
         p.error("テイクは英数字・_-の60文字まで、録画秒数は15〜600")
     pkg = os.environ.get("PROMO_PKG", "com.watsuwo.parrybreak.promo")
@@ -73,6 +102,8 @@ def main():
     video, logcat, metadata = dest / "capture.mp4", dest / "logcat.txt", dest / "capture.json"
     info = {"schema": 1, "mode": args.mode, "package": pkg, "video": str(video.relative_to(ROOT)),
             "requested_seconds": args.seconds, "alignment": "未調整。映像と出来事を照合してから台詞を割り当てる。"}
+    if args.mode == "stage":
+        info["stage"] = args.stage or "1-1"
     recorder = logger = None
     worker = None
     events = []
@@ -80,9 +111,7 @@ def main():
     try:
         if adb("get-state") != "device":
             raise RuntimeError("端末が1台だけつながっていることを確認してください")
-        power = adb("shell", "dumpsys", "power")
-        if re.search(r"mWakefulness=(?:Asleep|Dozing)", power):
-            raise RuntimeError("端末の画面が消えています。本人に画面の点灯とロック解除を依頼してください")
+        check_screen_awake()
         size = adb("shell", "wm", "size")
         sizes = re.findall(r"(?:Physical|Override) size:\s*(\d+x\d+)", size)
         if not sizes or sizes[-1] not in ("2400x1080", "1080x2400"):
@@ -150,23 +179,18 @@ def main():
             elif args.mode == "practice":
                 adb("shell", "input", "tap", "470", "976")
             else:
-                adb("shell", "input", "tap", "1720", "506")
-                time.sleep(2.5)
-                # ステージの章は保存状態に依存するため、左キーで第1章へ戻す。
-                adb("shell", "input", "keyevent", *(["KEYCODE_DPAD_LEFT"] * 30))
-                time.sleep(1)
-                adb("shell", "input", "tap", "291", "535")
-                time.sleep(2)
-                adb("shell", "input", "tap", "2102", "927")
+                select_stage(args.stage or "1-1")
             info["host_mode_tap_after_s"] = time.time()
             started = time.monotonic()
             next_audio_check = started
             while time.monotonic() - started < args.seconds:
+                check_event_modes(events, args.mode, args.stage)
                 if recorder.poll() is not None or logger.poll() is not None:
                     raise RuntimeError("録画か出来事ログの記録が途中で終了しました")
                 if stop_reason:
                     break
                 if time.monotonic() >= next_audio_check:
+                    check_screen_awake()
                     check_audio_owner(audio_uid)
                     info["audio_guard"]["checks"] += 1
                     next_audio_check = time.monotonic() + 1
@@ -182,6 +206,7 @@ def main():
         if not any(s.get("codec_type") == "audio" for s in probe["streams"]):
             raise RuntimeError("ゲームの音声が録画されていません")
         info["probe"] = probe
+        check_event_modes(events, args.mode, args.stage)
         info["status"] = "recorded_unaligned"
         print(f"録画とログ: {dest.relative_to(ROOT)}", flush=True)
     except BaseException as error:
