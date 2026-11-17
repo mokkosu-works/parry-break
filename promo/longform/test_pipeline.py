@@ -93,6 +93,38 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual([(c["start"], c["duration"], c["tag"], c["logo"]) for c in clips_of(project)],
                          [(2.0, 45.0, "tags/akane_tag_endless.png", True)])
 
+    GAPS = {"before_title": 1.5, "after_title": 1.0, "before_ending": 1.5, "card_min": 2.5}
+
+    def test_long_silent_tail_is_trimmed(self):
+        from assemble import trimmed_length
+        # 最後の台詞が 7.9 秒で終わる 12 秒の場面は、台詞の後 1.2 秒(1.5 - 最低の読み始め 0.3)で切る。
+        self.assertAlmostEqual(trimmed_length(12, 7.9, self.GAPS), 9.1)
+        # もともと無音が短い場面は切らない。
+        self.assertEqual(trimmed_length(10.4, 10.34, self.GAPS), 10.4)
+
+    def test_card_fills_missing_gap_when_previous_scene_ends_on_a_line(self):
+        from assemble import card_timing
+        lead, length = card_timing(0.08, 1.67, 0.3, self.GAPS)
+        self.assertAlmostEqual(0.08 + lead, 1.5)
+        self.assertAlmostEqual(length - lead - 1.67 + 0.3, 1.0)
+
+    def test_short_title_card_keeps_minimum_length(self):
+        from assemble import card_timing
+        lead, length = card_timing(1.2, 0.87, 0.3, self.GAPS)
+        self.assertEqual(length, 2.5)
+        self.assertAlmostEqual(lead - 0.3, (length - lead - 0.87) - 0.7)
+
+    def test_ending_is_delayed_to_keep_gap(self):
+        from assemble import ending_offset
+        self.assertAlmostEqual(0.09 + 0.6 + ending_offset(0.09, 0.6, self.GAPS), 1.5)
+
+    def test_guest_must_be_another_known_member(self):
+        from render_long import check_guest
+        check_guest("wakana", "mitsuba")
+        for guest in ("mitsuba", "nobody"):
+            with self.assertRaisesRegex(ValueError, "メンバー"):
+                check_guest(guest, "mitsuba")
+
     def test_audio_guard_ignores_paused_players_and_past_events(self):
         dump = "\n".join([
             "AudioPlaybackConfiguration u/pid:10547/123 state:started attr:usage=USAGE_MEDIA",

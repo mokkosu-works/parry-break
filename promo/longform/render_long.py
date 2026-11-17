@@ -26,13 +26,26 @@ FPS = 24
 SIZE = (1920, 1080)
 GAME_SIZE = (1920, 864)
 GAME_VOLUME = 0.38
-# キャラごとの帯の色と、右上のタグ(担当のモードがないキャラは None)。台本の "tag" で替えられる。
-# ミツバの色は旧シリーズ案の配色(黄 #E9B400・焦げ茶 #302719)。
+# キャラごとの色と、右上のタグ(担当のモードがないキャラは None。台本の "tag" で替えられる)。
+# belt: 背景(ゲーム映像の下の帯、オープニングなどの地)。ショートの背景と同じ色(editor/projects/<名前>-modes.json)。
+# box・outline・text: 字幕の枠・枠線(差し色)・字幕の文字。name_text: 名札の文字。credit: 声のクレジットの文字。
+# accent: ショートの差し色。06 章などでメンバーとして紹介するときの名札の色(accent_text はその文字の色)。
+# ミツバは明るい背景なので、文字を焦げ茶(#302719)にする。
 PROFILES = {
-    "akane": {"name": "アカネ", "belt": "#2c191c", "box": "#130e11", "outline": "#d5372c", "credit": "#c3aeb2",
-              "tag": "tags/akane_tag_endless.png"},
-    "mitsuba": {"name": "ミツバ", "belt": "#2b2315", "box": "#15110a", "outline": "#e9b400", "credit": "#cbbf9f", "tag": None},
+    "akane": {"name": "アカネ", "belt": "#28181C", "box": "#130e11", "outline": "#d5372c", "text": "white",
+              "name_text": "#130e11", "credit": "#c3aeb2", "tag": "tags/akane_tag_endless.png",
+              "accent": "#FF6B62", "accent_text": "#1E1B24"},
+    "mitsuba": {"name": "ミツバ", "belt": "#FDF3D3", "box": "#FFFBEF", "outline": "#E9B400", "text": "#302719",
+                "name_text": "#302719", "credit": "#6B5A3A", "tag": None,
+                "accent": "#E9B400", "accent_text": "#302719"},
+    "shizuku": {"name": "シズク", "accent": "#7CCCE5", "accent_text": "#1E1B24"},
+    "momoka": {"name": "モモカ", "accent": "#D74F86", "accent_text": "white"},
+    "wakana": {"name": "ワカナ", "accent": "#91B469", "accent_text": "#1E1B24"},
 }
+# 本編の書き出しに使えるキャラ(帯の色などが決まっているもの)。
+NARRATORS = {k for k, v in PROFILES.items() if "belt" in v}
+# ゲーム映像の上の「自動プレイ映像」は、映像が暗いので白い文字に暗い縁取り。
+OVER_GAME_STROKE = "#1E1B24"
 # 声の間だけ BGM を下げる強さ。声の合計を鍵にする。
 DUCK = "sidechaincompress=threshold=0.03:ratio=6:attack=30:release=500:makeup=1"
 
@@ -70,10 +83,12 @@ def clips_of(project):
     default_tag = project.get("tag", PROFILES[project["profile"]]["tag"])
     if "clips" not in project:
         return [{"source": project["source"], "events": project["events"], "start": float(project["source_start"]),
-                 "duration": float(project["duration"]), "tag": default_tag, "autoplay": True, "logo": True}]
+                 "duration": float(project["duration"]), "tag": default_tag, "autoplay": True, "logo": True,
+                 "guest": None}]
     return [{"source": c["source"], "events": c.get("events"), "audio_note": c.get("audio_note"),
              "start": float(c["start"]), "duration": float(c["duration"]), "tag": c.get("tag", default_tag),
-             "autoplay": c.get("autoplay", True), "logo": c.get("logo", True)} for c in project["clips"]]
+             "autoplay": c.get("autoplay", True), "logo": c.get("logo", True), "guest": c.get("guest")}
+            for c in project["clips"]]
 
 
 def check_logged_clip(source, events_path, start, duration):
@@ -107,14 +122,41 @@ def check_unlogged_clip(clip):
         raise ValueError(f"録画の範囲外です: {clip['source']}")
 
 
+def check_guest(guest, profile):
+    """メンバーとして紹介するキャラ。話している本人以外で、色とバストアップの絵があること。"""
+    if guest not in PROFILES or guest == profile:
+        raise ValueError(f"メンバーとして紹介できないキャラです: {guest}")
+    if not (ROOT / f"promo/characters/bust/{guest}/normal_closed.png").is_file():
+        raise ValueError(f"{guest} のバストアップの絵がありません")
+
+
+def guest_card(guest, font_path):
+    """メンバーの紹介: バストアップの下に「メンバー」と名前の札。ゲーム映像の右側に置く。"""
+    colors = PROFILES[guest]
+    bust = Image.open(ROOT / f"promo/characters/bust/{guest}/normal_closed.png").convert("RGBA")
+    bust = bust.crop(bust.getchannel("A").getbbox())
+    bust = bust.resize((round(bust.width * 250 / bust.height), 250), Image.Resampling.LANCZOS)
+    small, big = ImageFont.truetype(font_path, 20), ImageFont.truetype(font_path, 34)
+    width = max(bust.width, round(big.getlength(colors["name"])) + 40, 150)
+    card = Image.new("RGBA", (width, 250 + 78), (0, 0, 0, 0))
+    card.alpha_composite(bust, ((width - bust.width) // 2, 0))
+    d = ImageDraw.Draw(card)
+    d.rounded_rectangle((0, 238, width - 1, 327), radius=14, fill=colors["accent"], outline="white", width=3)
+    d.text((width / 2, 258), "メンバー", font=small, fill=colors["accent_text"], anchor="mm")
+    d.text((width / 2, 296), colors["name"], font=big, fill=colors["accent_text"], anchor="mm")
+    return card
+
+
 def load_project(path):
     project = json.loads(path.read_text())
-    if project.get("profile") not in PROFILES:
+    if project.get("profile") not in NARRATORS:
         raise ValueError(f"帯の色などが決まっていないキャラです: {project.get('profile')}")
     clips = clips_of(project)
     for clip in clips:
         if clip["tag"] is not None and not (ROOT / "promo/assets" / clip["tag"]).is_file():
             raise ValueError(f"タグの画像がありません: {clip['tag']}")
+        if clip["guest"] is not None:
+            check_guest(clip["guest"], project["profile"])
     duration = float(project["duration"])
     if "clips" in project:
         if not clips or abs(sum(c["duration"] for c in clips) - duration) > 1e-6:
@@ -168,7 +210,7 @@ def prepare(project, out):
     print("音声と台詞の長さを保存しました", flush=True)
 
 
-def draw_text(draw, xy, text, font, fill="white"):
+def draw_text(draw, xy, text, font, fill):
     draw.text(xy, text, font=font, fill=fill)
 
 
@@ -288,12 +330,14 @@ def render(project, out):
     name_width = round(name_font.getlength(name)) + 36
     name_tag = Image.new("RGBA", (name_width, 38), (0, 0, 0, 0))
     ImageDraw.Draw(name_tag).rounded_rectangle((0, 0, name_width - 1, 37), radius=10, fill=colors["outline"])
-    ImageDraw.Draw(name_tag).text((name_width / 2, 18), name, font=name_font, fill=colors["box"], anchor="mm")
+    ImageDraw.Draw(name_tag).text((name_width / 2, 18), name, font=name_font, fill=colors["name_text"], anchor="mm")
     def overlay(asset, width):
         im = Image.open(ROOT / "promo/assets" / asset).convert("RGBA")
         return im.resize((width, round(im.height * width / im.width)), Image.Resampling.LANCZOS)
     logo = overlay("logo/title-logo.png", 220)
     tags = {c["tag"]: overlay(c["tag"], 300) for c in clips if c["tag"]}
+    guests = {c["guest"]: guest_card(c["guest"], str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"))
+              for c in clips if c["guest"]}
     # 区間ごとのコマの範囲。四捨五入の誤差がたまらないように、累計の秒からコマ番号を決める。
     bounds, elapsed = [], 0.0
     for clip in clips:
@@ -330,9 +374,12 @@ def render(project, out):
                     frame.paste(logo, (24, 20), logo)
                 if clip["tag"]:
                     frame.paste(tags[clip["tag"]], (1580, 24), tags[clip["tag"]])
+                if clip["guest"]:
+                    card = guests[clip["guest"]]
+                    frame.paste(card, (1900 - card.width, 130), card)
                 draw = ImageDraw.Draw(frame)
                 if clip["autoplay"]:
-                    draw.text((1720, 826), "自動プレイ映像", font=small, fill="white", stroke_width=2, stroke_fill=colors["box"])
+                    draw.text((1720, 826), "自動プレイ映像", font=small, fill="white", stroke_width=2, stroke_fill=OVER_GAME_STROKE)
                 draw.text((22, 1050), f"音声：AivisSpeech {prepared['profile']['speakerName']}", font=small, fill=colors["credit"])
                 t = n / FPS
                 current = next((l for l in lines if l["start"] <= t < l["end"]), None)
@@ -347,7 +394,7 @@ def render(project, out):
                     captions = current["caption"]
                     top = 972 - len(captions) * 28
                     for i, caption in enumerate(captions):
-                        draw_text(draw, (406, top + 56 * i), caption, subtitle_font)
+                        draw_text(draw, (406, top + 56 * i), caption, subtitle_font, colors["text"])
                 writer.stdin.write(frame.tobytes())
                 if n in (FPS * 3, FPS * 15, FPS * 30):
                     frame.save(out / f"still-{n//FPS:02}.jpg", quality=93)

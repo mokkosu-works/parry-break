@@ -89,15 +89,20 @@ python3 -m unittest discover -s promo/longform -p test_pipeline.py
 
 ## 完成版を 1 本にまとめる
 
-`assemble.py` は、オープニング → (章の区切り → 本編) × 章の数 → エンディング をつなぐ。配置はアカネの構成案(`scene_proposals.py`、本人確認済み)と同じで、色は `render_long.PROFILES`。全身はショートと同じ 6 ポーズのシート(オープニング=通常、区切り=固有で章のタイトルを読む、エンディング=成功。どれも口パク・目パチ)。
+`assemble.py` は、オープニング → (章の区切り → 本編) × 章の数 → エンディング をつなぐ。配置はアカネの構成案(`scene_proposals.py`、本人確認済み)を土台にし、色は `render_long.PROFILES`(背景はショートと同じキャラの色。ミツバはクリーム `#FDF3D3` に焦げ茶の文字)。全身はショートと同じ 6 ポーズのシート(オープニング=通常、区切り=固有で章のタイトルを読む、エンディング=成功。どれも口パク・目パチ)。
 
 ```sh
-python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e004 --prepare-only  # 声(AivisSpeech)
-python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e004
+python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e006 --prepare-only  # 声(AivisSpeech)
+python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e006
 ```
 
-- 構成(`projects/mitsuba-full-v01.json`)に書いた本編の台本と、本編を書き出したときの台本が違えば止まる。
-- 場面ごとに映像のコマ数を正とし、音声をその長さにそろえてからつなぐ(長さがコマの区切りに合わない本編で、ずれがたまらないように)。
+- **変わり目の間**(構成の `gaps`。2026-11-17 に本人の指摘でそろえた): 前の場面の最後の台詞 → 区切りのタイトルまで 1.5 秒、タイトル → 本編の最初の台詞まで 1.0 秒、07 → エンディングの最初の台詞まで 1.5 秒。
+  - 最後の台詞のあとの無音が長い場面(オープニング・各章の本編)は、後ろの映像を切る(音は 0.3 秒で小さくする)。
+  - 区切りの長さはタイトルに合わせて決める(最低 2.5 秒。短いタイトルは前後の間が少し長くなる)。
+  - エンディングの台詞は、間に合わせて後ろにずらす。各変わり目の間は `timing.json` の `gaps` に残り、最後に表で出る。
+- 構成に書いた本編の台本と、本編を書き出したときの台本が違えば止まる。場面ごとに使うコマ数を正とし、音声をその長さにそろえてからつなぐ(ずれがたまらないように)。
+- オープニング・エンディングの見出しの画像は、明るい背景で読めるように、白と焦げ茶を入れ替えた版を組み立てのときに作って使う(元の画像は変えない)。区切りのタイトルは濃い枠の中なので白いまま。
+- エンディングは字幕を出さず、ロゴ・アプリのアイコン・「ストアで検索」・ストアのバッジ(Google Play・App Store。`promo/build/fetch_assets.sh` で取る)を並べる。右半分は YouTube の終了画面(最新の動画・チャンネル登録)を置く場所なので何も描かない。チャンネルが YouTube パートナープログラムに入っていないので、動画の中にストアのリンクは置けない。ストアのリンクは説明欄と固定コメントに貼る。
 - 出力: `full.mp4`、YouTube のチャプター `chapters.txt`、`timing.json`。BGM はまだ入れない。
-- エンディングの右半分は、YouTube の終了画面(動画 1 枠・チャンネル 1 枠)を置く場所なので何も描かない。
-- ミツバの完成版の試し: `../build/out/mitsuba-full-e004/full.mp4`(4 分 12 秒)。
+- 本編の `"guest"`(clips の項目): その区間で、メンバーのバストアップと「メンバー」の名札をゲーム映像の右に出す(06 章で、担当のメンバーを紹介するとき)。グループ名(モコズ)は商標の確認が済むまで言わない。
+- ミツバの完成版の試し: `../build/out/mitsuba-full-e006/full.mp4`(4 分 8 秒)。本編は `../build/out/mitsuba-ch*-e005/`。
