@@ -210,6 +210,16 @@ def prepare(project, out):
     print("音声と台詞の長さを保存しました", flush=True)
 
 
+# バストアップを置く枠 (幅, 高さ)。縦横の比率を保って、高さに合わせて縮める
+# (以前は幅も 347 に合わせて押し込んでいて、縦長の絵が横に伸びていた。2026-11-17 に本人が指摘)。
+BUST_BOX = (347, 340)
+
+
+def bust_size(im):
+    width = min(BUST_BOX[0], round(im.width * BUST_BOX[1] / im.height))
+    return im.resize((width, BUST_BOX[1]), Image.Resampling.LANCZOS)
+
+
 def draw_text(draw, xy, text, font, fill):
     draw.text(xy, text, font=font, fill=fill)
 
@@ -320,8 +330,8 @@ def render(project, out):
     for expression in {"normal", *[l.get("expression", "normal") for l in lines]}:
         for state in ("closed", "open"):
             im = Image.open(bust / f"{expression}_{state}.png").convert("RGBA")
-            sprites[expression, state] = im.resize((347, 340), Image.Resampling.LANCZOS)
-    blink = Image.open(bust / "normal_blink.png").convert("RGBA").resize((347, 340), Image.Resampling.LANCZOS)
+            sprites[expression, state] = bust_size(im)
+    blink = bust_size(Image.open(bust / "normal_blink.png").convert("RGBA"))
     for line in lines:
         line["caption"] = wrap(line["text"], subtitle_font, 1430)
     # 話している人の名札。字幕の枠の左上にかけて置き、話している間だけ出す(掛け合いに備える)。
@@ -388,7 +398,8 @@ def render(project, out):
                 sprite = sprites[expression, state]
                 if current is None and 3.25 <= t % 4.2 < 3.4:
                     sprite = blink
-                frame.paste(sprite, (12, 712), sprite)
+                # 幅 347 の枠の中で、横は中央、高さ 340 で下をそろえる。
+                frame.paste(sprite, (12 + (BUST_BOX[0] - sprite.width) // 2, 712), sprite)
                 if current:
                     frame.paste(name_tag, (392, 868), name_tag)
                     captions = current["caption"]

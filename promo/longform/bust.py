@@ -28,6 +28,14 @@ NAMES = [["normal", "explain", "focus", "surprise"],
          ["frustrated", "success", "smug", "think"],
          ["shy", "steam", "shock", "fired"]]
 
+# 口の位置を手で決める表情 (自動では口を見つけられないもの)。(名前, 表情): コマの中の (左, 上, 右, 下)。
+# ミツバの think は、下の段 (口を開けた絵) の頭の傾きが違い、目のずれを口と取り違えた。口も探す範囲の外にある。
+MOUTH_FORCE = {
+    ("mitsuba", "think"): (262, 288, 306, 322),
+    # focus は顔の位置がほかの表情と違い、ほかの表情から借りた位置では目まで入った。
+    ("mitsuba", "focus"): (204, 272, 264, 310),
+}
+
 # 顔の中で、口と目を探す範囲 (コマの幅・高さに対する割合)
 MOUTH_ZONE = (0.30, 0.45, 0.70, 0.75)
 EYE_ZONE = (0.22, 0.30, 0.78, 0.60)
@@ -148,10 +156,78 @@ def shifted(im, dx, dy):
     return out
 
 
+def grow(raw, found, size, reach=(30, 8), level=25, steps=40):
+    """found から、削らない違い(raw > level)をたどって、つながっている所まで範囲を広げる。
+    広げるのは found のまわり (左右 reach[0]・上下 reach[1]) の窓の中だけ。"""
+    l, t, r, b = found
+    window = (max(0, l - reach[0]), max(0, t - reach[1]), min(size[0], r + reach[0]), min(size[1], b + reach[1]))
+    loose = raw.point(lambda v: 255 if v > level else 0).filter(ImageFilter.MedianFilter(3))
+    limit = Image.new("L", size, 0)
+    ImageDraw.Draw(limit).rectangle(window, fill=255)
+    loose = ImageChops.multiply(loose, limit)
+    region = Image.new("L", size, 0)
+    ImageDraw.Draw(region).rectangle(found, fill=255)
+    for _ in range(steps):
+        grown = ImageChops.lighter(region, ImageChops.multiply(region.filter(ImageFilter.MaxFilter(3)), loose))
+        if grown.getbbox() == region.getbbox() and ImageChops.difference(grown, region).getbbox() is None:
+            break
+        region = grown
+    return region.getbbox()
+
+
+def leftover(base, moved, area, level=40, strip=12):
+    """貼った範囲のすぐ外 (左右 strip px、口の高さ) に、まだ閉じた絵と開いた絵の違いが残っている画素の数。
+    moved は patch() で位置を合わせた開いた絵。"""
+    box = (0, 0) + base.size
+    diff = ImageChops.difference(flat(base), flat(moved))
+    diff = diff.point(lambda v: 255 if v > level else 0).filter(ImageFilter.MedianFilter(3))
+    l, t, r, b = area
+    counts = []
+    for side in ((max(box[0], l - strip), t + 6, l, b - 6), (r, t + 6, min(box[2], r + strip), b - 6)):
+        if side[2] <= side[0] or side[3] <= side[1]:
+            counts.append(0)
+            continue
+        counts.append(sum(1 for v in diff.crop(side).get_flattened_data() if v))
+    return counts
+
+
+def mouth_sheet(rows, dest):
+    """確認画像: 表情ごとに、口のまわりを拡大した「閉じた・開いた」を並べ、貼った範囲を赤い枠で示す。"""
+    from PIL import ImageFont
+    cell_w, cell_h, zoom, margin = 300, 260, 3, 40
+    cols = 3
+    sheet = Image.new("RGB", (cols * (cell_w * 2 + 20), ((len(rows) + cols - 1) // cols) * (cell_h + 40)), "white")
+    font = ImageFont.truetype(str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"), 22)
+    for i, (expr, closed, opened, area) in enumerate(rows):
+        x0, y0 = (i % cols) * (cell_w * 2 + 20), (i // cols) * (cell_h + 40)
+        ImageDraw.Draw(sheet).text((x0 + 8, y0 + 6), expr, font=font, fill="black")
+        if not area:
+            continue
+        cx, cy = (area[0] + area[2]) // 2, (area[1] + area[3]) // 2
+        crop = (cx - cell_w // (2 * zoom) - margin // zoom, cy - cell_h // (2 * zoom),
+                cx + cell_w // (2 * zoom) + margin // zoom, cy + cell_h // (2 * zoom))
+        for j, im in enumerate((closed, opened)):
+            bg = Image.new("RGBA", im.size, "white")
+            part = Image.alpha_composite(bg, im).crop(crop).convert("RGB")
+            part = part.resize((cell_w, cell_h), Image.Resampling.NEAREST)
+            d = ImageDraw.Draw(part)
+            sx, sy = cell_w / (crop[2] - crop[0]), cell_h / (crop[3] - crop[1])
+            d.rectangle(((area[0] - crop[0]) * sx, (area[1] - crop[1]) * sy,
+                         (area[2] - crop[0]) * sx, (area[3] - crop[1]) * sy), outline="red", width=2)
+            sheet.paste(part, (x0 + j * (cell_w + 10), y0 + 36))
+    sheet.save(dest)
+
+
 def patch(base, other, z, pad=14, feather=6, max_size=None, force=None):
     """other の、base と違う所 (z の範囲の中だけ) を、位置を合わせて base に貼る。"""
     box = zone(base.size, z)
     face = zone(base.size, (0.2, 0.25, 0.8, 0.8))
+    if force:
+        # 口の位置が決まっているときは、口のまわりだけで位置を合わせ、口のまわりだけを見る
+        # (頭の傾きが違う絵でも、口が合うように)。
+        fl, ft, fr, fb = force
+        face = (max(40, fl - 40), max(40, ft - 40), min(base.width - 40, fr + 40), min(base.height - 40, fb + 40))
+        box = (max(0, fl - 20), max(0, ft - 10), min(base.width, fr + 20), min(base.height, fb + 10))
     dx, dy = align(base, other, face)
     moved = shifted(other, dx, dy)
     limit = Image.new("L", base.size, 0)
@@ -166,45 +242,64 @@ def patch(base, other, z, pad=14, feather=6, max_size=None, force=None):
         if found:
             break
     if force:
-        found = force
+        # 枠の中の、まとまった違い (口) だけに絞る。輪郭や髪の細い線は削って捨てる。見つからなければ枠のまま。
+        solid = raw.point(lambda v: 255 if v > 40 else 0).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(5))
+        inside = solid.crop(force).getbbox()
+        found = (force[0] + inside[0], force[1] + inside[1], force[0] + inside[2], force[1] + inside[3]) if inside else force
     if not found:
         return base.copy(), None
     l, t, r, b = found
     if max_size and (r - l > max_size[0] or b - t > max_size[1]):
         return None, (l, t, r, b)  # 口以外の線のずれも拾った。呼び出し側で、同じシートの口の位置から決め直す
+    # 上で違いを削ったときに、口の細い端(閉じた口の線の端・開いた口の角)も削られる。
+    # 削らない違いのうち、見つけた範囲からつながっている所まで広げて、口の端まで貼る(2026-11-17)。
+    # 位置を決めた表情は、口のまわりに輪郭などの線が近いので、広げる幅を小さくする。
+    l, t, r, b = grow(raw, found, base.size, reach=(16, 4) if force else (30, 8))
     area = (max(0, l - pad), max(0, t - pad), min(base.width, r + pad), min(base.height, b + pad))
     mask = Image.new("L", base.size, 0)
     ImageDraw.Draw(mask).rounded_rectangle(area, radius=pad, fill=255)
     mask = mask.filter(ImageFilter.GaussianBlur(feather))
     out = base.copy()
     out.paste(moved, (0, 0), ImageChops.multiply(mask, moved.getchannel("A")))
+    patch.moved = moved  # 確かめ (leftover) で、同じ位置合わせを使うため
     return out, area
 
 
 def main(name):
     out_dir = BUST / name
     out_dir.mkdir(exist_ok=True)
-    report = []
+    report, warnings, check_rows = [], [], []
     for i, row_names in enumerate(NAMES):
         grid = cells(BUST / f"{name}_bust_sheet{i + 1}.png")
         results, retry = {}, []
         for c, expr in enumerate(row_names):
-            mouth, area = patch(grid[0][c], grid[1][c], MOUTH_ZONE, max_size=(90, 70))
+            if (name, expr) in MOUTH_FORCE:
+                mouth, area = patch(grid[0][c], grid[1][c], MOUTH_ZONE, force=MOUTH_FORCE[name, expr])
+            else:
+                mouth, area = patch(grid[0][c], grid[1][c], MOUTH_ZONE, max_size=(90, 70))
             if mouth is None:
                 retry.append(c)
             else:
-                results[c] = (mouth, area)
+                results[c] = (mouth, area, getattr(patch, "moved", None))
+        auto = {c: r for c, r in results.items() if (name, row_names[c]) not in MOUTH_FORCE}
         for c in retry:  # 同じシートのほかの表情の口の中心に、口の大きさの枠を置き直す
-            centers = sorted(((a[0] + a[2]) // 2, (a[1] + a[3]) // 2) for _, a in results.values() if a)
+            centers = sorted(((a[0] + a[2]) // 2, (a[1] + a[3]) // 2) for _, a, _ in auto.values() if a)
             cx, cy = centers[len(centers) // 2]
             force = (cx - 35, cy - 25, cx + 35, cy + 25)
-            results[c] = patch(grid[0][c], grid[1][c], MOUTH_ZONE, force=force)
+            mouth, area = patch(grid[0][c], grid[1][c], MOUTH_ZONE, force=force)
+            results[c] = (mouth, area, patch.moved)
         for c, expr in enumerate(row_names):
             closed = grid[0][c]
-            mouth, area = results[c]
+            mouth, area, moved = results[c]
             closed.save(out_dir / f"{expr}_closed.png")
             mouth.save(out_dir / f"{expr}_open.png")
-            report.append(f"{expr}: 口の範囲 {area}" + (" (位置をほかの表情から決めた)" if c in retry else ""))
+            how = " (位置をほかの表情から決めた)" if c in retry else " (位置を手で決めた)" if (name, expr) in MOUTH_FORCE else ""
+            report.append(f"{expr}: 口の範囲 {area}{how}")
+            check_rows.append((expr, closed, mouth, area))
+            if area:
+                left, right = leftover(closed, moved, area)
+                if left > 20 or right > 20:
+                    warnings.append(f"{expr}: 貼った範囲のすぐ外に違いが残っています (左 {left}・右 {right} 画素)。確認画像で見てください")
             if expr == "normal":
                 blink_src = largest_blob(Image.open(BUST / f"{name}_bust_blink.png").convert("RGBA"))
                 blink_src = fit_to(blink_src, closed)
@@ -212,6 +307,10 @@ def main(name):
                 blink.save(out_dir / "normal_blink.png")
                 report.append(f"normal: 目の範囲 {area}")
     print("\n".join(report))
+    check = ROOT / f"promo/design/checks/{name}-bust-mouth-v02.png"
+    mouth_sheet(check_rows, check)
+    print(f"確認画像: {check.relative_to(ROOT)}")
+    print("\n".join(warnings) if warnings else "範囲の外に違いが残る表情はありません")
 
 
 def fit_to(src, base):

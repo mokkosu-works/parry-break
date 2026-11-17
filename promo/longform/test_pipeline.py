@@ -118,6 +118,35 @@ class PipelineTests(unittest.TestCase):
         from assemble import ending_offset
         self.assertAlmostEqual(0.09 + 0.6 + ending_offset(0.09, 0.6, self.GAPS), 1.5)
 
+    def test_thin_mouth_corner_is_inside_paste_area(self):
+        # 閉じた口は細い線 (x=60〜140)。開いた口は右寄りの塊 (x=100〜140) だけで、線の左側は消えている。
+        # 細い線の違いも範囲に入れないと、開いた口の絵の左に閉じた線が残る(2026-11-17 の不具合)。
+        from PIL import Image, ImageDraw
+        from bust import MOUTH_ZONE, patch
+        skin, ink = (235, 200, 180, 255), (40, 30, 30, 255)
+
+        def face():
+            # 位置合わせの手がかりになる、目と顔の輪郭(本物の絵と同じく、閉じた絵と開いた絵で共通)
+            im = Image.new("RGBA", (200, 200), skin)
+            d = ImageDraw.Draw(im)
+            d.ellipse((20, 20, 180, 190), outline=ink, width=4)
+            d.ellipse((55, 60, 80, 95), fill=ink)
+            d.ellipse((120, 60, 145, 95), fill=ink)
+            return im
+        closed, opened = face(), face()
+        ImageDraw.Draw(closed).line((60, 120, 140, 120), fill=ink, width=2)
+        ImageDraw.Draw(opened).ellipse((100, 108, 140, 136), fill=(200, 80, 80, 255), outline=ink, width=2)
+        _, area = patch(closed, opened, MOUTH_ZONE)
+        self.assertLessEqual(area[0], 60)
+        self.assertGreaterEqual(area[2], 140)
+
+    def test_bust_keeps_aspect_ratio(self):
+        from PIL import Image
+        from render_long import BUST_BOX, bust_size
+        tall = bust_size(Image.new("RGBA", (356, 408)))
+        self.assertEqual(tall.height, BUST_BOX[1])
+        self.assertAlmostEqual(tall.width / tall.height, 356 / 408, places=2)
+
     def test_guest_must_be_another_known_member(self):
         from render_long import check_guest
         check_guest("wakana", "mitsuba")
