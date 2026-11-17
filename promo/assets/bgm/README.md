@@ -10,6 +10,7 @@
 | MIDI | どの本編用か | テンポ | 長さ |
 |---|---|---|---|
 | `midi/mitsuba-basics-bgm-v01.mid` | ミツバのゲーム全体と基本操作(`design/longform-mitsuba-outline-v01.md`) | 96 | 104 小節(約 4 分 20 秒) |
+| `midi/akane-endless-bgm-v01.mid` | アカネのエンドレス紹介(`design/longform-akane-outline-v01.md`) | 112 | 110 小節(約 3 分 56 秒) |
 
 | ファイル | どの本編用か | テンポ | DAW のプロジェクトの場所 |
 |---|---|---|---|

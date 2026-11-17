@@ -67,6 +67,32 @@ MITSUBA_MARKERS = [
     (137, "05 Items"), (162, "06 Modes"), (200, "07 Daily"), (228, "Ending"), (248, "Video end (about)"),
 ]
 
+# アカネのエンドレス紹介 (design/longform-akane-outline-v01.md)。ボールひとつの緊張感を出すため、
+# ミツバより少し速く、和音の順を変え、飾りの音も別にする。
+AKANE_CHORDS = [
+    ("Asus4", 45, [64, 69, 74]),
+    ("Em7sus4", 40, [64, 67, 69, 74]),
+    ("Dsus2", 38, [62, 64, 69]),
+    ("Gsus2", 43, [62, 67, 69]),
+]
+
+AKANE_SECTIONS = [
+    ("Opening", 6, {"pad", "bell", "hat:light"}),
+    ("01 One ball", 21, {"pad", "bass:light", "kick:normal", "hat:light", "keys:arp"}),
+    ("02 Parry", 26, {"pad", "bass:normal", "kick:normal", "snare", "hat:normal", "keys:stab"}),
+    ("03 Collapse", 16, {"pad", "bass:normal", "kick:normal", "snare", "hat:normal", "keys:stab", "build"}),
+    ("03 Fever", 14, {"pad", "bass:full", "kick:fever", "snare", "hat:fever", "keys:stab", "bell", "crash"}),
+    ("04 Record", 13, {"pad", "bass:light", "kick:normal", "hat:light", "keys:arp"}),
+    ("Ending", 10, {"pad", "bass:full", "kick:full", "snare", "hat:normal", "keys:stab", "bell", "crash"}),
+    ("Last chord", 4, {"last"}),
+]
+
+# 骨組みの章の始まり (秒)。
+AKANE_MARKERS = [
+    (0, "Opening"), (12, "01 One ball"), (58, "02 Parry"), (113, "03 Collapse"),
+    (178, "04 Record"), (205, "Ending"), (225, "Video end (about)"),
+]
+
 SONGS = {
     "mitsuba-basics": {
         "bpm": 96,
@@ -75,6 +101,13 @@ SONGS = {
         "markers": MITSUBA_MARKERS,
         # 2 小節の飾り (8 分音符の位置, 音)。
         "bell": [[(0, 81), (4, 79), (8, 76)], [(0, 74), (6, 76), (8, 79)]],
+    },
+    "akane-endless": {
+        "bpm": 112,
+        "chords": AKANE_CHORDS,
+        "sections": AKANE_SECTIONS,
+        "markers": AKANE_MARKERS,
+        "bell": [[(0, 86), (3, 81), (6, 79)], [(0, 76), (4, 79), (7, 81)]],
     },
 }
 
