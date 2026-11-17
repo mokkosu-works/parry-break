@@ -1,0 +1,18 @@
+=== YouTube ===
+[タイトル]
+遊び方は4つ！どれから遊ぶ？弾幕ブロック崩し【PARRY BREAK】
+
+[説明文]
+当たる瞬間にタップして弾を打ち返す、ドット絵ブロック崩し。ステージ・デイリー・エンドレス・練習の 4 つの遊び方があります。無料。ストアで「PARRY BREAK」を検索。
+くわしい遊び方の解説: https://youtu.be/fI4B1TVegc8
+ナビ: ミツバ (Mokkosu Works)
+音声: AivisSpeech: 花音(魔法プログラム)
+
+#PARRYBREAK #ブロック崩し #弾幕 #Shorts
+
+=== 管理 ===
+管理ID: v013
+YouTube のタグ欄に入れる: v013
+動画ファイル: promo/build/out/mitsuba-modes-e001.mp4(24 秒)
+構成: promo/editor/projects/mitsuba-modes.json
+組にする通常尺: l001(https://youtu.be/fI4B1TVegc8)。YouTube Studio で、このショートの「関連動画」に l001 を設定する。

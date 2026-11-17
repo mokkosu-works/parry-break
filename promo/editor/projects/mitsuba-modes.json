@@ -1982,9 +1982,9 @@
           "name": "見出し",
           "visible": true,
           "x": 114,
-          "y": 140,
+          "y": 143,
           "width": 852,
-          "height": 140,
+          "height": 134,
           "src": "../../assets/text/shorts-modes/mitsuba_mode01_headline_2.png",
           "opacity": 1,
           "resample": "lanczos"
@@ -4085,7 +4085,7 @@
           "x": 547,
           "y": 547,
           "width": 429,
-          "height": 250,
+          "height": 248,
           "src": "../../assets/text/shorts-modes/mitsuba_mode01_bubble_4.png",
           "opacity": 1,
           "resample": "lanczos"
@@ -4182,7 +4182,7 @@
       },
       {
         "start": 3.3,
-        "text": "ステージは、一面ずつ。"
+        "text": "ステージは、順番にクリア！"
       },
       {
         "start": 7.0,
@@ -4197,12 +4197,12 @@
         "text": "エンドレスと練習もあるよ。"
       },
       {
-        "start": 18.78,
+        "start": 18.6,
         "text": "パリィブレイク。ストアで検索！"
       },
       {
-        "start": 21.5,
-        "text": "好きなのから、どうぞ！"
+        "start": 21.45,
+        "text": "くわしくは、下のリンクから！"
       }
     ]
   }
