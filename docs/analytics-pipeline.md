@@ -51,7 +51,7 @@ cron(毎日 9:30 JST) ▶ 収集 ─────────▶ 事実 ───
 |---|---|---|
 | データ用リポジトリを取る | clone。鍵は step の中だけでファイルにして消す | deploy key |
 | 収集 | `collect.py run`。source ごとに失敗しても止めず、`status.jsonl` に残す | YouTube・Play・App Store の読み取り用の鍵 |
-| 事実を作る | `facts.py`。対象日の数字(前日・前週の同じ曜日・その前の 7 日の平均と比べる)、7 日ごとの推移(8 区間)、動画の伸び(公開日からの日数をそろえた累計)と投稿内容、区分ごとの比較、Play・App Store の週ごと、要確認(`alerts`)、データの注意 | なし |
+| 事実を作る | `facts.py`。対象日の数字(前日・前週の同じ曜日・その前の 7 日の平均と比べる)、7 日ごとの推移(8 区間)、動画の伸び(公開日からの日数をそろえた累計)と投稿内容、区分ごとの比較、Play・App Store の 7 日ごと、要確認(`alerts`)、データの注意 | なし |
 | 分析 | claude-code-action。`tools/analytics/prompt.md` の指示で `work/` を読み(Read だけ)、JSON を返す。**ログに出さない** | Claude のトークンだけ |
 | 検証・レポート | `extract.py` → `validate.py` → `report.py html` | なし |
 | 保存 | データ用リポジトリに commit・push(途中で失敗しても、取れた分は保存する) | deploy key |
@@ -104,7 +104,7 @@ environment `analytics` は、使えるブランチを `dev` だけにしてあ�
 | `PLAY_PACKAGES` | variable | パッケージ名(カンマ区切り)。`com.watsuwo.parrybreak` を設定済み |
 | `DISCORD_WEBHOOK_URL` | secret | 送信先のチャンネルの設定 → 連携サービス → ウェブフック → URL をコピー |
 | `ASC_ANALYTICS_ISSUER_ID` / `ASC_ANALYTICS_KEY_ID` / `ASC_ANALYTICS_KEY_P8` | secret | 下の「App Store」。**リリース用の `ASC_*` は使い回さない** |
-| `ASC_BUNDLE_ID` | variable(任意) | 無ければ `com.watsuwo.parrybreak`。アプリの Apple ID は、これから API で引く |
+| `ASC_BUNDLE_ID` | variable(任意) | 無ければ `com.watsuwo.parrybreak`。アプリの Apple ID は、バンドル ID から API で引く |
 | `CLAUDE_CODE_OAUTH_TOKEN` | secret(リポジトリ) | 既存のものを使う |
 
 ### YouTube
@@ -128,10 +128,11 @@ App Store の数字は、App Store Connect API の **Analytics Reports** で取�
 
 1. App Store Connect → ユーザとアクセス → 統合 → App Store Connect API →「チーム キー」で、**Admin** のキーを作る。`.p8` をダウンロードする(1 回しかダウンロードできない)。Issuer ID とキー ID を控える。
 2. environment `analytics` に `ASC_ANALYTICS_ISSUER_ID`・`ASC_ANALYTICS_KEY_ID`・`ASC_ANALYTICS_KEY_P8`(`.p8` の中身すべて)を入れる。
-3. analytics を手動で 1 回動かす(`notify` なし)。`collect.py` が、継続の依頼(`ONGOING`)と過去分の依頼(`ONE_TIME_SNAPSHOT`)を作る。`store/status.jsonl` の appstore の行に「依頼を作った」と出る(この時点では、まだ数字はない)。
+3. analytics を手動で 1 回動かす(`notify` なし。手元で `collect.py` を動かしてもよい)。`collect.py` が、継続の依頼(`ONGOING`)と過去分の依頼(`ONE_TIME_SNAPSHOT`)を作る。`store/status.jsonl` の appstore の行に「依頼を作った」と出る(この時点では、まだ数字はない)。
 4. 同じ画面で **Sales** のキーを作り、`ASC_ANALYTICS_KEY_ID` と `ASC_ANALYTICS_KEY_P8` を入れ替える。**Admin のキーは取り消す**。
 5. 1〜2 日後に、もう一度動かす(過去分を入れるなら `backfill_since` を付ける)。appstore が `ok` になれば完了。
 
+- PARRY BREAK の依頼は、2026-11-18 に作成済み(継続と過去分の 2 つ)。いまの鍵は Sales でよい。
 - 継続の依頼は、長く読まれないと Apple が止める。止まったら(「依頼がなく、作れなかった」と出る)、1〜4 をやり直す。
 - 使うのは、利用者を特定しにくい Standard のレポートだけ。
 
@@ -148,14 +149,18 @@ App Store の数字は、App Store Connect API の **Analytics Reports** で取�
 
 ## 7. 運用
 
-- 手動で動かす: Actions の analytics → Run workflow(`notify` を外すと Discord に送らない。`backfill_since` で過去分)
+- 自動: 毎日 9:30 JST(`analytics.yml` の cron)。時刻を変えるときは cron を直す(UTC で書く。遅いほど対象日の数字がそろいやすい)
+- 対象日を変えるとき: `collect.py` と `facts.py` の `LAG`(取得日の何日前を対象日にするか)をそろえて直す
+- 手動で動かす: Actions の analytics → Run workflow(ブランチは dev。`notify` を外すと Discord に送らない。`backfill_since` で過去分)
+- Claude の分析も毎日動く(`CLAUDE_CODE_OAUTH_TOKEN` の使用量になる)
 - **公開リポジトリの schedule は、60 日リポジトリに活動がないと止まる**。朝に Discord が来なければ、Actions の画面を確認する
 - 実験の記録: [`.claude/skills/analytics-handoff/SKILL.md`](../.claude/skills/analytics-handoff/SKILL.md) の 3 章
 
 ## 8. 既知の問題と、これから
 
 - App Store の Analytics Reports の列名(`Event`・`Download Type`・`Counts` など)と種類の値は、Apple の公開資料で確かめきれていない。初回の実データで指標名を確認する。列が見つからないレポートは、行を作らずに飛ばす。
-- `promo/records/videos.csv` の投稿日と、再生のあった日が合わない動画がある。動画の結びつけは(タイトル, 投稿日)なので、食い違うと「記録なし」になる。
+- `promo/records/videos.csv` の投稿日と、再生のあった日が合わない動画がある。動画の結びつけは `youtube_uploads.csv` の動画 ID が優先で、無いときだけ(タイトル, 投稿日)を使うので、ID の記録がない動画は食い違うと「記録なし」になる。
 - チャンネル合計と、動画別の合計が一致しない期間がある(削除・非公開の動画の可能性。原因は未確認)。`data_quality` に出す。
+- 対象日(2 日前)の数字は、9:30 JST にはまだ出ていないことがある(特に Play の一括レポートは 3〜7 日遅れる)。そのときはレポートに「まだ出ていない」と出て、あとの実行で入る。
 - 「視聴 vs スワイプ」は API に無い。`promo/analytics/import_studio.py`(Studio の CSV の手動取り込み)は残す。
 - Play のバルクレポートの列名は、CSV の見出しを機械的に変換して指標名にしている。初回の実データで名前を確認する。
