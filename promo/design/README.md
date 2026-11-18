@@ -7,7 +7,9 @@
 - `handoff.md`: 引き継ぎ資料(いまの状態・次にやること・作業の決まり・本人との進め方)
 - `audio-source-check-20261117.md`: 最初の本編録画の音声混入の調査と不採用の記録、録り直しの対策
 - `distribution-plan.md`: 配信の方針 (投稿先・ペース・担当キャラ・ゲスト・通常尺・作る順番) と、4 モードの仕様。**最初に読む**
-- `shorts-modes.md`: ショートのモード紹介 (プロジェクトは `<名前>-modes`、以前の名前は mode01) と、1.5.0 の撮影の手順
+- `shorts-modes.md`: **基本の型**(ミツバの通常尺 l001 とショート v014 の組、冒頭 3 秒の作り方)、ショートのモード紹介 (プロジェクトは `<名前>-modes`、以前の名前は mode01) と、1.5.0 の撮影の手順
+- `longform.md`: 通常尺の作り方と本人と決めたこと。`longform-mitsuba-outline-v01.md`: ミツバの通常尺 l001 の骨組み
+- `store-video-outline-v01.md`、`store-video-shots-v01.md`: ストア掲載用の動画 2 本(プレイ紹介・4 モード紹介)の構成と、使うカット。書き出しは `build/render_store_previews.py`
 - `shorts-play.md`: ショートのプレイ紹介 (プロジェクトは `<名前>-play`、以前の名前は v05)。文字の画像の作り方もここ
 - `character-layout-comparison-v01.png`: 画面構成案 (5 人の見た目の基準)
 - `longform-layout.png`: 通常尺の画面構成案 (案 B。録画を全幅、下の帯にキャラと字幕)
