@@ -1,0 +1,21 @@
+=== YouTube ===
+[タイトル]
+ブロックが一気に崩れる！遊び方は4つ【PARRY BREAK】
+
+[説明文]
+当たる瞬間にタップして弾を打ち返す、ドット絵ブロック崩し。打ち返すと、ブロックがまとめて崩れ落ちます。ステージ・デイリー・エンドレス・練習の 4 つの遊び方があります。無料。ストアで「PARRY BREAK」を検索。
+くわしい遊び方の解説: https://youtu.be/fI4B1TVegc8
+ナビ: ミツバ (Mokkosu Works)
+音声: AivisSpeech: 花音(魔法プログラム)
+※ゲーム画面は自動プレイ映像です。
+
+#PARRYBREAK #ブロック崩し #弾幕 #Shorts
+
+=== 管理 ===
+管理ID: v014
+YouTube のタグ欄に入れる: v014
+YouTube: https://www.youtube.com/shorts/qeCGsuHORU0(2026-11-18 19:30 に予約公開)
+動画ファイル: promo/build/out/mitsuba-modes-hook-e003.mp4(24 秒)
+構成: promo/editor/projects/mitsuba-modes-hook.json
+組にする通常尺: l001(https://youtu.be/fI4B1TVegc8)。YouTube Studio で、このショートの「関連動画」に l001 を設定する。
+経緯(2026-11-18): v013 を YouTube の AI が「冒頭 1〜3 秒のインパクトが弱い」と指摘したので、v013 の予約を取り消し、冒頭をエンドレスの FEVER 中のまとめて崩れる場面(録画 long-endless-akane-pilot05-clean の 73.05 秒〜)に替えた版。ゲームの音は冒頭だけ 3 倍。
