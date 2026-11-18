@@ -93,6 +93,56 @@ AKANE_MARKERS = [
     (178, "04 Record"), (205, "Ending"), (225, "Video end (about)"),
 ]
 
+# アカネの v02 (2026-11-18)。v01 はミツバと同じ作り (パッド・エレピ・鉄琴) で似て聞こえたので、ロック寄りに変える。
+# 8 ビートのドラムとタムのフィル、刻むベース、歪んだギターのパワーコード (根音と 5 度だけなので D・E・G・A に収まる)、
+# 盛り上げどころだけのリード。区切りはできた本編 (akane-full-e003、2 分 14 秒) の章に合わせる。テンポ 120 で 1 小節 2 秒。
+ROCK_TRACKS = {
+    "drums": ("Drums (rock kit)", 9),
+    "bass": ("Bass (picked electric bass)", 0),
+    "guitar": ("Guitar (distorted power chords)", 1),
+    "lead": ("Lead (overdrive guitar or synth lead)", 2),
+}
+
+# (名前, ベースの根音, ギターのパワーコード)。A5 → G5 → D5 → A5。
+AKANE_ROCK_CHORDS = [
+    ("A5", 33, [45, 52, 57]),
+    ("G5", 31, [43, 50, 55]),
+    ("D5", 38, [50, 57, 62]),
+    ("A5", 33, [45, 52, 57]),
+]
+
+# 強さ: drums=light/normal/full/fever、bass=quarter/eighth/drive、guitar=hold/mute/chug/power、lead=riff。
+# fill=区切りの最後の小節にタムのフィル、build=最後の小節をスネアの連打で盛り上げる。
+AKANE_ROCK_SECTIONS = [
+    ("Opening", 5, {"drums:light", "bass:quarter", "guitar:hold", "lead:riff", "fill"}),
+    ("01 One ball", 12, {"drums:light", "bass:quarter", "guitar:mute", "fill"}),
+    ("02 Parry", 12, {"drums:normal", "bass:eighth", "guitar:chug", "fill"}),
+    ("03 Collapse", 7, {"drums:normal", "bass:eighth", "guitar:chug", "build"}),
+    ("03 Fever", 10, {"drums:fever", "bass:drive", "guitar:power", "lead:riff", "fill"}),
+    ("04 Record", 11, {"drums:normal", "bass:eighth", "guitar:mute", "fill"}),
+    ("Ending", 9, {"drums:full", "bass:drive", "guitar:power", "lead:riff"}),
+    ("Last chord", 2, {"last"}),
+]
+
+# akane-full-e003 の場面の始まり (秒) と、盛り上げどころ。
+AKANE_ROCK_MARKERS = [
+    (0, "Opening"), (9.708, "01 One ball"), (34.208, "02 Parry"), (57.75, "03 Collapse"),
+    (65.67, "Collapse x5"), (73.35, "Fever start"), (82.9, "Collapse x10"),
+    (91.958, "04 Record"), (113.667, "Ending"), (133.667, "Video end"),
+]
+
+AKANE_ROCK = {
+    "bpm": 120,
+    "style": "rock",
+    "tracks": ROCK_TRACKS,
+    "chords": AKANE_ROCK_CHORDS,
+    "sections": AKANE_ROCK_SECTIONS,
+    "markers": AKANE_ROCK_MARKERS,
+    # 2 小節のリフ (8 分音符の位置, 長さ (8 分), 音)。
+    "riff": [[(0, 1, 69), (1, 1, 69), (2, 1, 67), (3, 2, 69), (5, 1, 64), (6, 2, 67)],
+             [(0, 3, 74), (3, 1, 76), (4, 2, 74), (6, 2, 69)]],
+}
+
 SONGS = {
     "mitsuba-basics": {
         "bpm": 96,
@@ -110,6 +160,13 @@ SONGS = {
         "bell": [[(0, 86), (3, 81), (6, 79)], [(0, 76), (4, 79), (7, 81)]],
     },
 }
+
+# 版ごとに作りを変えた曲。(曲, 版) がここにあれば、SONGS より優先する。
+VERSIONS = {("akane-endless", 2): AKANE_ROCK}
+
+
+def song_for(name, version):
+    return VERSIONS.get((name, version), SONGS[name])
 
 
 def vlq(n):
@@ -234,8 +291,108 @@ def build(song):
     return notes, bar_no
 
 
+TOMS = (50, 48, 47, 45, 43, 41)  # 高い順 (GM)
+RIDE = 51
+
+
+def build_rock(song):
+    notes = {key: [] for key in song["tracks"]}
+
+    def note(track, start, length, pitch, vel):
+        notes[track].append((start, length, pitch, vel))
+
+    chords = song["chords"]
+    bar_no = 0
+    for _name, bars, parts in song["sections"]:
+        level = {p.split(":")[0]: (p.split(":") + [""])[1] for p in parts}
+        for i in range(bars):
+            t0 = bar_no * BAR
+            _chord, root, power = chords[bar_no % len(chords)]
+            last = i == bars - 1
+            if "last" in level:
+                if i == 0:
+                    first_root, first_power = chords[0][1], chords[0][2]
+                    for p in first_power:
+                        note("guitar", t0, BAR * bars - STEP, p, 90)
+                    note("bass", t0, BAR * bars - STEP, first_root, 90)
+                    note("drums", t0, STEP, KICK, 110)
+                    note("drums", t0, STEP, CRASH, 110)
+                bar_no += 1
+                continue
+
+            fill = last and "fill" in level
+            build = last and "build" in level
+            body = 8 if fill else 16  # フィルの小節は後ろ半分をタムに使う
+
+            drums = level.get("drums")
+            kicks = {"light": (0, 8), "normal": (0, 6, 8), "full": (0, 3, 6, 8, 10), "fever": (0, 4, 8, 12)}[drums]
+            for s in kicks:
+                if s < body and not (build and s > 0):
+                    note("drums", t0 + s * STEP, STEP, KICK, 105 if s == 0 else 95)
+            if drums != "light" and not build:
+                for s in (4, 12):
+                    if s < body:
+                        note("drums", t0 + s * STEP, STEP, SNARE, 100)
+            elif drums == "light" and body > 12:
+                note("drums", t0 + 12 * STEP, STEP, SNARE, 70)
+            cymbal = RIDE if drums == "light" else HAT
+            for s in range(0, body, 1 if drums == "fever" else 2):
+                note("drums", t0 + s * STEP, STEP // 2, cymbal, (78 if s % 4 == 0 else 58) if drums != "fever" else (80 if s % 2 == 0 else 50))
+            if i == 0 and drums in ("full", "fever", "normal"):
+                note("drums", t0, STEP * 2, CRASH, 100)
+            if fill:
+                for k, s in enumerate(range(8, 16)):
+                    note("drums", t0 + s * STEP, STEP, TOMS[min(k * len(TOMS) // 8, len(TOMS) - 1)], 85 + k * 3)
+            if build:
+                for s in range(16):  # フィーバーへ向けて、スネアの 16 分が強くなる
+                    note("drums", t0 + s * STEP, STEP // 2, SNARE, 45 + s * 5)
+
+            bass = level.get("bass")
+            if bass == "quarter":
+                for s in (0, 4, 8, 12):
+                    note("bass", t0 + s * STEP, 3 * STEP, root, 85)
+            elif bass in ("eighth", "drive"):
+                for s in range(0, 16, 2):
+                    up = 12 if bass == "drive" and s in (6, 14) else 0
+                    note("bass", t0 + s * STEP, 2 * STEP - 20, root + up, 95 if s % 8 == 0 else 80)
+
+            guitar = level.get("guitar")
+            if guitar == "hold":
+                for p in power:
+                    note("guitar", t0, BAR - STEP, p, 80)
+            elif guitar == "mute":  # 刻み (ブリッジミュート)。短く弱く
+                for s in range(0, body, 2):
+                    for p in power[:2]:
+                        note("guitar", t0 + s * STEP, STEP - 20, p, 60 if s % 4 else 72)
+            elif guitar == "chug":
+                for s in range(0, 16, 2):
+                    accent = s in (0, 6, 12)
+                    length = 2 * STEP - 20 if accent else STEP - 20
+                    for p in (power if accent else power[:2]):
+                        note("guitar", t0 + s * STEP, length, p, 92 if accent else 64)
+            elif guitar == "power":
+                for s, length in ((0, 6), (6, 2), (8, 6), (14, 2)):
+                    for p in power + [power[0] + 12]:
+                        note("guitar", t0 + s * STEP, length * STEP - 20, p, 100 if s in (0, 8) else 85)
+
+            if level.get("lead") == "riff" and not build:
+                for s8, length, p in song["riff"][i % 2]:
+                    if s8 * 2 < body:
+                        note("lead", t0 + s8 * 2 * STEP, length * 2 * STEP - 20, p, 90)
+
+            bar_no += 1
+
+    for key, items in notes.items():
+        if key == "drums":
+            continue
+        for _, _, pitch, _ in items:
+            if pitch % 12 not in SAFE_PITCH_CLASSES:
+                raise SystemExit(f"{key} に D・E・G・A 以外の音 ({pitch}) がある")
+    return notes, bar_no
+
+
 def write(song, path):
-    notes, bars = build(song)
+    notes, bars = (build_rock if song.get("style") == "rock" else build)(song)
     bpm = song["bpm"]
     tempo_track = [
         (0, 0, meta(0x03, b"Tempo and markers")),
@@ -246,7 +403,7 @@ def write(song, path):
     for sec, name in song["markers"]:
         tempo_track.append((round(sec * ticks_per_second), 1, meta(0x06, name.encode("ascii"))))
     chunks = [track_chunk(tempo_track)]
-    for key, (name, ch) in TRACKS.items():
+    for key, (name, ch) in song.get("tracks", TRACKS).items():
         events = [(0, 0, meta(0x03, name.encode("ascii")))]
         for start, length, pitch, vel in notes[key]:
             events.append((start, 2, bytes([0x90 | ch, pitch, max(1, min(127, vel))])))
@@ -268,10 +425,12 @@ def main():
     path = args.out or OUT_DIR / f"{args.song}-bgm-v{args.version:02}.mid"
     if path.exists():
         raise SystemExit(f"{path} はもうある。--version を上げる")
-    bars, seconds, counts = write(SONGS[args.song], path)
+    song = song_for(args.song, args.version)
+    bars, seconds, counts = write(song, path)
     print(f"{path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}: "
-          f"{bars} 小節、約 {int(seconds // 60)} 分 {seconds % 60:.0f} 秒、テンポ {SONGS[args.song]['bpm']}")
-    print("音の数: " + "、".join(f"{TRACKS[k][0].split(' ')[0]} {n}" for k, n in counts.items()))
+          f"{bars} 小節、約 {int(seconds // 60)} 分 {seconds % 60:.0f} 秒、テンポ {song['bpm']}")
+    tracks = song.get("tracks", TRACKS)
+    print("音の数: " + "、".join(f"{tracks[k][0].split(' ')[0]} {n}" for k, n in counts.items()))
 
 
 if __name__ == "__main__":
