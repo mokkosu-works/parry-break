@@ -18,6 +18,10 @@ REACTIONS = {
         "fever_start": [("来た、フィーバー！", "fired")],
         "collapse": [("うわ、ごっそり！", "surprise"), ("まとめて落ちた！", "success"), ("崩れた崩れた！", "surprise")],
     },
+    # シズクは落ち着いた短い文で、「!」を使わない。
+    "shizuku": {
+        "parry:just": [("……今。ジャスト。悪くない。", "success")],
+    },
     "mitsuba": {
         "parry:just": [("えっ、いまの見た？ ジャスト！", "success"), ("ぴったりだと、ジャストになるんだね！", "success")],
         "fever_start": [("フィーバーだって！", "smug"), ("キラキラしてる！", "success")],
@@ -75,7 +79,8 @@ def make(plan, aligned):
                       "text": choice[0], "expression": choice[1], "event_seq": event["seq"],
                       "event_type": event["type"]})
     lines.sort(key=lambda l: l["start"])
-    return {"schema": 1, "profile": plan["profile"], "source": str(((ROOT / plan["events"]).parent / aligned["video"]).relative_to(ROOT)),
+    extra = {"insets": plan["insets"]} if "insets" in plan else {}
+    return {**extra, "schema": 1, "profile": plan["profile"], "source": str(((ROOT / plan["events"]).parent / aligned["video"]).relative_to(ROOT)),
             "events": plan["events"], "source_start": start, "duration": plan["duration"],
             "note": plan["note"], "lines": lines}
 

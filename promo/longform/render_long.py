@@ -59,8 +59,8 @@ DUCK = "sidechaincompress=threshold=0.03:ratio=6:attack=30:release=500:makeup=1"
 
 
 def without_bgm(project):
-    """声の作り直しが要るかどうかは、BGM 以外で比べる。"""
-    return {k: v for k, v in project.items() if k != "bgm"}
+    """声の作り直しが要るかどうかは、BGM と拡大の窓 (どちらも声に関係しない) 以外で比べる。"""
+    return {k: v for k, v in project.items() if k not in ("bgm", "insets")}
 
 
 def media_duration(path):
@@ -157,6 +157,34 @@ def guest_card(guest, font_path):
     return card
 
 
+def check_inset(inset, duration):
+    """拡大の窓: ゲーム映像 (1920×864) の box [x, y, 幅, 高さ] を scale 倍にして、at [x, y] に重ねる。
+    start〜end (本編の中の秒) のあいだだけ出す。窓はゲーム映像の中に収める。"""
+    x, y, w, h = inset["box"]
+    ax, ay = inset["at"]
+    scale, start, end = float(inset["scale"]), float(inset["start"]), float(inset["end"])
+    if not (0 <= x and 0 <= y and w > 0 and h > 0 and x + w <= GAME_SIZE[0] and y + h <= GAME_SIZE[1]):
+        raise ValueError(f"拡大する範囲がゲーム映像の外です: {inset['box']}")
+    if not (1 < scale <= 4 and 0 <= ax and 0 <= ay and ax + w * scale <= GAME_SIZE[0] and ay + h * scale <= GAME_SIZE[1]):
+        raise ValueError(f"拡大の窓がゲーム映像からはみ出します: {inset}")
+    if not 0 <= start < end <= duration:
+        raise ValueError(f"拡大の窓の時刻を確かめてください: {start}〜{end}")
+
+
+def apply_insets(game, insets, t, outline):
+    """t 秒に出す拡大の窓を、ゲーム映像に重ねる。ドット絵の文字がにじまないよう、最近傍で拡大する。"""
+    for inset in insets:
+        if not inset["start"] <= t < inset["end"]:
+            continue
+        x, y, w, h = inset["box"]
+        size = (round(w * inset["scale"]), round(h * inset["scale"]))
+        zoomed = game.crop((x, y, x + w, y + h)).resize(size, Image.Resampling.NEAREST)
+        ax, ay = inset["at"]
+        ImageDraw.Draw(game).rectangle((ax - 4, ay - 4, ax + size[0] + 3, ay + size[1] + 3), fill=outline)
+        game.paste(zoomed, (ax, ay))
+    return game
+
+
 def load_project(path):
     project = json.loads(path.read_text())
     if project.get("profile") not in NARRATORS:
@@ -184,6 +212,8 @@ def load_project(path):
         aligned = check_logged_clip(project["source"], project["events"], start, duration)
     if "bgm" in project:
         check_bgm(project["bgm"], duration)
+    for inset in project.get("insets", []):
+        check_inset(inset, duration)
     events = {e["seq"]: e for e in aligned["events"]}
     last = -1
     for line in project["lines"]:
@@ -356,7 +386,7 @@ def copy_voices(project, out, source):
         raise FileExistsError("出力先は空のフォルダを指定してください")
     prepared = json.loads((source / "prepared.json").read_text())
     if without_bgm(project) != without_bgm(prepared["project"]):
-        raise ValueError("BGM 以外の台本が、声を作ったときと違います。--prepare-only で声を作り直してください")
+        raise ValueError("BGM・拡大の窓以外の台本が、声を作ったときと違います。--prepare-only で声を作り直してください")
     for i in range(len(prepared["timed"])):
         shutil.copy2(source / f"voice-{i:03}.wav", out / f"voice-{i:03}.wav")
     prepared["project"] = project
@@ -433,8 +463,9 @@ def render(project, out):
                 sprite = sprites[expression, state]
                 if current is None and 3.25 <= t % 4.2 < 3.4:
                     sprite = blink
+                game = apply_insets(Image.frombytes("RGB", GAME_SIZE, raw), project.get("insets", []), t, colors["outline"])
                 frame = compose_main(
-                    belt, Image.frombytes("RGB", GAME_SIZE, raw), colors, small, subtitle_font, sprite,
+                    belt, game, colors, small, subtitle_font, sprite,
                     credit=f"音声：AivisSpeech {prepared['profile']['speakerName']}",
                     logo=logo if clip["logo"] else None, tag=tags[clip["tag"]] if clip["tag"] else None,
                     guest=guests[clip["guest"]] if clip["guest"] else None, autoplay=clip["autoplay"],
@@ -469,7 +500,7 @@ if __name__ == "__main__":
     parser.add_argument("project", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--prepare-only", action="store_true")
-    parser.add_argument("--voices-from", type=Path, help="BGM だけを変えた台本のとき、声を作った出力フォルダ")
+    parser.add_argument("--voices-from", type=Path, help="BGM か拡大の窓だけを変えた台本のとき、声を作った出力フォルダ")
     args = parser.parse_args()
     if args.prepare_only and args.voices_from:
         parser.error("--prepare-only と --voices-from は一緒に使えません")

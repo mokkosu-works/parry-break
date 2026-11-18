@@ -161,6 +161,56 @@ SONGS = {
     },
 }
 
+# シズクの v01 (2026-11-19)。最初からミツバ (パッド・エレピ・鉄琴) ともアカネ (ロック) とも別の作りにする。
+# 落ち着いた性格に合わせた、ローファイ寄り: はねる (スウィング) 柔らかいドラム、丸いベース、
+# フェルトピアノの和音、盛り上げどころだけの柔らかい笛。テンポ 80 で 1 小節 3 秒。
+# 区切りはできた本編 (shizuku-full-e002、2 分 5 秒) の章に合わせる。
+LOFI_TRACKS = {
+    "drums": ("Drums (lo-fi or brush kit)", 9),
+    "bass": ("Bass (round upright or sub bass)", 0),
+    "piano": ("Piano (soft felt piano)", 1),
+    "lead": ("Flute (soft flute or recorder)", 2),
+}
+
+# (名前, ベースの根音, ピアノの和音)。音はすべて D・E・G・A。G → Em7 → Asus → Dsus2 の響き。
+SHIZUKU_CHORDS = [
+    ("G(add9 no3)", 31, [55, 62, 69, 74]),
+    ("Em7(no5)", 40, [55, 62, 64, 67]),
+    ("Asus4", 33, [57, 62, 64, 69]),
+    ("Dsus2", 38, [57, 62, 64, 69]),
+]
+
+# 強さ: drums=light/normal/full、bass=hold/walk、piano=hold/comp、lead=motif。fill=区切りの最後の小節を抜く。
+SHIZUKU_SECTIONS = [
+    ("Opening", 3, {"piano:hold", "lead:motif"}),
+    ("01 Practice", 5, {"drums:light", "bass:hold", "piano:hold", "fill"}),
+    ("02 Grades", 5, {"drums:normal", "bass:hold", "piano:comp", "fill"}),
+    ("03 Timing", 8, {"drums:normal", "bass:walk", "piano:comp", "fill"}),
+    ("04 Speed", 6, {"drums:full", "bass:walk", "piano:comp", "lead:motif", "fill"}),
+    ("05 Bullets", 8, {"drums:normal", "bass:walk", "piano:comp", "fill"}),
+    ("Ending", 6, {"drums:full", "bass:walk", "piano:comp", "lead:motif"}),
+    ("Last chord", 2, {"last"}),
+]
+
+# shizuku-full-e002 の場面の始まり (秒)。
+SHIZUKU_MARKERS = [
+    (0, "Opening"), (8.5, "01 Practice"), (23.708, "02 Grades"), (39.208, "03 Timing"),
+    (63.25, "04 Speed"), (82.042, "05 Bullets"), (105.125, "Ending"), (125.125, "Video end"),
+]
+
+SHIZUKU_LOFI = {
+    "bpm": 80,
+    "style": "lofi",
+    "tracks": LOFI_TRACKS,
+    "chords": SHIZUKU_CHORDS,
+    "sections": SHIZUKU_SECTIONS,
+    "markers": SHIZUKU_MARKERS,
+    # 2 小節の笛 (8 分音符の位置, 長さ (8 分), 音)。
+    "motif": [[(0, 3, 74), (3, 1, 76), (4, 4, 79)], [(1, 2, 76), (3, 2, 74), (5, 3, 69)]],
+}
+
+SONGS["shizuku-practice"] = SHIZUKU_LOFI
+
 # 版ごとに作りを変えた曲。(曲, 版) がここにあれば、SONGS より優先する。
 VERSIONS = {("akane-endless", 2): AKANE_ROCK}
 
@@ -391,8 +441,84 @@ def build_rock(song):
     return notes, bar_no
 
 
+SIDE_STICK = 37
+SWING = STEP * 2 // 3  # 裏の 8 分を 3 連符の位置まで遅らせる
+
+
+def build_lofi(song):
+    notes = {key: [] for key in song["tracks"]}
+
+    def note(track, step, length, pitch, vel, t0):
+        swing = SWING if step % 4 == 2 else 0
+        notes[track].append((t0 + step * STEP + swing, length, pitch, vel))
+
+    chords = song["chords"]
+    bar_no = 0
+    for _name, bars, parts in song["sections"]:
+        level = {p.split(":")[0]: (p.split(":") + [""])[1] for p in parts}
+        for i in range(bars):
+            t0 = bar_no * BAR
+            _chord, root, voicing = chords[bar_no % len(chords)]
+            if "last" in level:
+                if i == 0:
+                    for p in chords[0][2] + [chords[0][2][-1] + 12]:
+                        note("piano", 0, BAR * bars - STEP, p, 62, t0)
+                    note("bass", 0, BAR * bars - STEP, chords[0][1], 70, t0)
+                bar_no += 1
+                continue
+            rest = i == bars - 1 and "fill" in level  # 区切りの前の小節の後ろ半分は、ドラムを抜く
+            body = 8 if rest else 16
+
+            drums = level.get("drums")
+            if drums:
+                kicks = {"light": (0, 10), "normal": (0, 7, 10), "full": (0, 3, 7, 10)}[drums]
+                for st in kicks:
+                    if st < body:
+                        note("drums", st, STEP, KICK, 78, t0)
+                back = SIDE_STICK if drums == "light" else SNARE
+                for st in (4, 12):
+                    if st < body:
+                        note("drums", st, STEP, back, 62 if drums == "light" else 74, t0)
+                if drums != "light":
+                    for st in range(0, body, 2):
+                        note("drums", st, STEP // 2, HAT, 50 if st % 4 else 60, t0)
+                if rest:
+                    note("drums", 14, STEP, OPEN_HAT, 50, t0)
+
+            bass = level.get("bass")
+            if bass == "hold":
+                note("bass", 0, 7 * STEP, root, 72, t0)
+                note("bass", 10, 5 * STEP, root, 64, t0)
+            elif bass == "walk":
+                for st, up in ((0, 0), (7, 0), (10, 12), (14, 0)):
+                    note("bass", st, 3 * STEP - 20, root + up, 74 if st == 0 else 62, t0)
+
+            piano = level.get("piano")
+            if piano == "hold":
+                for k, p in enumerate(voicing):
+                    note("piano", 0, BAR - STEP, p, 52 - k * 2, t0 + k * 18)  # 少しずらして弾く
+            elif piano == "comp":
+                for st, length in ((0, 5), (6, 3), (10, 5)):
+                    for k, p in enumerate(voicing):
+                        note("piano", st, length * STEP - 30, p, (60 if st == 0 else 50) - k * 2, t0 + k * 14)
+
+            if level.get("lead") == "motif":
+                for s8, length, p in song["motif"][i % 2]:
+                    note("lead", s8 * 2, length * 2 * STEP - 40, p, 64, t0)
+
+            bar_no += 1
+
+    for key, items in notes.items():
+        if key == "drums":
+            continue
+        for _, _, pitch, _ in items:
+            if pitch % 12 not in SAFE_PITCH_CLASSES:
+                raise SystemExit(f"{key} に D・E・G・A 以外の音 ({pitch}) がある")
+    return notes, bar_no
+
+
 def write(song, path):
-    notes, bars = (build_rock if song.get("style") == "rock" else build)(song)
+    notes, bars = {"rock": build_rock, "lofi": build_lofi}.get(song.get("style"), build)(song)
     bpm = song["bpm"]
     tempo_track = [
         (0, 0, meta(0x03, b"Tempo and markers")),
