@@ -388,6 +388,9 @@ def _validate_layer(bad, where, layer, seconds, check_files):
             bad(where, f"表示範囲が元の動画 ({info['width']}×{info['height']}) からはみ出しています")
         if info and not info["audio"]:
             bad(where, "この動画には音声がありません (ゲームの音が要ります)")
+        vol = layer.get("volume", GAME_VOLUME)
+        if not _num(vol) or vol < 0 or vol > 4:
+            bad(where, f"ゲームの音量は 0〜4 にしてください (今: {vol})")
 
 
 def default_voice_lines():
@@ -764,10 +767,10 @@ def _scene_video(tmp, index, scene, progress, face=None, offset=0):
             layer = item
             c = layer["crop"]
             inputs += ["-ss", layer["start"], "-t", seconds, "-i", resolve(layer["src"], "video")]
-            filters.append(f"[{n}:v]crop={round(c['width'])}:{round(c['height'])}:{round(c['x'])}:{round(c['y'])},"
+            filters.append(f"[{n}:v]setpts=PTS-STARTPTS,crop={round(c['width'])}:{round(c['height'])}:{round(c['x'])}:{round(c['y'])},"
                            f"scale={round(layer['width'])}:{round(layer['height'])}:flags=neighbor[g{n}]")
             if audio is None:
-                audio = f"[{n}:a]volume={GAME_VOLUME}[a]"
+                audio = f"[{n}:a]volume={layer.get('volume', GAME_VOLUME)}[a]"
             overlay, position = f"[g{n}]", f"{round(layer['x'])}:{round(layer['y'])}"
             dynamic_boxes.append(_box(layer))
         else:
