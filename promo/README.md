@@ -30,14 +30,15 @@ records/    videos.csv、youtube_uploads.csv
 | `characters/full/` | **使わなくなった**通常尺専用の全身3ポーズ(アカネだけ残す。構成案が使っているため)。今は `characters/sheets/<名前>/` を使う | 入る | 画像生成(`design/codex/longform-full/ref/` に指示文) → `longform/full.py` |
 | `assets/text/shorts-play/` | プレイ紹介の見出し・吹き出し・「ストアで検索」(`<名前>_v05_*.png` など) | 入る | Codex(`design/codex/v05/`) |
 | `assets/text/shorts-modes/` | モード紹介の見出し・吹き出し(`<名前>_mode01_*.png`) | 入る | Codex(`design/codex/mode01/`) |
-| `assets/text/longform/` | 通常尺の見出し画像。アカネの構成案v01は `akane-{opening,chapter,ending}-v01.png`(本人の確認待ち)。ミツバは `mitsuba-{opening,ch01〜ch07,ending}-v01.png`(題名・章の札7つ・ストアで検索、縁はタグの濃い茶色。本人の確認待ち、確認画像は `design/checks/mitsuba-headings-v01.jpg`) | 入る | 内蔵画像生成(アカネは `design/codex/longform-scenes/ref/`、ミツバは `design/codex/longform-mitsuba-headings/`(`run.sh`、3行ずつ3枚)に指示文)から切り出し |
+| `assets/text/longform/` | 通常尺の見出し画像。アカネの構成案v01は `akane-{opening,chapter,ending}-v01.png`(本人の確認待ち)。アカネ・シズク・モモカ・ワカナの絵コンテ v01 用は `<名前>-{opening,chNN}-v01.png` と `shizuku-ending-v01.png`(2026-11-18、縁はタグの色。モモカ・ワカナの「ストアで検索」はミツバのものを入れ替えて使う。指示文と切り出しは `design/codex/longform-4chars-headings/`(`run.sh`・`cut.py`))。ミツバは `mitsuba-{opening,ch01〜ch07,ending}-v01.png`(題名・章の札7つ・ストアで検索、縁はタグの濃い茶色。本人の確認待ち、確認画像は `design/checks/mitsuba-headings-v01.jpg`) | 入る | 内蔵画像生成(アカネは `design/codex/longform-scenes/ref/`、ミツバは `design/codex/longform-mitsuba-headings/`(`run.sh`、3行ずつ3枚)に指示文)から切り出し |
 | `assets/tags/` | モードのタグ `<名前>_tag_<stage\|endless\|daily\|practice>.png`(5 人 × 4) | 入る | Codex の 5 枚を土台に色を塗り替え |
 | `assets/bgm/` | 通常尺の BGM `<名前>-<モード>-bgm-v<版>.flac`(音、一覧は `assets/bgm/README.md`) | 入る | 本人が Windows の DAW で作る(`longform/bgm.md`)。DAW のプロジェクトは Windows に残す |
 | `assets/bgm/midi/` | 通常尺の BGM の MIDI のたたき台 `<名前>-<モード>-bgm-v<版>.mid`(Sonar で開いて仕上げる) | 入る | `longform/bgm_midi.py` |
 | `assets/logo/title-logo.png` | ゲームの実物のタイトルロゴ | 入る | `build/create_title_logo.py` |
 | `design/longform-layout.png`、`design/character-layout-comparison-v01.png` | 画面構成案(通常尺・ショート) | 入る | 手で作った見本 |
 | `design/akane-longform-{opening,chapter,ending}-v01.png` | アカネの通常尺の場面構成案(本人の確認待ち) | 入る | `longform/scene_proposals.py` で既存のロゴ・キャラ・録画と見出しを合成 |
-| `design/checks/` | 書き出しのコマなどの確認画像。使わなくなったものは `old/` | 入る | 確認のたびに |
+| `design/checks/` | 書き出しのコマなどの確認画像。使わなくなったものは `old/` |
+| `design/checks/<名前>-storyboard-v01.jpg` | 通常尺の絵コンテの静止画の一覧(アカネ・シズク・モモカ・ワカナ。本人の確認待ち)。コマの指定は `longform/storyboards/<名前>-v01.json`、文書は `design/longform-<名前>-storyboard-v01.md` | 入る | `longform/storyboard.py <名前>`(本番と同じ描き方で合成。上書きしない) | 入る | 確認のたびに |
 | `design/codex/<回>/` | Codex の指示文(`ref/*.txt`)。参考画像(`ref/*.png`)と生成の下書き(`out/`) | 指示文だけ | Codex。`old-layout/out/` は以前の作業用の写し(どこからも参照しない) |
 | `build/assets/badges/`、`build/fonts/` | ストアの公式バッジ、フォント | 入らない | `build/fetch_assets.sh` |
 | `capture/raw/`、`build/out/` | 録画、書き出した動画。不採用の録画は `capture/raw/old/`、過去の版の書き出し (v01/v02/v05/mode01、character-promo、ボット動画、声の聞き比べ、通常尺の旧 e001、ミツバのショート v013 と v014 の試し書き出し、ストア用の動画の前の版) は `build/out/old/` | 入らない | `capture/*.sh`、編集ツール |

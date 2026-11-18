@@ -1,0 +1,193 @@
+{
+ "profile": "wakana",
+ "title": "ワカナ ステージ紹介の絵コンテ v01(約3分45秒)",
+ "frames": [
+  {
+   "time": "0:00",
+   "chapter": "オープニング",
+   "scene": "opening",
+   "heading": "ひとつずつ、ゆっくり。",
+   "kind": "進行",
+   "line": "ワカナです。今日は、ステージ。ひとつずつ、ゆっくり見ていきましょうね。",
+   "note": "全身の通常",
+   "heading_file": "wakana-opening-v01.png"
+  },
+  {
+   "time": "0:12",
+   "chapter": "01 ステージの進め方",
+   "scene": "chapter",
+   "number": "01",
+   "heading": "ステージの進め方",
+   "kind": "進行",
+   "line": "ステージの進め方。",
+   "note": "",
+   "heading_file": "wakana-ch01-v01.png"
+  },
+  {
+   "time": "0:16",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/mstage_v151.mp4",
+   "at": 4.2,
+   "expression": "explain",
+   "kind": "解説",
+   "logo": false,
+   "autoplay": false,
+   "line": "ステージは、1章に10ずつ並んでいるの。今は、6章まであるのよ。",
+   "note": "ステージ選択の画面(1章の10ステージと星)"
+  },
+  {
+   "time": "0:32",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/mstage_v151.mp4",
+   "at": 14.0,
+   "expression": "normal",
+   "kind": "解説",
+   "line": "1回が短いから、少しずつ進められるの。疲れたら、ひと息ついてね。",
+   "note": "1-1 のプレイ"
+  },
+  {
+   "time": "0:48",
+   "chapter": "02 まずは目標から",
+   "scene": "chapter",
+   "number": "02",
+   "heading": "まずは目標から",
+   "kind": "進行",
+   "line": "まずは目標から。",
+   "note": "",
+   "heading_file": "wakana-ch02-v01.png"
+  },
+  {
+   "time": "0:52",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/mstage_v151.mp4",
+   "at": 4.2,
+   "expression": "explain",
+   "kind": "解説",
+   "logo": false,
+   "autoplay": false,
+   "line": "始める前に、目標の欄を見てね。たいていは、ブロックを全部壊すこと。",
+   "note": "右の欄の「目標」。拡大して見せるかは作るときに決める"
+  },
+  {
+   "time": "1:08",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/long-stage-mitsuba-s14-just-01/capture.mp4",
+   "at": 18.8,
+   "expression": "think",
+   "kind": "解説",
+   "provisional": true,
+   "line": "でも、点数を集めるステージや、決まった時間、耐えるステージもあるの。",
+   "note": "1-4 のプレイ",
+   "shoot": "1-7(スコア)か 1-8(耐える)を撮る"
+  },
+  {
+   "time": "1:25",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/capture.mp4",
+   "at": 12,
+   "expression": "shy",
+   "kind": "雑談",
+   "line": "この並び、うちのサボテンのトゲ子に似てる……。あ、ごめんなさい。続けましょう。",
+   "note": "持ちネタ(植物の話)。何も起きない間に"
+  },
+  {
+   "time": "1:42",
+   "chapter": "03 星を3つ",
+   "scene": "chapter",
+   "number": "03",
+   "heading": "星を3つ",
+   "kind": "進行",
+   "line": "星を3つ。",
+   "note": "",
+   "heading_file": "wakana-ch03-v01.png"
+  },
+  {
+   "time": "1:46",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/mstage_v151.mp4",
+   "at": 34.0,
+   "expression": "success",
+   "kind": "解説",
+   "logo": false,
+   "autoplay": false,
+   "line": "クリアで、星ひとつ。あとの二つは、そのステージごとの課題よ。",
+   "note": "STAGE CLEAR の画面(星3つ・ランク S)"
+  },
+  {
+   "time": "2:04",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/mstage_v151.mp4",
+   "at": 16.5,
+   "expression": "focus",
+   "kind": "解説",
+   "line": "課題は、始める前の画面に書いてあるの。全部そろうと、ほっとするのよね。",
+   "note": "1-1 のプレイ"
+  },
+  {
+   "time": "2:20",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/mstage_v151.mp4",
+   "at": 24.0,
+   "expression": "think",
+   "kind": "雑談",
+   "guest": "akane",
+   "line": "時間の課題は、私も苦手なの。メンバーのアカネちゃんは、すぐ無理するけれど。",
+   "note": "フィーバー中。右にアカネのバストアップと「メンバー」の札"
+  },
+  {
+   "time": "2:38",
+   "chapter": "04 難易度",
+   "scene": "chapter",
+   "number": "04",
+   "heading": "難易度",
+   "kind": "進行",
+   "line": "難易度。",
+   "note": "",
+   "heading_file": "wakana-ch04-v01.png"
+  },
+  {
+   "time": "2:42",
+   "chapter": "04",
+   "scene": "main",
+   "source": "promo/capture/raw/mstage_v151.mp4",
+   "at": 4.2,
+   "expression": "explain",
+   "kind": "解説",
+   "logo": false,
+   "autoplay": false,
+   "line": "右上で、EASY、NORMAL、HARD から選べるの。",
+   "note": "ステージ選択の右上の EASY / NORMAL / HARD"
+  },
+  {
+   "time": "2:58",
+   "chapter": "04",
+   "scene": "main",
+   "source": "promo/capture/raw/long-stage-mitsuba-s21-just-04/capture.mp4",
+   "at": 16.3,
+   "expression": "normal",
+   "kind": "解説",
+   "provisional": true,
+   "line": "HARD は弾がたくさん出るけれど、まとめて打ち返せるの。自分に合うところから、どうぞ。",
+   "note": "2-1(NORMAL)のプレイ",
+   "shoot": "HARD のプレイを撮る(弾が多く、まとめて打ち返せる場面)"
+  },
+  {
+   "time": "3:25",
+   "chapter": "エンディング",
+   "scene": "ending",
+   "heading_file": "mitsuba-ending-v01.png",
+   "heading": "ストアで検索!",
+   "kind": "進行",
+   "line": "ひとつずつ、一緒に進めましょう。パリィブレイク。ストアで検索!",
+   "note": "全身の成功"
+  }
+ ]
+}

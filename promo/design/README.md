@@ -9,6 +9,7 @@
 - `distribution-plan.md`: 配信の方針 (投稿先・ペース・担当キャラ・ゲスト・通常尺・作る順番) と、4 モードの仕様。**最初に読む**
 - `shorts-modes.md`: **基本の型**(ミツバの通常尺 l001 とショート v014 の組、冒頭 3 秒の作り方)、ショートのモード紹介 (プロジェクトは `<名前>-modes`、以前の名前は mode01) と、1.5.0 の撮影の手順
 - `longform.md`: 通常尺の作り方と本人と決めたこと。`longform-mitsuba-outline-v01.md`: ミツバの通常尺 l001 の骨組み
+- `longform-{akane,shizuku,momoka,wakana}-storyboard-v01.md`: 4 人の通常尺の絵コンテ(コマの表。本人の確認待ち)。静止画は `checks/<名前>-storyboard-v01.jpg`
 - `store-video-outline-v01.md`、`store-video-shots-v01.md`: ストア掲載用の動画 2 本(プレイ紹介・4 モード紹介)の構成と、使うカット。書き出しは `build/render_store_previews.py`
 - `shorts-play.md`: ショートのプレイ紹介 (プロジェクトは `<名前>-play`、以前の名前は v05)。文字の画像の作り方もここ
 - `character-layout-comparison-v01.png`: 画面構成案 (5 人の見た目の基準)
@@ -29,6 +30,7 @@
   - `longform-bust/`: 通常尺のほかの 4 人のバストアップ(`run.sh` で 1 枚ずつ順に作る)
   - `longform-full/`: アカネの全身3ポーズと目パチの指示文(本人が採用済み)
   - `longform-scenes/`: アカネの場面構成案に使う見出し3種類の指示文。構成案は `longform/scene_proposals.py` で合成する
+  - `longform-4chars-headings/`: アカネ・シズク・モモカ・ワカナの通常尺の見出し 20 枚(`run.sh` で 8 枚のシートを作り、`cut.py` で 1 行ずつ切り出す。生成の地のごく薄いノイズは透明に塗り直す)
   - `old-layout/out/`: 以前 `build/assets/layout/` にあった作業用の写し(どこからも参照しない)
 
 ## 過去の版

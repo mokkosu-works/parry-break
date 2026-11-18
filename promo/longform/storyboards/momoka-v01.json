@@ -1,0 +1,202 @@
+{
+ "profile": "momoka",
+ "title": "モモカ デイリー紹介の絵コンテ v01(約3分45秒)",
+ "frames": [
+  {
+   "time": "0:00",
+   "chapter": "オープニング",
+   "scene": "opening",
+   "heading": "今日だけの、5ラウンド!",
+   "kind": "進行",
+   "line": "モモカだよ! 今日は、デイリーのお話。毎日ちがう、5ラウンドの勝負なの!",
+   "note": "全身の通常",
+   "heading_file": "momoka-opening-v01.png"
+  },
+  {
+   "time": "0:12",
+   "chapter": "01 今日の配置",
+   "scene": "chapter",
+   "number": "01",
+   "heading": "今日の配置",
+   "kind": "進行",
+   "line": "今日の配置!",
+   "note": "",
+   "heading_file": "momoka-ch01-v01.png"
+  },
+  {
+   "time": "0:16",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/mtitle_mitsuba-easy-01.mp4",
+   "at": 0.5,
+   "expression": "explain",
+   "kind": "解説",
+   "logo": false,
+   "autoplay": false,
+   "line": "タイトルのデイリーに、NEW の印。今日まだ遊んでないよ、ってこと!",
+   "note": "1.6.0 のタイトル。DAILY の横の NEW"
+  },
+  {
+   "time": "0:30",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/mdaily_v151.mp4",
+   "at": 6,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "配置は、毎朝9時に変わるよ。同じ日なら、みんな同じ配置なの!",
+   "note": "デイリーのプレイ"
+  },
+  {
+   "time": "0:45",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/long-daily-mitsuba-mode-daily-02/capture.mp4",
+   "at": 16.4,
+   "expression": "smug",
+   "kind": "雑談",
+   "line": "だから、あとで見せ合えるんだ。ここ、好き!",
+   "note": "デイリーのプレイ(爆発)"
+  },
+  {
+   "time": "0:58",
+   "chapter": "02 5ラウンドの勝負",
+   "scene": "chapter",
+   "number": "02",
+   "heading": "5ラウンドの勝負",
+   "kind": "進行",
+   "line": "5ラウンドの勝負!",
+   "note": "",
+   "heading_file": "momoka-ch02-v01.png"
+  },
+  {
+   "time": "1:02",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/mdaily_v151.mp4",
+   "at": 18,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "エンドレスの途中の5ラウンド、続けて遊ぶよ。始まるラウンドも、日によってちがうの。",
+   "note": "ROUND の帯"
+  },
+  {
+   "time": "1:20",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/mdaily_v151.mp4",
+   "at": 30,
+   "expression": "focus",
+   "kind": "解説",
+   "line": "大丈夫、何回でも挑戦できるよ! ただ、ミスしたら、その回はそこで終わり。",
+   "note": "PERFECT。失敗の説明は「大丈夫」を先に伝える"
+  },
+  {
+   "time": "1:38",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/mdaily_v151.mp4",
+   "at": 42,
+   "expression": "success",
+   "kind": "解説",
+   "provisional": true,
+   "line": "5ラウンド乗り切ったら、デイリークリア!",
+   "note": "ラウンドクリアの画面",
+   "shoot": "DAILY CLEAR の画面を撮る"
+  },
+  {
+   "time": "1:52",
+   "chapter": "03 見せ場",
+   "scene": "chapter",
+   "number": "03",
+   "heading": "見せ場",
+   "kind": "進行",
+   "line": "見せ場!",
+   "note": "",
+   "heading_file": "momoka-ch03-v01.png"
+  },
+  {
+   "time": "1:56",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/long-daily-mitsuba-mode-daily-02/capture.mp4",
+   "at": 25.6,
+   "expression": "surprise",
+   "kind": "反応",
+   "line": "見て見て! まとめて崩れた!",
+   "note": "COLLAPSE の記録に合わせる"
+  },
+  {
+   "time": "2:10",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/mdaily_v151.mp4",
+   "at": 74,
+   "expression": "steam",
+   "kind": "雑談",
+   "line": "今の、撮った!? 撮ってない!? もう一回やって!",
+   "note": "COLLAPSE ×7。持ちネタ(すぐスクショしたがる)"
+  },
+  {
+   "time": "2:24",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/mdaily_v151.mp4",
+   "at": 76,
+   "expression": "shy",
+   "kind": "雑談",
+   "guest": "shizuku",
+   "line": "メンバーのシズクちゃんなら、「録画してるから、大丈夫。」って言ってくれそう。",
+   "note": "右にシズクのバストアップと「メンバー」の札"
+  },
+  {
+   "time": "2:40",
+   "chapter": "04 記録と連続日数",
+   "scene": "chapter",
+   "number": "04",
+   "heading": "記録と連続日数",
+   "kind": "進行",
+   "line": "記録と連続日数!",
+   "note": "",
+   "heading_file": "momoka-ch04-v01.png"
+  },
+  {
+   "time": "2:44",
+   "chapter": "04",
+   "scene": "main",
+   "source": "promo/capture/raw/mdaily_v151.mp4",
+   "at": 84,
+   "expression": "explain",
+   "kind": "解説",
+   "provisional": true,
+   "line": "記録に残るのは、その日の最高得点。何回遊んでも、いちばん高いのが残るよ。",
+   "note": "ROUND の帯",
+   "shoot": "デイリーの結果画面(今回のスコア・TODAY BEST・連続日数)を撮る"
+  },
+  {
+   "time": "3:02",
+   "chapter": "04",
+   "scene": "main",
+   "source": "promo/capture/raw/mtitle_v151.mp4",
+   "at": 0.5,
+   "expression": "success",
+   "kind": "解説",
+   "logo": false,
+   "autoplay": false,
+   "provisional": true,
+   "line": "続けて遊んだ日数は、ストリークで出るの。明日も、一緒に遊ぼうね!",
+   "note": "タイトル画面(1.5.1、NEW だけ)",
+   "shoot": "タイトルの STREAK n を、何日か続けて遊んだ端末で撮る"
+  },
+  {
+   "time": "3:25",
+   "chapter": "エンディング",
+   "scene": "ending",
+   "heading_file": "mitsuba-ending-v01.png",
+   "heading": "ストアで検索!",
+   "kind": "進行",
+   "line": "今日の配置、もう遊んだ? パリィブレイク。ストアで検索!",
+   "note": "全身の成功"
+  }
+ ]
+}

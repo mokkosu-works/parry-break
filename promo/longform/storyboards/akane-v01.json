@@ -1,0 +1,204 @@
+{
+ "profile": "akane",
+ "title": "アカネ エンドレス紹介の絵コンテ v01(約3分45秒)",
+ "frames": [
+  {
+   "time": "0:00",
+   "chapter": "オープニング",
+   "scene": "opening",
+   "heading_file": "akane-opening-v01.png",
+   "heading": "一球で、どこまで?",
+   "kind": "進行",
+   "line": "よしっ、アカネだよ! 今日はエンドレス。ボールひとつで、どこまで続くか見ていこう!",
+   "note": "全身の通常。ロゴと題名"
+  },
+  {
+   "time": "0:12",
+   "chapter": "01 ボールはひとつ",
+   "scene": "chapter",
+   "number": "01",
+   "heading_file": "akane-chapter-v01.png",
+   "heading": "ボールはひとつ",
+   "kind": "進行",
+   "line": "ボールはひとつ!",
+   "note": "全身の固有。章のタイトルを読む"
+  },
+  {
+   "time": "0:16",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 3.3,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "落としたら、そこでおしまい。だから、一回返るだけでも、ほっとするんだよね。",
+   "note": "ROUND 1 の始まり。パドルの上にボール"
+  },
+  {
+   "time": "0:32",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 8.0,
+   "expression": "focus",
+   "kind": "解説",
+   "line": "ブロックも下がってくるから、のんびり待ってはいられないんだ。",
+   "note": "ブロックが下がってくる"
+  },
+  {
+   "time": "0:45",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 21.0,
+   "expression": "smug",
+   "kind": "雑談",
+   "line": "ラウンドの数字が増えるとさ、こっちも負けてらんないってなるんだよね。……数字が相手って、変かな?",
+   "note": "ROUND 2 の帯。持ちネタ(数字にまで張り合う)"
+  },
+  {
+   "time": "0:58",
+   "chapter": "02 パリィでつなぐ",
+   "scene": "chapter",
+   "number": "02",
+   "heading": "パリィでつなぐ",
+   "kind": "進行",
+   "line": "パリィでつなぐ!",
+   "note": "",
+   "heading_file": "akane-ch02-v01.png"
+  },
+  {
+   "time": "1:02",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 73.2,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "パドルに当たる瞬間に、タップ。ぴったりだと、ジャスト!",
+   "note": "パドルで JUST。判定の文字が見える"
+  },
+  {
+   "time": "1:20",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 6.05,
+   "expression": "success",
+   "kind": "反応",
+   "line": "よしっ、ジャスト!",
+   "note": "JUST の記録(5.99 秒)に合わせる。この直後は音を聞く間を空ける"
+  },
+  {
+   "time": "1:35",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 9.4,
+   "expression": "focus",
+   "kind": "解説",
+   "line": "返せたら、その次も見ておこう。派手なところばっかり見てると、戻ってくるボールを見失うからね。",
+   "note": "JUST のあと、ボールがブロックへ向かう"
+  },
+  {
+   "time": "1:53",
+   "chapter": "03 まとめて崩す",
+   "scene": "chapter",
+   "number": "03",
+   "heading": "まとめて崩す",
+   "kind": "進行",
+   "line": "まとめて崩す!",
+   "note": "",
+   "heading_file": "akane-ch03-v01.png"
+  },
+  {
+   "time": "1:58",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 73.95,
+   "expression": "surprise",
+   "kind": "反応",
+   "line": "うわ、ごっそり!",
+   "note": "COLLAPSE ×5 → ×6。ショート v014 の冒頭と同じ場面"
+  },
+  {
+   "time": "2:10",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 74.7,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "白いブロックを壊すと、その上もまとめて崩れるんだ。今みたいにつながると、すかっとする!",
+   "note": "崩れたブロックが落ちていく"
+  },
+  {
+   "time": "2:25",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 15.3,
+   "expression": "fired",
+   "kind": "反応",
+   "line": "来た、フィーバー!",
+   "note": "FEVER TIME の始まり(15.1 秒)"
+  },
+  {
+   "time": "2:40",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 25.2,
+   "expression": "shy",
+   "kind": "雑談",
+   "line": "さっきまでぎっしりだったのに、もう空いてる。片付けの勝負なら、あたしも負けるかも。",
+   "note": "COLLAPSE ×11 の直後、空いた盤面"
+  },
+  {
+   "time": "2:58",
+   "chapter": "04 記録に挑戦",
+   "scene": "chapter",
+   "number": "04",
+   "heading": "記録に挑戦",
+   "kind": "進行",
+   "line": "記録に挑戦!",
+   "note": "",
+   "heading_file": "akane-ch04-v01.png"
+  },
+  {
+   "time": "3:02",
+   "chapter": "04",
+   "scene": "main",
+   "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+   "at": 34.0,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "エンドレスにはランキングもあるよ。まずは自分の記録から。記録が伸びると、また挑戦したくなるんだ。",
+   "note": "ラウンドクリアのスコア。R10(ボス)の前で切る"
+  },
+  {
+   "time": "3:14",
+   "chapter": "04",
+   "scene": "main",
+   "source": "promo/capture/raw/mtitle_mitsuba-easy-01.mp4",
+   "at": 5.0,
+   "expression": "normal",
+   "kind": "解説",
+   "logo": false,
+   "autoplay": false,
+   "line": "慣れないうちは、EASY もあるよ。遊び始めの3回は、下に防壁も付くんだ。",
+   "note": "1.6.0 のタイトルで NORMAL → EASY に切り替える(4〜6 秒)。続く 8 秒に ROUND 1 の「はじめの3回は防壁つき」の帯と緑の防壁"
+  },
+  {
+   "time": "3:25",
+   "chapter": "エンディング",
+   "scene": "ending",
+   "heading_file": "akane-ending-v01.png",
+   "heading": "ストアで検索!",
+   "kind": "進行",
+   "line": "ボールひとつで、記録に挑戦! パリィブレイク。ストアで検索!",
+   "note": "全身の成功。右半分は終了画面"
+  }
+ ]
+}

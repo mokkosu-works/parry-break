@@ -1,0 +1,201 @@
+{
+ "profile": "shizuku",
+ "title": "シズク 練習紹介の絵コンテ v01(約3分30秒)",
+ "frames": [
+  {
+   "time": "0:00",
+   "chapter": "オープニング",
+   "scene": "opening",
+   "heading": "ぴったりを、確かめる。",
+   "kind": "進行",
+   "line": "シズクです。今日は、練習場。タイミングを、数字で見ていく。",
+   "note": "全身の通常",
+   "heading_file": "shizuku-opening-v01.png"
+  },
+  {
+   "time": "0:12",
+   "chapter": "01 練習ってなに?",
+   "scene": "chapter",
+   "number": "01",
+   "heading": "練習ってなに?",
+   "kind": "進行",
+   "line": "練習ってなに?",
+   "note": "",
+   "heading_file": "shizuku-ch01-v01.png"
+  },
+  {
+   "time": "0:16",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/long-practice-mitsuba-mode-practice-02/capture.mp4",
+   "at": 3.8,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "ブロックも、敵の弾もない。ボールを返すだけ。",
+   "note": "READY。何もない盤面(round_started 3.3 秒)"
+  },
+  {
+   "time": "0:30",
+   "chapter": "01",
+   "scene": "main",
+   "source": "promo/capture/raw/long-practice-mitsuba-mode-practice-02/capture.mp4",
+   "at": 12.0,
+   "expression": "normal",
+   "kind": "解説",
+   "line": "落としても、一秒で出直す。記録にも残らない。気楽に。",
+   "note": "ボールを返している盤面",
+   "provisional": true,
+   "shoot": "ボールを落として 1 秒後に出直す場面を、下手版で撮る(この録画では落としていない)"
+  },
+  {
+   "time": "0:45",
+   "chapter": "02 判定を見る",
+   "scene": "chapter",
+   "number": "02",
+   "heading": "判定を見る",
+   "kind": "進行",
+   "line": "判定を見る。",
+   "note": "",
+   "heading_file": "shizuku-ch02-v01.png"
+  },
+  {
+   "time": "0:49",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/long-practice-mitsuba-mode-practice-02/capture.mp4",
+   "at": 10.6,
+   "expression": "success",
+   "kind": "反応",
+   "line": "……今。ジャスト。悪くない。",
+   "note": "JUST の記録(10.49 秒)に合わせる"
+  },
+  {
+   "time": "1:02",
+   "chapter": "02",
+   "scene": "main",
+   "source": "promo/capture/raw/long-practice-mitsuba-mode-practice-02/capture.mp4",
+   "at": 21.0,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "左に、直近二十回の判定。ジャスト、パーフェクト、グッド、ミス。",
+   "note": "左の欄(直近の判定の内訳)。拡大して見せるかは作るときに決める"
+  },
+  {
+   "time": "1:20",
+   "chapter": "03 ずれを数字で",
+   "scene": "chapter",
+   "number": "03",
+   "heading": "ずれを数字で",
+   "kind": "進行",
+   "line": "ずれを数字で。",
+   "note": "",
+   "heading_file": "shizuku-ch03-v01.png"
+  },
+  {
+   "time": "1:24",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/long-stage-mitsuba-s11-sloppy-01/capture.mp4",
+   "at": 28.99,
+   "expression": "think",
+   "kind": "解説",
+   "line": "早く押すとアーリー。遅いとレイト。ずれが、数字で出る。",
+   "note": "パドルの上に「PERFECT EARLY 23MS」(下手版の 1-1。12.5 秒には LATE 26MS)",
+   "provisional": true,
+   "shoot": "練習場の下手版で撮れたら差し替える(いまはステージ 1-1 の映像)"
+  },
+  {
+   "time": "1:40",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/mpractice_v151.mp4",
+   "at": 39,
+   "expression": "explain",
+   "kind": "解説",
+   "line": "下の二つは、ずれの平均と、ばらつき。平均はゼロに近く、ばらつきは、少ないほど揃ってる。",
+   "note": "左の欄の AVG と SPREAD"
+  },
+  {
+   "time": "1:58",
+   "chapter": "03",
+   "scene": "main",
+   "source": "promo/capture/raw/mpractice_v151.mp4",
+   "at": 30,
+   "expression": "smug",
+   "kind": "雑談",
+   "line": "パリィで、ぱりっと。……ぷぷっ。",
+   "note": "持ちネタ(真顔のダジャレ)。JUST の直後の静かな間"
+  },
+  {
+   "time": "2:10",
+   "chapter": "04 速さを変える",
+   "scene": "chapter",
+   "number": "04",
+   "heading": "速さを変える",
+   "kind": "進行",
+   "line": "速さを変える。",
+   "note": "",
+   "heading_file": "shizuku-ch04-v01.png"
+  },
+  {
+   "time": "2:14",
+   "chapter": "04",
+   "scene": "main",
+   "source": "promo/capture/raw/mpractice_v151.mp4",
+   "at": 9,
+   "expression": "explain",
+   "kind": "解説",
+   "provisional": true,
+   "line": "一時停止すると、速さを選べる。レベル1、レベル3、フィーバーの速さ。",
+   "note": "練習場のプレイ",
+   "shoot": "ポーズの画面(速さの切り替え)を撮る"
+  },
+  {
+   "time": "2:32",
+   "chapter": "04",
+   "scene": "main",
+   "source": "promo/capture/raw/mpractice_v151.mp4",
+   "at": 36,
+   "expression": "focus",
+   "kind": "解説",
+   "provisional": true,
+   "line": "切り替えると、判定の記録は消える。速くても、やることは同じ。",
+   "note": "練習場のプレイ",
+   "shoot": "FEVER の速さの練習を撮る"
+  },
+  {
+   "time": "2:48",
+   "chapter": "05 弾だけの練習",
+   "scene": "chapter",
+   "number": "05",
+   "heading": "弾だけの練習",
+   "kind": "進行",
+   "line": "弾だけの練習。",
+   "note": "",
+   "heading_file": "shizuku-ch05-v01.png"
+  },
+  {
+   "time": "2:52",
+   "chapter": "05",
+   "scene": "main",
+   "source": "promo/capture/raw/long-stage-mitsuba-s14-just-01/capture.mp4",
+   "at": 23,
+   "expression": "focus",
+   "kind": "解説",
+   "provisional": true,
+   "line": "ボールを出さずに、敵の弾だけが落ちてくる。打ち返しの確認に。",
+   "note": "1-4 の砲台の弾を打ち返す",
+   "shoot": "練習場の「弾だけ」の練習を撮る"
+  },
+  {
+   "time": "3:10",
+   "chapter": "エンディング",
+   "scene": "ending",
+   "heading_file": "shizuku-ending-v01.png",
+   "heading": "ストアで検索!",
+   "kind": "進行",
+   "line": "練習で、ずれをそろえて。パリィブレイク。ストアで検索!",
+   "note": "全身の成功"
+  }
+ ]
+}
