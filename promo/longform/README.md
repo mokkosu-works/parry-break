@@ -93,6 +93,9 @@ python3 -m unittest discover -s promo/longform -p test_pipeline.py
 
 `assemble.py` は、オープニング → (章の区切り → 本編) × 章の数 → エンディング をつなぐ。配置はアカネの構成案(`scene_proposals.py`、本人確認済み)を土台にし、色は `render_long.PROFILES`(背景はショートと同じキャラの色。ミツバはクリーム `#FDF3D3` に焦げ茶の文字)。全身はショートと同じ 6 ポーズのシート(オープニング=通常、区切り=固有で章のタイトルを読む、エンディング=成功。どれも口パク・目パチ)。
 
+**絵コンテ**(2026-11-18〜): `python3 promo/longform/storyboard.py <名前>` で、`storyboards/<名前>-v01.json` のコマを本番と同じ描き方で合成し、`design/checks/<名前>-storyboard-v01.jpg` に並べる(上書きしない)。オープニング・区切り・エンディングは `assemble.py` の `opening_layout`・`chapter_layout`・`ending_layout`、本編は `render_long.py` の `compose_main` を共用する。見出しの画像がまだなければ仮の文字で描く。
+- 見出しの画像は、背景が明るいキャラ(字幕の文字が濃い色)のときだけ白と濃い色を入れ替える(`heading_for`)。章の札の地は、暗い背景のキャラ(アカネ・シズク)はそのキャラの字幕の枠の色、明るい背景のキャラは焦げ茶。ミツバの見た目は変わらない。
+
 ```sh
 python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e009 --prepare-only  # 声(AivisSpeech)
 python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json --out promo/build/out/mitsuba-full-e009

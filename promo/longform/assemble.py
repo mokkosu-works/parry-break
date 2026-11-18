@@ -73,6 +73,15 @@ def swap_light_dark(im, dark):
     return swapped
 
 
+def heading_for(im, colors):
+    """見出しの画像を背景に合わせる。明るい背景(字幕の文字が濃い色)のときだけ、白と濃い色を入れ替える。
+    暗い背景(アカネ・シズク)は、白い文字のまま使う。"""
+    r, g, b = ImageColor.getrgb(colors["text"])[:3]
+    if 0.299 * r + 0.587 * g + 0.114 * b < 128:
+        return swap_light_dark(im, colors["text"])
+    return im.convert("RGBA")
+
+
 def mix(base, accent, amount):
     """base に accent を amount の割合で混ぜた色(不透明)。"""
     rgb = [round(x * (1 - amount) + y * amount) for x, y in zip(ImageColor.getrgb(base)[:3], ImageColor.getrgb(accent)[:3])]
@@ -269,7 +278,8 @@ def credit_voice(layer, plan, y=1046):
                                font=font(24), fill=PROFILES[plan["profile"]]["credit"])
 
 
-def opening(plan, out, sheets, timed, frames, dest):
+def opening_layout(plan, sheets, heading=None):
+    """オープニングの背景・全身の絵・置く位置・字幕の枠。heading を渡すと、見出しの画像の代わりに使う(絵コンテの仮の文字)。"""
     scene, colors = plan["opening"], PROFILES[plan["profile"]]
     # 背景はキャラの色(ショートと同じ)。左に全身を置く帯を、少し濃い色で斜めに区切る。
     bg = Image.new("RGBA", SIZE, colors["belt"])
@@ -277,14 +287,21 @@ def opening(plan, out, sheets, timed, frames, dest):
     d.polygon([(0, 0), (700, 0), (575, 1080), (0, 1080)], fill=mix(colors["belt"], colors["outline"], .25))
     d.line([(700, 0), (575, 1080)], fill=colors["outline"], width=6)
     put(bg, Image.open(LOGO).convert("RGBA"), (850, 175), width=650)
-    put(bg, swap_light_dark(Image.open(HEADINGS / scene["heading"]), colors["text"]), (755, 580), width=1060)
+    if heading is None:
+        heading = Image.open(HEADINGS / scene["heading"])
+    put(bg, heading_for(heading, colors), (755, 580), width=1060)
     credit_voice(bg, plan)
     sprites = pose_sprites(sheets, "normal", 870)
-    talking_scene(out, "opening", plan, timed, frames, bg, sprites, (330 - sprites["closed"].width // 2, 150),
-                  ((730, 820, 1820, 1000), 1000, 42), dest)
+    return bg, sprites, (330 - sprites["closed"].width // 2, 150), ((730, 820, 1820, 1000), 1000, 42)
 
 
-def chapter_card(plan, out, number, chapter, sheets, timed, frames, dest):
+def opening(plan, out, sheets, timed, frames, dest):
+    bg, sprites, xy, subtitle = opening_layout(plan, sheets)
+    talking_scene(out, "opening", plan, timed, frames, bg, sprites, xy, subtitle, dest)
+
+
+def chapter_layout(plan, number, chapter, sheets, heading=None):
+    """章の区切りの背景・全身の絵・置く位置。heading を渡すと、見出しの画像の代わりに使う。"""
     colors = PROFILES[plan["profile"]]
     card = Image.new("RGBA", SIZE, colors["belt"])
     d = ImageDraw.Draw(card)
@@ -293,21 +310,31 @@ def chapter_card(plan, out, number, chapter, sheets, timed, frames, dest):
     put(card, Image.open(LOGO).convert("RGBA"), (80, 62), width=290)
     # タイトルの枠は濃い色のまま(見出しの白い文字が読めるように)。見出しは枠の中心に置く。
     box = (580, 328, 1820, 718)
-    d.rounded_rectangle(box, radius=24, fill="#302719", outline=colors["outline"], width=4)
+    # 暗い背景のキャラ(字幕の文字が白)は、そのキャラの字幕の枠の色にする。明るい背景のキャラは焦げ茶のまま。
+    r, g, b = ImageColor.getrgb(colors["text"])[:3]
+    fill = colors["box"] if 0.299 * r + 0.587 * g + 0.114 * b >= 128 else "#302719"
+    d.rounded_rectangle(box, radius=24, fill=fill, outline=colors["outline"], width=4)
     d.rectangle((580, 400, 596, 645), fill=colors["outline"])
     d.text((660, 345), number, font=font(80), fill=colors["outline"])
-    heading = Image.open(HEADINGS / chapter["heading"]).convert("RGBA")
+    if heading is None:
+        heading = Image.open(HEADINGS / chapter["heading"])
+    heading = heading.convert("RGBA")
     heading = fit(heading, width=min(1080, round(heading.width * 180 / heading.height)))
     card.alpha_composite(heading, ((box[0] + box[2]) // 2 - heading.width // 2 + 8,
                                    (box[1] + box[3]) // 2 - heading.height // 2 + 30))
     # 下の帯にかからない高さに置く。
     credit_voice(card, plan, y=1030)
     sprites = pose_sprites(sheets, "special", 760)
-    talking_scene(out, f"chapter-{number}", plan, timed, frames, card, sprites,
-                  (260 - sprites["closed"].width // 2, 244), None, dest)
+    return card, sprites, (260 - sprites["closed"].width // 2, 244)
 
 
-def ending(plan, out, sheets, timed, frames, dest):
+def chapter_card(plan, out, number, chapter, sheets, timed, frames, dest):
+    card, sprites, xy = chapter_layout(plan, number, chapter, sheets)
+    talking_scene(out, f"chapter-{number}", plan, timed, frames, card, sprites, xy, None, dest)
+
+
+def ending_layout(plan, sheets, heading=None):
+    """エンディングの背景・全身の絵・置く位置。heading を渡すと、「ストアで検索」の画像の代わりに使う。"""
     scene, colors = plan["ending"], PROFILES[plan["profile"]]
     bg = Image.new("RGBA", SIZE, colors["belt"])
     d = ImageDraw.Draw(bg)
@@ -319,7 +346,8 @@ def ending(plan, out, sheets, timed, frames, dest):
     center, spacing = 775, 34
     stack = [fit(Image.open(LOGO).convert("RGBA"), width=420),
              rounded(Image.open(ICON).convert("RGBA").resize((180, 180), Image.Resampling.LANCZOS), 40),
-             fit(swap_light_dark(Image.open(HEADINGS / scene["heading"]), colors["text"]), width=470)]
+             fit(heading_for(heading if heading is not None else Image.open(HEADINGS / scene["heading"]),
+                             colors), width=470)]
     badges = [fit(Image.open(b).convert("RGBA"), height=84) for b in BADGES]
     total = sum(im.height for im in stack) + spacing * len(stack) + 10 + badges[0].height
     y = (95 + 1010) // 2 - total // 2
@@ -332,7 +360,12 @@ def ending(plan, out, sheets, timed, frames, dest):
         x += b.width + 24
     credit_voice(bg, plan)
     sprites = pose_sprites(sheets, "success", 755)
-    talking_scene(out, "ending", plan, timed, frames, bg, sprites, (250 - sprites["closed"].width // 2, 278), None, dest)
+    return bg, sprites, (250 - sprites["closed"].width // 2, 278)
+
+
+def ending(plan, out, sheets, timed, frames, dest):
+    bg, sprites, xy = ending_layout(plan, sheets)
+    talking_scene(out, "ending", plan, timed, frames, bg, sprites, xy, None, dest)
 
 
 # ---- 組み立て ----

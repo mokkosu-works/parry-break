@@ -38,9 +38,17 @@ PROFILES = {
     "mitsuba": {"name": "ミツバ", "belt": "#FDF3D3", "box": "#FFFBEF", "outline": "#E9B400", "text": "#302719",
                 "name_text": "#302719", "credit": "#6B5A3A", "tag": None,
                 "accent": "#E9B400", "accent_text": "#302719"},
-    "shizuku": {"name": "シズク", "accent": "#7CCCE5", "accent_text": "#1E1B24"},
-    "momoka": {"name": "モモカ", "accent": "#D74F86", "accent_text": "white"},
-    "wakana": {"name": "ワカナ", "accent": "#91B469", "accent_text": "#1E1B24"},
+    # シズク・モモカ・ワカナは 2026-11-18 に絵コンテのために決めた(本人の確認待ち)。枠線はショートの差し色。
+    # モモカとワカナは明るい背景なので、ミツバと同じく字幕・名札・クレジットを濃い色にする。
+    "shizuku": {"name": "シズク", "belt": "#121F35", "box": "#0A1322", "outline": "#7CCCE5", "text": "white",
+                "name_text": "#0A1322", "credit": "#9FB3C8", "tag": "tags/shizuku_tag_practice.png",
+                "accent": "#7CCCE5", "accent_text": "#1E1B24"},
+    "momoka": {"name": "モモカ", "belt": "#FFF0F5", "box": "#FFFAFC", "outline": "#D74F86", "text": "#3A1F2B",
+               "name_text": "white", "credit": "#8A5A6E", "tag": "tags/momoka_tag_daily.png",
+               "accent": "#D74F86", "accent_text": "white"},
+    "wakana": {"name": "ワカナ", "belt": "#EFF5E8", "box": "#FAFDF6", "outline": "#91B469", "text": "#24301A",
+               "name_text": "#1E1B24", "credit": "#5E6E50", "tag": "tags/wakana_tag_stage.png",
+               "accent": "#91B469", "accent_text": "#1E1B24"},
 }
 # 本編の書き出しに使えるキャラ(帯の色などが決まっているもの)。
 NARRATORS = {k for k, v in PROFILES.items() if "belt" in v}
@@ -224,6 +232,56 @@ def draw_text(draw, xy, text, font, fill):
     draw.text(xy, text, font=font, fill=fill)
 
 
+def main_belt(colors):
+    """本編の地: キャラの色の帯と、字幕の枠。ゲーム映像は上に貼る。"""
+    belt = Image.new("RGB", SIZE, colors["belt"])
+    ImageDraw.Draw(belt).rounded_rectangle((368, 890, 1888, 1054), radius=22, fill=colors["box"],
+                                           outline=colors["outline"], width=3)
+    return belt
+
+
+def speaker_tag(colors):
+    """話している人の名札。字幕の枠の左上にかけて置き、話している間だけ出す(掛け合いに備える)。"""
+    name_font = ImageFont.truetype(str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"), 26)
+    name = colors["name"]
+    name_width = round(name_font.getlength(name)) + 36
+    tag = Image.new("RGBA", (name_width, 38), (0, 0, 0, 0))
+    ImageDraw.Draw(tag).rounded_rectangle((0, 0, name_width - 1, 37), radius=10, fill=colors["outline"])
+    ImageDraw.Draw(tag).text((name_width / 2, 18), name, font=name_font, fill=colors["name_text"], anchor="mm")
+    return tag
+
+
+def overlay_asset(asset, width):
+    im = Image.open(ROOT / "promo/assets" / asset).convert("RGBA")
+    return im.resize((width, round(im.height * width / im.width)), Image.Resampling.LANCZOS)
+
+
+def compose_main(belt, game, colors, small, subtitle_font, sprite, *, credit, logo=None, tag=None, guest=None,
+                 autoplay=True, name_tag=None, captions=()):
+    """本編(案B)の 1 コマ。上にゲーム映像、下の帯にバストアップと字幕。絵コンテ(storyboard.py)も使う。"""
+    frame = belt.copy()
+    frame.paste(game, (0, 0))
+    # タイトル・設定の画面は、画面の中にロゴや見出しがあるので重ねない("logo": false)。
+    if logo:
+        frame.paste(logo, (24, 20), logo)
+    if tag:
+        frame.paste(tag, (1580, 24), tag)
+    if guest:
+        frame.paste(guest, (1900 - guest.width, 130), guest)
+    draw = ImageDraw.Draw(frame)
+    if autoplay:
+        draw.text((1720, 826), "自動プレイ映像", font=small, fill="white", stroke_width=2, stroke_fill=OVER_GAME_STROKE)
+    draw.text((22, 1050), credit, font=small, fill=colors["credit"])
+    # 幅 347 の枠の中で、横は中央、高さ 340 で下をそろえる。
+    frame.paste(sprite, (12 + (BUST_BOX[0] - sprite.width) // 2, 712), sprite)
+    if name_tag:
+        frame.paste(name_tag, (392, 868), name_tag)
+        top = 972 - len(captions) * 28
+        for i, caption in enumerate(captions):
+            draw_text(draw, (406, top + 56 * i), caption, subtitle_font, colors["text"])
+    return frame
+
+
 def wrap(text, font, width):
     lines, current = [], ""
     # 字幕の行頭に句読点や閉じ括弧を置かない。
@@ -323,9 +381,7 @@ def render(project, out):
     small = ImageFont.truetype(str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"), 24)
     colors = PROFILES[project["profile"]]
     bust = ROOT / "promo/characters/bust" / project["profile"]
-    belt = Image.new("RGB", SIZE, colors["belt"])
-    d = ImageDraw.Draw(belt)
-    d.rounded_rectangle((368, 890, 1888, 1054), radius=22, fill=colors["box"], outline=colors["outline"], width=3)
+    belt = main_belt(colors)
     sprites = {}
     for expression in {"normal", *[l.get("expression", "normal") for l in lines]}:
         for state in ("closed", "open"):
@@ -334,18 +390,9 @@ def render(project, out):
     blink = bust_size(Image.open(bust / "normal_blink.png").convert("RGBA"))
     for line in lines:
         line["caption"] = wrap(line["text"], subtitle_font, 1430)
-    # 話している人の名札。字幕の枠の左上にかけて置き、話している間だけ出す(掛け合いに備える)。
-    name_font = ImageFont.truetype(str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"), 26)
-    name = colors["name"]
-    name_width = round(name_font.getlength(name)) + 36
-    name_tag = Image.new("RGBA", (name_width, 38), (0, 0, 0, 0))
-    ImageDraw.Draw(name_tag).rounded_rectangle((0, 0, name_width - 1, 37), radius=10, fill=colors["outline"])
-    ImageDraw.Draw(name_tag).text((name_width / 2, 18), name, font=name_font, fill=colors["name_text"], anchor="mm")
-    def overlay(asset, width):
-        im = Image.open(ROOT / "promo/assets" / asset).convert("RGBA")
-        return im.resize((width, round(im.height * width / im.width)), Image.Resampling.LANCZOS)
-    logo = overlay("logo/title-logo.png", 220)
-    tags = {c["tag"]: overlay(c["tag"], 300) for c in clips if c["tag"]}
+    name_tag = speaker_tag(colors)
+    logo = overlay_asset("logo/title-logo.png", 220)
+    tags = {c["tag"]: overlay_asset(c["tag"], 300) for c in clips if c["tag"]}
     guests = {c["guest"]: guest_card(c["guest"], str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc"))
               for c in clips if c["guest"]}
     # 区間ごとのコマの範囲。四捨五入の誤差がたまらないように、累計の秒からコマ番号を決める。
@@ -377,20 +424,6 @@ def render(project, out):
                 raw = reader.stdout.read(frame_bytes)
                 if len(raw) != frame_bytes:
                     raise RuntimeError(f"録画が途中で終わりました: {n}/{expected}コマ ({clip['source']})")
-                frame = belt.copy()
-                frame.paste(Image.frombytes("RGB", GAME_SIZE, raw), (0, 0))
-                # タイトル・設定の画面は、画面の中にロゴや見出しがあるので重ねない("logo": false)。
-                if clip["logo"]:
-                    frame.paste(logo, (24, 20), logo)
-                if clip["tag"]:
-                    frame.paste(tags[clip["tag"]], (1580, 24), tags[clip["tag"]])
-                if clip["guest"]:
-                    card = guests[clip["guest"]]
-                    frame.paste(card, (1900 - card.width, 130), card)
-                draw = ImageDraw.Draw(frame)
-                if clip["autoplay"]:
-                    draw.text((1720, 826), "自動プレイ映像", font=small, fill="white", stroke_width=2, stroke_fill=OVER_GAME_STROKE)
-                draw.text((22, 1050), f"音声：AivisSpeech {prepared['profile']['speakerName']}", font=small, fill=colors["credit"])
                 t = n / FPS
                 current = next((l for l in lines if l["start"] <= t < l["end"]), None)
                 expression = current.get("expression", "normal") if current else "normal"
@@ -398,14 +431,12 @@ def render(project, out):
                 sprite = sprites[expression, state]
                 if current is None and 3.25 <= t % 4.2 < 3.4:
                     sprite = blink
-                # 幅 347 の枠の中で、横は中央、高さ 340 で下をそろえる。
-                frame.paste(sprite, (12 + (BUST_BOX[0] - sprite.width) // 2, 712), sprite)
-                if current:
-                    frame.paste(name_tag, (392, 868), name_tag)
-                    captions = current["caption"]
-                    top = 972 - len(captions) * 28
-                    for i, caption in enumerate(captions):
-                        draw_text(draw, (406, top + 56 * i), caption, subtitle_font, colors["text"])
+                frame = compose_main(
+                    belt, Image.frombytes("RGB", GAME_SIZE, raw), colors, small, subtitle_font, sprite,
+                    credit=f"音声：AivisSpeech {prepared['profile']['speakerName']}",
+                    logo=logo if clip["logo"] else None, tag=tags[clip["tag"]] if clip["tag"] else None,
+                    guest=guests[clip["guest"]] if clip["guest"] else None, autoplay=clip["autoplay"],
+                    name_tag=name_tag if current else None, captions=current["caption"] if current else ())
                 writer.stdin.write(frame.tobytes())
                 if n in (FPS * 3, FPS * 15, FPS * 30):
                     frame.save(out / f"still-{n//FPS:02}.jpg", quality=93)
