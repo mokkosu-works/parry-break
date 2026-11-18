@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "profile": "akane",
+  "duration": 20.5,
+  "note": "通常尺 04 記録に挑戦の本編(区切りは含まない)。R4 のクリアとスコア(44.5〜55.0 秒)→ 1.6.0 のタイトルで EASY に切り替え → はじめの防壁(mtitle_mitsuba-easy-01、ミツバの 06 章と同じ区間)。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+      "events": "promo/capture/raw/long-endless-akane-pilot05-clean/events.json",
+      "start": 44.5,
+      "duration": 10.5
+    },
+    {
+      "source": "promo/capture/raw/mtitle_mitsuba-easy-01.mp4",
+      "start": 3.2,
+      "duration": 4.05,
+      "autoplay": false,
+      "audio_note": "撮影前後に、ほかのアプリが音を再生していないことを確かめた(capture/mitsuba-session-20261117.md)。",
+      "logo": false
+    },
+    {
+      "source": "promo/capture/raw/mtitle_mitsuba-easy-01.mp4",
+      "start": 7.25,
+      "duration": 5.95,
+      "audio_note": "撮影前後に、ほかのアプリが音を再生していないことを確かめた(capture/mitsuba-session-20261117.md)。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1.0,
+      "kind": "explanation",
+      "text": "エンドレスにはランキングもあるよ。まずは自分の記録から。記録が伸びると、また挑戦したくなるんだ。",
+      "expression": "explain"
+    },
+    {
+      "start": 11.0,
+      "kind": "explanation",
+      "text": "慣れないうちは、EASY もあるよ。遊び始めの3回は、下に防壁も付くんだ。",
+      "expression": "normal"
+    }
+  ]
+}

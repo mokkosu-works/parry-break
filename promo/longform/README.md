@@ -111,3 +111,4 @@ python3 promo/longform/assemble.py promo/longform/projects/mitsuba-full-v01.json
 - 出力: `full.mp4`、YouTube のチャプター `chapters.txt`、`timing.json`。構成に `"bgm"`(`file`・`start`・`volume`(既定 0.2)・`fade_in`・`fade_out`)があれば、BGM なしの `full-nobgm.mp4` を作ってから BGM を混ぜる。声の間だけ BGM を下げる(鍵は声だけを並べた音なので、ゲーム音には反応しない)。BGM だけを変えたときは、声を作り直さなくてよい(前の出力の `prepared.json` と声を写す)。
 - 本編の `"guest"`(clips の項目): その区間で、メンバーのバストアップと「メンバー」の名札をゲーム映像の右に出す(06 章で、担当のメンバーを紹介するとき)。グループ名(モコズ)は商標の確認が済むまで言わない。
 - ミツバの完成版の試し: `../build/out/mitsuba-full-e009/full.mp4`(4 分 8 秒)。本編は `../build/out/mitsuba-ch*-e009/`。
+- アカネの完成版: `projects/akane-full-v01.json` → `../build/out/akane-full-e004/full.mp4`(2 分 14 秒、BGM v02。2026-11-18 本人確認)。本編は 01・02・03a・03b・04 の 5 つ(`projects/akane-ch*-v01.json`)。録画のログに撮った PC の場所が残っていても、ログのファイルと同じフォルダから録画を探す。

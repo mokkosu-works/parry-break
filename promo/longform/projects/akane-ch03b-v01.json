@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "profile": "akane",
+  "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+  "events": "promo/capture/raw/long-endless-akane-pilot05-clean/events.json",
+  "source_start": 13.5,
+  "duration": 20.5,
+  "note": "通常尺 03 まとめて崩すの本編の後半。R1 のフィーバーの始まり(15.1 秒)〜R2 の COLLAPSE(24.65 秒)〜R3(13.5〜34.0 秒)。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 1.782,
+      "kind": "reaction",
+      "text": "来た、フィーバー！",
+      "expression": "fired",
+      "event_seq": 63,
+      "event_type": "fever_start"
+    },
+    {
+      "start": 11.6,
+      "kind": "chat",
+      "text": "さっきまでぎっしりだったのに、もう空いてる。片付けの勝負なら、あたしも負けるかも。",
+      "expression": "shy"
+    }
+  ]
+}

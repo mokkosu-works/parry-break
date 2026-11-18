@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "profile": "akane",
+  "note": "アカネの通常尺(エンドレス紹介)の完成版の構成。絵コンテは design/longform-akane-storyboard-v01.md。台詞は絵コンテ v01 から(本人の確認待ち)。間はミツバの回と同じ。BGM は akane-endless-bgm-v02(ロック寄り。v01 はミツバの曲と似ていたので作り直した。-16.6 LUFS でミツバの曲とほぼ同じなので、volume は 0.2)。",
+  "opening": {
+    "duration": 12,
+    "heading": "akane-opening-v01.png",
+    "lines": [
+      {
+        "start": 0.8,
+        "text": "よしっ、アカネだよ！"
+      },
+      {
+        "start": 3.2,
+        "text": "今日はエンドレス。ボールひとつで、どこまで続くか見ていこう！"
+      }
+    ]
+  },
+  "chapters": [
+    {
+      "title": "ボールはひとつ",
+      "heading": "akane-chapter-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/akane-ch01-v01.json",
+          "render": "promo/build/out/akane-ch01-e001"
+        }
+      ],
+      "line": {
+        "text": "ボールはひとつ！"
+      }
+    },
+    {
+      "title": "パリィでつなぐ",
+      "heading": "akane-ch02-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/akane-ch02-v01.json",
+          "render": "promo/build/out/akane-ch02-e001"
+        }
+      ],
+      "line": {
+        "text": "パリィでつなぐ！"
+      }
+    },
+    {
+      "title": "まとめて崩す",
+      "heading": "akane-ch03-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/akane-ch03a-v01.json",
+          "render": "promo/build/out/akane-ch03a-e002"
+        },
+        {
+          "script": "promo/longform/projects/akane-ch03b-v01.json",
+          "render": "promo/build/out/akane-ch03b-e001"
+        }
+      ],
+      "line": {
+        "text": "まとめて崩す！"
+      }
+    },
+    {
+      "title": "記録に挑戦",
+      "heading": "akane-ch04-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/akane-ch04-v01.json",
+          "render": "promo/build/out/akane-ch04-e001"
+        }
+      ],
+      "line": {
+        "text": "記録に挑戦！"
+      }
+    }
+  ],
+  "ending": {
+    "duration": 20,
+    "heading": "akane-ending-v02.png",
+    "lines": [
+      {
+        "start": 0.6,
+        "text": "ボールひとつで、記録に挑戦！"
+      },
+      {
+        "start": 3.6,
+        "text": "パリィブレイク。ストアで検索！"
+      }
+    ]
+  },
+  "gaps": {
+    "before_title": 1.5,
+    "after_title": 1.0,
+    "before_ending": 1.5,
+    "card_min": 2.5
+  },
+  "bgm": {
+    "file": "promo/assets/bgm/akane-endless-bgm-v02.flac",
+    "start": 0,
+    "volume": 0.2,
+    "fade_in": 0.5,
+    "fade_out": 2.0
+  }
+}

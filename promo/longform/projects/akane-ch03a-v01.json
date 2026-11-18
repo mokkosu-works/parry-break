@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "profile": "akane",
+  "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+  "events": "promo/capture/raw/long-endless-akane-pilot05-clean/events.json",
+  "source_start": 68.5,
+  "duration": 11.5,
+  "note": "通常尺 03 まとめて崩すの本編の前半(区切りは含まない)。R7(68.5〜80.0 秒)。73.92 秒に COLLAPSE ×5(ショート v014 の冒頭と同じ場面)。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.3,
+      "kind": "explanation",
+      "text": "白いブロックを壊すと、その上もまとめて崩れるんだ。",
+      "expression": "explain"
+    },
+    {
+      "start": 5.596,
+      "kind": "reaction",
+      "text": "うわ、ごっそり！",
+      "expression": "surprise",
+      "event_seq": 626,
+      "event_type": "collapse"
+    },
+    {
+      "start": 7.6,
+      "kind": "explanation",
+      "text": "今みたいにつながると、すかっとする！",
+      "expression": "success"
+    }
+  ]
+}

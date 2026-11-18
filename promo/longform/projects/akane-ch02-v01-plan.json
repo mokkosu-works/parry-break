@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "profile": "akane",
+  "events": "promo/capture/raw/long-endless-akane-pilot05-clean/events.json",
+  "source_clock_start": 77.222314,
+  "duration": 21.0,
+  "note": "通常尺 02 パリィでつなぐの本編(区切りは含まない)。R8 の始まりから(80.0〜101.0 秒)。ジャストが続く。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.5,
+      "kind": "explanation",
+      "text": "パドルに当たる瞬間に、タップ。ぴったりだと、ジャスト！",
+      "expression": "explain"
+    },
+    {
+      "start": 11.0,
+      "kind": "explanation",
+      "text": "返せたら、その次も見ておこう。派手なところばっかり見てると、戻ってくるボールを見失うからね。",
+      "expression": "focus"
+    }
+  ],
+  "reactions": [
+    {
+      "type": "parry",
+      "grade": "just",
+      "after": 6.5,
+      "before": 7.5
+    }
+  ]
+}

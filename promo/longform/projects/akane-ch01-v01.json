@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "profile": "akane",
+  "duration": 22.0,
+  "note": "通常尺 01 ボールはひとつの本編(区切りは含まない)。R1 の始まり(2.5〜14.5 秒、フィーバーの前まで)→ R6 の帯(57.5〜67.5 秒)。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+      "events": "promo/capture/raw/long-endless-akane-pilot05-clean/events.json",
+      "start": 2.5,
+      "duration": 12.0
+    },
+    {
+      "source": "promo/capture/raw/long-endless-akane-pilot05-clean/capture.mp4",
+      "events": "promo/capture/raw/long-endless-akane-pilot05-clean/events.json",
+      "start": 57.5,
+      "duration": 10.0
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.3,
+      "kind": "explanation",
+      "text": "落としたら、そこでおしまい。だから、一回返るだけでも、ほっとするんだよね。",
+      "expression": "explain"
+    },
+    {
+      "start": 7.8,
+      "kind": "explanation",
+      "text": "ブロックも下がってくるから、のんびり待ってはいられないんだ。",
+      "expression": "focus"
+    },
+    {
+      "start": 12.9,
+      "kind": "chat",
+      "text": "ラウンドの数字が増えるとさ、こっちも負けてらんないってなるんだよね。……数字が相手って、変かな？",
+      "expression": "smug"
+    }
+  ]
+}
