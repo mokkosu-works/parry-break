@@ -1,0 +1,20 @@
+=== YouTube ===
+[タイトル]
+パリィで撃ち返すブロック崩し【PARRY BREAK】
+
+[説明文]
+ボールをパリィで撃ち返し、ブロックを崩す「PARRY BREAK」。連鎖とフィーバーまで、実際のゲーム画面で紹介します。
+
+▼ダウンロード
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+
+※ゲーム画面は自動プレイ映像です。
+
+#PARRYBREAK #パリィブレイク #ブロック崩し #ドット絵 #インディーゲーム
+
+=== 管理 ===
+管理ID: l003
+YouTube: https://www.youtube.com/watch?v=FiQHjKDvR4c (限定公開)
+動画ファイル: promo/build/out/store-play-captioned-v03.mp4
+内容: ストア掲載用のプレイ紹介。

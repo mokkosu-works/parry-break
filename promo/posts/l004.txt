@@ -1,0 +1,21 @@
+=== YouTube ===
+[タイトル]
+4つのモードをさっと紹介！【PARRY BREAK】
+
+[説明文]
+「PARRY BREAK」の4つのモードを、実際のゲーム画面で短く紹介します。
+ステージ、エンドレス、デイリー、練習。気になるモードから遊んでみてください。
+
+▼ダウンロード
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+
+※ゲーム画面は自動プレイ映像です。
+
+#PARRYBREAK #パリィブレイク #ブロック崩し #ドット絵 #インディーゲーム
+
+=== 管理 ===
+管理ID: l004
+YouTube: https://www.youtube.com/watch?v=bJKrNlOuAGo (限定公開)
+動画ファイル: promo/build/out/store-modes-captioned-v04.mp4
+内容: ストア掲載用のモード紹介。l002 はアップロード後に削除された。
