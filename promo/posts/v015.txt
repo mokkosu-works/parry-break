@@ -4,7 +4,7 @@
 
 [説明文]
 当たる瞬間にタップして弾を打ち返す、ドット絵ブロック崩し。エンドレスはボールひとつで、どこまで続くかの勝負。パリィでつないで、白いブロックでまとめて崩します。無料。ストアで「PARRY BREAK」を検索。
-エンドレスの解説: (l005 を公開したら URL を入れる)
+エンドレスの解説: https://youtu.be/Q49l9KGmVWc
 ナビ: アカネ (Mokkosu Works)
 音声: AivisSpeech: 中2(魔法プログラム)
 ※ゲーム画面は自動プレイ映像です。
@@ -16,6 +16,6 @@
 YouTube のタグ欄に入れる: v015
 動画ファイル: promo/build/out/akane-modes-hook-e002.mp4(24 秒)
 構成: promo/editor/projects/akane-modes-hook.json
-組にする通常尺: l005(アカネのエンドレス紹介)。同じ日に l005 を先に公開し、YouTube Studio で、このショートの「関連動画」に l005 を設定する(締めの台詞「関連動画も見てね!」の先)。
+組にする通常尺: l005(https://youtu.be/Q49l9KGmVWc、19:00)。同じ日に l005 を先に公開し、YouTube Studio で、このショートの「関連動画」に l005 を設定する(締めの台詞「関連動画も見てね!」の先)。
 冒頭: 録画 long-endless-akane-pilot05-clean の 29.8 秒〜(ROUND 3、ブロックの壁が 7 個まとめて崩れる)。ゲームの音は冒頭だけ 3 倍。v014 の型どおり。
-投稿日・予約は未定(本人が決める)。
+YouTube: https://www.youtube.com/shorts/OAyJV3VuZg8(2026-11-20 19:30 に予約公開)

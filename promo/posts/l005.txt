@@ -41,5 +41,5 @@ App Store: https://apps.apple.com/jp/app/id6819052466
 YouTube のタグ欄に入れる: l005
 動画ファイル: promo/build/out/akane-full-e004/full.mp4(2 分 14 秒、1920×1080、BGM v02 入り)
 構成: promo/longform/projects/akane-full-v01.json、絵コンテ: promo/design/longform-akane-storyboard-v01.md
-組にするショート: アカネ版はまだ作っていない(作ったら、同じ日に、この動画を先に公開し、ショートの関連動画をこの動画にする)。
-投稿日・予約は未定(本人が決める)。
+組にするショート: v015(https://www.youtube.com/shorts/OAyJV3VuZg8、19:30)。YouTube Studio で、v015 の「関連動画」にこの動画を設定し、この動画の終了画面を設定する。
+YouTube: https://youtu.be/Q49l9KGmVWc(2026-11-20 19:00 に予約公開。隔日の決まりで、ミツバの組の 2 日後)

@@ -1,0 +1,46 @@
+=== YouTube ===
+[タイトル]
+タイミングのずれが数字でわかる！練習場の使い方【PARRY BREAK】
+
+[説明文]
+当たる瞬間にタップして、弾を打ち返すブロック崩し「PARRY BREAK」。
+今回は練習場。ボールを落としても終わらず、記録にも残りません。打ち返すたびに、早かったか遅かったかが数字で出ます。速さの切り替えや、弾だけの練習もできます。シズクが案内します。
+無料です。
+
+▼ダウンロード
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+ストアで「PARRY BREAK」を検索しても見つかります。
+
+▼チャプター
+0:00 オープニング
+0:08 01 練習ってなに?
+0:23 02 判定を見る
+0:39 03 ずれを数字で
+1:03 04 速さを変える
+1:22 05 弾だけの練習
+1:45 エンディング
+
+ナビ: シズク (Mokkosu Works)
+※ゲーム画面は自動プレイ映像です。
+音声: AivisSpeech: zonoko
+
+#PARRYBREAK #パリィブレイク #ブロック崩し #ドット絵 #インディーゲーム #ゲーム紹介 #練習
+
+[固定コメント]
+PARRY BREAK は無料で遊べます！
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+
+[終了画面(YouTube Studio で設定)]
+- 右半分の上: 動画「最新のアップロード」
+- 右半分の下: チャンネル登録
+- 表示は最後の 20 秒(1:45〜)。動画の右半分は、このために空けてある。
+
+=== 管理 ===
+管理ID: l006
+YouTube のタグ欄に入れる: l006
+動画ファイル: promo/build/out/shizuku-full-e003/full.mp4(2 分 5 秒、1920×1080、BGM 入り)
+構成: promo/longform/projects/shizuku-full-v01.json、絵コンテ: promo/design/longform-shizuku-storyboard-v01.md
+組にするショート: v016(同じ日に、この動画を先に公開し、ショートの関連動画をこの動画にする)。
+投稿日・予約は未定(隔日の決まりでは、アカネの組 11/20 の次は 11/22)。
