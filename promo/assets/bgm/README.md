@@ -15,3 +15,4 @@
 | ファイル | どの本編用か | テンポ | DAW のプロジェクトの場所 |
 |---|---|---|---|
 | `mitsuba-basics-bgm-v01.flac` | ミツバのゲーム全体と基本操作(完成版 `longform/projects/mitsuba-full-v01.json`) | 96 | Windows の `D:\Cakewalk Projects\mitsuba-basics-bgm-v01\`(書き出しは `Audio Export\`)。書き出しが 44.1kHz・32bit 浮動小数・ピーク +0.2dB だったので、Linux 側で -1.5dB 下げて 48kHz・24bit にした(2026-11-17) |
+| `akane-endless-bgm-v01.flac` | アカネのエンドレス紹介(絵コンテの仮映像 `akane-storyboard-guide-v01` に合わせて作った。本編ができたら合わせ直す) | 112 | Windows の `D:\Cakewalk Projects\akane-endless-bgm-v01\`(書き出しは `Audio Export\`)。Sonar の書き出しで 48kHz・24bit・ステレオにし、変換はしていない。マスターを -4dB にして書き出した(ピーク -2.3dBFS、-20.8 LUFS)。音源は Sonar 付属の BandLab 音源(Dry・Soft Sine Bass・Warm Pad・Mellow EP・Glockenspiel)(2026-11-18) |
