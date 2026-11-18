@@ -3,11 +3,16 @@
 
 python3 promo/longform/storyboard.py <名前>            # promo/longform/storyboards/<名前>-v01.json から
 python3 promo/longform/storyboard.py <名前> --version v02
+python3 promo/longform/storyboard.py <名前> --guide     # BGM を作るための、絵コンテの仮映像(下)
 
 出力は promo/design/checks/<名前>-storyboard-<版>.jpg(既にあれば上書きせずに止まる)。
 オープニング・区切り・エンディングは assemble.py の *_layout、本編は render_long.py の compose_main を使う。
 見出しの画像がまだない回は、見出しを Noto Sans CJK の仮の文字で描く(一覧の札に「仮の文字」と出す)。
 録画がまだない場面は、近い録画で代わりにし、コマの指定に "provisional": true を書く(札に「仮の映像」と出す)。
+
+--guide は、本編を書き出す前に BGM を作るための仮映像を promo/build/out/<名前>-storyboard-guide-<版>/ に作る
+(guide.mp4・game.wav・cues.csv・cues.md。既にあれば止まる)。各コマを、その時刻から次のコマの時刻まで表示し、
+本編のコマのあいだは、その録画のゲーム音を本編と同じ音量で流す。本編ができたら bgm_kit.py の見本パックで合わせ直す。
 """
 
 import argparse
@@ -21,7 +26,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from assemble import chapter_layout, ending_layout, full_body, name_tag, opening_layout  # noqa: E402
-from render_long import (GAME_SIZE, PROFILES, ROOT, bust_size, compose_main, guest_card, main_belt,  # noqa: E402
+from render_long import (GAME_SIZE, GAME_VOLUME, PROFILES, ROOT, bust_size, compose_main, guest_card, main_belt,  # noqa: E402
                          overlay_asset, speaker_tag, wrap)
 
 FONT = str(ROOT / "promo/build/fonts/NotoSansCJK-Bold.ttc")
@@ -169,12 +174,130 @@ def label(frame, number, rough):
     return head, frame.get("line", "")
 
 
+# 仮映像のマーカー表に並べる BGM の MIDI のたたき台(bgm_midi.SONGS の名前)。
+GUIDE_SONGS = {"akane": "akane-endless", "mitsuba": "mitsuba-basics"}
+FPS = 24
+
+
+def seconds(text):
+    minutes, secs = text.split(":")
+    return int(minutes) * 60 + float(secs)
+
+
+def clock(value):
+    return f"{int(value // 60)}:{value % 60:04.1f}"
+
+
+def events_of(frame):
+    """マーカー表に書く出来事。コマのメモ(画面で起きていること)から拾う。"""
+    note = frame.get("note", "")
+    found = [name for key, name in (("JUST", "JUST"), ("COLLAPSE", "COLLAPSE"), ("FEVER", "FEVER 開始"),
+                                    ("ROUND", "ラウンドの区切り"), ("CLEAR", "クリア")) if key in note]
+    return "・".join(found)
+
+
+def guide(board, name, version, ending):
+    """BGM を作るための仮映像。コマを時刻どおりに並べ、本編のコマのあいだはゲーム音を流す。"""
+    dest = ROOT / f"promo/build/out/{name}-storyboard-guide-{version}"
+    if dest.exists():
+        raise SystemExit(f"既にあります(上書きしません): {dest.relative_to(ROOT)}")
+    frames = board["frames"]
+    starts = [seconds(f["time"]) for f in frames]
+    if starts != sorted(starts) or starts[0] != 0:
+        raise SystemExit("コマの時刻は 0:00 から順に並べてください")
+    total = starts[-1] + ending
+    ends = starts[1:] + [total]
+    sheets = full_body(board["profile"])
+    dest.mkdir(parents=True)
+    small = font(26)
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        concat = []
+        for i, frame in enumerate(frames):
+            image, rough = render_frame(board, frame, sheets, tmp)
+            image = image.convert("RGB")
+            d = ImageDraw.Draw(image)
+            text = f"絵コンテの仮映像 #{i + 1}  {frame['time']}"
+            if frame.get("provisional"):
+                text += "  [仮の映像]"
+            d.rounded_rectangle((300, 8, 330 + round(small.getlength(text)), 50), radius=8, fill="#000000")
+            d.text((315, 12), text, font=small, fill="#FFE066")
+            path = tmp / f"frame-{i:02}.png"
+            image.save(path)
+            concat += [f"file '{path}'", f"duration {ends[i] - starts[i]:.3f}"]
+        concat.append(f"file '{tmp / f'frame-{len(frames) - 1:02}.png'}'")
+        (tmp / "frames.txt").write_text("\n".join(concat) + "\n")
+        video = tmp / "video.mp4"
+        subprocess.run(["ffmpeg", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(tmp / "frames.txt"),
+                        "-vf", f"fps={FPS},format=yuv420p", "-t", f"{total:.3f}", "-c:v", "libx264",
+                        "-preset", "veryfast", "-crf", "20", str(video)], check=True)
+        # ゲーム音: コマごとに、そのコマの長さちょうどの音(本編のコマは録画の音、ほかは無音)を作り、順につなぐ。
+        # (adelay で時刻に置くと、最初の音より前の無音が付かず、全体が前にずれたため)
+        inputs, filters, labels = [], [], []
+        for i, frame in enumerate(frames):
+            length = ends[i] - starts[i]
+            n = i
+            if frame["scene"] == "main":
+                inputs += ["-ss", str(frame["at"]), "-t", f"{length:.3f}", "-i", str(ROOT / frame["source"])]
+                filters.append(f"[{n}:a]aresample=48000,aformat=channel_layouts=stereo,volume={GAME_VOLUME},"
+                               f"apad=whole_dur={length:.3f},atrim=0:{length:.3f},asetpts=PTS-STARTPTS[s{n}]")
+            else:
+                inputs += ["-f", "lavfi", "-t", f"{length:.3f}", "-i", "anullsrc=r=48000:cl=stereo"]
+                filters.append(f"[{n}:a]asetpts=PTS-STARTPTS[s{n}]")
+            labels.append(f"[s{n}]")
+        filters.append("".join(labels) + f"concat=n={len(labels)}:v=0:a=1[out]")
+        game = dest / "game.wav"
+        subprocess.run(["ffmpeg", "-v", "error", *inputs, "-filter_complex", ";".join(filters), "-map", "[out]",
+                        "-ar", "48000", "-c:a", "pcm_s16le", str(game)], check=True)
+        subprocess.run(["ffmpeg", "-v", "error", "-i", str(video), "-i", str(game), "-map", "0:v", "-map", "1:a",
+                        "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
+                        str(dest / "guide.mp4")], check=True)
+    # マーカー表
+    song = None
+    if name in GUIDE_SONGS:
+        import bgm_midi
+        song = bgm_midi.SONGS[GUIDE_SONGS[name]]
+    rows = [("時刻(秒)", "時刻", "#", "章", "出来事", "台詞の候補", "仮の映像")]
+    for i, frame in enumerate(frames):
+        rows.append((f"{starts[i]:.1f}", frame["time"], str(i + 1), frame.get("chapter", ""), events_of(frame),
+                     frame.get("line", ""), "はい" if frame.get("provisional") else ""))
+    import csv
+    with (dest / "cues.csv").open("w", newline="", encoding="utf-8-sig") as f:
+        csv.writer(f).writerows(rows)
+    md = [f"# {board.get('title', name)}: BGM を作るための仮映像のマーカー", "",
+          f"- 全体の長さ: {clock(total)}({total:.0f} 秒)。0 秒が `guide.mp4` と `game.wav` の先頭。",
+          "- **時刻は絵コンテの目安。** 本編の声と映像ができると少しずれる。そのときは本編から作る見本パック"
+          "(`bgm_kit.py` の `cues.md`)で合わせ直す。",
+          "- `game.wav` は、本編のコマのあいだだけ、その録画のゲーム音(本編と同じ音量)。参考トラックで、書き出しには入れない。", ""]
+    if song:
+        beat = 60 / song["bpm"]
+        md += [f"## BGM の MIDI のたたき台との対応(`{GUIDE_SONGS[name]}`、テンポ {song['bpm']})", "",
+               "| MIDI のマーカー | 秒 | 小節:拍 |", "|---|---|---|"]
+        for sec, marker in song["markers"]:
+            beats = sec / beat
+            md.append(f"| {marker} | {sec} | {int(beats // 4) + 1}:{int(beats % 4) + 1} |")
+        md.append("")
+    md += ["## コマ", "", "| 時刻 | # | 章 | 出来事 | 台詞の候補 |", "|---|---|---|---|---|"]
+    for row in rows[1:]:
+        mark = "(仮の映像)" if row[6] else ""
+        md.append(f"| {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}{mark} |")
+    (dest / "cues.md").write_text("\n".join(md) + "\n")
+    print(dest.relative_to(ROOT))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("name")
     parser.add_argument("--version", default="v01")
+    parser.add_argument("--guide", action="store_true", help="BGM を作るための仮映像を書き出す")
+    parser.add_argument("--ending", type=float, default=20, help="仮映像のエンディングの秒数(既定 20)")
     args = parser.parse_args()
     spec = ROOT / f"promo/longform/storyboards/{args.name}-{args.version}.json"
+    if args.guide:
+        board = json.loads(spec.read_text())
+        check(board)
+        guide(board, args.name, args.version, args.ending)
+        return
     dest = ROOT / f"promo/design/checks/{args.name}-storyboard-{args.version}.jpg"
     if dest.exists():
         raise SystemExit(f"既にあります(上書きしません): {dest.relative_to(ROOT)}")
