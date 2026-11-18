@@ -49,18 +49,22 @@ def check_screen_awake():
 
 # 撮影してよいステージ。ボス(各章の 10 番目)は撮らないので入れない。
 STAGES = ["1-1", "1-2", "1-4", "1-7", "1-8", "2-1"]
-# ステージ選択の右上の難易度(2400×1080。1.5.1 の録画 mstage_v151.mp4 で測った。実機は撮影の日に確かめる)。
+# ステージ選択の右上の難易度(2400×1080。2026-11-18 に moto g66j 5G の 1.6.0 の画面で確かめた)。
 # 選んだ難易度はアプリの設定に残るので、撮り終えたら normal に戻す。
 DIFFICULTY_TAP = {"easy": ("1466", "88"), "normal": ("1706", "88"), "hard": ("1934", "88")}
 
 
 def stage_tap(number):
-    """章の中の番号から、ステージのタイルを押す位置。1 行目は 1〜5 が左から、2 行目は 10〜6 が左から並ぶ。"""
+    """章の中の番号から、ステージのタイルを押す位置。1 行目は 1〜5 が左から、2 行目は 10〜6 が左から並ぶ。
+
+    2026-11-18 に moto g66j 5G の 1.6.0 の画面で測った (タイルの中心)。この端末は画面の左に余白があり、
+    1.5.1 の録画から計算した前の値 (左端 178) より 114px 右にある。
+    """
     if not 1 <= number <= 9:
         raise ValueError(f"撮れないステージの番号です: {number}")
     if number <= 5:
-        return str(178 + 277 * (number - 1)), "535"
-    return str(178 + 277 * (10 - number)), "800"
+        return str(292 + 277 * (number - 1)), "536"
+    return str(292 + 277 * (10 - number)), "776"
 
 
 def select_stage(stage, difficulty=None):
@@ -73,7 +77,7 @@ def select_stage(stage, difficulty=None):
     adb("shell", "input", "keyevent", *(["KEYCODE_DPAD_LEFT"] * 30))
     time.sleep(1)
     for _ in range(chapter - 1):
-        adb("shell", "input", "tap", "1368", "225")
+        adb("shell", "input", "tap", "1482", "220")  # 次の章の矢印
         time.sleep(1.2)
     adb("shell", "input", "tap", *stage_tap(number))
     time.sleep(2)
@@ -118,8 +122,9 @@ def main():
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,60}", args.take) or not 15 <= args.seconds <= 600:
         p.error("テイクは英数字・_-の60文字まで、録画秒数は15〜600")
     pkg = os.environ.get("PROMO_PKG", "com.watsuwo.parrybreak.promo")
-    if pkg != "com.watsuwo.parrybreak.promo":
-        p.error("この道具は撮影用 com.watsuwo.parrybreak.promo だけを操作します")
+    # 撮影用のアプリだけを操作する (ストア版は操作しない)。.promostreak は連続日数を見せる撮影専用 (build_streak.py)。
+    if pkg not in ("com.watsuwo.parrybreak.promo", "com.watsuwo.parrybreak.promostreak"):
+        p.error("この道具は撮影用 com.watsuwo.parrybreak.promo と .promostreak だけを操作します")
     dest = ROOT / "promo/capture/raw" / f"long-{args.mode}-{args.take}"
     dest.mkdir(parents=True, exist_ok=False)
     video, logcat, metadata = dest / "capture.mp4", dest / "logcat.txt", dest / "capture.json"

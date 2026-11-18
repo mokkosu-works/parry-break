@@ -23,13 +23,13 @@ class CaptureChecks(unittest.TestCase):
     @patch("capture_long.time.sleep")
     @patch("capture_long.adb")
     def test_mitsuba_stages(self, adb, sleep):
-        for stage, x, chapters in [("1-1", "178", 0), ("1-2", "455", 0),
-                                    ("1-4", "1009", 0), ("2-1", "178", 1)]:
+        for stage, x, chapters in [("1-1", "292", 0), ("1-2", "569", 0),
+                                    ("1-4", "1123", 0), ("2-1", "292", 1)]:
             adb.reset_mock()
             capture_long.select_stage(stage)
-            self.assertIn(call("shell", "input", "tap", x, "535"), adb.call_args_list)
+            self.assertIn(call("shell", "input", "tap", x, "536"), adb.call_args_list)
             self.assertEqual(adb.call_args_list.count(
-                call("shell", "input", "tap", "1368", "225")), chapters)
+                call("shell", "input", "tap", "1482", "220")), chapters)
             self.assertEqual(adb.call_args_list[-1],
                              call("shell", "input", "tap", "2102", "927"))
 
@@ -37,10 +37,10 @@ class CaptureChecks(unittest.TestCase):
     @patch("capture_long.adb")
     def test_second_row_stages(self, adb, sleep):
         # 2 行目は 10〜6 が左から並ぶ。1-8 は左から 3 番目、1-7 は 4 番目。
-        for stage, x in [("1-7", "1009"), ("1-8", "732")]:
+        for stage, x in [("1-7", "1123"), ("1-8", "846")]:
             adb.reset_mock()
             capture_long.select_stage(stage)
-            self.assertIn(call("shell", "input", "tap", x, "800"), adb.call_args_list)
+            self.assertIn(call("shell", "input", "tap", x, "776"), adb.call_args_list)
         with self.assertRaises(ValueError):
             capture_long.stage_tap(10)
 

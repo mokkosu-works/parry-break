@@ -6,7 +6,9 @@
 
 ## まず確かめること
 
-- **どの PC で撮るか。** 撮影用アプリ(1.6.0 の JUST 版・下手版)は、前回ミツバの回を撮った PC にある(`apk/promo_v1.6.0_mitsuba_{just,sloppy}_events_arm64.apk`)。この PC には APK がない。別の PC で撮るなら、このブランチ(`feature/promo-video-tools`)を pull してから撮る(1-7・1-8 と `--difficulty` は 2026-11-18 に足した)。
+- **どの PC で撮るか。** 2026-11-18 に、この PC(WSL)でも撮影用アプリ(1.6.0 の JUST 版・下手版)を `build_mitsuba.py` で作った(`promo/capture/apk/`、git 外)。この PC で撮れば pull は要らない。別の PC で撮るなら、このブランチ(`feature/promo-video-tools`)を pull してから撮る(1-7・1-8 と `--difficulty` は 2026-11-18 に足した)。
+- **この PC(WSL)で端末をつなぐ**: Windows の管理者の PowerShell で `usbipd attach --wsl --busid 4-3`(抜き差し・再起動のたび)。「Device busy」なら Windows 側の adb を止める(`D:\platform-tools\adb.exe kill-server`)。WSL には motorola 用の udev の決まり(`/etc/udev/rules.d/51-android.rules`)を入れ済み。2026-11-18 に、WSL の adb と scrcpy で録画できることを確かめた。
+- **署名が PC ごとに違う。** アプリはその PC のデバッグ鍵で署名される。端末に別の PC で作った撮影用アプリが入っていると `adb install -r` で入れ替えられないので、`adb uninstall com.watsuwo.parrybreak.promo` で消してから入れる(撮影用アプリの記録も消える。ストア版は別のアプリなので消えない)。モモカの STREAK を積み始める**前に**入れ替える。
 - 撮った素材は、前回と同じく SHA256 を残してサーバーへ送る(`mitsuba-raw-transfer-20261117.md` と同じやり方)。
 
 ## 撮らなくてよくなったもの(撮影済みの素材で足りた)
@@ -20,6 +22,8 @@
 アカネの回は、新しく撮るものがない。
 
 ## 撮影の日より前から: モモカの連続日数(STREAK)
+
+**2026-11-18 追記: 待たずに撮れる連続日数用のアプリを作った。** `python3 promo/capture/build_streak.py`(既定は「昨日まで 4 日続けた」記録で始まる。`--days` で変えられる)。パッケージ `com.watsuwo.parrybreak.promostreak` で、いつもの撮影用アプリ・ストア版とは別に入る。端末に入れて、タイトルに `DAILY NEW STREAK 4` が出ることを確かめた。タイトルは `PROMO_PKG=com.watsuwo.parrybreak.promostreak bash promo/capture/capture_mode.sh title <テイク名>` で撮れる。`capture_long.py` は `.promo` しか操作しないので、このアプリでデイリーを撮るなら道具を直す。**映る日数は実際に遊び続けた日数ではない**ので、使うかは本人が決める。下の毎日遊ぶやり方は、本物の日数で撮りたいとき用に残す。
 
 タイトルの DAILY の横の `STREAK n` は、デイリーを**続けた日に遊ばないと**出ない(1 日空くと 1 に戻る)。撮影の日の 2〜3 日前から、撮影用アプリで毎日 1 回デイリーを遊ぶ。
 
