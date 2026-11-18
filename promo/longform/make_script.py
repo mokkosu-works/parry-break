@@ -16,7 +16,7 @@ REACTIONS = {
     "akane": {
         "parry:just": [("よしっ、ジャスト！", "success"), ("ど真ん中！", "success")],
         "fever_start": [("来た、フィーバー！", "fired")],
-        "collapse": [("まとめて落ちた！", "success"), ("崩れた崩れた！", "surprise")],
+        "collapse": [("うわ、ごっそり！", "surprise"), ("まとめて落ちた！", "success"), ("崩れた崩れた！", "surprise")],
     },
     "mitsuba": {
         "parry:just": [("えっ、いまの見た？ ジャスト！", "success"), ("ぴったりだと、ジャストになるんだね！", "success")],
@@ -75,7 +75,7 @@ def make(plan, aligned):
                       "text": choice[0], "expression": choice[1], "event_seq": event["seq"],
                       "event_type": event["type"]})
     lines.sort(key=lambda l: l["start"])
-    return {"schema": 1, "profile": plan["profile"], "source": str((Path(aligned["capture"]) / aligned["video"]).relative_to(ROOT)),
+    return {"schema": 1, "profile": plan["profile"], "source": str(((ROOT / plan["events"]).parent / aligned["video"]).relative_to(ROOT)),
             "events": plan["events"], "source_start": start, "duration": plan["duration"],
             "note": plan["note"], "lines": lines}
 

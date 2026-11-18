@@ -103,8 +103,10 @@ def check_logged_clip(source, events_path, start, duration):
     """出来事ログのある録画: 音声の監視・ログとの組み合わせ・使える範囲を確かめ、換算済みのログを返す。"""
     source = ROOT / source
     aligned = json.loads((ROOT / events_path).read_text())
-    event_video = Path(aligned["capture"]) / aligned["video"]
-    capture_meta = json.loads((Path(aligned["capture"]) / "capture.json").read_text())
+    # ログは録画と同じフォルダにある。aligned["capture"] は撮った PC の場所なので、ほかの PC では使わない。
+    capture_dir = (ROOT / events_path).parent
+    event_video = capture_dir / aligned["video"]
+    capture_meta = json.loads((capture_dir / "capture.json").read_text())
     if aligned.get("rejected") or capture_meta.get("status") != "recorded_unaligned":
         raise ValueError("このテイクは不採用または録画に失敗しています")
     if not capture_meta.get("audio_guard", {}).get("checks", 0):

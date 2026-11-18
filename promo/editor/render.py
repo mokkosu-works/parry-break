@@ -827,7 +827,8 @@ STAGE_NUMBER = re.compile(r"(?<![\d.\-−‐–])(\d{1,2})[-−‐–](\d{1,2})(
 
 def speech_text(text):
     """読み上げ用の文。字幕・台本の文字は変えず、エンジンに渡す文だけを直す。"""
-    return STAGE_NUMBER.sub(r"\1の\2", text)
+    # 「その上」は「ソノカミ」と読まれる(2026-11-18、アカネの通常尺)。
+    return STAGE_NUMBER.sub(r"\1の\2", text).replace("その上", "そのうえ")
 
 
 def synthesize(text, profile="mitsuba"):
