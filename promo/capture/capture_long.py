@@ -47,16 +47,35 @@ def check_screen_awake():
         raise RuntimeError("端末の画面が消えています。本人に画面の点灯とロック解除を依頼してください")
 
 
-def select_stage(stage):
+# 撮影してよいステージ。ボス(各章の 10 番目)は撮らないので入れない。
+STAGES = ["1-1", "1-2", "1-4", "1-7", "1-8", "2-1"]
+# ステージ選択の右上の難易度(2400×1080。1.5.1 の録画 mstage_v151.mp4 で測った。実機は撮影の日に確かめる)。
+# 選んだ難易度はアプリの設定に残るので、撮り終えたら normal に戻す。
+DIFFICULTY_TAP = {"easy": ("1466", "88"), "normal": ("1706", "88"), "hard": ("1934", "88")}
+
+
+def stage_tap(number):
+    """章の中の番号から、ステージのタイルを押す位置。1 行目は 1〜5 が左から、2 行目は 10〜6 が左から並ぶ。"""
+    if not 1 <= number <= 9:
+        raise ValueError(f"撮れないステージの番号です: {number}")
+    if number <= 5:
+        return str(178 + 277 * (number - 1)), "535"
+    return str(178 + 277 * (10 - number)), "800"
+
+
+def select_stage(stage, difficulty=None):
     chapter, number = map(int, stage.split("-"))
     adb("shell", "input", "tap", "1720", "506")
     time.sleep(2.5)
+    if difficulty:
+        adb("shell", "input", "tap", *DIFFICULTY_TAP[difficulty])
+        time.sleep(1)
     adb("shell", "input", "keyevent", *(["KEYCODE_DPAD_LEFT"] * 30))
     time.sleep(1)
     for _ in range(chapter - 1):
         adb("shell", "input", "tap", "1368", "225")
         time.sleep(1.2)
-    adb("shell", "input", "tap", str(178 + 277 * (number - 1)), "535")
+    adb("shell", "input", "tap", *stage_tap(number))
     time.sleep(2)
     adb("shell", "input", "tap", "2102", "927")
 
@@ -87,11 +106,15 @@ def main():
     p.add_argument("mode", choices=["endless", "daily", "practice", "stage"])
     p.add_argument("take")
     p.add_argument("seconds", nargs="?", type=int, default=120)
-    p.add_argument("--stage", choices=["1-1", "1-2", "1-4", "2-1"],
-                   help="ミツバ用の撮影先。stage モードのみ。省略時は1-1")
+    p.add_argument("--stage", choices=STAGES,
+                   help="撮影先のステージ。stage モードのみ。省略時は1-1。ボスは選べない")
+    p.add_argument("--difficulty", choices=list(DIFFICULTY_TAP),
+                   help="ステージ選択の右上で難易度を選んでから始める。stage モードのみ。省略時は変えない")
     args = p.parse_args()
     if args.stage and args.mode != "stage":
         p.error("--stage は stage モードでだけ指定できます")
+    if args.difficulty and args.mode != "stage":
+        p.error("--difficulty は stage モードでだけ指定できます")
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,60}", args.take) or not 15 <= args.seconds <= 600:
         p.error("テイクは英数字・_-の60文字まで、録画秒数は15〜600")
     pkg = os.environ.get("PROMO_PKG", "com.watsuwo.parrybreak.promo")
@@ -104,6 +127,7 @@ def main():
             "requested_seconds": args.seconds, "alignment": "未調整。映像と出来事を照合してから台詞を割り当てる。"}
     if args.mode == "stage":
         info["stage"] = args.stage or "1-1"
+        info["difficulty"] = args.difficulty or "変えていない(アプリの設定のまま)"
     recorder = logger = None
     worker = None
     events = []
@@ -179,7 +203,7 @@ def main():
             elif args.mode == "practice":
                 adb("shell", "input", "tap", "470", "976")
             else:
-                select_stage(args.stage or "1-1")
+                select_stage(args.stage or "1-1", args.difficulty)
             info["host_mode_tap_after_s"] = time.time()
             started = time.monotonic()
             next_audio_check = started

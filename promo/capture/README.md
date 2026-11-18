@@ -10,7 +10,7 @@
 
 どちらも `PROMO_AUTOPLAY=true` と `PROMO_EVENT_LOG=true`。アイテム取得は `item_taken` に種類・パリィ取得か・判定・得点を記録する。この環境のツール設定は `source ~/.config/parry-break/env.sh` で読み込める。
 
-ログ付き撮影では、ミツバの計画に合わせてステージを指定できる（省略時は従来どおり1-1）。1-1・1-2・1-4・2-1だけを許可し、ボスの面は選べない。テイク名もステージと腕前を含めて区別する。
+ログ付き撮影では、ステージを指定できる（省略時は従来どおり1-1）。1-1・1-2・1-4・1-7・1-8・2-1だけを許可し、ボスの面は選べない（1-7・1-8 は 2026-11-18 にワカナの回のために足した。2 行目のタイルで、位置は 1.5.1 の画面から計算した値なので、撮影の日に短いテイクで確かめる）。`--difficulty easy|normal|hard` で、ステージ選択の右上の難易度を選んでから始められる（設定に残るので、撮り終えたら normal に戻す）。テイク名もステージと腕前を含めて区別する。4人の通常尺の撮影は [`longform-4chars-shotlist-v01.md`](longform-4chars-shotlist-v01.md)。
 
 ```sh
 bash promo/capture/capture_long.sh stage mitsuba-s11-just-01 30 --stage 1-1
