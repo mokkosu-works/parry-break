@@ -42,5 +42,5 @@ App Store: https://apps.apple.com/jp/app/id6819052466
 YouTube のタグ欄に入れる: l006
 動画ファイル: promo/build/out/shizuku-full-e003/full.mp4(2 分 5 秒、1920×1080、BGM 入り)
 構成: promo/longform/projects/shizuku-full-v01.json、絵コンテ: promo/design/longform-shizuku-storyboard-v01.md
-組にするショート: v016(同じ日に、この動画を先に公開し、ショートの関連動画をこの動画にする)。
-投稿日・予約は未定(隔日の決まりでは、アカネの組 11/20 の次は 11/22)。
+組にするショート: v016(https://www.youtube.com/shorts/Y6E9JBy41EM、19:30)。YouTube Studio で、v016 の「関連動画」にこの動画を設定し、この動画の終了画面を設定する。
+YouTube: https://youtu.be/b6pyvkUONuQ(2026-11-22 19:00 に予約公開。隔日の決まりで、アカネの組の 2 日後)
