@@ -1,0 +1,46 @@
+{
+  "insets": [
+    {
+      "box": [
+        303,
+        78,
+        290,
+        200
+      ],
+      "scale": 2.2,
+      "at": [
+        700,
+        110
+      ],
+      "start": 6.4,
+      "end": 16.1
+    }
+  ],
+  "schema": 1,
+  "profile": "shizuku",
+  "events": "promo/capture/raw/long-practice-shizuku-practice-sloppy-01/events.json",
+  "source_clock_start": 36.615709,
+  "duration": 23.0,
+  "note": "通常尺 03 ずれを数字での本編。下手版の練習場 40.0〜63.0 秒(44.12 秒に PERFECT EARLY、左の欄の AVG・SPREAD、56.73 秒の JUST のあとに持ちネタ)。この録画は早めのずればかりで LATE は出ない。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.3,
+      "kind": "explanation",
+      "text": "早く押すとアーリー。遅いとレイト。ずれが、数字で出る。",
+      "expression": "think"
+    },
+    {
+      "start": 6.4,
+      "kind": "explanation",
+      "text": "下の二つは、ずれの平均と、ばらつき。平均はゼロに近く、ばらつきは、少ないほど揃ってる。",
+      "expression": "explain"
+    },
+    {
+      "start": 17.1,
+      "kind": "chat",
+      "text": "パリィで、ぱりっと。……ぷぷっ。",
+      "expression": "smug"
+    }
+  ],
+  "reactions": []
+}

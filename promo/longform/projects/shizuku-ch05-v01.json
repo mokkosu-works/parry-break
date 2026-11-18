@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "profile": "shizuku",
+  "duration": 20.0,
+  "note": "通常尺 05 弾だけの練習の本編。一時停止の録画 27.3〜47.3 秒(27.4 一時停止、29.5 MODE BULLETS、32.5 再開)。自動プレイは弾を返せないので、絵コンテの台詞に、返せていないことを言う一言を足した。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/shizuku-practice-menu-01/capture.mp4",
+      "start": 27.3,
+      "duration": 20.0,
+      "audio_note": "ログのない録画。録画中に 4 回、音の再生元が撮影用アプリ(uid 10555)だけであることを adb shell dumpsys audio で確かめた(raw/shizuku-practice-menu-01/audio-check.txt、capture/4chars-session-20261119.md)。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.8,
+      "kind": "explanation",
+      "text": "ここで、弾だけの練習に切り替えられる。",
+      "expression": "explain"
+    },
+    {
+      "start": 5.6,
+      "kind": "explanation",
+      "text": "ボールを出さずに、敵の弾だけが落ちてくる。打ち返しの確認に。",
+      "expression": "focus"
+    },
+    {
+      "start": 13.2,
+      "kind": "chat",
+      "text": "この自動プレイは、弾が苦手みたい。……あなたなら、返せる?",
+      "expression": "shy"
+    }
+  ]
+}

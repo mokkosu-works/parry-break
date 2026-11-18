@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "profile": "shizuku",
+  "note": "シズクの通常尺(練習場の紹介)の完成版の構成。絵コンテは design/longform-shizuku-storyboard-v01.md。台詞は絵コンテ v01 から(05 は自動プレイが弾を返せないので一言足した)。本人の確認待ち。間はミツバ・アカネの回と同じ。BGM は shizuku-practice-bgm-v01(ローファイ寄り。-15.5 LUFS でミツバの曲より約 1.5dB 大きいので volume 0.17)。",
+  "opening": {
+    "duration": 12,
+    "heading": "shizuku-opening-v01.png",
+    "lines": [
+      {
+        "start": 0.8,
+        "text": "シズクです。"
+      },
+      {
+        "start": 2.6,
+        "text": "今日は、練習場。タイミングを、数字で見ていく。"
+      }
+    ]
+  },
+  "chapters": [
+    {
+      "title": "練習ってなに?",
+      "heading": "shizuku-ch01-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/shizuku-ch01-v01.json",
+          "render": "promo/build/out/shizuku-ch01-e001"
+        }
+      ],
+      "line": {
+        "text": "練習ってなに？"
+      }
+    },
+    {
+      "title": "判定を見る",
+      "heading": "shizuku-ch02-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/shizuku-ch02-v01.json",
+          "render": "promo/build/out/shizuku-ch02-e002"
+        }
+      ],
+      "line": {
+        "text": "判定を見る。"
+      }
+    },
+    {
+      "title": "ずれを数字で",
+      "heading": "shizuku-ch03-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/shizuku-ch03-v01.json",
+          "render": "promo/build/out/shizuku-ch03-e003"
+        }
+      ],
+      "line": {
+        "text": "ずれを数字で。"
+      }
+    },
+    {
+      "title": "速さを変える",
+      "heading": "shizuku-ch04-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/shizuku-ch04-v01.json",
+          "render": "promo/build/out/shizuku-ch04-e001"
+        }
+      ],
+      "line": {
+        "text": "速さを変える。"
+      }
+    },
+    {
+      "title": "弾だけの練習",
+      "heading": "shizuku-ch05-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/shizuku-ch05-v01.json",
+          "render": "promo/build/out/shizuku-ch05-e001"
+        }
+      ],
+      "line": {
+        "text": "弾だけの練習。"
+      }
+    }
+  ],
+  "ending": {
+    "duration": 20,
+    "heading": "shizuku-ending-v01.png",
+    "lines": [
+      {
+        "start": 0.6,
+        "text": "練習で、ずれをそろえて。"
+      },
+      {
+        "start": 4.0,
+        "text": "パリィブレイク。ストアで検索！"
+      }
+    ]
+  },
+  "gaps": {
+    "before_title": 1.5,
+    "after_title": 1.0,
+    "before_ending": 1.5,
+    "card_min": 2.5
+  },
+  "bgm": {
+    "file": "promo/assets/bgm/shizuku-practice-bgm-v01.flac",
+    "start": 0,
+    "volume": 0.17,
+    "fade_in": 0.5,
+    "fade_out": 2.0
+  }
+}

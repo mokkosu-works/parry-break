@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "profile": "shizuku",
+  "duration": 16.3,
+  "note": "通常尺 04 速さを変えるの本編。一時停止の録画 11.0〜27.3 秒(12.0 一時停止、14.1 LV3、16.2 FEVER、19.2 再開、判定の欄は LAST 1/20 から)。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/shizuku-practice-menu-01/capture.mp4",
+      "start": 11.0,
+      "duration": 16.3,
+      "audio_note": "ログのない録画。録画中に 4 回、音の再生元が撮影用アプリ(uid 10555)だけであることを adb shell dumpsys audio で確かめた(raw/shizuku-practice-menu-01/audio-check.txt、capture/4chars-session-20261119.md)。"
+    }
+  ],
+  "lines": [
+    {
+      "start": 1.3,
+      "kind": "explanation",
+      "text": "一時停止すると、速さを選べる。レベル1、レベル3、フィーバーの速さ。",
+      "expression": "explain"
+    },
+    {
+      "start": 9.4,
+      "kind": "explanation",
+      "text": "切り替えると、判定の記録は消える。速くても、やることは同じ。",
+      "expression": "focus"
+    }
+  ]
+}

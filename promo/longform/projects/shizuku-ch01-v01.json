@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "profile": "shizuku",
+  "source": "promo/capture/raw/long-practice-shizuku-practice-sloppy-01/capture.mp4",
+  "events": "promo/capture/raw/long-practice-shizuku-practice-sloppy-01/events.json",
+  "source_start": 3.8,
+  "duration": 12.5,
+  "note": "通常尺 01 練習ってなに?の本編(区切りは含まない)。下手版の練習場 3.8〜16.3 秒(READY → GOOD 2 回 → MISS)。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 0.4,
+      "kind": "explanation",
+      "text": "ブロックも、敵の弾もない。ボールを返すだけ。",
+      "expression": "explain"
+    },
+    {
+      "start": 5.4,
+      "kind": "explanation",
+      "text": "落としても、一秒で出直す。記録にも残らない。気楽に。",
+      "expression": "normal"
+    }
+  ]
+}
