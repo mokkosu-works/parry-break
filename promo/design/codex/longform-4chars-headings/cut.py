@@ -15,9 +15,10 @@ from PIL import Image
 
 HERE = Path(__file__).resolve().parent
 DEST = HERE.parents[2] / "assets/text/longform"
-# シートの上から順に、置く名前(<名前>-<場面>-v01.png)。場面の番号は絵コンテの章と同じ。
+# シートの上から順に、置く名前(<名前>-<場面>-v01.png。版を付けた名前はそのまま)。場面の番号は絵コンテの章と同じ。
 SHEETS = {
     "akane-a": ["akane-ch02", "akane-ch03", "akane-ch04"],
+    "akane-c": ["akane-ending-v02"],  # 「!」付きに作り直した版(2026-11-18)
     "shizuku-a": ["shizuku-opening", "shizuku-ch01", "shizuku-ch02"],
     "shizuku-b": ["shizuku-ch03", "shizuku-ch04", "shizuku-ch05"],
     "shizuku-c": ["shizuku-ending"],
@@ -66,7 +67,7 @@ def cut(key):
     if len(found) != len(names):
         raise SystemExit(f"{key}: 行が {len(found)} 個見つかりました({len(names)} 個のはず)。シートを見て直してください")
     for (top, bottom), name in zip(found, names):
-        dest = DEST / f"{name}-v01.png"
+        dest = DEST / (f"{name}.png" if name[-4:-2] == "-v" else f"{name}-v01.png")
         if dest.exists():
             print(f"既にあります(飛ばす): {dest.name}")
             continue

@@ -4,11 +4,11 @@
 # モデルは gpt-6.1-terra(本人の希望。astra は使わない)。参考画像は必ず生成に渡す。
 # 切り出しは cut.py(assets/text/longform/<名前>-<場面>-v01.png に置く)。
 cd "$(dirname "$0")"
-for key in akane-a shizuku-a shizuku-b shizuku-c momoka-a momoka-b wakana-a wakana-b; do
+for key in akane-a akane-c shizuku-a shizuku-b shizuku-c momoka-a momoka-b wakana-a wakana-b; do
   [ -f out/headings_$key.png ] && continue
   char=${key%-*}
   case $char in
-    akane) tag=akane_tag_endless.png ;; shizuku) tag=shizuku_tag_practice.png ;;
+    akane) tag=akane_tag_endless.png; [ $key = akane-c ] && tag=akane_ending_v01.png ;; shizuku) tag=shizuku_tag_practice.png ;;
     momoka) tag=momoka_tag_daily.png ;; wakana) tag=wakana_tag_stage.png ;;
   esac
   echo "== $key $(date +%T)"
