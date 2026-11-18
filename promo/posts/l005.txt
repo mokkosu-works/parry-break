@@ -1,0 +1,45 @@
+=== YouTube ===
+[タイトル]
+ボールひとつで、どこまで続く？エンドレスに挑戦！【PARRY BREAK】
+
+[説明文]
+当たる瞬間にタップして、弾を打ち返すブロック崩し「PARRY BREAK」。
+今回はエンドレス。ボールはひとつだけ、落としたらおしまい。パリィでつないで、白いブロックでまとめて崩し、フィーバーで一気に片付けます。アカネが記録への挑戦を案内します。
+慣れないうちは EASY もあります。無料です。
+
+▼ダウンロード
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+ストアで「PARRY BREAK」を検索しても見つかります。
+
+▼チャプター
+0:00 オープニング
+0:09 01 ボールはひとつ
+0:34 02 パリィでつなぐ
+0:57 03 まとめて崩す
+1:31 04 記録に挑戦
+1:53 エンディング
+
+ナビ: アカネ (Mokkosu Works)
+※ゲーム画面は自動プレイ映像です。
+音声: AivisSpeech: 中2(魔法プログラム)
+
+#PARRYBREAK #パリィブレイク #ブロック崩し #ドット絵 #インディーゲーム #ゲーム紹介 #エンドレス
+
+[固定コメント]
+PARRY BREAK は無料で遊べます！
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+
+[終了画面(YouTube Studio で設定)]
+- 右半分の上: 動画「最新のアップロード」
+- 右半分の下: チャンネル登録
+- 表示は最後の 20 秒(1:53〜)。動画の右半分は、このために空けてある。
+
+=== 管理 ===
+管理ID: l005
+YouTube のタグ欄に入れる: l005
+動画ファイル: promo/build/out/akane-full-e004/full.mp4(2 分 14 秒、1920×1080、BGM v02 入り)
+構成: promo/longform/projects/akane-full-v01.json、絵コンテ: promo/design/longform-akane-storyboard-v01.md
+組にするショート: アカネ版はまだ作っていない(作ったら、同じ日に、この動画を先に公開し、ショートの関連動画をこの動画にする)。
+投稿日・予約は未定(本人が決める)。
