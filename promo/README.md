@@ -40,7 +40,7 @@ records/    videos.csv、youtube_uploads.csv
 | `design/checks/` | 書き出しのコマなどの確認画像。使わなくなったものは `old/` | 入る | 確認のたびに |
 | `design/codex/<回>/` | Codex の指示文(`ref/*.txt`)。参考画像(`ref/*.png`)と生成の下書き(`out/`) | 指示文だけ | Codex。`old-layout/out/` は以前の作業用の写し(どこからも参照しない) |
 | `build/assets/badges/`、`build/fonts/` | ストアの公式バッジ、フォント | 入らない | `build/fetch_assets.sh` |
-| `capture/raw/`、`build/out/` | 録画、書き出した動画。不採用の録画は `capture/raw/old/`、過去の版の書き出し (v01/v02/v05/mode01、character-promo、ボット動画、声の聞き比べ、通常尺の旧 e001) は `build/out/old/` | 入らない | `capture/*.sh`、編集ツール |
+| `capture/raw/`、`build/out/` | 録画、書き出した動画。不採用の録画は `capture/raw/old/`、過去の版の書き出し (v01/v02/v05/mode01、character-promo、ボット動画、声の聞き比べ、通常尺の旧 e001、ミツバのショート v013 と v014 の試し書き出し、ストア用の動画の前の版) は `build/out/old/` | 入らない | `capture/*.sh`、編集ツール |
 
 キャラクター素材は [characters/README.md](characters/README.md)、性格・口調・表情の使い分けは [characters/profiles.md](characters/profiles.md) を参照する。
 
@@ -51,7 +51,8 @@ records/    videos.csv、youtube_uploads.csv
 ## 現役: キャラ動画 (ショート、縦長 24 秒)
 
 - 採用版は 2 種類で、どちらも 5 人分ある。
-  - **モード紹介** `promo/editor/projects/<名前>-modes.json`: 担当のモードを紹介する (ミツバはゲーム全体の案内)。作り方と決めごとは [design/shorts-modes.md](design/shorts-modes.md)。
+  - **モード紹介** `promo/editor/projects/<名前>-modes.json`: 担当のモードを紹介する (ミツバはゲーム全体の案内)。作り方と決めごとは [design/shorts-modes.md](design/shorts-modes.md)。ミツバは冒頭を作り直した `mitsuba-modes-hook.json` (v014) が現役で、v013 の `mitsuba-modes.json` は `projects/old/`。
+  - **基本の型** (2026-11-18〜): ミツバの通常尺 l001 とショート v014 の組を手本にする。ショートは最初の 3 秒に、0 秒目から派手なプレイの場面を大きく映す。くわしくは [design/shorts-modes.md](design/shorts-modes.md) の「基本の型」。
   - **プレイ紹介** `promo/editor/projects/<名前>-play.json`: 打ち返し・崩れの楽しさを見せる。作り方と決めごとは [design/shorts-play.md](design/shorts-play.md)。
   - 以前の名前は、モード紹介が mode01、プレイ紹介が v05。途中の版 v01/v02 と、投稿済みのミツバの動画 (`character-promo*`、v009〜v012) は `projects/old/` にあり、編集ツールの一覧には出ない。
 - 見出し・吹き出し・タグの文字は画像 (`promo/assets/`) で、文言を変えるときは Codex で作り直す。モードのタグは `<名前>_tag_<stage|endless|daily|practice>.png` (5 人 × 4 モード)。
@@ -59,7 +60,7 @@ records/    videos.csv、youtube_uploads.csv
   ```sh
   python3 promo/editor/server.py      # http://127.0.0.1:8765/ を開く (127.0.0.1 だけで待ち受ける)
   ```
-  「動画を書き出す」で、保存した配置から `promo/build/out/{名前}-e001.mp4` のような新しい名前の動画を作る (既存のファイルは上書きしない)。画面なしなら `python3 promo/editor/render.py promo/editor/projects/mitsuba-modes.json`。台詞と話し始めの時刻は、レイヤーを選んでいないときの右パネルで変えられる (JSON の `voice.lines`)。声は AivisSpeech (キャラごとに `characters/voice-licenses.md` の割り当て、起動は `~/.aivisspeech/engine/Linux-x64/run --host 127.0.0.1 --port 10101`)。24 秒の構成は変えられない。
+  「動画を書き出す」で、保存した配置から `promo/build/out/{名前}-e001.mp4` のような新しい名前の動画を作る (既存のファイルは上書きしない)。画面なしなら `python3 promo/editor/render.py promo/editor/projects/mitsuba-modes-hook.json`。台詞と話し始めの時刻は、レイヤーを選んでいないときの右パネルで変えられる (JSON の `voice.lines`)。声は AivisSpeech (キャラごとに `characters/voice-licenses.md` の割り当て、起動は `~/.aivisspeech/engine/Linux-x64/run --host 127.0.0.1 --port 10101`)。24 秒の構成は変えられない。
 - 文字とバッジは、ショートの表示領域 (上 約 130px、下 約 480px) を避けて置く。左右 100px と、右のボタン列 (x>930、y>1220。実機で測った値) も避ける。書き出す前に `python3 promo/editor/check_layout.py <プロジェクト名>` で確かめる (キャラと吹き出し・タイトルなどの重なりも見る)。
 - 録画は、1.5.0 以降の撮影用アプリ (ストア版と並べて入れる別アプリ) で撮る。モードは `promo/capture/capture_mode.sh`、ステージは `promo/capture/capture.sh` (下の「録画の前に」)。手順は [design/shorts-modes.md](design/shorts-modes.md)。
 - 映像は、ボットの自動プレイ。人の腕前に見える言い切り (「神業」など) は避ける。

@@ -71,7 +71,7 @@
 - シートで目パチがうまくいかなかったポーズ(アカネとモモカの固有)は、1 体だけ作り直した `design/codex/sheets-face/out/<名前>_blink_special.png` を使う(指示文は `ref/prompt-<名前>-blink-special.txt`)。崩れの原因は、生成した目の位置のずれと、目の範囲の下端が浅かったこと。
 - シズクの予想外は、生成した「閉じた口」が元の小さな「お」とほぼ同じで、口の動きが小さい(気になれば、そのポーズだけ作り直す)。
 
-- 確認動画: `python3 promo/longform/full_preview.py <名前> --voice-only --out <未使用の出力先>` のあと、`--voice-only` を外して同じコマンド。オープニング(通常)・章の区切り(固有)・エンディング(成功)の 3 場面で、全身と顔の拡大を並べる(本番の画面構成ではない)。最初だけ AivisSpeech(10101)が要る。確認動画は `build/out/mitsuba-full-preview-e005/` と `build/out/{akane,shizuku,momoka,wakana}-full-preview-e003/`(仮の台詞は `full_preview.py` の `CHARS`)。ショートの試し書き出しは `build/out/mitsuba-modes-talktest-e001.mp4` と `akane-modes-talktest-e001.mp4`。
+- 確認動画: `python3 promo/longform/full_preview.py <名前> --voice-only --out <未使用の出力先>` のあと、`--voice-only` を外して同じコマンド。オープニング(通常)・章の区切り(固有)・エンディング(成功)の 3 場面で、全身と顔の拡大を並べる(本番の画面構成ではない)。最初だけ AivisSpeech(10101)が要る。確認動画は `build/out/mitsuba-full-preview-e005/` と `build/out/{akane,shizuku,momoka,wakana}-full-preview-e003/`(仮の台詞は `full_preview.py` の `CHARS`)。ショートの試し書き出しは `build/out/old/mitsuba-modes-talktest-e001.mp4` と `akane-modes-talktest-e001.mp4`。
 
 ### 前の作り方(使わない)
 

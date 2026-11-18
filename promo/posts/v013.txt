@@ -13,8 +13,8 @@
 === 管理 ===
 管理ID: v013
 YouTube のタグ欄に入れる: v013
-動画ファイル: promo/build/out/mitsuba-modes-e001.mp4(24 秒)
-構成: promo/editor/projects/mitsuba-modes.json
+動画ファイル: promo/build/out/old/mitsuba-modes-e001.mp4(24 秒)
+構成: promo/editor/projects/old/mitsuba-modes.json
 組にする通常尺: l001(https://youtu.be/fI4B1TVegc8)。YouTube Studio で、このショートの「関連動画」に l001 を設定する。
 再開(2026-11-18): 今の状態のまま、11/18 19:30 に予約して送った。
 削除(2026-11-18): YouTube の AI に冒頭 1〜3 秒が弱いと指摘され、公開前に本人が削除した。差し替えは v014。

@@ -6,7 +6,7 @@ promo/build/old/character_promo.py (v12) と同じ手順で 24 秒の縦動画�
 character_promo.py は v12 を再現する記録として残し、ここでは書き換えずに処理を流用している。
 
 使い方 (画面を使わずに書き出す):
-    python3 promo/editor/render.py promo/editor/projects/mitsuba-modes.json
+    python3 promo/editor/render.py promo/editor/projects/mitsuba-modes-hook.json
 """
 
 import array

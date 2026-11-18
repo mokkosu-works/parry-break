@@ -1,6 +1,6 @@
 # ストア動画 撮影済み素材の選定 v01
 
-2026-11-18。`store-video-outline-v01.md` の2本に対し、Android 実機のログ付き録画から仮カットを選んだ。時刻は各 `capture.mp4` の先頭から。確認用の仮つなぎは `promo/build/out/store-play-rough-v03.mp4` と `store-modes-rough-v02.mp4`（文字・整音・転場なし、1280×576）。
+2026-11-18。`store-video-outline-v01.md` の2本に対し、Android 実機のログ付き録画から仮カットを選んだ。時刻は各 `capture.mp4` の先頭から。確認用の仮つなぎは `promo/build/out/store-play-rough-v03.mp4` と `store-modes-rough-v02.mp4`(それより前の版と、字幕付きの v04・v03 より前の版は `build/out/old/`)（文字・整音・転場なし、1280×576）。
 
 テロップと整音を入れた確認版は `promo/build/out/store-play-captioned-v03.mp4` と `store-modes-captioned-v04.mp4`。`promo/build/render_store_previews.py` で同じカットから再生成できる。画面は1920×1080・30fpsで、実プレイを中央に置く。モード紹介では既存の色付きタグを上部に、一言の説明を下部に分ける。音は各カットのつなぎ目を短くフェードさせ、全体の音量とピークを整えた。
 
