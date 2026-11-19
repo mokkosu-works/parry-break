@@ -11,6 +11,7 @@
 |---|---|---|---|
 | `midi/mitsuba-basics-bgm-v01.mid` | ミツバのゲーム全体と基本操作(`design/longform-mitsuba-outline-v01.md`) | 96 | 104 小節(約 4 分 20 秒) |
 | `midi/akane-endless-bgm-v01.mid` | アカネのエンドレス紹介(`design/longform-akane-outline-v01.md`) | 112 | 110 小節(約 3 分 56 秒) |
+| `midi/momoka-daily-bgm-v01.mid` | モモカのデイリー紹介(本編 `momoka-full-e002`、1 分 55 秒)。明るく跳ねるダンスポップ寄り | 108 | 53 小節(約 1 分 58 秒) |
 
 | ファイル | どの本編用か | テンポ | DAW のプロジェクトの場所 |
 |---|---|---|---|
@@ -18,3 +19,4 @@
 | `akane-endless-bgm-v01.flac` | アカネのエンドレス紹介(絵コンテの仮映像 `akane-storyboard-guide-v01` に合わせて作った。本編ができたら合わせ直す) | 112 | Windows の `D:\Cakewalk Projects\akane-endless-bgm-v01\`(書き出しは `Audio Export\`)。Sonar の書き出しで 48kHz・24bit・ステレオにし、変換はしていない。マスターを -4dB にして書き出した(ピーク -2.3dBFS、-20.8 LUFS)。音源は Sonar 付属の BandLab 音源(Dry・Soft Sine Bass・Warm Pad・Mellow EP・Glockenspiel)(2026-11-18) |
 | `akane-endless-bgm-v02.flac` | アカネの通常尺(本編 `akane-full-e003`、2 分 14 秒)。ロック寄りに作り直した版。v01 はミツバの曲と似ていたため | 120 | Windows の `D:\Cakewalk Projects\akane-endless-bgm-v02\`(書き出しは `Audio Export\`)。Sonar の書き出しで 48kHz・24bit・ステレオにし、変換はしていない。マスターを -3dB にして書き出した(ピーク -2.1dBFS、-16.6 LUFS)。音源は Sonar 付属の BandLab 音源(Rock・Retro Pick Bass・Overdriven Power Chord・Axe Lead Guitar)(2026-11-18) |
 | `shizuku-practice-bgm-v01.flac` | シズクの通常尺(本編 `shizuku-full-e002`、2 分 5 秒)。ローファイ寄りの別の作り | 80 | Windows の `D:\Cakewalk Projects\shizuku-practice-bgm-v01\`(書き出しは `Audio Export\`)。Sonar の書き出しで 48kHz・24bit・ステレオにし、変換はしていない。マスターのバスが無いので、音源トラックの音量で合わせた(ベース 0dB・ピアノ +4dB・笛 +5dB・ドラム +4.5dB、ピーク -2.3dBFS、-15.5 LUFS)。音源は Sonar 付属の BandLab 音源(Lofi Hop・Acoustic Bass Legato・Felt Piano・Flute)(2026-11-19) |
+| `momoka-daily-bgm-v01.flac` | モモカの通常尺(本編 `momoka-full-e002`、1 分 55 秒)。明るく跳ねるダンスポップ寄りの別の作り | 108 | Windows の `D:\Cakewalk Projects\momoka-daily-bgm-v01\`(書き出しは `Audio Export\`)。Sonar の書き出しで 48kHz・24bit・ステレオにし、変換はしていない。マスターのバスが無いので、音源トラックの音量を 4 つとも +3.5dB にして合わせた(ピーク -1.8dBFS、-16.1 LUFS)。音源は Sonar 付属の BandLab 音源(HOT Pop・House Bass・Nova Pluck・80s Square Lead)(2026-11-19) |

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "profile": "momoka",
+  "events": "promo/capture/raw/long-daily-momoka-daily-20261119-01/events.json",
+  "source_clock_start": 36.166034,
+  "duration": 8.5,
+  "note": "通常尺 03 見せ場の前半(区切りは含まない)。モモカのデイリー 39.5〜48.0 秒(R24。40.30 秒 COLLAPSE ×18 に反応、41.56 秒にもう一度)。v01 から始まりを 1.5 秒遅らせ、タイトルの後の間を決まりの 1 秒に近づけた。台詞は v01 と同じ(2026-11-19 本人確認済み)。",
+  "lines": [
+    {
+      "start": 3.9,
+      "kind": "chat",
+      "text": "今の、撮った!? 撮ってない!? もう一回やって!",
+      "expression": "steam"
+    }
+  ],
+  "reactions": [
+    {
+      "type": "collapse",
+      "after": 0.7,
+      "before": 1.0
+    }
+  ]
+}

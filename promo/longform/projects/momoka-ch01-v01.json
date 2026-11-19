@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "profile": "momoka",
+  "duration": 22.0,
+  "note": "通常尺 01 今日の配置の本編。タイトル(ミツバの撮影の 1.6.0、DAILY の横に NEW)0.5〜8.0 秒 → モモカのデイリー 6.5〜21.0 秒(R22、8.17 秒の最初の爆発、10.79 秒 COLLAPSE ×7、18.33 秒 FEVER)。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/mtitle_mitsuba-easy-01.mp4",
+      "start": 0.5,
+      "duration": 7.5,
+      "logo": false,
+      "autoplay": false,
+      "audio_note": "ミツバの撮影の録画(1.6.0、NEW の印)。撮影前後に、ほかのアプリが音を再生していないことを確かめた(capture/mitsuba-session-20261117.md)。"
+    },
+    {
+      "source": "promo/capture/raw/long-daily-momoka-daily-20261119-01/capture.mp4",
+      "events": "promo/capture/raw/long-daily-momoka-daily-20261119-01/events.json",
+      "start": 6.5,
+      "duration": 14.5
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.6,
+      "kind": "explanation",
+      "text": "タイトルのデイリーに、NEW の印。今日まだ遊んでないよ、ってこと!",
+      "expression": "explain"
+    },
+    {
+      "start": 8.1,
+      "kind": "explanation",
+      "text": "配置は、毎朝9時に変わるよ。同じ日なら、みんな同じ配置なの!",
+      "expression": "explain"
+    },
+    {
+      "start": 15.4,
+      "kind": "chat",
+      "text": "だから、あとで見せ合えるんだ。ここ、好き!",
+      "expression": "smug"
+    }
+  ]
+}

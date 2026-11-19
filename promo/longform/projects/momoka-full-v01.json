@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "profile": "momoka",
+  "note": "モモカの通常尺(デイリーの紹介)の完成版の構成。絵コンテは design/longform-momoka-storyboard-v01.md。台詞は絵コンテ v01 から(02 の「日によって」は読み間違いのため「毎日ちがうの」に)。本編は 2026-11-19 に本人確認済み(「おかしなところはない」)。エンディングの見出しはシズクの版の縁をモモカの色に塗り替えた(recolor.py)。間はミツバ・アカネ・シズクの回と同じ。BGM は momoka-daily-bgm-v01(ダンスポップ寄り。-16.1 LUFS でアカネの曲より約 0.5dB 大きいので volume 0.19)。",
+  "opening": {
+    "duration": 12,
+    "heading": "momoka-opening-v01.png",
+    "lines": [
+      {
+        "start": 0.8,
+        "text": "モモカだよ!"
+      },
+      {
+        "start": 2.4,
+        "text": "今日は、デイリーのお話。毎日ちがう、5ラウンドの勝負なの!"
+      }
+    ]
+  },
+  "chapters": [
+    {
+      "title": "今日の配置",
+      "heading": "momoka-ch01-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/momoka-ch01-v01.json",
+          "render": "promo/build/out/momoka-ch01-e001"
+        }
+      ],
+      "line": {
+        "text": "今日の配置!"
+      }
+    },
+    {
+      "title": "5ラウンドの勝負",
+      "heading": "momoka-ch02-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/momoka-ch02-v01.json",
+          "render": "promo/build/out/momoka-ch02-e002"
+        }
+      ],
+      "line": {
+        "text": "5ラウンドの勝負!"
+      }
+    },
+    {
+      "title": "見せ場",
+      "heading": "momoka-ch03-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/momoka-ch03a-v02.json",
+          "render": "promo/build/out/momoka-ch03a-e002"
+        },
+        {
+          "script": "promo/longform/projects/momoka-ch03b-v01.json",
+          "render": "promo/build/out/momoka-ch03b-e002"
+        }
+      ],
+      "line": {
+        "text": "見せ場!"
+      }
+    },
+    {
+      "title": "記録と連続日数",
+      "heading": "momoka-ch04-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/momoka-ch04-v01.json",
+          "render": "promo/build/out/momoka-ch04-e002"
+        }
+      ],
+      "line": {
+        "text": "記録と連続日数!"
+      }
+    }
+  ],
+  "ending": {
+    "duration": 20,
+    "heading": "momoka-ending-v01.png",
+    "lines": [
+      {
+        "start": 0.6,
+        "text": "今日の配置、もう遊んだ?"
+      },
+      {
+        "start": 3.4,
+        "text": "パリィブレイク。ストアで検索!"
+      }
+    ]
+  },
+  "gaps": {
+    "before_title": 1.5,
+    "after_title": 1.0,
+    "before_ending": 1.5,
+    "card_min": 2.5
+  },
+  "bgm": {
+    "file": "promo/assets/bgm/momoka-daily-bgm-v01.flac",
+    "start": 0,
+    "volume": 0.19,
+    "fade_in": 0.5,
+    "fade_out": 2.0
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "profile": "momoka",
+  "duration": 7.0,
+  "note": "通常尺 03 見せ場の後半。モモカのデイリー 48.0〜55.0 秒(R24 の続き)。右にシズクのバストアップと「メンバー」の札。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-daily-momoka-daily-20261119-01/capture.mp4",
+      "events": "promo/capture/raw/long-daily-momoka-daily-20261119-01/events.json",
+      "start": 48.0,
+      "duration": 7.0,
+      "guest": "shizuku"
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.6,
+      "kind": "chat",
+      "text": "メンバーのシズクちゃんなら、「録画してるから、大丈夫。」って言ってくれそう。",
+      "expression": "shy"
+    }
+  ]
+}

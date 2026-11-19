@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "profile": "momoka",
+  "source": "promo/capture/raw/long-daily-momoka-daily-20261119-01/capture.mp4",
+  "events": "promo/capture/raw/long-daily-momoka-daily-20261119-01/events.json",
+  "source_start": 38.0,
+  "duration": 10.0,
+  "note": "通常尺 03 見せ場の前半(区切りは含まない)。モモカのデイリー 38.0〜48.0 秒(R24。40.30 秒 COLLAPSE ×18 に反応、41.56 秒にもう一度)。台詞は絵コンテ v01 から。本人の確認待ち。",
+  "lines": [
+    {
+      "start": 2.48,
+      "kind": "reaction",
+      "text": "見て見て! まとめて崩れた!",
+      "expression": "surprise",
+      "event_seq": 550,
+      "event_type": "collapse"
+    },
+    {
+      "start": 5.4,
+      "kind": "chat",
+      "text": "今の、撮った!? 撮ってない!? もう一回やって!",
+      "expression": "steam"
+    }
+  ]
+}

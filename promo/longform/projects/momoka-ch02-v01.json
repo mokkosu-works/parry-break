@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "profile": "momoka",
+  "duration": 22.0,
+  "note": "通常尺 02 5ラウンドの勝負の本編。モモカのデイリー 24.0〜40.0 秒(25.07 秒 ROUND 23 の帯、33.96 秒 R23 クリア、36.99 秒 ROUND 24 の帯)→ 99.0〜105.0 秒(100.26 秒 R26 クリア、100.5〜103 秒 DAILY CLEAR の帯、103.5 秒から結果画面)。台詞は絵コンテ v01 から(#9 は仮の映像を本物に差し替え)。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-daily-momoka-daily-20261119-01/capture.mp4",
+      "events": "promo/capture/raw/long-daily-momoka-daily-20261119-01/events.json",
+      "start": 24.0,
+      "duration": 16.0
+    },
+    {
+      "source": "promo/capture/raw/long-daily-momoka-daily-20261119-01/capture.mp4",
+      "events": "promo/capture/raw/long-daily-momoka-daily-20261119-01/events.json",
+      "start": 99.0,
+      "duration": 6.0
+    }
+  ],
+  "lines": [
+    {
+      "start": 1.0,
+      "kind": "explanation",
+      "text": "エンドレスの途中の5ラウンド、続けて遊ぶよ。始まるラウンドも、毎日ちがうの。",
+      "expression": "explain"
+    },
+    {
+      "start": 9.0,
+      "kind": "explanation",
+      "text": "大丈夫、何回でも挑戦できるよ! ただ、ミスしたら、その回はそこで終わり。",
+      "expression": "focus"
+    },
+    {
+      "start": 17.4,
+      "kind": "explanation",
+      "text": "5ラウンド乗り切ったら、デイリークリア!",
+      "expression": "success"
+    }
+  ]
+}
