@@ -1,0 +1,46 @@
+=== YouTube ===
+[タイトル]
+毎日ちがう5ラウンド！デイリーの遊び方【PARRY BREAK】
+
+[説明文]
+当たる瞬間にタップして、弾を打ち返すブロック崩し「PARRY BREAK」。
+今回はデイリー。配置は毎朝 9 時に変わり、同じ日ならみんな同じ配置です。エンドレスの途中の 5 ラウンドを続けて遊び、乗り切ればデイリークリア。何回でも挑戦でき、その日の最高得点が記録に残ります。続けて遊んだ日数も出ます。モモカが案内します。
+無料です。
+
+▼ダウンロード
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+ストアで「PARRY BREAK」を検索しても見つかります。
+
+▼チャプター
+0:00 オープニング
+0:08 01 今日の配置
+0:31 02 5ラウンドの勝負
+0:55 03 見せ場
+1:13 04 記録と連続日数
+1:34 エンディング
+
+ナビ: モモカ (Mokkosu Works)
+※ゲーム画面は自動プレイ映像です。
+音声: AivisSpeech: るな
+
+#PARRYBREAK #パリィブレイク #ブロック崩し #ドット絵 #インディーゲーム #ゲーム紹介 #デイリー
+
+[固定コメント]
+PARRY BREAK は無料で遊べます！
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+
+[終了画面(YouTube Studio で設定)]
+- 右半分の上: 動画「最新のアップロード」
+- 右半分の下: チャンネル登録
+- 表示は最後の 20 秒(1:34〜)。動画の右半分は、このために空けてある。
+
+=== 管理 ===
+管理ID: l007
+YouTube のタグ欄に入れる: l007
+動画ファイル: promo/build/out/momoka-full-e003/full.mp4(1 分 55 秒、1920×1080、BGM 入り)
+構成: promo/longform/projects/momoka-full-v01.json、絵コンテ: promo/design/longform-momoka-storyboard-v01.md
+組にするショート: v017(19:30)。YouTube Studio で、v017 の「関連動画」にこの動画を設定し、この動画の終了画面を設定する。
+連続日数(5 日連続)は撮影用アプリの演出(.promostreak が「昨日まで 4 日」を入れる。本人了承、capture/4chars-session-20261119.md)。
+YouTube: 未投稿(隔日の決まりなら 2026-11-24 19:00。シズクの組の 2 日後)
