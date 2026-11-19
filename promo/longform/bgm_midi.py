@@ -211,6 +211,56 @@ SHIZUKU_LOFI = {
 
 SONGS["shizuku-practice"] = SHIZUKU_LOFI
 
+# モモカの v01 (2026-11-19)。ミツバ (パッド・エレピ・鉄琴)・アカネ (ロック)・シズク (ローファイ) と別の作り。
+# 明るく跳ねるダンスポップ寄り: 4 つ打ちのキックと 2・4 拍の手拍子、オクターブを跳ねるシンセベース、
+# 拍をずらして刻むプラックの和音、見せ場だけのかわいいリード。テンポ 108 で 1 小節 約 2.22 秒。
+# 区切りはできた本編 (momoka-full-e002、1 分 55 秒) の章に合わせる。
+POP_TRACKS = {
+    "drums": ("Drums (dance pop kit)", 9),
+    "bass": ("Bass (bouncy synth bass)", 0),
+    "chords": ("Chords (bright pluck synth)", 1),
+    "lead": ("Lead (cute square or whistle lead)", 2),
+}
+
+# (名前, ベースの根音, 和音)。音はすべて D・E・G・A。Dsus2 → Asus4 → Em7sus4 → Gadd9 の響き。
+MOMOKA_CHORDS = [
+    ("Dsus2", 38, [62, 64, 69, 74]),
+    ("Asus4", 33, [57, 62, 64, 69]),
+    ("Em7sus4", 40, [62, 64, 67, 69]),
+    ("Gadd9", 43, [62, 67, 69, 74]),
+]
+
+# 強さ: drums=light/normal/full、bass=hold/bounce、chords=hold/stab、lead=hook。fill=区切りの最後の小節で手拍子を細かく。
+MOMOKA_SECTIONS = [
+    ("Opening", 4, {"drums:light", "bass:hold", "chords:stab", "lead:hook"}),
+    ("01 Today", 10, {"drums:light", "bass:hold", "chords:hold", "fill"}),
+    ("02 Five rounds", 11, {"drums:normal", "bass:bounce", "chords:stab", "fill"}),
+    ("03 Highlights", 8, {"drums:full", "bass:bounce", "chords:stab", "lead:hook", "fill"}),
+    ("04 Records", 10, {"drums:normal", "bass:hold", "chords:stab", "fill"}),
+    ("Ending", 8, {"drums:full", "bass:bounce", "chords:stab", "lead:hook"}),
+    ("Last chord", 2, {"last"}),
+]
+
+# momoka-full-e002 の場面の始まり (秒)。
+MOMOKA_MARKERS = [
+    (0, "Opening"), (8.833, "01 Today"), (31.958, "02 Five rounds"), (55.917, "03 Highlights"),
+    (73.917, "04 Records"), (94.875, "Ending"), (114.875, "Video end"),
+]
+
+MOMOKA_POP = {
+    "bpm": 108,
+    "style": "pop",
+    "tracks": POP_TRACKS,
+    "chords": MOMOKA_CHORDS,
+    "sections": MOMOKA_SECTIONS,
+    "markers": MOMOKA_MARKERS,
+    # 2 小節のリード (8 分音符の位置, 長さ (8 分), 音)。
+    "hook": [[(0, 1, 74), (1, 1, 76), (2, 2, 79), (4, 1, 81), (5, 1, 79), (6, 2, 76)],
+             [(0, 1, 74), (1, 1, 76), (2, 1, 79), (3, 1, 76), (4, 4, 74)]],
+}
+
+SONGS["momoka-daily"] = MOMOKA_POP
+
 # 版ごとに作りを変えた曲。(曲, 版) がここにあれば、SONGS より優先する。
 VERSIONS = {("akane-endless", 2): AKANE_ROCK}
 
@@ -517,8 +567,87 @@ def build_lofi(song):
     return notes, bar_no
 
 
+def build_pop(song):
+    notes = {key: [] for key in song["tracks"]}
+
+    def note(track, step, length, pitch, vel, t0):
+        notes[track].append((t0 + step * STEP, length, pitch, vel))
+
+    chords = song["chords"]
+    bar_no = 0
+    for _name, bars, parts in song["sections"]:
+        level = {p.split(":")[0]: (p.split(":") + [""])[1] for p in parts}
+        for i in range(bars):
+            t0 = bar_no * BAR
+            _chord, root, voicing = chords[bar_no % len(chords)]
+            if "last" in level:
+                if i == 0:
+                    for p in chords[0][2]:
+                        note("chords", 0, BAR * bars - STEP, p, 70, t0)
+                    note("bass", 0, BAR * bars - STEP, chords[0][1], 80, t0)
+                    note("drums", 0, STEP, KICK, 90, t0)
+                    note("drums", 0, STEP, CRASH, 80, t0)
+                bar_no += 1
+                continue
+            fill = i == bars - 1 and "fill" in level
+
+            drums = level.get("drums")
+            if drums:
+                kicks = (0, 8) if drums == "light" else (0, 4, 8, 12)
+                for st in kicks:
+                    note("drums", st, STEP, KICK, 84 if drums == "full" else 76, t0)
+                for st in (4, 12):
+                    note("drums", st, STEP, CLAP, 70 if drums == "light" else 80, t0)
+                if drums == "light":
+                    for st in range(0, 16, 2):
+                        note("drums", st, STEP // 2, HAT, 48, t0)
+                else:
+                    for st in range(16):
+                        note("drums", st, STEP // 2, HAT, 56 if st % 2 == 0 else 42, t0)
+                if drums == "full":
+                    for st in (2, 6, 10, 14):
+                        note("drums", st, STEP, OPEN_HAT, 54, t0)
+                    if i == 0:
+                        note("drums", 0, STEP, CRASH, 74, t0)
+                if fill:
+                    for st in (13, 14, 15):
+                        note("drums", st, STEP // 2, CLAP, 60 + (st - 13) * 8, t0)
+
+            bass = level.get("bass")
+            if bass == "hold":
+                note("bass", 0, 6 * STEP, root, 74, t0)
+                note("bass", 8, 6 * STEP, root, 66, t0)
+            elif bass == "bounce":
+                for st in range(0, 16, 2):
+                    up = 12 if st % 4 == 2 else 0
+                    note("bass", st, STEP + 40, root + up, 78 if st == 0 else 66, t0)
+
+            chord = level.get("chords")
+            if chord == "hold":
+                for p in voicing:
+                    note("chords", 0, BAR - STEP, p, 50, t0)
+            elif chord == "stab":
+                for st in (0, 3, 6, 10, 12):
+                    for p in voicing:
+                        note("chords", st, STEP + 30, p, 66 if st == 0 else 56, t0)
+
+            if level.get("lead") == "hook":
+                for s8, length, p in song["hook"][i % 2]:
+                    note("lead", s8 * 2, length * 2 * STEP - 40, p, 70, t0)
+
+            bar_no += 1
+
+    for key, items in notes.items():
+        if key == "drums":
+            continue
+        for _, _, pitch, _ in items:
+            if pitch % 12 not in SAFE_PITCH_CLASSES:
+                raise SystemExit(f"{key} に D・E・G・A 以外の音 ({pitch}) がある")
+    return notes, bar_no
+
+
 def write(song, path):
-    notes, bars = {"rock": build_rock, "lofi": build_lofi}.get(song.get("style"), build)(song)
+    notes, bars = {"rock": build_rock, "lofi": build_lofi, "pop": build_pop}.get(song.get("style"), build)(song)
     bpm = song["bpm"]
     tempo_track = [
         (0, 0, meta(0x03, b"Tempo and markers")),

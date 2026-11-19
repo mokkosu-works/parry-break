@@ -167,6 +167,17 @@ class PipelineTests(unittest.TestCase):
         dump = "AudioPlaybackConfiguration u/pid:10276/456 state:started attr:usage=USAGE_MEDIA mutedState:streamVolume"
         self.assertEqual([p["uid"] for p in active_media_players(dump)], [10276])
 
+    def test_caption_breaks_after_comma_instead_of_inside_a_word(self):
+        from render_long import wrap
+
+        class Font:  # 1 文字 = 幅 1
+            def getlength(self, s):
+                return len(s)
+
+        self.assertEqual(wrap("ああああ、いいいいう", Font(), 8), ["ああああ、", "いいいいう"])
+        # 前半にしか読点がなければ、これまでどおり幅いっぱいで折り返す。
+        self.assertEqual(wrap("あ、いいいいいいいう", Font(), 8), ["あ、いいいいいい", "いう"])
+
 
 if __name__ == "__main__":
     unittest.main()

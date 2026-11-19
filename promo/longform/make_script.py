@@ -22,6 +22,10 @@ REACTIONS = {
     "shizuku": {
         "parry:just": [("……今。ジャスト。悪くない。", "success")],
     },
+    # モモカは見どころを褒める。絵コンテ v01 の台詞を先頭に。
+    "momoka": {
+        "collapse": [("見て見て! まとめて崩れた!", "surprise"), ("崩れた〜! きれい!", "success")],
+    },
     "mitsuba": {
         "parry:just": [("えっ、いまの見た？ ジャスト！", "success"), ("ぴったりだと、ジャストになるんだね！", "success")],
         "fever_start": [("フィーバーだって！", "smug"), ("キラキラしてる！", "success")],

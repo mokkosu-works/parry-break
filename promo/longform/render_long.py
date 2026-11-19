@@ -317,10 +317,17 @@ def compose_main(belt, game, colors, small, subtitle_font, sprite, *, credit, lo
 def wrap(text, font, width):
     lines, current = [], ""
     # 字幕の行頭に句読点や閉じ括弧を置かない。
+    # 言葉の途中で切れないように、行の後ろ半分に句読点・空白があれば、その後ろで折り返す(2026-11-19)。
+    breaks = "、。！？!?)）」』 　"
     for char in text:
-        if current and font.getlength(current + char) > width and char not in "、。！？!?)）」』":
-            lines.append(current)
-            current = ""
+        if current and font.getlength(current + char) > width and char not in breaks[:-2]:
+            cut = max(current.rfind(b) for b in breaks)
+            if cut >= len(current) // 2 and cut < len(current) - 1:
+                lines.append(current[:cut + 1].rstrip())
+                current = current[cut + 1:].lstrip()
+            else:
+                lines.append(current)
+                current = ""
         current += char
     if current:
         lines.append(current)
