@@ -1,4 +1,4 @@
-import datetime, json, os, tempfile, unittest
+import datetime, json, os, tempfile, unicodedata, unittest
 from unittest import mock
 
 import facts, report, store, validate
@@ -42,13 +42,31 @@ class ReportTest(unittest.TestCase):
         em = report.embed(self.f, self.h, "https://github.com/x/y/actions/runs/1")
         self.assertLessEqual(len(em["title"]), 256)
         self.assertLessEqual(len(em["description"]), 4096)
-        self.assertLessEqual(len(em["fields"]), 25)
-        for fl in em["fields"]:
-            self.assertLessEqual(len(fl["value"]), 1024)
-        total = len(em["title"]) + len(em["description"]) + sum(len(x["name"]) + len(x["value"]) for x in em["fields"]) + len(em["footer"]["text"])
-        self.assertLessEqual(total, 6000)
+        self.assertLessEqual(len(em["title"]) + len(em["description"]) + len(em["footer"]["text"]), 6000)
         self.assertTrue(em["title"].startswith("🔔"))  # 再生数が半減しているので要確認
-        self.assertIn("人の承認が要る 1 件", json.dumps(em, ensure_ascii=False))
+        d = em["description"]
+        self.assertIn("## 🔔 要確認", d)
+        self.assertIn("承認が要る: 1 件", d)
+        self.assertIn("[実行ログ](https://github.com/x/y/actions/runs/1)", d)
+
+    def test_embed_is_markdown_and_safe(self):
+        d = report.embed(self.f, self.h)["description"]
+        for sec in ("## 📅", "## 📈", "## 💡"):
+            self.assertIn(sec, d)
+        self.assertNotIn("[", d.replace("[実行ログ]", ""))  # Claude や動画のタイトルからリンクを作らせない
+        self.assertEqual(d.count("```") % 2, 0)  # コードブロックが閉じている
+
+    def test_table_aligns_wide_chars(self):
+        t = report.table(["", "この日", "前日比"], [["再生数", "98", "▼-25%"], ["エンゲージ視聴", "1,234", "▲+3%"]])
+        lines = [x for x in t.split("\n") if x and x != "```"]
+        w = lambda x: sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in x)
+        self.assertEqual(len({w(x) for x in lines[1:]}), 1)  # 本体の行は同じ桁数
+
+    def test_mark(self):
+        self.assertEqual(report.mark(-25.0), "▼-25%")
+        self.assertEqual(report.mark(-25.0, good_up=False), "▲-25%")  # クラッシュ率は下がるのが良い
+        self.assertEqual(report.mark(0.2), "±0%")
+        self.assertEqual(report.mark(None), "-")
 
     def test_send_disables_mentions_and_attaches_html(self):
         sent = {}
@@ -99,8 +117,8 @@ class ReportTest(unittest.TestCase):
         self.assertIn("投稿内容の分析", page)
         self.assertNotIn("<script>", page)
         em = json.dumps(report.embed(f, h), ensure_ascii=False)
-        self.assertIn("伸びが上位の動画", em)
-        self.assertIn("yt7 3日目 72 回", em)  # 1 日 24 回 × 3 日
+        self.assertIn("公開直後の伸びが大きい動画", em)
+        self.assertIn("yt7 — 公開 3 日目で 72 回", em)  # 1 日 24 回 × 3 日
 
     def test_appstore_section(self):
         html = report.build_html(self.f, self.h)
@@ -109,7 +127,7 @@ class ReportTest(unittest.TestCase):
         self.assertIn("engagement_" + "x" * 20, html)  # 知らない指標は、そのままの名前
         em = json.dumps(report.embed(self.f, self.h), ensure_ascii=False)
         self.assertIn("App Store", em)
-        self.assertIn("ダウンロード (計) (7 日) 14", em)
+        self.assertIn("App Store ダウンロード (計)", em)
 
     def test_day_section(self):
         html = report.build_html(self.f, self.h)
@@ -117,7 +135,8 @@ class ReportTest(unittest.TestCase):
         self.assertIn("前週の同じ曜日比", html)
         em = report.embed(self.f, self.h)
         self.assertIn("日次レポート 2026-11-13", em["title"])
-        self.assertTrue(any(f["name"].startswith("11-13 (金) の再生数") for f in em["fields"]))
+        self.assertIn("## 📅 11/13 (金) の数字", em["description"])
+        self.assertIn("前週同曜日比", em["description"])
 
     def test_empty_facts(self):
         d = tempfile.TemporaryDirectory()

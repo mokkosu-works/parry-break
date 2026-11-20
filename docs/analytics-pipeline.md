@@ -4,13 +4,13 @@ YouTube・Google Play・App Store の数字を、GitHub Actions が毎日取り�
 
 ```
 cron(毎日 9:30 JST) ▶ 収集 ─────────▶ 事実 ──────▶ 分析 ─────▶ 検証 ─────▶ レポート
-                     YouTube・Play・   facts.json    Claude       validate.py   Discord: embed + HTML 添付
+                     YouTube・Play・   facts.json    Claude       validate.py   Discord: Markdown のメッセージ
                      App Store         規則で集計     鍵なし・Read  規則で判定
                      鍵あり・AI なし
                         │                                                        │
                         └──────▶ mokkosu-works/analytics (非公開) ◀──────────────┘
                                  store/  日次の事実 (時系列の正本)
-                                 reports/ 日ごとの HTML・事実・引き渡し (latest.json)
+                                 reports/ 日ごとの HTML(保存用)・事実・引き渡し (latest.json)
 ```
 
 - ワークフロー: [`.github/workflows/analytics.yml`](../.github/workflows/analytics.yml)
@@ -86,10 +86,11 @@ Claude の出力が読めなくても止めない(提案なし・事実だけの
 
 ## 4. レポート
 
-- **Discord**: embed(状態、対象日の YouTube の再生数(前日比・前週の同じ曜日比)・平均視聴割合・登録者・よく再生された動画、直近 7 日の再生数、Play のインストール・クラッシュ率(7 日)、App Store のダウンロード・インプレッション・製品ページの表示(7 日)、要確認、承認が要る提案、取得に失敗した source)+ **HTML を添付**。
-- **HTML の構成**: 対象日の数字(YouTube・Play・App Store を前日と比べる)→ YouTube の直近 7 日と 7 日ごとの推移 → 動画の伸びと投稿内容 → 動画別 → Play・App Store の直近 7 日 → 提案 → データの状態。Discord の中では HTML はプレビューされないので、要点は embed に出し、詳細は添付を開く。
+- **Discord**: Markdown のメッセージ(embed の説明に収める。HTML は添付しない)。上から、状態と要約 → 要確認 → 今日の要点 → **対象日の数字**(YouTube・Play・App Store を、前日比・前週の同じ曜日比で並べた表)→ 直近 7 日の表 → 動画(その日によく再生された動画、公開直後の伸びが大きい動画)→ 投稿内容の気づき → 提案 → データの状態。増減は、良い方向を ▲、悪い方向を ▼ で示す(クラッシュ率は下がるのが良い)。長すぎるときは、後ろの節から落とす。
+- **HTML(保存用)**: `reports/<日付>.html` に残す。対象日の数字 → 直近 7 日と 7 日ごとの推移 → 動画の伸びと投稿内容(グラフ・表)→ 動画別 → Play・App Store → 提案 → データの状態。Discord には添付しない。
 - **HTML**: 1 ファイルで完結(外部を読み込まない、スクリプトなし、CSP で禁止)。値はすべてエスケープ。ダークモード対応。推移は SVG の折れ線。
-- `@` のメンションは無効。Webhook の URL はログに出さない。送信に失敗したら、ジョブが赤になる。
+- `@` のメンションは無効。動画のタイトルや Claude の文章からリンクやコードができないよう、`[ ]` と `` ` `` は除いて載せる。Webhook の URL はログに出さない。送信に失敗したら、ジョブが赤になる。
+- 失敗の通知は、レポートを送れずにジョブが失敗したときだけ。`notify` を外した手動実行では送らない。
 
 ## 5. 鍵と設定(environment `analytics`)
 
