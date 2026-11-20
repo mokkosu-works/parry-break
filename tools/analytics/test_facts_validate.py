@@ -3,7 +3,7 @@ import csv, datetime, json, pathlib, tempfile, unittest
 import facts, store, validate
 
 D = datetime.date
-TODAY = D(2026, 11, 15)  # w0 = 11-07〜11-13、w1 = 10-31〜11-06
+TODAY = D(2026, 11, 16)  # w0 = 11-07〜11-13、w1 = 10-31〜11-06
 
 
 def yt(metric, entity, date, value):
@@ -73,7 +73,7 @@ class FactsTest(unittest.TestCase):
     def test_day_facts(self):
         f = facts.build(self.root, self.promo, TODAY)
         dy = f["day"]
-        self.assertEqual((dy["date"], dy["weekday"]), ("2026-11-13", "金"))  # 取得日の 2 日前
+        self.assertEqual((dy["date"], dy["weekday"]), ("2026-11-13", "金"))  # 取得日の 3 日前
         v = dy["youtube_channel"]["views"]
         # 11-07〜13 は 1 日 10 回、10-31〜11-06 は 1 日 40 回。前 7 日 (11-06〜12) の平均は (40 + 10*6) / 7
         self.assertEqual((v["value"], v["prev_day"], v["same_weekday_last_week"], v["vs_last_week_pct"], v["prior7_mean"]),

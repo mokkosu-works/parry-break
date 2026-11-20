@@ -6,7 +6,7 @@ name: analytics
 on:
   schedule:
     # 毎日 9:30 (日本時間) = 0:30 (UTC)。既定ブランチ (dev) のこのファイルで動く
-    # 対象日は日本の日付で 2 日前 (TZ を下で Asia/Tokyo にしている)。遅い時刻ほど、対象日の数字がそろいやすい
+    # 対象日は日本の日付で 3 日前 (TZ を下で Asia/Tokyo にしている)。遅い時刻ほど、対象日の数字がそろいやすい
     - cron: '30 0 * * *'
   workflow_dispatch:
     inputs:
@@ -40,7 +40,7 @@ jobs:
     outputs:
       sent: ${{ steps.send.outputs.sent }}
     env:
-      TZ: Asia/Tokyo  # 「今日」と対象日 (2 日前) を日本の日付で数える
+      TZ: Asia/Tokyo  # 「今日」と対象日 (3 日前) を日本の日付で数える
       DATA_REPO: git@github.com:mokkosu-works/analytics.git
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:

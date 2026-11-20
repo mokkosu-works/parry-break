@@ -121,12 +121,12 @@ def day_value(m, v):
 
 
 def day_section(facts):
-    """対象日 (取得日の 2 日前) の数字。前日・前週の同じ曜日と比べる。"""
+    """対象日 (取得日の 3 日前) の数字。前日・前週の同じ曜日と比べる。"""
     dy = facts.get("day")
     if not dy:
         return []
     out = [f'<h2>{e(dy["date"])} ({e(dy["weekday"])}) の数字</h2>',
-           '<p class="muted">取得日の 2 日前。速報値で、あとの実行で確定した数字に上書きされることがある。</p>']
+           '<p class="muted">取得日の 3 日前。速報値で、あとの実行で確定した数字に上書きされることがある。</p>']
     ch = dy["youtube_channel"]
     if dy["available"].get("youtube"):
         cards = []
@@ -526,7 +526,7 @@ def embeds(facts, h, run_url=None):
         top.append("**🔔 要確認**\n" + "\n".join(f"• {q(a['text'], 200)}" for a in h["alerts"][:6]))
     if h.get("highlights"):
         top.append("**📝 要点**\n" + "\n".join(f"• {q(x, 180)}" for x in h["highlights"][:4]))
-    top.append("-# 🟢 良い方向、🔴 悪い方向。対象日は取得日の 2 日前で、数字は速報(あとで変わる)。直近7日 = 対象日までの 7 日(未着の日があると少なめ)。"
+    top.append("-# 🟢 良い方向、🔴 悪い方向。対象日は取得日の 3 日前で、数字は速報(あとで変わる)。直近7日 = 対象日までの 7 日(未着の日があると少なめ)。"
                "エンゲージ視聴 = 一定時間以上見られた再生。ストアで見られた回数 = 検索や一覧にアプリが表示された回数。")
     out = [{"title": cut(f"{'🔔' if st == 'attention' else '✅'} PARRY BREAK 日次レポート {date}", 256), "description": "\n\n".join(top), "color": color}]
 

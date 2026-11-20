@@ -17,7 +17,7 @@ def sample():
         rows.append({"source": "appstore", "metric": "engagement_" + "x" * 20, "entity": "111", "date": day, "value": 1})
     store.upsert(d.name, rows)
     store.update_meta(d.name, "youtube_videos", {"v1": {"title": EVIL, "published_jst": "2026-10-01"}})
-    f = facts.build(d.name, None, datetime.date(2026, 11, 15))
+    f = facts.build(d.name, None, datetime.date(2026, 11, 16))
     a = {"status": "ok", "summary": EVIL, "highlights": [EVIL],
          "proposals": [{"target": "video", "kind": "experiment", "action": "動画を投稿する " + EVIL, "confidence": "low",
                         "sample_size": 1, "evidence": [{"metric": "views", "value": "70"}]}]}
@@ -119,7 +119,7 @@ class ReportTest(unittest.TestCase):
             rows.append({"source": "youtube", "metric": "views", "entity": "channel", "date": day, "value": 100})
         store.upsert(d.name, rows)
         store.update_meta(d.name, "youtube_videos", meta)
-        f = facts.build(d.name, None, datetime.date(2026, 11, 15))
+        f = facts.build(d.name, None, datetime.date(2026, 11, 16))
         a = {"content_findings": [{"finding": EVIL, "hypothesis": "h", "sample_size": 8, "evidence": [{"metric": "v", "value": "21"}]}],
              "video_insights": [{"id": "yt7", "verdict": "伸びた", "comment": EVIL}]}
         h = validate.build(f, a, None, {}, f["date"])
@@ -155,7 +155,7 @@ class ReportTest(unittest.TestCase):
 
     def test_empty_facts(self):
         d = tempfile.TemporaryDirectory()
-        f = facts.build(d.name, None, datetime.date(2026, 11, 15))
+        f = facts.build(d.name, None, datetime.date(2026, 11, 16))
         h = validate.build(f, None, "なし", {}, f["date"])
         self.assertIn("データはない", report.build_html(f, h))
         report.embeds(f, h)

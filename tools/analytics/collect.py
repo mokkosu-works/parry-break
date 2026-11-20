@@ -12,7 +12,7 @@ import argparse, datetime, sys
 
 import appstore, play, store, youtube
 
-LAG = 2
+LAG = 3
 
 
 def run_source(name, root, start, end, today):
