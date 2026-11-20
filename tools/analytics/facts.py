@@ -14,11 +14,11 @@ import content, store
 
 LAG = 2
 WEEKDAY_JA = "月火水木金土日"
-DAY_YT = ("views", "engagedViews", "averageViewPercentage", "subscribersGained", "estimatedMinutesWatched")
 WEEKS = 8
 MIN_VIEWS = 100  # 28 日でこれ未満の動画は、率の比較に使わない (データ不足)
 YT_SUM = ("views", "engagedViews", "estimatedMinutesWatched", "likes", "shares", "comments", "subscribersGained")
 YT_WEIGHTED = ("averageViewDuration", "averageViewPercentage")  # 再生数で重みづけした平均
+DAY_YT = YT_SUM + YT_WEIGHTED  # 対象日の数字は、集めている YouTube の指標をすべて
 
 
 def windows(today, weeks=WEEKS):
