@@ -16,7 +16,7 @@ cat ../analytics/reports/latest.json          # 引き渡し(状態・要点・�
 cat ../analytics/reports/<日付>.facts.json     # その日の事実(対象日の数字、7 日ごとの推移、動画別、Play・App Store)
 ```
 
-`reports/<日付>.html` は人が見るためのレポート(Discord に添付されるものと同じ)。
+`reports/<日付>.html` は、保存用の詳細なレポート(Discord には添付しない。ブラウザで開くと、推移のグラフや動画の伸びの表が見られる)。
 
 - 先に `data_quality` と `alerts` を読む。記録の食い違い・データ不足があるうちは、結論を強く言わない。
 - 事実は `*.facts.json` だけ。`hypothesis` は仮説で、事実として扱わない。

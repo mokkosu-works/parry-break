@@ -148,7 +148,7 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           W="$GITHUB_WORKSPACE/work"
-          python3 report.py send --facts "$W/facts.json" --handoff "$W/handoff.json" --html "$W/report.html" --run-url "$RUN_URL"
+          python3 report.py send --facts "$W/facts.json" --handoff "$W/handoff.json" --run-url "$RUN_URL"
           echo "sent=true" >> "$GITHUB_OUTPUT"
 
       # 収集の一部失敗は continue-on-error で先に進めたので、最後にジョブを赤にする (気づけるように)
@@ -162,7 +162,8 @@ jobs:
   # (収集の一部失敗でジョブが赤でも、レポートが届いていれば、そちらの「データの状態」に出るので重ねて送らない)
   notify-failure:
     needs: daily
-    if: failure() && needs.daily.outputs.sent != 'true'
+    # notify を外した手動実行では、レポートを送らないので、失敗も知らせない
+    if: failure() && needs.daily.outputs.sent != 'true' && (github.event_name == 'schedule' || inputs.notify)
     runs-on: ubuntu-latest
     environment: analytics
     steps:

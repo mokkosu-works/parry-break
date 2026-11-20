@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""レポート。facts.json と handoff.json から、自己完結の HTML と、Discord の通知 (embed + HTML の添付) を作る。
+"""レポート。facts.json と handoff.json から、Discord の通知 (Markdown の embed) と、保存用の HTML を作る。
 
   python3 report.py html   --facts facts.json --handoff handoff.json --out report.html
-  python3 report.py send   --facts facts.json --handoff handoff.json --html report.html [--run-url URL] [--dry]
+  python3 report.py send   --facts facts.json --handoff handoff.json [--html report.html] [--run-url URL] [--dry]   # --html を付けたときだけ添付する
   python3 report.py failure --run-url URL [--dry]       # ワークフローが失敗したことを送る
 
 送信先は環境変数 DISCORD_WEBHOOK_URL (Actions の secret)。URL は秘密なので、画面にもログにも出さない。
 未設定・送信失敗は、終了コード 1 (ジョブを赤にして、気づけるようにする)。
 @ のメンションは、すべて無効にして送る。HTML は外部を読み込まず、スクリプトも使わない (CSP で禁止)。値はすべてエスケープする。
 """
-import argparse, datetime, html, json, os, pathlib, re, sys, urllib.error, urllib.request, uuid
+import argparse, unicodedata, datetime, html, json, os, pathlib, re, sys, urllib.error, urllib.request, uuid
 
 NAME = "PARRY BREAK 自動レポート"
 HOOK_RE = re.compile(r"https://(discord|discordapp)\.com/api/webhooks/\d+/[\w-]+")
@@ -421,76 +421,144 @@ def build_html(facts, h, run_url=None):
 
 
 # ---------------------------------------------------------------- Discord
+# メッセージは Markdown で書く (見出し・太字・箇条書き・コードブロックの表)。1 つの embed の説明 (4096 字まで) に収める
+def wcell(t, w, right=False):
+    """全角を 2 桁として、桁をそろえる (コードブロックの表用)。"""
+    t = str(t)
+    n = sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in t)
+    pad = " " * max(0, w - n)
+    return pad + t if right else t + pad
+
+
+def table(head, rows):
+    """コードブロックの表。1 列目は左、あとは右にそろえる。"""
+    cols = list(zip(*([head] + rows)))
+    ws = [max(sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in str(x)) for x in col) for col in cols]
+    line = lambda r: "  ".join(wcell(x, w, right=i > 0) for i, (x, w) in enumerate(zip(r, ws))).rstrip()
+    return "```\n" + "\n".join(line(r) for r in [head] + rows) + "\n```"
+
+
+def mark(p, good_up=True):
+    """増減の印。良い方向は ▲、悪い方向は ▼ (1% 未満の動きは印なし)。"""
+    if p is None:
+        return "-"
+    if abs(p) < 1:
+        return "±0%"
+    good = (p > 0) == good_up
+    return f"{'▲' if good else '▼'}{p:+.0f}%"
+
+
+def q(x, n):
+    """Markdown に埋めるテキスト。リンクやコードにならないよう、[ ] と ` を除く (動画のタイトルや Claude の文章が入るため)。"""
+    return cut(re.sub(r"[\[\]`]", "", str(x)), n)
+
+
 def embed(facts, h, run_url=None):
     st = h.get("status", "ok")
-    cw = facts["youtube"]["channel_weekly"]
-    w0 = facts["weeks"][0]
-    desc = []
-    if h.get("summary"):
-        desc.append(cut(h["summary"], 400))
-    desc += [f"• {cut(x, 180)}" for x in h.get("highlights", [])[:5]]
-    fields = []
     dy = facts.get("day") or {}
-    day_name = f"{dy.get('date', w0['end'])[5:]} ({dy.get('weekday', '')})"
-    if dy.get("available", {}).get("youtube"):
+    w0 = facts["weeks"][0]
+    date = dy.get("date", w0["end"])
+    day_name = f"{date[5:].replace('-', '/')} ({dy.get('weekday', '')})"
+    out = []
+    head = "🔔 **要確認があります**" if st == "attention" else "✅ **異常はありません**"
+    out.append(f"{head} ・ 対象日 {day_name}")
+    if h.get("summary"):
+        out.append(f"> {q(h['summary'], 400)}")
+    if h.get("alerts"):
+        out.append("## 🔔 要確認\n" + "\n".join(f"• {q(a['text'], 200)}" for a in h["alerts"][:6]))
+    if h.get("highlights"):
+        out.append("## 📝 今日の要点\n" + "\n".join(f"• {q(x, 180)}" for x in h["highlights"][:5]))
+
+    # ---- 対象日の数字
+    sec = [f"## 📅 {day_name} の数字"]
+    avail = dy.get("available", {})
+    if avail.get("youtube"):
         c = dy["youtube_channel"]
-        v = c.get("views") or {}
-        fields.append({"name": f"{day_name} の再生数", "value": f"{fmt(v.get('value'))} (前日比 {fmt_pct(v.get('vs_prev_day_pct'))} / 前週の同じ曜日比 {fmt_pct(v.get('vs_last_week_pct'))})", "inline": False})
-        fields.append({"name": "平均視聴割合", "value": fmt_rate((c.get("averageViewPercentage") or {}).get("value")), "inline": True})
-        fields.append({"name": "登録者の増加", "value": fmt((c.get("subscribersGained") or {}).get("value")), "inline": True})
-        if dy.get("youtube_top_videos"):
-            lines = [f'• {x["id"] or x["youtube_id"]} {fmt(x["views"])} 回 ({fmt_pct(x["vs_prev_day_pct"])})' for x in dy["youtube_top_videos"][:3]]
-            fields.append({"name": f"{day_name} によく再生された動画", "value": cut("\n".join(lines), 1024), "inline": False})
-    elif dy:
-        fields.append({"name": f"{day_name} の YouTube", "value": "まだ数字が出ていない", "inline": False})
+        rows = []
+        for m, label, nd in (("views", "再生数", None), ("engagedViews", "エンゲージ視聴", None),
+                             ("averageViewPercentage", "平均視聴割合", 1), ("subscribersGained", "登録者の増加", None)):
+            x = c.get(m) or {}
+            val = fmt_rate(x.get("value")) if m == "averageViewPercentage" else fmt(x.get("value"))
+            rows.append([label, val, mark(x.get("vs_prev_day_pct")), mark(x.get("vs_last_week_pct"))])
+        sec.append("**YouTube**\n" + table(["", "この日", "前日比", "前週同曜日比"], rows))
+    else:
+        sec.append("**YouTube** まだ数字が出ていない")
+    for src, title, keys in (("play", "Google Play", ("installs_daily_user_installs", "vitals_crash_rate")),
+                             ("appstore", "App Store", ("downloads_total", "engagement_impression", "engagement_page_view"))):
+        if not avail.get(src):
+            if src in facts.get("status", {}):
+                sec.append(f"**{title}** まだ数字が出ていない")
+            continue
+        rows = []
+        for ms in (dy.get(src) or {}).values():
+            for m in keys:
+                x = ms.get(m)
+                if x and x["value"] is not None:
+                    name = asc_label(m) if src == "appstore" else PLAY_LABELS.get(m, m)
+                    rows.append([name, fmt(x["value"], 4 if "rate" in m else None), mark(x["vs_prev_day_pct"], good_up="crash" not in m)])
+        if rows:
+            sec.append(f"**{title}**\n" + table(["", "この日", "前日比"], rows))
+    out.append("\n".join(sec) + "\n-# 前週同曜日比 = 1 週間前の同じ曜日との比。この日の数字は速報で、あとで変わることがある。")
+
+    # ---- 直近 7 日
+    cw = facts["youtube"]["channel_weekly"]
+    rows = []
     if cw and cw[0].get("days"):
-        c0 = cw[0]
-        fields.append({"name": "直近 7 日の再生数", "value": f"{fmt(c0['views'])} (前 7 日比 {fmt_pct(c0.get('views_wow_pct'))})", "inline": True})
-    ranked = [v for v in sorted(facts["youtube"]["videos"], key=growth_key, reverse=True)
-              if (v["growth"].get("d3_vs_median") or 0) > 1]
+        rows.append(["YouTube 再生数", fmt(cw[0]["views"]), mark(cw[0].get("views_wow_pct"))])
+    for pkg, s in facts["play"]["packages"].items():
+        ins = next((v for k, v in s.items() if "daily_user_installs" in k), None)
+        if ins:
+            rows.append(["Play インストール", fmt(ins["weekly"][0]), mark(ins["wow_pct"])])
+    for app, s in ((facts.get("appstore") or {}).get("apps") or {}).items():
+        for k in ("downloads_total", "engagement_impression", "engagement_page_view"):
+            if k in s:
+                rows.append([f"App Store {asc_label(k)}", fmt(s[k]["weekly"][0]), mark(s[k]["wow_pct"])])
+    if rows:
+        out.append(f"## 📈 直近 7 日 ({w0['start'][5:].replace('-', '/')}〜{w0['end'][5:].replace('-', '/')})\n" + table(["", "7 日の合計", "前 7 日比"], rows))
+
+    # ---- 動画
+    vids = []
+    if dy.get("youtube_top_videos"):
+        vids.append("**この日よく再生された動画**\n" + "\n".join(
+            f"• {x['id'] or x['youtube_id']} {q(x.get('title') or '', 24)} — {fmt(x['views'])} 回 ({mark(x['vs_prev_day_pct'])})" for x in dy["youtube_top_videos"][:3]))
+    ranked = [v for v in sorted(facts["youtube"]["videos"], key=growth_key, reverse=True) if (v["growth"].get("d3_vs_median") or 0) > 1]
     if ranked:
         lines = []
         for v in ranked[:3]:
             g = v["growth"]
             hook = (v.get("content") or {}).get("hook_caption")
-            lines.append(f'• {v["id"] or v["youtube_id"]} 3日目 {fmt(g["views_d3"])} 回 (中央値の {g["d3_vs_median"]:.2f} 倍)' + (f'「{cut(hook, 20)}」' if hook else ""))
-        fields.append({"name": "伸びが上位の動画 (公開 3 日目で比較)", "value": cut("\n".join(lines), 1024), "inline": False})
+            lines.append(f"• {v['id'] or v['youtube_id']} — 公開 3 日目で {fmt(g['views_d3'])} 回 (全動画の中央値の {g['d3_vs_median']:.1f} 倍)" + (f" 「{q(hook, 20)}」" if hook else ""))
+        vids.append("**公開直後の伸びが大きい動画**\n" + "\n".join(lines))
+    if vids:
+        out.append("## 🎬 動画\n" + "\n".join(vids))
     if h.get("content_findings"):
-        lines = [f'• {cut(f["finding"], 150)}' + (" (参考値)" if f["reference_only"] else "") for f in h["content_findings"][:3]]
-        fields.append({"name": "投稿内容の気づき", "value": cut("\n".join(lines), 1024), "inline": False})
-    for pkg, s in facts["play"]["packages"].items():
-        ins = next((v for k, v in s.items() if "daily_user_installs" in k), None)
-        cr = s.get("vitals_crash_rate")
-        parts = []
-        if ins:
-            parts.append(f"インストール (7 日) {fmt(ins['weekly'][0])} ({fmt_pct(ins['wow_pct'])})")
-        if cr:
-            parts.append(f"クラッシュ率 (7 日) {fmt(cr['weekly'][0], 4)}")
-        if parts:
-            fields.append({"name": cut(f"Play {pkg}", 256), "value": " / ".join(parts), "inline": False})
-    for app, s in ((facts.get("appstore") or {}).get("apps") or {}).items():
-        parts = [f"{asc_label(k)} (7 日) {fmt(s[k]['weekly'][0])} ({fmt_pct(s[k]['wow_pct'])})"
-                 for k in ("downloads_total", "engagement_impression", "engagement_page_view") if k in s]
-        if parts:
-            fields.append({"name": "App Store", "value": cut(" / ".join(parts), 1024), "inline": False})
-    if h.get("alerts"):
-        fields.append({"name": "🔔 要確認", "value": cut("\n".join(f"• {a['text']}" for a in h["alerts"]), 1024), "inline": False})
-    need = [p for p in h.get("proposals", []) if p["needs_human_approval"]]
+        out.append("## 🔍 投稿内容の気づき\n" + "\n".join(
+            f"• {q(f['finding'], 160)}" + ("(参考値)" if f["reference_only"] else "") for f in h["content_findings"][:3]))
+
+    # ---- 提案
     props = h.get("proposals", [])
     if props:
-        lines = [f"提案 {len(props)} 件 / 自動で実行してよい {sum(p['auto_executable'] for p in props)} 件 / 人の承認が要る {len(need)} 件"]
-        lines += [f"• {p['id']} {cut(p['action'], 120)}" for p in need[:5]]
-        fields.append({"name": "提案", "value": cut("\n".join(lines), 1024), "inline": False})
-    bad = [f"{s}: {STATE_JA.get(v.get('state'), v.get('state'))}" for s, v in facts.get("status", {}).items() if v.get("state") != "ok"]
-    if bad:
-        fields.append({"name": "データの状態", "value": cut("\n".join(bad), 1024), "inline": False})
-    title = f"{'🔔' if st == 'attention' else '✅'} PARRY BREAK 日次レポート {dy.get('date', w0['end'])}"
-    em = {"title": cut(title, 256), "description": cut("\n".join(desc) or f"対象日 {day_name}", 4000),
-          "color": COLOR.get(st, COLOR["ok"]), "fields": fields[:25],
-          "footer": {"text": f"対象日 {dy.get('date', w0['end'])} (取得日の 2 日前・速報値) ・ 直近 7 日 {w0['start']} 〜 {w0['end']} ・ 詳細は添付の HTML"}}
+        need = [p for p in props if p["needs_human_approval"]]
+        lines = [f"• `{p['id']}` {q(p['action'], 110)}" + ("  ※承認待ち" if p["needs_human_approval"] else "") for p in props[:5]]
+        out.append(f"## 💡 提案 {len(props)} 件(承認が要る: {len(need)} 件)\n" + "\n".join(lines))
+
+    # ---- データの状態
+    bad = [f"• {s}: {STATE_JA.get(v.get('state'), v.get('state'))}" for s, v in facts.get("status", {}).items() if v.get("state") != "ok"]
+    notes = [f"• {q(x, 160)}" for x in h.get("data_quality", [])[:4]]
+    if bad or notes:
+        out.append("## 🗂 データの状態\n" + "\n".join(bad + notes))
     if run_url:
-        em["url"] = run_url
-    return em
+        out.append(f"[実行ログ]({run_url})")
+    desc = "\n\n".join(out)
+    while len(desc) > 4000 and len(out) > 3:  # 長すぎるときは、後ろの節から落とす (先頭の状態と数字を残す)
+        out.pop(-2 if run_url else -1)
+        desc = "\n\n".join(out)
+    title = f"{'🔔' if st == 'attention' else '✅'} PARRY BREAK 日次レポート {date}"
+    return {"title": cut(title, 256), "description": cut(desc, 4096), "color": COLOR.get(st, COLOR["ok"]),
+            "footer": {"text": "対象日は取得日の 2 日前"}}
+
+
+PLAY_LABELS = {"installs_daily_user_installs": "インストール", "vitals_crash_rate": "クラッシュ率"}
 
 
 def webhook():

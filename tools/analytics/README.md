@@ -12,7 +12,7 @@
 | `prompt.md` | 分析をする Claude への指示 |
 | `extract.py` | claude-code-action の実行記録から、返答の JSON を取り出す |
 | `validate.py` | 提案を規則で検証して、引き渡し(`handoff.json`)を作る |
-| `report.py` | HTML を作る / Discord に送る(embed + HTML 添付)/ 失敗を知らせる |
+| `report.py` | Discord に送る(Markdown のメッセージ)/ 保存用の HTML を作る / 失敗を知らせる |
 | `exp.py` | 実験の記録(作業セッションが使う) |
 
 ```sh
