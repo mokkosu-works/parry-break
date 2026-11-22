@@ -162,8 +162,8 @@
           "x": 440,
           "y": 930,
           "width": 470,
-          "height": 309,
-          "src": "../../assets/text/shorts-modes/momoka_hook_bubble_1.png",
+          "height": 308,
+          "src": "../../assets/text/shorts-modes/momoka_hook2_bubble_1.png",
           "opacity": 1,
           "resample": "lanczos"
         },
@@ -667,7 +667,7 @@
           "y": 547,
           "width": 383,
           "height": 250,
-          "src": "../../assets/text/shorts-modes/momoka_mode01_bubble_4.png",
+          "src": "../../assets/text/shorts-modes/momoka_hook2_bubble_4.png",
           "opacity": 1,
           "resample": "lanczos"
         },

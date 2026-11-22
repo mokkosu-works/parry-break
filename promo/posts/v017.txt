@@ -14,8 +14,8 @@
 === 管理 ===
 管理ID: v017
 YouTube のタグ欄に入れる: v017
-動画ファイル: promo/build/out/momoka-modes-hook-e001.mp4(24 秒)
+動画ファイル: promo/build/out/momoka-modes-hook-e002.mp4(24 秒)
 構成: promo/editor/projects/momoka-modes-hook.json
 組にする通常尺: l007(https://youtu.be/2RdfeQBqQsM、19:00)。同じ日に l007 を先に公開し、YouTube Studio で、このショートの「関連動画」に l007 を設定する(締めの台詞「関連動画も見てね！」の先)。
 冒頭: デイリーの録画 long-daily-momoka-daily-20261119-01 の 39.6 秒〜(24 ラウンド目の JUST → 爆発 → COLLAPSE ×18)。ゲームの音は冒頭だけ 3 倍。v014 の型どおり。
-YouTube: https://www.youtube.com/shorts/aECVxwgPHu4(2026-11-24 19:30 に予約公開)
+YouTube: https://www.youtube.com/shorts/ZnP0cMAEZlQ(2026-11-24 19:30 に予約公開)
