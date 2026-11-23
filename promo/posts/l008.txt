@@ -1,0 +1,45 @@
+=== YouTube ===
+[タイトル]
+星を3つ集めよう！ステージの進め方【PARRY BREAK】
+
+[説明文]
+当たる瞬間にタップして、弾を打ち返すブロック崩し「PARRY BREAK」。
+今回はステージ。1 章に 10 ステージずつ並び、今は 6 章まであります。目標はステージごとにちがい、ブロックを全部壊すほか、点数を集める面や、決まった時間を耐える面もあります。クリアで星ひとつ、あとの 2 つはステージごとの課題です。難易度は EASY・NORMAL・HARD から選べます。ワカナが案内します。
+無料です。
+
+▼ダウンロード
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+ストアで「PARRY BREAK」を検索しても見つかります。
+
+▼チャプター
+0:00 オープニング
+0:09 01 ステージの進め方
+0:28 02 まずは目標から
+0:54 03 星を3つ
+1:21 04 難易度
+1:37 エンディング
+
+ナビ: ワカナ (Mokkosu Works)
+※ゲーム画面は自動プレイ映像です。
+音声: AivisSpeech: まい
+
+#PARRYBREAK #パリィブレイク #ブロック崩し #ドット絵 #インディーゲーム #ゲーム紹介 #ステージ
+
+[固定コメント]
+PARRY BREAK は無料で遊べます！
+Google Play: https://play.google.com/store/apps/details?id=com.watsuwo.parrybreak
+App Store: https://apps.apple.com/jp/app/id6819052466
+
+[終了画面(YouTube Studio で設定)]
+- 右半分の上: 動画「最新のアップロード」
+- 右半分の下: チャンネル登録
+- 表示は最後の 20 秒(1:37〜)。動画の右半分は、このために空けてある。
+
+=== 管理 ===
+管理ID: l008
+YouTube のタグ欄に入れる: l008
+動画ファイル: promo/build/out/wakana-full-e002/full.mp4(1 分 58 秒、1920×1080、BGM 入り)
+構成: promo/longform/projects/wakana-full-v01.json、絵コンテ: promo/design/longform-wakana-storyboard-v01.md
+組にするショート: v018(19:30)。YouTube Studio で、v018 の「関連動画」にこの動画を設定し、この動画の終了画面を設定する。
+公開日: 未定(本人が決める)。19:00。
