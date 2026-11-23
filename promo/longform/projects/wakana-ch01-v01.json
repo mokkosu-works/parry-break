@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "profile": "wakana",
+  "duration": 17.5,
+  "note": "通常尺 01 ステージの進め方の本編。1-8 の録画(1.6.0)2.4〜8.9 秒(タイトルの STAGES → ステージ選択、1章の10ステージ)→ 8.9〜19.9 秒(STAGE 1-8 の帯 → プレイ)。台詞は絵コンテ v01 の #3・#4。本人の確認待ち。 ステージ選択の画面の区間は、右上の EASY / NORMAL / HARD にタグが重なるので、タグを出さない (\"tag\": null)。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s18-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s18-just-01/events.json",
+      "start": 2.4,
+      "duration": 6.5,
+      "logo": false,
+      "autoplay": false,
+      "tag": null
+    },
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s18-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s18-just-01/events.json",
+      "start": 8.9,
+      "duration": 11.0
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.5,
+      "kind": "explanation",
+      "text": "ステージは、1章に10ずつ並んでいるの。今は、6章まであるのよ。",
+      "expression": "explain"
+    },
+    {
+      "start": 8.0,
+      "kind": "explanation",
+      "text": "1回が短いから、少しずつ進められるの。疲れたら、ひと息ついてね。",
+      "expression": "normal"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "profile": "wakana",
+  "duration": 15.5,
+  "note": "通常尺 04 難易度の本編。HARD の録画(1.6.0)4.0〜10.0 秒(ステージ選択の右上で NORMAL → HARD、1-4 を選ぶ)→ 12.0〜21.5 秒(HARD の 1-4 のプレイ、弾が 3 回撃たれる)。#15 は仮の映像を HARD に差し替え、自動プレイは弾を打ち返さないので「まとめて打ち返せる」を外した。台詞は絵コンテ v01 の #14・#15。本人の確認待ち。 ステージ選択の画面の区間は、右上の EASY / NORMAL / HARD にタグが重なるので、タグを出さない (\"tag\": null)。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s14-hard-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s14-hard-01/events.json",
+      "start": 4.0,
+      "duration": 6.0,
+      "logo": false,
+      "autoplay": false,
+      "tag": null
+    },
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s14-hard-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s14-hard-01/events.json",
+      "start": 12.0,
+      "duration": 9.5
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.4,
+      "kind": "explanation",
+      "text": "右上で、EASY、NORMAL、HARD から選べるの。",
+      "expression": "explain"
+    },
+    {
+      "start": 6.2,
+      "kind": "explanation",
+      "text": "HARD は、弾がたくさん出るの。自分に合うところから、どうぞ。",
+      "expression": "normal"
+    }
+  ]
+}

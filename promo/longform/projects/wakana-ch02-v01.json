@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "profile": "wakana",
+  "duration": 22.9,
+  "note": "通常尺 02 まずは目標からの本編。1-8 の録画 3.4〜6.8 秒と 1-7 の録画 4.0〜6.8 秒(どちらもステージ選択の 1-1 の欄、目標「ブロックをすべて壊す」)→ 1-7 の録画 6.8〜10.6 秒(スコアラッシュの欄 → 帯)→ 1-8 の録画 6.8〜11.2 秒(防衛線を死守せよの欄 → 帯)→ ミツバの 1-1 の録画 11.5〜20.0 秒(持ちネタ)。#7 の仮の映像を 1-7・1-8 に差し替えた。音を確かめた記録のない mstage_v151 は使わない。台詞は絵コンテ v01 の #6〜#8。本人の確認待ち。 ステージ選択の画面の区間は、右上の EASY / NORMAL / HARD にタグが重なるので、タグを出さない (\"tag\": null)。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s18-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s18-just-01/events.json",
+      "start": 3.4,
+      "duration": 3.4,
+      "logo": false,
+      "autoplay": false,
+      "tag": null
+    },
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s17-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s17-just-01/events.json",
+      "start": 4.0,
+      "duration": 2.8,
+      "logo": false,
+      "autoplay": false,
+      "tag": null
+    },
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s17-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s17-just-01/events.json",
+      "start": 6.8,
+      "duration": 3.8,
+      "logo": false,
+      "autoplay": false,
+      "tag": null
+    },
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s18-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s18-just-01/events.json",
+      "start": 6.8,
+      "duration": 4.4,
+      "logo": false,
+      "autoplay": false,
+      "tag": null
+    },
+    {
+      "source": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-mitsuba-s11-just-check01/events.json",
+      "start": 11.5,
+      "duration": 8.5
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.2,
+      "kind": "explanation",
+      "text": "始める前に、目標の欄を見てね。たいていは、ブロックを全部壊すこと。",
+      "expression": "explain"
+    },
+    {
+      "start": 7.7,
+      "kind": "explanation",
+      "text": "でも、点数を集めるステージや、決まった時間、耐えるステージもあるの。",
+      "expression": "think"
+    },
+    {
+      "start": 15.2,
+      "kind": "chat",
+      "text": "この並び、うちのサボテンのトゲ子に似てる……。あ、ごめんなさい。続けましょう。",
+      "expression": "shy"
+    }
+  ]
+}

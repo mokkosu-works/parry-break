@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "profile": "wakana",
+  "duration": 23.2,
+  "note": "通常尺 03 星を3つの本編。1-7 の録画 31.6〜38.6 秒(結果画面、星2つ・ランク B。課題を1つ逃している)→ ミツバの 1-4 の録画 12.0〜20.0 秒(プレイ)→ 1-7 の録画 20.5〜28.7 秒(21.32 秒 FEVER、27.48 秒クリア。右にアカネのバストアップと「メンバー」の札)。絵コンテの星3つ・ランク S の画面は、音を確かめた記録のない mstage_v151 にしかないので使わない。台詞は絵コンテ v01 の #10〜#12。本人の確認待ち。",
+  "clips": [
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s17-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s17-just-01/events.json",
+      "start": 31.6,
+      "duration": 7.0,
+      "logo": false,
+      "autoplay": false
+    },
+    {
+      "source": "promo/capture/raw/long-stage-mitsuba-s14-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-mitsuba-s14-just-01/events.json",
+      "start": 12.0,
+      "duration": 8.0
+    },
+    {
+      "source": "promo/capture/raw/long-stage-wakana-s17-just-01/capture.mp4",
+      "events": "promo/capture/raw/long-stage-wakana-s17-just-01/events.json",
+      "start": 20.5,
+      "duration": 8.2,
+      "guest": "akane"
+    }
+  ],
+  "lines": [
+    {
+      "start": 0.5,
+      "kind": "explanation",
+      "text": "クリアで、星ひとつ。あとの二つは、そのステージごとの課題よ。",
+      "expression": "success"
+    },
+    {
+      "start": 7.6,
+      "kind": "explanation",
+      "text": "課題は、始める前の画面に書いてあるの。全部そろうと、ほっとするのよね。",
+      "expression": "focus"
+    },
+    {
+      "start": 15.4,
+      "kind": "chat",
+      "text": "時間の課題は、私も苦手なの。メンバーのアカネちゃんは、すぐ無理するけれど。",
+      "expression": "think"
+    }
+  ]
+}
