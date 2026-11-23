@@ -84,10 +84,32 @@ jobs:
             python3 collect.py run --root "$GITHUB_WORKSPACE/data"
           fi
 
+      # 動画の記録 (投稿内容) は動画制作のブランチにあり、dev には入れない。
+      # 記録と字幕の 2 か所だけを取る。ブランチが無ければ dev の promo/ を使う
+      - name: 動画の記録を取る (動画制作のブランチ)
+        id: promo
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ vars.PROMO_BRANCH || 'feature/promo-video-tools' }}
+          path: promo-src
+          sparse-checkout: |
+            promo/records
+            promo/build/specs
+          persist-credentials: false
+
       - name: 事実を作る (facts.json)
         working-directory: tools/analytics
+        env:
+          PROMO_OK: ${{ steps.promo.outcome == 'success' }}
         run: |
-          python3 facts.py --root "$GITHUB_WORKSPACE/data" --promo "$GITHUB_WORKSPACE/promo" --out "$GITHUB_WORKSPACE/work/facts.json"
+          promo="$GITHUB_WORKSPACE/promo"
+          if [ "$PROMO_OK" = true ] && [ -f "$GITHUB_WORKSPACE/promo-src/promo/records/videos.csv" ]; then
+            promo="$GITHUB_WORKSPACE/promo-src/promo"
+          else
+            echo "::warning::動画制作のブランチの記録を取れなかったので、dev の promo/ を使う"
+          fi
+          python3 facts.py --root "$GITHUB_WORKSPACE/data" --promo "$promo" --out "$GITHUB_WORKSPACE/work/facts.json"
           cp "$GITHUB_WORKSPACE/data/reports/latest.json" "$GITHUB_WORKSPACE/work/prev_handoff.json" 2>/dev/null || echo '"初回"' > "$GITHUB_WORKSPACE/work/prev_handoff.json"
           cp "$GITHUB_WORKSPACE/data/store/experiments.jsonl" "$GITHUB_WORKSPACE/work/experiments.jsonl" 2>/dev/null || echo '記録なし' > "$GITHUB_WORKSPACE/work/experiments.jsonl"
 
