@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "profile": "wakana",
+  "note": "ワカナの通常尺(ステージの紹介)の完成版の構成。絵コンテは design/longform-wakana-storyboard-v01.md。本編 4 章は 2026-11-24 に本人確認済み(「良さそう」)。エンディングの見出しはシズクの版の縁をワカナの色 (26,70,4) に塗り替えた(recolor.py)。間はほかの 4 人の回と同じ。BGM はまだ(BGM なしで e001)。",
+  "opening": {
+    "duration": 12,
+    "heading": "wakana-opening-v01.png",
+    "lines": [
+      {
+        "start": 0.8,
+        "text": "ワカナです。"
+      },
+      {
+        "start": 2.4,
+        "text": "今日は、ステージ。ひとつずつ、ゆっくり見ていきましょうね。"
+      }
+    ]
+  },
+  "chapters": [
+    {
+      "title": "ステージの進め方",
+      "heading": "wakana-ch01-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/wakana-ch01-v01.json",
+          "render": "promo/build/out/wakana-ch01-e001"
+        }
+      ],
+      "line": {
+        "text": "ステージの進め方。"
+      }
+    },
+    {
+      "title": "まずは目標から",
+      "heading": "wakana-ch02-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/wakana-ch02-v01.json",
+          "render": "promo/build/out/wakana-ch02-e001"
+        }
+      ],
+      "line": {
+        "text": "まずは目標から。"
+      }
+    },
+    {
+      "title": "星を3つ",
+      "heading": "wakana-ch03-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/wakana-ch03-v01.json",
+          "render": "promo/build/out/wakana-ch03-e001"
+        }
+      ],
+      "line": {
+        "text": "星を3つ。"
+      }
+    },
+    {
+      "title": "難易度",
+      "heading": "wakana-ch04-v01.png",
+      "parts": [
+        {
+          "script": "promo/longform/projects/wakana-ch04-v01.json",
+          "render": "promo/build/out/wakana-ch04-e001"
+        }
+      ],
+      "line": {
+        "text": "難易度。"
+      }
+    }
+  ],
+  "ending": {
+    "duration": 20,
+    "heading": "wakana-ending-v01.png",
+    "lines": [
+      {
+        "start": 0.6,
+        "text": "ひとつずつ、一緒に進めましょう。"
+      },
+      {
+        "start": 4.5,
+        "text": "パリィブレイク。ストアで検索!"
+      }
+    ]
+  },
+  "gaps": {
+    "before_title": 1.5,
+    "after_title": 1.0,
+    "before_ending": 1.5,
+    "card_min": 2.5
+  }
+}
