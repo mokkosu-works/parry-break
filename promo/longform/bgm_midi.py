@@ -261,6 +261,58 @@ MOMOKA_POP = {
 
 SONGS["momoka-daily"] = MOMOKA_POP
 
+# ワカナの v01 (2026-11-24)。ミツバ (パッド・エレピ・鉄琴)・アカネ (ロック)・シズク (ローファイ)・
+# モモカ (ダンスポップ) と別の作り。「ひとつずつ、ゆっくり」の植物好きに合わせた穏やかなアコースティック:
+# 指で弾くギターの分散和音、シェイカーとサイドスティック、丸いベース、見せ場だけカリンバの旋律。
+# テンポ 88 で 1 小節 約 2.73 秒。区切りはできた本編 (wakana-full-e001、1 分 58 秒) の章に合わせる。
+FOLK_TRACKS = {
+    "drums": ("Percussion (shaker side stick soft kick)", 9),
+    "bass": ("Bass (warm round electric bass)", 0),
+    "guitar": ("Guitar (fingerpicked nylon or acoustic)", 1),
+    "lead": ("Lead (kalimba or marimba)", 2),
+}
+
+# (名前, ベースの根音, ギターの和音)。音はすべて D・E・G・A。Em7sus4 → Gadd9 → Dsus2 → Asus4 の響き。
+WAKANA_CHORDS = [
+    ("Em7sus4", 40, [52, 57, 62, 67]),
+    ("Gadd9", 43, [55, 62, 64, 69]),
+    ("Dsus2", 38, [50, 57, 62, 64]),
+    ("Asus4", 45, [57, 62, 64, 69]),
+]
+
+# 強さ: drums=light/normal/full、bass=light/normal、guitar=light/normal、lead=hook。
+WAKANA_SECTIONS = [
+    ("Opening", 4, {"drums:light", "bass:light", "guitar:light", "lead:hook"}),
+    ("01 How to play", 6, {"drums:light", "bass:light", "guitar:light"}),
+    ("02 Goals", 10, {"drums:normal", "bass:normal", "guitar:normal"}),
+    ("03 Three stars", 10, {"drums:full", "bass:normal", "guitar:normal", "lead:hook"}),
+    ("04 Difficulty", 6, {"drums:normal", "bass:normal", "guitar:normal"}),
+    ("Ending", 7, {"drums:full", "bass:normal", "guitar:normal", "lead:hook"}),
+    ("Last chord", 2, {"last"}),
+]
+
+# wakana-full-e001 の場面の始まり (秒)。
+WAKANA_MARKERS = [
+    (0, "Opening"), (9.083, "01 How to play"), (28.333, "02 Goals"), (54.542, "03 Three stars"),
+    (81.0, "04 Difficulty"), (97.792, "Ending"), (117.792, "Video end"),
+]
+
+WAKANA_FOLK = {
+    "bpm": 88,
+    "style": "folk",
+    "tracks": FOLK_TRACKS,
+    "chords": WAKANA_CHORDS,
+    "sections": WAKANA_SECTIONS,
+    "markers": WAKANA_MARKERS,
+    # 2 小節のカリンバ (8 分音符の位置, 長さ (8 分), 音)。
+    "hook": [[(0, 2, 76), (2, 1, 79), (3, 1, 81), (4, 4, 79)],
+             [(0, 2, 74), (2, 2, 76), (4, 2, 69), (6, 2, 74)]],
+}
+
+SONGS["wakana-stage"] = WAKANA_FOLK
+
+SIDE_STICK, SHAKER, TAMBOURINE = 37, 70, 54
+
 # 版ごとに作りを変えた曲。(曲, 版) がここにあれば、SONGS より優先する。
 VERSIONS = {("akane-endless", 2): AKANE_ROCK}
 
@@ -646,8 +698,76 @@ def build_pop(song):
     return notes, bar_no
 
 
+def build_folk(song):
+    notes = {key: [] for key in song["tracks"]}
+
+    def note(track, step, length, pitch, vel, t0):
+        notes[track].append((t0 + step * STEP, length, pitch, vel))
+
+    chords = song["chords"]
+    arp = (0, 2, 1, 3, 2, 1, 3, 2)  # 8 分音符ごとに弾く和音の音 (下から何番目か)
+    bar_no = 0
+    for _name, bars, parts in song["sections"]:
+        level = {p.split(":")[0]: (p.split(":") + [""])[1] for p in parts}
+        for i in range(bars):
+            t0 = bar_no * BAR
+            _chord, root, voicing = chords[bar_no % len(chords)]
+            if "last" in level:
+                if i == 0:
+                    for k, p in enumerate(chords[0][2]):  # 最後の和音は下から少しずつ鳴らす
+                        note("guitar", k, BAR * bars - STEP * (k + 1), p, 64, t0)
+                    note("bass", 0, BAR * bars - STEP, chords[0][1], 72, t0)
+                    note("lead", 0, BAR * bars - STEP, 76, 56, t0)
+                bar_no += 1
+                continue
+
+            drums = level.get("drums")
+            if drums:
+                note("drums", 0, STEP, KICK, 62 if drums == "light" else 70, t0)
+                if drums != "light":
+                    note("drums", 8, STEP, KICK, 64, t0)
+                for st in (4, 12):
+                    note("drums", st, STEP, SIDE_STICK, 50 if drums == "light" else 60, t0)
+                shaker = range(0, 16, 2) if drums == "light" else range(16)
+                for st in shaker:
+                    note("drums", st, STEP // 2, SHAKER, 46 if st % 4 == 0 else 36, t0)
+                if drums == "full":
+                    for st in (4, 12):
+                        note("drums", st, STEP, TAMBOURINE, 44, t0)
+
+            bass = level.get("bass")
+            if bass == "light":
+                note("bass", 0, 12 * STEP, root, 64, t0)
+            elif bass == "normal":
+                note("bass", 0, 6 * STEP, root, 70, t0)
+                note("bass", 8, 4 * STEP, root, 62, t0)
+                note("bass", 14, 2 * STEP - 20, root + 12, 56, t0)
+
+            guitar = level.get("guitar")
+            if guitar:
+                for k, which in enumerate(arp):
+                    if guitar == "light" and k % 2:
+                        continue  # 台詞の多い章は 4 分音符だけ
+                    note("guitar", k * 2, STEP * 4 if guitar == "light" else STEP * 3, voicing[which],
+                         58 if k == 0 else 48, t0)
+
+            if level.get("lead") == "hook":
+                for s8, length, p in song["hook"][i % 2]:
+                    note("lead", s8 * 2, length * 2 * STEP - 30, p, 58, t0)
+
+            bar_no += 1
+
+    for key, items in notes.items():
+        if key == "drums":
+            continue
+        for _, _, pitch, _ in items:
+            if pitch % 12 not in SAFE_PITCH_CLASSES:
+                raise SystemExit(f"{key} に D・E・G・A 以外の音 ({pitch}) がある")
+    return notes, bar_no
+
+
 def write(song, path):
-    notes, bars = {"rock": build_rock, "lofi": build_lofi, "pop": build_pop}.get(song.get("style"), build)(song)
+    notes, bars = {"rock": build_rock, "lofi": build_lofi, "pop": build_pop, "folk": build_folk}.get(song.get("style"), build)(song)
     bpm = song["bpm"]
     tempo_track = [
         (0, 0, meta(0x03, b"Tempo and markers")),
