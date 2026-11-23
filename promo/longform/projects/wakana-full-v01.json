@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "profile": "wakana",
-  "note": "ワカナの通常尺(ステージの紹介)の完成版の構成。絵コンテは design/longform-wakana-storyboard-v01.md。本編 4 章は 2026-11-24 に本人確認済み(「良さそう」)。エンディングの見出しはシズクの版の縁をワカナの色 (26,70,4) に塗り替えた(recolor.py)。間はほかの 4 人の回と同じ。BGM はまだ(BGM なしで e001)。",
+  "note": "ワカナの通常尺(ステージの紹介)の完成版の構成。絵コンテは design/longform-wakana-storyboard-v01.md。本編 4 章は 2026-11-24 に本人確認済み(「良さそう」)。エンディングの見出しはシズクの版の縁をワカナの色 (26,70,4) に塗り替えた(recolor.py)。間はほかの 4 人の回と同じ。BGM は wakana-stage-bgm-v01(穏やかなアコースティック。e001 は BGM なし)。-16.6 LUFS でモモカの曲より約 0.5dB 小さいので volume 0.20。",
   "opening": {
     "duration": 12,
     "heading": "wakana-opening-v01.png",
@@ -89,5 +89,12 @@
     "after_title": 1.0,
     "before_ending": 1.5,
     "card_min": 2.5
+  },
+  "bgm": {
+    "file": "promo/assets/bgm/wakana-stage-bgm-v01.flac",
+    "start": 0,
+    "volume": 0.2,
+    "fade_in": 0.5,
+    "fade_out": 2.0
   }
 }
