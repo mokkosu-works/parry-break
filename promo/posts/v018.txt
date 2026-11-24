@@ -4,7 +4,7 @@
 
 [説明文]
 当たる瞬間にタップして弾を打ち返す、ドット絵ブロック崩し。ステージは面ごとに目標がちがい、クリアで星ひとつ、あとの 2 つは面ごとの課題。無料。ストアで「PARRY BREAK」を検索。
-ステージの解説: (l008 の URL を入れる)
+ステージの解説: https://youtu.be/xqXV_Z8NSMs
 ナビ: ワカナ (Mokkosu Works)
 音声: AivisSpeech: まい
 ※ゲーム画面は自動プレイ映像です。
@@ -16,6 +16,6 @@
 YouTube のタグ欄に入れる: v018
 動画ファイル: promo/build/out/wakana-modes-hook-e002.mp4(24 秒)
 構成: promo/editor/projects/wakana-modes-hook.json
-組にする通常尺: l008(19:00)。同じ日に l008 を先に公開し、YouTube Studio で、このショートの「関連動画」に l008 を設定する(締めの台詞「関連動画も見てね！」の先)。
+組にする通常尺: l008(https://youtu.be/xqXV_Z8NSMs、19:00)。同じ日に l008 を先に公開し、YouTube Studio で、このショートの「関連動画」に l008 を設定する(締めの台詞「関連動画も見てね！」の先)。
 冒頭: ステージ 1-8 の録画 long-stage-wakana-s18-just-01 の 22.3 秒〜(COLLAPSE ×6 → JUST → COLLAPSE ×4)。ゲームの音は冒頭だけ 2.8 倍、ほかの場面は 0.35。v014 の型どおりで、基本の型(4 モードの案内)の最後の 1 本。
-公開日: 未定(本人が決める)。19:30。
+YouTube: https://www.youtube.com/shorts/n_F46L83Oeg(2026-11-25 19:30 に予約公開)
